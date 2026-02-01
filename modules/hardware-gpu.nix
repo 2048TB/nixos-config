@@ -13,11 +13,12 @@ let
   isNvidia = gpuChoice == "nvidia";
   isAmd = gpuChoice == "amd";
   isNone = gpuChoice == "none";
+  # "auto" 不应出现在实际配置中（安装脚本已修复），但为向后兼容保留
+  # 如果是 "auto" 或其他未知值，使用安全的通用 modesetting 驱动
   videoDrivers =
-    if isAmd then [ "amdgpu" ]
-    else if isNone then [ "modesetting" ]
-    else if isNvidia then [ "nvidia" ]
-    else [ "amdgpu" "modesetting" ];
+    if isNvidia then [ "nvidia" ]
+    else if isAmd then [ "amdgpu" ]
+    else [ "modesetting" ];  # none、auto 或其他值都使用通用驱动
 in
 {
   # Base graphics setup (Wayland + Xwayland)

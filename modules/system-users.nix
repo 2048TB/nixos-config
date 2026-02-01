@@ -27,4 +27,14 @@
   ];
   users.defaultUserShell = pkgs.zsh;
   programs.zsh.enable = true;
+
+  # 首次启动时修复 /persistent/home 权限（由于安装脚本使用硬编码 UID）
+  system.activationScripts.fixPersistentHomePerms = {
+    text = ''
+      if [ -d /persistent/home/${myvars.username} ]; then
+        chown -R ${myvars.username}:${myvars.username} /persistent/home/${myvars.username} || true
+      fi
+    '';
+    deps = [ "users" ];
+  };
 }

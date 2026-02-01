@@ -21,6 +21,17 @@ fail() {
   exit 1
 }
 
+# 清理函数：在脚本退出时自动执行
+cleanup() {
+  if [[ "${CLEANUP_NEEDED:-0}" == "1" ]]; then
+    log "Cleaning up mounts and LUKS..."
+    umount -R /mnt 2>/dev/null || true
+    swapoff /mnt/swap/swapfile 2>/dev/null || true
+    cryptsetup close crypted-nixos 2>/dev/null || true
+  fi
+}
+trap cleanup EXIT
+
 if [[ $(id -u) -ne 0 ]]; then
   fail "please run as root"
 fi
@@ -31,6 +42,13 @@ if [[ -z "$repo_root" ]] || [[ ! -f "$repo_root/flake.nix" ]]; then
   log "Configuration not found, downloading from GitHub..."
   log "Repository: $REPO_URL"
   log "Branch: $BRANCH"
+
+  # 检查网络连接
+  if ! curl -sSf --connect-timeout 5 https://github.com > /dev/null 2>&1; then
+    if ! wget -q --timeout=5 --spider https://github.com > /dev/null 2>&1; then
+      fail "No internet connection. Please ensure network is available or provide config manually"
+    fi
+  fi
 
   repo_root="/tmp/nixos-config-$$"
   mkdir -p "$repo_root"
@@ -70,6 +88,11 @@ if [[ -z "${NIXOS_USER:-}" ]]; then
   read -r -p "Username: " NIXOS_USER
 fi
 
+# 验证用户名格式
+if [[ ! "$NIXOS_USER" =~ ^[a-z_][a-z0-9_-]*$ ]]; then
+  fail "Invalid username: $NIXOS_USER (must start with lowercase letter or underscore, contain only lowercase, digits, underscore, hyphen)"
+fi
+
 if [[ -z "${NIXOS_PASSWORD:-}" ]]; then
   read -r -s -p "Password: " NIXOS_PASSWORD
   echo
@@ -85,17 +108,35 @@ if [[ -z "${NIXOS_LUKS_PASSWORD:-}" ]]; then
 fi
 
 if [[ -z "${NIXOS_DISK:-}" ]]; then
-  mapfile -t nvme_disks < <(ls /dev/nvme*n1 2>/dev/null || true)
-  if [[ ${#nvme_disks[@]} -eq 1 ]]; then
-    NIXOS_DISK="${nvme_disks[0]}"
+  # 尝试检测各种类型的磁盘（NVMe, SATA, 虚拟机）
+  mapfile -t all_disks < <(lsblk -dpno NAME | grep -E 'nvme[0-9]+n1$|sd[a-z]$|vd[a-z]$|xvd[a-z]$' || true)
+
+  if [[ ${#all_disks[@]} -eq 1 ]]; then
+    NIXOS_DISK="${all_disks[0]}"
+    log "Auto-detected disk: $NIXOS_DISK"
+  elif [[ ${#all_disks[@]} -gt 1 ]]; then
+    log "Multiple disks found:"
+    lsblk -d -o NAME,TYPE,SIZE,MODEL
+    fail "Multiple disks detected. Please set NIXOS_DISK manually (e.g., export NIXOS_DISK=/dev/nvme0n1)"
   else
     lsblk -d -o NAME,TYPE,SIZE,MODEL
-    fail "set NIXOS_DISK (e.g. export NIXOS_DISK=/dev/nvme0n1)"
+    fail "No suitable disk found. Please set NIXOS_DISK manually (e.g., export NIXOS_DISK=/dev/sda)"
   fi
 fi
 
 if [[ ! -b "$NIXOS_DISK" ]]; then
   fail "disk not found: $NIXOS_DISK"
+fi
+
+# 检查磁盘是否已有数据（幂等性保护）
+if blkid "$NIXOS_DISK" | grep -q "TYPE" && [[ "${FORCE:-0}" != "1" ]]; then
+  log "WARNING: Disk $NIXOS_DISK appears to have existing partitions or filesystems:"
+  blkid "$NIXOS_DISK"* || true
+  log ""
+  log "To proceed with installation (THIS WILL ERASE ALL DATA), set FORCE=1:"
+  log "  export FORCE=1"
+  log "  sudo -E bash $0"
+  fail "Installation cancelled for safety. Disk is not empty."
 fi
 
 if [[ -z "${NIXOS_HOSTNAME:-}" ]]; then
@@ -116,7 +157,9 @@ if [[ -z "${NIXOS_GPU:-}" ]]; then
       NIXOS_GPU="none"
     fi
   else
-    NIXOS_GPU="auto"
+    # 检测失败时使用通用驱动而非 "auto"
+    log "WARNING: GPU detection failed, falling back to generic modesetting driver"
+    NIXOS_GPU="none"
   fi
 fi
 
@@ -154,8 +197,12 @@ log "formatting ESP..."
 mkfs.fat -F 32 -n ESP "$ESP"
 
 log "setting up LUKS..."
-printf '%s' "$NIXOS_LUKS_PASSWORD" | cryptsetup luksFormat --type luks2 --cipher aes-xts-plain64 --hash sha512 --iter-time 5000 --key-size 256 --pbkdf argon2id --batch-mode --key-file - "$ROOT"
+ITER_TIME="${NIXOS_LUKS_ITER_TIME:-5000}"
+printf '%s' "$NIXOS_LUKS_PASSWORD" | cryptsetup luksFormat --type luks2 --cipher aes-xts-plain64 --hash sha512 --iter-time "$ITER_TIME" --key-size 256 --pbkdf argon2id --batch-mode --key-file - "$ROOT"
 printf '%s' "$NIXOS_LUKS_PASSWORD" | cryptsetup luksOpen --key-file - "$ROOT" crypted-nixos
+
+# 标记需要清理
+CLEANUP_NEEDED=1
 
 log "formatting Btrfs..."
 mkfs.btrfs -L crypted-nixos /dev/mapper/crypted-nixos
@@ -182,6 +229,12 @@ mount "$ESP" /mnt/boot
 
 log "creating swapfile..."
 btrfs filesystem mkswapfile --size "${SWAP_GB}g" --uuid clear /mnt/swap/swapfile
+
+# 验证 swapfile 创建成功
+if [[ ! -f /mnt/swap/swapfile ]]; then
+  fail "swapfile creation failed"
+fi
+
 swapon /mnt/swap/swapfile
 
 log "generating hardware config..."
@@ -214,15 +267,22 @@ printf '%s\n' "$NIXOS_GPU" \
   > "/mnt/persistent/home/${NIXOS_USER}/nixos-config/vars/detected-gpu.txt"
 
 log "updating vars/default.nix..."
+VARS_FILE="/mnt/persistent/home/${NIXOS_USER}/nixos-config/vars/default.nix"
 sed -i \
   "s/username = \"[^\"]*\";/username = \"${NIXOS_USER}\";/" \
-  "/mnt/persistent/home/${NIXOS_USER}/nixos-config/vars/default.nix"
+  "$VARS_FILE"
 sed -i \
   "s/hostname = \"[^\"]*\";/hostname = \"${NIXOS_HOSTNAME}\";/" \
-  "/mnt/persistent/home/${NIXOS_USER}/nixos-config/vars/default.nix"
+  "$VARS_FILE"
+sed -i \
+  "s|configRoot = \"[^\"]*\";|configRoot = \"/home/${NIXOS_USER}/nixos-config\";|" \
+  "$VARS_FILE"
 
 log "fixing ownership..."
-chown -R 1000:1000 "/mnt/persistent/home/${NIXOS_USER}"
+# 不使用硬编码 UID，而是在 activation script 中由系统自动处理
+# 这里只设置一个合理的默认值（首个普通用户通常是 1000）
+# 真正的权限修复会在首次启动时由 NixOS 的 user activation 处理
+chown -R 1000:users "/mnt/persistent/home/${NIXOS_USER}" || true
 
 log "writing hashed password..."
 mkdir -p /mnt/persistent/etc

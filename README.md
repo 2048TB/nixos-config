@@ -1,110 +1,365 @@
 # NixOS Desktop (Niri + Home Manager)
 
-本配置基于 `nix-config-main` 的思路整理为可从 ISO 启动/安装的最小桌面方案，包含：
+一键安装、全自动硬件适配的 NixOS 桌面配置，包含：
 
-- Niri Wayland + Home Manager
-- 开发工具链：Rust / Zig / Go / Node.js / Python
-- 游戏支持：Steam / Proton / Wine
-- 中文输入：Fcitx5 + Rime（小鹤音形，默认 schema: double_pinyin_flypy）
-- impermanence/tmpfs 根分区 + 持久化（/persistent）
-- 安全：AppArmor + nixpaks 沙箱 + Secure Boot（lanzaboote）
-- 应用：Chrome / Telegram(nixpaks) / Noctalia Shell / Vicinae / Ghostty
+- **桌面环境**: Niri Wayland + Home Manager + Noctalia Shell
+- **开发工具链**: Rust / Zig / Go / Node.js / Python
+- **游戏支持**: Steam / Proton-GE / Wine / Lutris
+- **中文输入**: Fcitx5 + Rime（小鹤音形 + 双拼）
+- **存储方案**: tmpfs 根分区 + Btrfs + LUKS 全盘加密 + preservation 持久化
+- **安全加固**: AppArmor + nixpak 沙箱 + Secure Boot 支持
+- **应用软件**: Chrome / Telegram / Ghostty / MPV
 
-## 重要路径约定
+---
 
-Home Manager 会从 `~/nixos-config` 读取配置文件：
+## 🚀 一键安装
+
+### 方式 1: 从 ISO 启动（推荐）
+
+1. 构建 ISO（在开发机上）：
+   ```bash
+   nix build .#nixos-cconfig-iso
+   dd if=result/iso/nixos-*.iso of=/dev/sdX bs=4M status=progress
+   ```
+
+2. 从 U 盘启动进入 Live 环境后运行：
+   ```bash
+   sudo bash <(curl -sSL https://raw.githubusercontent.com/YOUR_USERNAME/nixos-config/main/scripts/auto-install.sh)
+   ```
+
+### 方式 2: 已有 NixOS Live ISO
+
+```bash
+# 克隆配置
+git clone https://github.com/YOUR_USERNAME/nixos-config ~/nixos-config
+cd ~/nixos-config
+
+# 运行安装脚本
+sudo ./scripts/auto-install.sh
+```
+
+### 方式 3: 使用环境变量（无交互安装）
+
+```bash
+export NIXOS_USER="myname"
+export NIXOS_PASSWORD="mypassword"
+export NIXOS_LUKS_PASSWORD="lukspassword"
+export NIXOS_DISK="/dev/nvme0n1"
+export NIXOS_HOSTNAME="my-nixos"
+export NIXOS_GPU="nvidia"  # 或 amd/none
+export NIXOS_SWAP_SIZE_GB="64"
+
+sudo -E ./scripts/auto-install.sh
+```
+
+---
+
+## ⚙️ 安装流程说明
+
+### 自动检测与配置
+
+安装脚本会自动：
+- ✅ 检测磁盘（支持 NVMe / SATA / 虚拟机）
+- ✅ 检测 GPU（NVIDIA / AMD / 通用驱动）
+- ✅ 检测网络连接
+- ✅ 验证用户名格式
+- ✅ 生成硬件配置 (`hardware-configuration.nix`)
+- ✅ 更新用户变量 (`vars/default.nix`)
+
+### 安全保护机制
+
+脚本包含多重安全检查：
+
+1. **磁盘保护**: 默认拒绝格式化已有分区的磁盘
+   ```bash
+   # 强制安装需要显式设置
+   export FORCE=1
+   sudo -E ./scripts/auto-install.sh
+   ```
+
+2. **失败自动清理**: 安装失败时自动卸载挂载点和 LUKS 容器
+
+3. **用户名验证**: 只允许符合 Linux 规范的用户名
+
+4. **网络检查**: 安装前验证 GitHub 可访问性
+
+### 磁盘布局
 
 ```
-/home/<user>/nixos-config/home/
+/dev/nvme0n1
+├── nvme0n1p1  EFI (512MB, FAT32)
+└── nvme0n1p2  LUKS 加密容器
+    └── crypted-nixos (Btrfs)
+        ├── @root       → tmpfs (重启清空)
+        ├── @nix        → /nix
+        ├── @persistent → /persistent
+        ├── @snapshots  → /snapshots
+        ├── @tmp        → /tmp
+        └── @swap       → /swap (含 swapfile)
 ```
 
-如果你把仓库放在别的路径，需要在 `home/default.nix` 里修改 `repoRoot`。
+---
 
-## 需要手动调整的内容
+## 📝 环境变量完整列表
 
-1) **用户名**：默认 `nixos`，可通过环境变量 `NIXOS_USER` 配置（需要 `--impure`）。
+| 变量名 | 默认值 | 说明 |
+|--------|--------|------|
+| `NIXOS_USER` | (交互输入) | 用户名（必须符合 Linux 规范） |
+| `NIXOS_PASSWORD` | (交互输入) | 用户密码 |
+| `NIXOS_LUKS_PASSWORD` | 同用户密码 | LUKS 解密密码 |
+| `NIXOS_DISK` | 自动检测 | 目标磁盘（如 `/dev/sda`） |
+| `NIXOS_HOSTNAME` | `nixos-cconfig` | 主机名 |
+| `NIXOS_GPU` | 自动检测 | GPU 驱动 (`nvidia`/`amd`/`none`) |
+| `NIXOS_SWAP_SIZE_GB` | `32` | swapfile 大小（GB） |
+| `NIXOS_LUKS_ITER_TIME` | `5000` | LUKS 密钥派生时间（ms） |
+| `NIXOS_CONFIG_PATH` | `~/nixos-config` | 配置仓库路径（Home Manager） |
+| `FORCE` | `0` | 强制格式化已有分区（`1` 启用） |
 
-2) **硬件配置**：
-- 全自动脚本会用 `nixos-generate-config` 生成并覆盖
-  `hosts/nixos-cconfig/hardware-configuration.nix`。
-- 若手动安装，请替换 UUID 并确保单 NVMe：LUKS + Btrfs 子卷 + swapfile
-  （@root/@nix/@persistent/@snapshots/@tmp/@swap）。
-- `modules/storage-impermanence.nix` 会强制将 `/` 设为 tmpfs，并配置 swapfile。
+---
 
-3) **GPU 选择**：
-- 默认配置启用 `amdgpu+modesetting`，并提供 specialisation：
-  - `gpu-amd`
-  - `gpu-nvidia`
-  - `gpu-none`
-- 你可以在引导菜单中选择对应项（相当于“让我输入选择”）。
-- 也可通过环境变量 `NIXOS_GPU`（需 `--impure`）覆盖默认驱动。
-- 安装脚本会把检测结果写入 `vars/detected-gpu.txt` 作为默认值。
+## 🛠️ GPU 驱动配置
 
-4) **Rime 小鹤**：
-- 已自动注入 `default.custom.yaml`，默认启用 `double_pinyin_flypy`。
-- 如需自定义词库/配置，可把文件放到 `home/fcitx5/rime/` 并提交到仓库。
+### 自动检测规则
 
-5) **Noctalia 依赖**：
-- 按官方文档启用 NetworkManager、Bluetooth、UPower、电源管理守护进程。citeturn0search0
+1. 检测 `/sys/bus/pci/devices/*/vendor`
+   - `0x10de` → NVIDIA
+   - `0x1002` → AMD
 
-6) **Vicinae**：
-- 这里使用 nixpkgs 安装；若你想用官方脚本，可参考 Vicinae 文档。citeturn0search1
+2. fallback 到 `lspci` 解析
 
-## ISO 构建
+3. 检测失败 → 使用通用 `modesetting` 驱动
+
+### 运行时切换
+
+系统启动时可在 GRUB/systemd-boot 菜单选择：
+- `NixOS (gpu-nvidia)` - NVIDIA 专有驱动
+- `NixOS (gpu-amd)` - AMD 开源驱动
+- `NixOS (gpu-none)` - 通用 modesetting
+
+### 手动覆盖
+
+```bash
+# 方式 1: 修改检测结果文件
+echo "nvidia" > vars/detected-gpu.txt
+sudo nixos-rebuild switch --flake .#nixos-cconfig
+
+# 方式 2: 环境变量（需 --impure）
+NIXOS_GPU=amd sudo nixos-rebuild switch --impure --flake .#nixos-cconfig
+```
+
+---
+
+## 📂 配置路径约定
+
+Home Manager 默认从以下路径读取配置：
+
+```
+/home/<user>/nixos-config/
+```
+
+若仓库位置不同，通过环境变量指定：
+
+```bash
+export NIXOS_CONFIG_PATH=/path/to/your/repo
+```
+
+或修改 `vars/default.nix` 中的 `configRoot`（安装脚本会自动更新）。
+
+---
+
+## 🔧 手动安装步骤
+
+如果不使用自动脚本，参考以下流程：
+
+1. **分区和加密**:
+   ```bash
+   parted /dev/sda mklabel gpt
+   parted /dev/sda mkpart ESP fat32 2MiB 514MiB
+   parted /dev/sda set 1 esp on
+   parted /dev/sda mkpart primary 514MiB 100%
+
+   mkfs.fat -F 32 -n ESP /dev/sda1
+   cryptsetup luksFormat /dev/sda2
+   cryptsetup luksOpen /dev/sda2 crypted-nixos
+   ```
+
+2. **创建 Btrfs 子卷**:
+   ```bash
+   mkfs.btrfs /dev/mapper/crypted-nixos
+   mount /dev/mapper/crypted-nixos /mnt
+   btrfs subvolume create /mnt/@root
+   btrfs subvolume create /mnt/@nix
+   btrfs subvolume create /mnt/@persistent
+   btrfs subvolume create /mnt/@snapshots
+   btrfs subvolume create /mnt/@tmp
+   btrfs subvolume create /mnt/@swap
+   umount /mnt
+   ```
+
+3. **挂载子卷**:
+   ```bash
+   mount -o subvol=@root,compress-force=zstd:1,noatime /dev/mapper/crypted-nixos /mnt
+   mkdir -p /mnt/{nix,persistent,snapshots,tmp,swap,boot}
+   mount -o subvol=@nix,compress-force=zstd:1,noatime /dev/mapper/crypted-nixos /mnt/nix
+   mount -o subvol=@persistent,compress-force=zstd:1 /dev/mapper/crypted-nixos /mnt/persistent
+   mount -o subvol=@snapshots,compress-force=zstd:1,noatime /dev/mapper/crypted-nixos /mnt/snapshots
+   mount -o subvol=@tmp,compress-force=zstd:1 /dev/mapper/crypted-nixos /mnt/tmp
+   mount -o subvol=@swap /dev/mapper/crypted-nixos /mnt/swap
+   mount /dev/sda1 /mnt/boot
+   ```
+
+4. **创建 swapfile**:
+   ```bash
+   btrfs filesystem mkswapfile --size 32g --uuid clear /mnt/swap/swapfile
+   ```
+
+5. **生成并修改配置**:
+   ```bash
+   nixos-generate-config --root /mnt
+   # 复制 /mnt/etc/nixos/hardware-configuration.nix 到 hosts/nixos-cconfig/
+   ```
+
+6. **安装系统**:
+   ```bash
+   cd ~/nixos-config
+   NIXOS_GPU=nvidia nixos-install --impure --flake .#nixos-cconfig
+   ```
+
+---
+
+## 🔒 Secure Boot（lanzaboote）
+
+默认关闭，启用步骤：
+
+1. 安装系统后，生成密钥：
+   ```bash
+   sbctl create-keys
+   sbctl enroll-keys -m
+   ```
+
+2. 创建标记文件：
+   ```bash
+   sudo mkdir -p /etc/secureboot
+   ```
+
+3. 修改 `modules/system-boot.nix`（或在 host 配置中覆盖）：
+   ```nix
+   boot.lanzaboote.enable = true;
+   ```
+
+4. 重新构建系统：
+   ```bash
+   sudo nixos-rebuild switch --flake .#nixos-cconfig
+   ```
+
+---
+
+## 🐛 故障排查
+
+### 安装失败：磁盘已有分区
+
+```
+ERROR: Disk /dev/sda appears to have existing partitions
+```
+
+**解决方案**:
+```bash
+export FORCE=1
+sudo -E ./scripts/auto-install.sh
+```
+
+### GPU 检测错误
+
+手动指定 GPU 类型：
+```bash
+export NIXOS_GPU=amd
+sudo -E ./scripts/auto-install.sh
+```
+
+### 配置路径错误
+
+Home Manager 找不到配置文件：
+```bash
+# 检查实际路径
+ls -la ~/nixos-config/home/
+
+# 设置正确路径
+export NIXOS_CONFIG_PATH="$HOME/nixos-config"
+sudo nixos-rebuild switch --flake .#nixos-cconfig
+```
+
+### 首次启动权限问题
+
+系统会在第一次启动时自动修复 `/persistent/home` 的权限。如果仍有问题：
+```bash
+sudo chown -R $USER:$USER /persistent/home/$USER
+```
+
+---
+
+## 📦 ISO 构建
 
 ```bash
 nix build .#nixos-cconfig-iso
 ```
 
-生成的 ISO 在 `./result/iso/`。
+生成的 ISO 位于 `./result/iso/nixos-*.iso`。
 
-## 全自动安装（ISO 环境）
+---
 
-从 Live ISO 进入后：
+## 🧪 开发环境
 
 ```bash
-git clone <your-repo> ~/nixos-config
-cd ~/nixos-config
-sudo ./scripts/auto-install.sh
+nix develop
+
+# 可用命令：
+nix flake check        # 检查配置
+nixpkgs-fmt .          # 格式化代码
+statix check .         # 静态分析
+deadnix .              # 检测死代码
 ```
 
-仅需输入：用户名与密码（LUKS 密码默认与用户密码相同，可用环境变量覆盖）。
+---
 
-可选环境变量：
+## 📚 目录结构
 
-- `NIXOS_USER`：用户名
-- `NIXOS_PASSWORD`：用户密码
-- `NIXOS_LUKS_PASSWORD`：LUKS 密码（默认等于用户密码）
-- `NIXOS_DISK`：目标磁盘（如 `/dev/nvme0n1`，若系统只有一块 NVMe 会自动识别）
-- `NIXOS_HOSTNAME`：主机名（默认 `nixos-cconfig`）
-- `NIXOS_GPU`：GPU 选择（`nvidia`/`amd`/`none`，默认自动检测）
-- `NIXOS_SWAP_SIZE_GB`：swapfile 大小（默认 32）
+```
+.
+├── flake.nix                    # Flake 入口
+├── outputs/default.nix          # 输出定义
+├── hosts/nixos-cconfig/         # 主机配置
+│   ├── default.nix
+│   └── hardware-configuration.nix  # 安装时生成
+├── modules/                     # 功能模块
+│   ├── system.nix               # 系统基础
+│   ├── desktop.nix              # 桌面环境
+│   ├── hardware.nix             # 硬件支持
+│   ├── services.nix             # 系统服务
+│   └── storage.nix              # 存储配置
+├── home/                        # Home Manager 配置
+│   ├── default.nix
+│   ├── core/                    # 核心工具
+│   ├── gui/                     # GUI 应用
+│   ├── dev/                     # 开发环境
+│   └── niri/                    # Niri WM 配置
+├── scripts/                     # 工具脚本
+│   └── auto-install.sh          # 一键安装脚本
+├── vars/                        # 全局变量
+│   ├── default.nix
+│   └── detected-gpu.txt         # GPU 检测结果
+└── hardening/                   # 安全加固
+    ├── apparmor/
+    └── nixpaks/
+```
 
-脚本会自动分区、加密、创建 Btrfs 子卷、生成配置并安装系统。
-同时会自动检测 GPU（可用 `NIXOS_GPU` 覆盖）。
+---
 
-## 硬件自动适配流程（ISO 安装）
+## 🤝 贡献
 
-- 何时运行：`scripts/auto-install.sh` 在 Live ISO 中分区与 `nixos-install` 之前执行探测。
-- 产出结果：
-  - `hosts/<hostname>/hardware-configuration.nix`（来自 `nixos-generate-config`）
-  - `vars/detected-gpu.txt`（GPU 决策结果）
-  - `vars/default.nix`（写入 username/hostname）
-- flake 消费路径：
-  - `hosts/<hostname>/default.nix` 导入硬件配置与系统模块
-  - `modules/hardware-gpu.nix` 读取 `vars/detected-gpu.txt`（`NIXOS_GPU` + `--impure` 可覆盖）
+欢迎提交 Issue 和 Pull Request！
 
-## 安装步骤简述（单 NVMe）
+---
 
-- 分区：ESP + LUKS
-- 在 LUKS 之上创建 Btrfs + 子卷
-- 在 `@swap` 创建 swapfile
-- `nixos-generate-config --root /mnt` 后替换模板里的 UUID
-- `nixos-rebuild switch --flake .#nixos-cconfig`
+## 📄 许可证
 
-## Secure Boot（lanzaboote）
-
-- 默认关闭（避免影响 ISO 构建）。
-- 需要初始化 `/etc/secureboot`；可用 `sbctl` 生成/注册密钥。
-- 启用方式：在 `hosts/nixos-cconfig/default.nix` 将 `boot.lanzaboote.enable` 改为 `true`，
-  并确保系统已安装到磁盘。
+MIT License

@@ -1,7 +1,12 @@
 { config, lib, ... }:
 let
-  btrfsDevice = config.fileSystems."/nix".device;
- in
+  # 从 /nix 文件系统获取 Btrfs 设备路径
+  # 如果 hardware-configuration.nix 尚未生成，使用占位符
+  btrfsDevice =
+    if config.fileSystems ? "/nix" && config.fileSystems."/nix" ? device
+    then config.fileSystems."/nix".device
+    else "/dev/mapper/crypted-nixos";  # 默认值，安装后会被覆盖
+in
 {
   fileSystems."/" = lib.mkForce {
     device = "tmpfs";
@@ -12,6 +17,7 @@ let
     ];
   };
 
+  # swap 子卷：禁用 COW 和压缩以支持 swapfile
   fileSystems."/swap" = lib.mkForce {
     device = btrfsDevice;
     fsType = "btrfs";
