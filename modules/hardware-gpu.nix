@@ -19,6 +19,10 @@ let
     if isNvidia then [ "nvidia" ]
     else if isAmd then [ "amdgpu" ]
     else [ "modesetting" ];  # none、auto 或其他值都使用通用驱动
+
+  # 是否启用 GPU specialisation（启动菜单中切换驱动）
+  # 默认禁用以减少 ISO 体积和安装时间
+  enableGpuSpecialisation = builtins.getEnv "ENABLE_GPU_SPECIALISATION" == "1";
 in
 {
   # Base graphics setup (Wayland + Xwayland)
@@ -39,8 +43,10 @@ in
   };
   hardware.nvidia-container-toolkit.enable = lib.mkIf isNvidia true;
 
-  # 三种 GPU 变体：启动时在引导菜单中选择
-  specialisation = {
+  # GPU Specialisation：启动时在引导菜单中切换驱动
+  # 默认禁用以减少 ISO 体积（~500MB）和安装时间
+  # 启用方式：export ENABLE_GPU_SPECIALISATION=1
+  specialisation = lib.mkIf enableGpuSpecialisation {
     gpu-amd.configuration = {
       services.xserver.videoDrivers = [ "amdgpu" ];
     };

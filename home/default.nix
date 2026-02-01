@@ -95,8 +95,8 @@ in
     qemu_kvm
     mullvad-vpn
 
-    # nixpaks
-    nixpaks.telegram-desktop
+    # 通讯软件
+    telegram-desktop  # 使用官方二进制包（原 nixpaks.telegram-desktop 会触发 30 分钟编译）
   ];
 
   xdg.configFile = {

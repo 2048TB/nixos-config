@@ -1,4 +1,4 @@
-{ self, nixpkgs, home-manager, lanzaboote, nixpak, preservation, ... }@inputs:
+{ self, nixpkgs, home-manager, lanzaboote, preservation, ... }@inputs:
 let
   myvars = import ../vars;
   mylib = import ../lib { inherit (nixpkgs) lib; };
@@ -14,7 +14,7 @@ let
   };
 
   specialArgs = inputs // {
-    inherit myvars mylib mainUser nixpak preservation;
+    inherit myvars mylib mainUser preservation;
   };
 in
 {
@@ -24,7 +24,7 @@ in
     modules = [
       ../hosts/${myvars.hostname}
       ../hardening/apparmor
-      ../hardening/nixpaks
+      # ../hardening/nixpaks  # 已移除：nixpak telegram 会触发 30 分钟本地编译
       lanzaboote.nixosModules.lanzaboote
       home-manager.nixosModules.home-manager
       {
