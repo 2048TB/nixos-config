@@ -77,12 +77,21 @@ fi
 
 log "using configuration from: $repo_root"
 
-required_cmds=(parted mkfs.fat cryptsetup mkfs.btrfs btrfs nixos-generate-config nixos-install openssl)
+required_cmds=(parted mkfs.fat cryptsetup mkfs.btrfs btrfs nixos-generate-config nixos-install)
 for cmd in "${required_cmds[@]}"; do
   if ! command -v "$cmd" >/dev/null 2>&1; then
     fail "missing command: $cmd"
   fi
 done
+
+# 检查密码哈希工具（优先使用 mkpasswd，fallback 到 openssl）
+if command -v mkpasswd >/dev/null 2>&1; then
+  HASH_CMD="mkpasswd"
+elif command -v openssl >/dev/null 2>&1; then
+  HASH_CMD="openssl"
+else
+  fail "missing password hashing tool: install 'mkpasswd' or 'openssl'"
+fi
 
 if [[ -z "${NIXOS_USER:-}" ]]; then
   read -r -p "Username: " NIXOS_USER
@@ -286,7 +295,11 @@ chown -R 1000:users "/mnt/persistent/home/${NIXOS_USER}" || true
 
 log "writing hashed password..."
 mkdir -p /mnt/persistent/etc
-printf '%s' "$NIXOS_PASSWORD" | openssl passwd -6 -stdin > /mnt/persistent/etc/user-password
+if [[ "$HASH_CMD" == "mkpasswd" ]]; then
+  printf '%s' "$NIXOS_PASSWORD" | mkpasswd -m sha-512 -s > /mnt/persistent/etc/user-password
+else
+  printf '%s' "$NIXOS_PASSWORD" | openssl passwd -6 -stdin > /mnt/persistent/etc/user-password
+fi
 chmod 600 /mnt/persistent/etc/user-password
 
 log "installing NixOS..."
