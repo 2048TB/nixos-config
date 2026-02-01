@@ -1,0 +1,11 @@
+result
+result-*
+.direnv
+.envrc
+nix-config-main/
+niri-dotfiles.backup/
+*.tmp
+*.swp
+*~
+.DS_Store
+hosts/*/gpu-choice.txt
