@@ -2,14 +2,13 @@
 {
   imports = [
     ./hardware-configuration.nix
-    ./impermanence.nix
 
     # 新的模块化结构
-    ../../modules/core
-    ../../modules/desktop
-    ../../modules/hardware
-    ../../modules/services
-    ../../modules/storage
+    ../../modules/system.nix
+    ../../modules/desktop.nix
+    ../../modules/hardware.nix
+    ../../modules/services.nix
+    ../../modules/storage.nix
   ];
 
   # 系统级最小软件

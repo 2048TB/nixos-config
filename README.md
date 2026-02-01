@@ -29,7 +29,7 @@ Home Manager 会从 `~/nixos-config` 读取配置文件：
   `hosts/nixos-cconfig/hardware-configuration.nix`。
 - 若手动安装，请替换 UUID 并确保单 NVMe：LUKS + Btrfs 子卷 + swapfile
   （@root/@nix/@persistent/@snapshots/@tmp/@swap）。
-- `hosts/nixos-cconfig/impermanence.nix` 会强制将 `/` 设为 tmpfs，并配置 swapfile。
+- `modules/storage-impermanence.nix` 会强制将 `/` 设为 tmpfs，并配置 swapfile。
 
 3) **GPU 选择**：
 - 默认配置启用 `amdgpu+modesetting`，并提供 specialisation：
@@ -38,7 +38,7 @@ Home Manager 会从 `~/nixos-config` 读取配置文件：
   - `gpu-none`
 - 你可以在引导菜单中选择对应项（相当于“让我输入选择”）。
 - 也可通过环境变量 `NIXOS_GPU`（需 `--impure`）覆盖默认驱动。
-- 安装脚本会把检测结果写入 `hosts/nixos-cconfig/gpu-choice.txt` 作为默认值。
+- 安装脚本会把检测结果写入 `vars/detected-gpu.txt` 作为默认值。
 
 4) **Rime 小鹤**：
 - 已自动注入 `default.custom.yaml`，默认启用 `double_pinyin_flypy`。
@@ -82,6 +82,17 @@ sudo ./scripts/auto-install.sh
 
 脚本会自动分区、加密、创建 Btrfs 子卷、生成配置并安装系统。
 同时会自动检测 GPU（可用 `NIXOS_GPU` 覆盖）。
+
+## 硬件自动适配流程（ISO 安装）
+
+- 何时运行：`scripts/auto-install.sh` 在 Live ISO 中分区与 `nixos-install` 之前执行探测。
+- 产出结果：
+  - `hosts/<hostname>/hardware-configuration.nix`（来自 `nixos-generate-config`）
+  - `vars/detected-gpu.txt`（GPU 决策结果）
+  - `vars/default.nix`（写入 username/hostname）
+- flake 消费路径：
+  - `hosts/<hostname>/default.nix` 导入硬件配置与系统模块
+  - `modules/hardware-gpu.nix` 读取 `vars/detected-gpu.txt`（`NIXOS_GPU` + `--impure` 可覆盖）
 
 ## 安装步骤简述（单 NVMe）
 

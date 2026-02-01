@@ -1,11 +1,11 @@
 { ... }:
 {
   imports = [
-    ./boot.nix
-    ./nix.nix
-    ./networking.nix
-    ./security.nix
-    ./users.nix
+    ./system-boot.nix
+    ./system-nix.nix
+    ./system-networking.nix
+    ./system-security.nix
+    ./system-users.nix
   ];
 
   # 时区

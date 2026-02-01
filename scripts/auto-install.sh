@@ -211,7 +211,7 @@ cp /mnt/etc/nixos/hardware-configuration.nix \
 
 log "writing gpu choice..."
 printf '%s\n' "$NIXOS_GPU" \
-  > "/mnt/persistent/home/${NIXOS_USER}/nixos-config/hosts/nixos-cconfig/gpu-choice.txt"
+  > "/mnt/persistent/home/${NIXOS_USER}/nixos-config/vars/detected-gpu.txt"
 
 log "updating vars/default.nix..."
 sed -i \

@@ -1,9 +1,11 @@
-{ config, lib, ... }:
+{ config, lib, myvars, ... }:
 let
   envGpu = builtins.getEnv "NIXOS_GPU";
   gpuChoiceFile =
     let
-      path = ../hosts/nixos-cconfig/gpu-choice.txt;
+      newPath = ../vars/detected-gpu.txt;
+      legacyPath = ../hosts/${myvars.hostname}/gpu-choice.txt;
+      path = if builtins.pathExists newPath then newPath else legacyPath;
       raw = if builtins.pathExists path then builtins.readFile path else "auto";
     in
       lib.strings.removeSuffix "\n" (lib.strings.removeSuffix "\r" raw);
@@ -24,7 +26,7 @@ in
     enable32Bit = true;
   };
 
-  # 安装时通过 NIXOS_GPU 或 gpu-choice.txt 选择默认驱动
+  # 安装时通过 NIXOS_GPU 或 vars/detected-gpu.txt 选择默认驱动
   services.xserver.videoDrivers = videoDrivers;
 
   boot.kernelParams = lib.mkIf isNvidia [ "nvidia-drm.fbdev=1" ];
