@@ -24,14 +24,14 @@
 
 2. 从 U 盘启动进入 Live 环境后运行：
    ```bash
-   sudo bash <(curl -sSL https://raw.githubusercontent.com/YOUR_USERNAME/nixos-config/main/scripts/auto-install.sh)
+   sudo bash <(curl -sSL https://raw.githubusercontent.com/2048TB/nixos-config/main/scripts/auto-install.sh)
    ```
 
 ### 方式 2: 已有 NixOS Live ISO
 
 ```bash
 # 克隆配置
-git clone https://github.com/YOUR_USERNAME/nixos-config ~/nixos-config
+git clone https://github.com/2048TB/nixos-config ~/nixos-config
 cd ~/nixos-config
 
 # 运行安装脚本
