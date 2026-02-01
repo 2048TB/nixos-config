@@ -13,9 +13,8 @@
 
   # 系统级最小软件
   environment.systemPackages = with pkgs; [
-    sbctl
-    lutris
-    proton-ge-bin
+    sbctl # Secure Boot 管理工具
+    # lutris 和 proton-ge-bin 已在 modules/services-gaming.nix 中声明，无需重复
   ];
 
   system.stateVersion = "25.11";
