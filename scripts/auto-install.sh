@@ -77,10 +77,10 @@ fi
 
 log "using configuration from: $repo_root"
 
-required_cmds=(parted mkfs.fat cryptsetup mkfs.btrfs btrfs nixos-generate-config nixos-install)
+required_cmds=(parted mkfs.fat cryptsetup mkfs.btrfs btrfs nixos-generate-config nixos-install tar)
 for cmd in "${required_cmds[@]}"; do
   if ! command -v "$cmd" >/dev/null 2>&1; then
-    fail "missing command: $cmd"
+    fail "missing command: $cmd (try: nix-shell -p $cmd)"
   fi
 done
 
