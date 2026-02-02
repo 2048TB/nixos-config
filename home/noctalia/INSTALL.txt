@@ -40,7 +40,7 @@ sudo bash scripts/auto-install.sh
 
 ```bash
 # 预设参数避免交互式输入
-export NIXOS_USER="z"
+export NIXOS_USER="myname"
 export NIXOS_HOSTNAME="nixos-cconfig"
 export NIXOS_DISK="/dev/nvme0n1"
 export NIXOS_GPU="amd"  # 或 nvidia/none

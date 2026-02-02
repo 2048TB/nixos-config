@@ -177,7 +177,7 @@ dd if=result/iso/nixos-*.iso of=/dev/sdX bs=4M status=progress
 
 | 变量名 | 默认值 | 说明 |
 |--------|--------|------|
-| `NIXOS_USER` | (交互输入) | 用户名（必须符合 Linux 规范） |
+| `NIXOS_USER` | (交互输入) | 用户名（系统用户 + Home Manager，必须符合 Linux 规范） |
 | `NIXOS_PASSWORD` | (交互输入) | 用户密码 |
 | `NIXOS_LUKS_PASSWORD` | 同用户密码 | LUKS 解密密码 |
 | `NIXOS_DISK` | 自动检测 | 目标磁盘（如 `/dev/sda`） |
@@ -185,7 +185,7 @@ dd if=result/iso/nixos-*.iso of=/dev/sdX bs=4M status=progress
 | `NIXOS_GPU` | 自动检测 | GPU 驱动 (`nvidia`/`amd`/`none`) |
 | `NIXOS_SWAP_SIZE_GB` | `32` | swapfile 大小（GB） |
 | `NIXOS_LUKS_ITER_TIME` | `5000` | LUKS 密钥派生时间（ms） |
-| `NIXOS_CONFIG_PATH` | `~/nixos-config` | 配置仓库路径（Home Manager） |
+| `NIXOS_CONFIG_PATH` | `~/nixos-config` | 配置仓库路径（优先级：NIXOS_CONFIG_PATH > `~/nixos-config` > `vars/default.nix`） |
 | `FORCE` | `0` | 强制格式化已有分区（`1` 启用） |
 
 ---
@@ -224,11 +224,11 @@ NIXOS_GPU=amd sudo nixos-rebuild switch --impure --flake .#nixos-cconfig
 
 ## 📂 配置路径约定
 
-Home Manager 默认从以下路径读取配置：
+Home Manager 读取配置的优先级如下：
 
-```
-/home/<user>/nixos-config/
-```
+1. `NIXOS_CONFIG_PATH`（如果设置）
+2. `~/nixos-config`（存在则用）
+3. `vars/default.nix` 中的 `configRoot`
 
 若仓库位置不同，通过环境变量指定：
 

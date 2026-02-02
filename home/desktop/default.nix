@@ -1,7 +1,16 @@
-{ pkgs, config, ... }:
+{ pkgs, config, myvars, ... }:
 let
   mkSymlink = config.lib.file.mkOutOfStoreSymlink;
-  repoRoot = "${config.home.homeDirectory}/nixos-config";
+  # 支持环境变量覆盖配置路径，向后兼容 vars/default.nix
+  repoRoot =
+    let
+      envPath = builtins.getEnv "NIXOS_CONFIG_PATH";
+      homePath = "${config.home.homeDirectory}/nixos-config";
+    in
+      if envPath != "" then envPath
+      else if builtins.pathExists homePath then homePath
+      else if builtins.pathExists myvars.configRoot then myvars.configRoot
+      else homePath;
 in
 {
   home.packages = with pkgs; [

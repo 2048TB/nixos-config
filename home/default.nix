@@ -1,14 +1,16 @@
-{ config, pkgs, lib, myvars, ... }:
+{ config, pkgs, lib, myvars, mainUser, ... }:
 let
   mkSymlink = config.lib.file.mkOutOfStoreSymlink;
   # 支持环境变量覆盖配置路径，向后兼容 vars/default.nix
   repoRoot =
     let
       envPath = builtins.getEnv "NIXOS_CONFIG_PATH";
+      homePath = "${config.home.homeDirectory}/nixos-config";
     in
       if envPath != "" then envPath
+      else if builtins.pathExists homePath then homePath
       else if builtins.pathExists myvars.configRoot then myvars.configRoot
-      else "${config.home.homeDirectory}/nixos-config";
+      else homePath;
   niriConf = "${repoRoot}/home/niri";
   noctaliaConf = "${repoRoot}/home/noctalia";
   fcitx5Conf = "${repoRoot}/home/fcitx5";
@@ -38,9 +40,22 @@ in
     ./gaming   # 游戏工具
   ];
 
-  home.username = myvars.username;
-  home.homeDirectory = "/home/${myvars.username}";
+  home.username = mainUser;
+  home.homeDirectory = "/home/${mainUser}";
   home.stateVersion = "25.11";
+
+  # 允许 npm -g 安装到可写目录，避免写入 /nix/store
+  home.sessionVariables = {
+    NPM_CONFIG_PREFIX = "${config.home.homeDirectory}/.npm-global";
+  };
+
+  home.sessionPath = [
+    "${config.home.homeDirectory}/.npm-global/bin"
+    "${config.home.homeDirectory}/.cargo/bin"
+    "${config.home.homeDirectory}/go/bin"
+    "${config.home.homeDirectory}/.local/bin"
+  ];
+
 
   programs.ghostty = {
     enable = true;

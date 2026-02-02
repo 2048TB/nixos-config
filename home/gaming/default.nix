@@ -3,7 +3,6 @@
   home.packages = with pkgs; [
     # Gaming 工具
     gamescope
-    gamemode
     mangohud
     umu-launcher
     bbe
@@ -16,7 +15,6 @@
     wineWowPackages.stable  # 原：stagingFull（避免触发本地编译）
 
     winetricks
-    protontricks
     protonplus
   ];
 }

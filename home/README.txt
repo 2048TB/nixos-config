@@ -4,9 +4,11 @@
 
 ## 目录说明：
 
-- **niri/conf/**        - Niri 窗口管理器配置
+- **niri/**             - Niri 窗口管理器配置
   - config.kdl          - 主配置
   - keybindings.kdl     - 快捷键绑定
+  - windowrules.kdl     - 窗口规则
+  - niri-hardware.kdl   - 硬件相关配置
   - animation.kdl       - 动画配置
   - colors.kdl          - 颜色方案
   - scripts/            - 辅助脚本

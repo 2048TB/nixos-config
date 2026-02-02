@@ -1,4 +1,4 @@
-{
+rec {
   # 用户配置
   username = "z";
   hostname = "nixos-cconfig";
@@ -7,7 +7,7 @@
   timezone = "Asia/Shanghai";
 
   # 路径配置
-  configRoot = "/home/z/nixos-config";
+  configRoot = "/home/${username}/nixos-config";
   persistentRoot = "/persistent";
 
   # 网络配置
