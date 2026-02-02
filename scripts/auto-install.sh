@@ -11,6 +11,8 @@ set -euo pipefail
 
 REPO_URL="${NIXOS_REPO_URL:-https://github.com/2048TB/nixos-config}"
 BRANCH="${NIXOS_BRANCH:-main}"
+# 是否自动清空已存在分区/文件系统（危险：1=自动清空）
+AUTO_ERASE="${NIXOS_AUTO_ERASE:-1}"
 
 log() {
   echo "[auto-install] $*"
@@ -149,10 +151,14 @@ if blkid "$NIXOS_DISK" | grep -q "TYPE" && [[ "${FORCE:-0}" != "1" ]]; then
   log "WARNING: Disk $NIXOS_DISK appears to have existing partitions or filesystems:"
   blkid "$NIXOS_DISK"* || true
   log ""
-  log "To proceed with installation (THIS WILL ERASE ALL DATA), set FORCE=1:"
-  log "  export FORCE=1"
-  log "  sudo -E bash $0"
-  fail "Installation cancelled for safety. Disk is not empty."
+  if [[ "${AUTO_ERASE:-0}" == "1" ]]; then
+    log "AUTO_ERASE=1 enabled, proceeding to wipe the disk."
+  else
+    log "To proceed with installation (THIS WILL ERASE ALL DATA), set FORCE=1:"
+    log "  export FORCE=1"
+    log "  sudo -E bash $0"
+    fail "Installation cancelled for safety. Disk is not empty."
+  fi
 fi
 
 if [[ -z "${NIXOS_HOSTNAME:-}" ]]; then
