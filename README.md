@@ -2,7 +2,8 @@
 
 一键安装、全自动硬件适配的 NixOS 桌面配置，包含：
 
-📖 **[快捷键说明文档](./KEYBINDINGS.md)** - 查看所有窗口管理器和终端快捷键
+📖 **[快捷键说明](./KEYBINDINGS.md)** - 窗口管理器和终端快捷键
+📖 **[Nix 命令速查](./NIX-COMMANDS.md)** - NixOS 和 Flake 常用命令
 
 - **桌面环境**: Niri Wayland + Home Manager + Noctalia Shell
 - **开发工具链**: Rust / Zig / Go / Node.js / Python
@@ -31,6 +32,7 @@
 - `cache.nixos.org` - 官方缓存（核心系统）
 - `nix-community.cachix.org` - 社区包（Niri, 游戏工具, 开发工具）
 - `nixpkgs-wayland.cachix.org` - Wayland 生态（Noctalia Shell 等）
+- `cache.garnix.io` - 额外社区缓存（Rust 工具链、游戏工具）
 
 ### 包体积统计
 
