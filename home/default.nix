@@ -109,9 +109,6 @@ in
   services.playerctld.enable = true;
 
   home.packages = with pkgs; [
-    # IME data
-    rime-data
-
     # Media / graphics
     pavucontrol
     playerctl
@@ -201,6 +198,26 @@ in
       TimeoutStopSec = 10;
     };
     Install.WantedBy = [ "niri.service" ];
+  };
+
+  systemd.user.services.fcitx5 = {
+    Unit = {
+      Description = "Fcitx5 Input Method";
+      After = [ "graphical-session.target" ];
+      PartOf = [ "graphical-session.target" ];
+    };
+    Service = {
+      ExecStart = lib.getExe pkgs.fcitx5;
+      Restart = "on-failure";
+      RestartSec = 1;
+      Environment = [
+        "GTK_IM_MODULE=fcitx"
+        "QT_IM_MODULE=fcitx"
+        "XMODIFIERS=@im=fcitx"
+        "SDL_IM_MODULE=fcitx"
+      ];
+    };
+    Install.WantedBy = [ "graphical-session.target" ];
   };
 
   systemd.user.services.noctalia-shell = {
