@@ -4,6 +4,7 @@
 
 📖 **[快捷键说明](./KEYBINDINGS.md)** - 窗口管理器和终端快捷键
 📖 **[Nix 命令速查](./NIX-COMMANDS.md)** - NixOS 和 Flake 常用命令
+⚡ **[Justfile 命令](./justfile)** - 使用 `just` 简化日常操作
 
 - **桌面环境**: Niri Wayland + Home Manager + Noctalia Shell
 - **开发工具链**: Rust / Zig / Go / Node.js / Python
@@ -44,6 +45,31 @@
 | 游戏工具 | ~4 GB | Steam/Wine/Proton/Lutris |
 | 其他应用 | ~1 GB | Chrome/VSCode/Telegram 等 |
 | **总计** | **~9.8 GB** | 解压后约 15.6 GB |
+
+---
+
+## ⚡ 快速开始（使用 Just）
+
+安装完成后，使用 `just` 命令简化日常操作：
+
+```bash
+# 查看所有可用命令
+just
+
+# 常用命令
+just switch          # 应用配置
+just quick           # 检查 + 应用
+just clean           # 清理旧世代
+just upgrade         # 更新并应用
+just push "消息"      # 提交并推送到 GitHub
+
+# 查看文档
+just keys            # 快捷键说明
+just commands        # Nix 命令
+just help            # 常用命令参考
+```
+
+完整命令列表查看 [justfile](./justfile)。
 
 ---
 
