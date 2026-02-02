@@ -20,5 +20,21 @@
 
     # 信任 wheel 组用户使用自定义 substituters
     trusted-users = [ "root" "@wheel" ];
+
+    # 自动优化存储（硬链接重复文件）
+    auto-optimise-store = true;
+  };
+
+  # 自动垃圾回收配置
+  nix.gc = {
+    automatic = true;
+    dates = "weekly";        # 每周执行一次
+    options = "--delete-older-than 7d";  # 删除 7 天前的旧世代
+  };
+
+  # 优化配置
+  nix.optimise = {
+    automatic = true;
+    dates = [ "weekly" ];    # 每周优化存储
   };
 }
