@@ -2,13 +2,16 @@
 
 一键安装、全自动硬件适配的 NixOS 桌面配置，包含：
 
+📖 **[快捷键说明文档](./KEYBINDINGS.md)** - 查看所有窗口管理器和终端快捷键
+
 - **桌面环境**: Niri Wayland + Home Manager + Noctalia Shell
 - **开发工具链**: Rust / Zig / Go / Node.js / Python
 - **游戏支持**: Steam / Proton-GE / Wine / Lutris
-- **中文输入**: Fcitx5 + Rime（小鹤音形 + 双拼）
+- **中文输入**: Fcitx5 中文拼音
+- **终端工具**: Ghostty + Tmux + Zellij + 现代化 CLI 工具链 (bat/fd/eza/ripgrep/duf/jq)
 - **存储方案**: tmpfs 根分区 + Btrfs + LUKS 全盘加密 + preservation 持久化
 - **安全加固**: AppArmor + Secure Boot 支持
-- **应用软件**: Chrome / Telegram / Ghostty / MPV
+- **应用软件**: Chrome / Telegram / VSCode / MPV
 - **性能优化**: 完全使用 Binary Cache，0 本地编译，15 分钟快速安装
 
 ---
