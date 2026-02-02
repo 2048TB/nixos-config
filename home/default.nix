@@ -44,15 +44,32 @@ in
   home.homeDirectory = "/home/${mainUser}";
   home.stateVersion = "25.11";
 
-  # 允许 npm -g 安装到可写目录，避免写入 /nix/store
+  # 允许全局工具安装到可写目录，避免写入 /nix/store
   home.sessionVariables = {
     NPM_CONFIG_PREFIX = "${config.home.homeDirectory}/.npm-global";
+    BUN_INSTALL = "${config.home.homeDirectory}/.bun";
+    BUN_INSTALL_BIN = "${config.home.homeDirectory}/.bun/bin";
+    BUN_INSTALL_GLOBAL_DIR = "${config.home.homeDirectory}/.bun/install/global";
+    BUN_INSTALL_CACHE_DIR = "${config.home.homeDirectory}/.bun/install/cache";
+    UV_TOOL_DIR = "${config.home.homeDirectory}/.local/share/uv/tools";
+    UV_TOOL_BIN_DIR = "${config.home.homeDirectory}/.local/bin";
+    CARGO_HOME = "${config.home.homeDirectory}/.cargo";
+    RUSTUP_HOME = "${config.home.homeDirectory}/.rustup";
+    GOPATH = "${config.home.homeDirectory}/go";
+    GOBIN = "${config.home.homeDirectory}/go/bin";
+    PYTHONUSERBASE = "${config.home.homeDirectory}/.local";
+    PIPX_HOME = "${config.home.homeDirectory}/.local/share/pipx";
+    PIPX_BIN_DIR = "${config.home.homeDirectory}/.local/bin";
+    GEM_HOME = "${config.home.homeDirectory}/.local/share/gem";
+    GEM_PATH = "${config.home.homeDirectory}/.local/share/gem";
   };
 
   home.sessionPath = [
     "${config.home.homeDirectory}/.npm-global/bin"
+    "${config.home.homeDirectory}/.bun/bin"
     "${config.home.homeDirectory}/.cargo/bin"
     "${config.home.homeDirectory}/go/bin"
+    "${config.home.homeDirectory}/.local/share/gem/bin"
     "${config.home.homeDirectory}/.local/bin"
   ];
 
@@ -125,6 +142,11 @@ in
     "mozc/config1.db".source = mkSymlink "${fcitx5Conf}/mozc-config1.db";
 
     "ghostty/config".source = mkSymlink "${ghosttyConf}/ghostty-config";
+
+    "pnpm/rc".text = ''
+      global-dir=${config.home.homeDirectory}/.local/share/pnpm/global
+      global-bin-dir=${config.home.homeDirectory}/.local/bin
+    '';
   };
 
   xdg.dataFile = {
@@ -157,6 +179,9 @@ in
       source = niriSession;
       executable = true;
     };
+    ".yarnrc".text = ''
+      prefix "${config.home.homeDirectory}/.local"
+    '';
     ".zshrc".source = mkSymlink "${shellConf}/zshrc";
     ".bashrc".source = mkSymlink "${shellConf}/bashrc";
     ".vimrc".source = mkSymlink "${shellConf}/vimrc";
