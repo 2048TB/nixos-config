@@ -118,17 +118,24 @@ fi
 
 if [[ -z "${NIXOS_DISK:-}" ]]; then
   # 尝试检测各种类型的磁盘（NVMe, SATA, 虚拟机）
-  mapfile -t all_disks < <(lsblk -dpno NAME | grep -E 'nvme[0-9]+n1$|sd[a-z]$|vd[a-z]$|xvd[a-z]$' || true)
+  mapfile -t all_disks < <(lsblk -dpno NAME,TYPE | awk '$2=="disk"{print $1}' | grep -E 'nvme[0-9]+n1$|sd[a-z]$|vd[a-z]$|xvd[a-z]$' || true)
 
   if [[ ${#all_disks[@]} -eq 1 ]]; then
     NIXOS_DISK="${all_disks[0]}"
     log "Auto-detected disk: $NIXOS_DISK"
   elif [[ ${#all_disks[@]} -gt 1 ]]; then
-    log "Multiple disks found:"
-    lsblk -d -o NAME,TYPE,SIZE,MODEL
-    fail "Multiple disks detected. Please set NIXOS_DISK manually (e.g., export NIXOS_DISK=/dev/nvme0n1)"
+    # 优先选择非可移动/非 USB 的磁盘（避免 U 盘干扰自动检测）
+    mapfile -t preferred_disks < <(lsblk -dpno NAME,TYPE,RM,TRAN | awk '$2=="disk" && $3=="0" && $4!="usb"{print $1}' | grep -E 'nvme[0-9]+n1$|sd[a-z]$|vd[a-z]$|xvd[a-z]$' || true)
+    if [[ ${#preferred_disks[@]} -eq 1 ]]; then
+      NIXOS_DISK="${preferred_disks[0]}"
+      log "Auto-detected non-removable disk: $NIXOS_DISK"
+    else
+      log "Multiple disks found:"
+      lsblk -d -o NAME,TYPE,SIZE,MODEL,TRAN,RM
+      fail "Multiple disks detected. Please set NIXOS_DISK manually (e.g., NIXOS_DISK=/dev/nvme0n1 sudo -E bash $0)"
+    fi
   else
-    lsblk -d -o NAME,TYPE,SIZE,MODEL
+    lsblk -d -o NAME,TYPE,SIZE,MODEL,TRAN,RM
     fail "No suitable disk found. Please set NIXOS_DISK manually (e.g., export NIXOS_DISK=/dev/sda)"
   fi
 fi

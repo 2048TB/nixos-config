@@ -44,18 +44,13 @@
 
 ## 🚀 一键安装
 
-### 方式 1: Git Clone（推荐，最稳定）
-
-从 Live ISO 启动后运行：
+从 Live ISO 启动后，复制粘贴以下命令：
 
 ```bash
-# 克隆配置仓库
-git clone https://github.com/2048TB/nixos-config ~/nixos-config
-cd ~/nixos-config
-
-# 运行安装脚本
-sudo ./scripts/auto-install.sh
+git clone https://github.com/2048TB/nixos-config ~/nixos-config && cd ~/nixos-config && sudo ./scripts/auto-install.sh
 ```
+
+### 其他安装方式
 
 ### 方式 2: Curl 下载（备选）
 
