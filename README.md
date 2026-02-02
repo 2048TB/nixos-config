@@ -44,25 +44,27 @@
 
 ## 🚀 一键安装
 
-### 方式 1: 从 ISO 启动（推荐）
+### 方式 1: Git Clone（推荐，最稳定）
 
-1. 构建 ISO（在开发机上）：
-   ```bash
-   nix build .#nixos-cconfig-iso
-   dd if=result/iso/nixos-*.iso of=/dev/sdX bs=4M status=progress
-   ```
-
-2. 从 U 盘启动进入 Live 环境后运行：
-   ```bash
-   sudo bash <(curl -sSL https://raw.githubusercontent.com/2048TB/nixos-config/main/scripts/auto-install.sh)
-   ```
-
-### 方式 2: 已有 NixOS Live ISO
+从 Live ISO 启动后运行：
 
 ```bash
-# 克隆配置
+# 克隆配置仓库
 git clone https://github.com/2048TB/nixos-config ~/nixos-config
 cd ~/nixos-config
+
+# 运行安装脚本
+sudo ./scripts/auto-install.sh
+```
+
+### 方式 2: Curl 下载（备选）
+
+如果没有 git，可用 curl 下载：
+
+```bash
+# 下载并解压
+curl -sSL https://github.com/2048TB/nixos-config/archive/main.tar.gz | tar xz
+cd nixos-config-main
 
 # 运行安装脚本
 sudo ./scripts/auto-install.sh
@@ -71,6 +73,7 @@ sudo ./scripts/auto-install.sh
 ### 方式 3: 使用环境变量（无交互安装）
 
 ```bash
+# 设置所有参数
 export NIXOS_USER="myname"
 export NIXOS_PASSWORD="mypassword"
 export NIXOS_LUKS_PASSWORD="lukspassword"
@@ -79,7 +82,21 @@ export NIXOS_HOSTNAME="my-nixos"
 export NIXOS_GPU="nvidia"  # 或 amd/none
 export NIXOS_SWAP_SIZE_GB="64"
 
+# 克隆配置
+git clone https://github.com/2048TB/nixos-config ~/nixos-config
+cd ~/nixos-config
+
+# 自动安装（无交互）
 sudo -E ./scripts/auto-install.sh
+```
+
+### 构建自定义 ISO（可选）
+
+在开发机上构建包含配置的 ISO：
+
+```bash
+nix build .#nixos-cconfig-iso
+dd if=result/iso/nixos-*.iso of=/dev/sdX bs=4M status=progress
 ```
 
 ---
