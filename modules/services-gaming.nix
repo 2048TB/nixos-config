@@ -8,9 +8,14 @@
   };
   programs.gamemode.enable = true;
 
-  # Lutris / Proton GE
+  # Lutris
   environment.systemPackages = with pkgs; [
     lutris
+  ];
+
+  # Proton-GE 配置：通过 Steam extraCompatPackages 安装
+  # 注意：不能放在 environment.systemPackages（会导致 buildEnv 错误）
+  programs.steam.extraCompatPackages = with pkgs; [
     proton-ge-bin
   ];
 }
