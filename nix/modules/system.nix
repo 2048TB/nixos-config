@@ -179,7 +179,20 @@ in
   networking.firewall.checkReversePath = "loose";
 
   # 安全加固与桌面所需
-  security.polkit.enable = true;
+  security.polkit = {
+    enable = true;
+    # 允许 wheel 组用户挂载 USB 等外部存储设备
+    extraConfig = ''
+      polkit.addRule(function(action, subject) {
+        if (
+          subject.isInGroup("wheel")
+          && action.id.match("org.freedesktop.udisks2.")
+        ) {
+          return polkit.Result.YES;
+        }
+      });
+    '';
+  };
   programs.dconf.enable = true;
 
   # GnuPG
