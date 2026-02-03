@@ -193,12 +193,11 @@ in
     wl-screenrec
 
     # === 基础 GUI 工具 ===
-    kdePackages.ark
     zathura
     gnome-text-editor
     wpsoffice # WPS Office 办公套件（文档/表格/演示）
 
-    # Ark 格式支持
+    # 压缩/解压工具（命令行 + Nautilus file-roller 集成）
     p7zip-rar  # 包含 7-Zip + RAR 支持（unfree）
     unrar
     unar
