@@ -12,7 +12,7 @@ let
   gpuConfigPaths = [
     ../vars/detected-gpu.txt
     ../hosts/${myvars.hostname}-gpu-choice.txt
-    ../hosts/nixos-cconfig-gpu-choice.txt
+    ../hosts/nixos-config-gpu-choice.txt
     ../hosts/${myvars.hostname}/gpu-choice.txt
     ../hosts/nixos-cconfig/gpu-choice.txt
   ];
