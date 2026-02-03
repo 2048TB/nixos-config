@@ -10,22 +10,22 @@
 
 ```bash
 # 应用配置并立即切换（推荐）
-sudo nixos-rebuild switch --flake .#nixos-cconfig
+sudo nixos-rebuild switch --flake .#nixos-config
 
 # 应用配置但下次启动生效
-sudo nixos-rebuild boot --flake .#nixos-cconfig
+sudo nixos-rebuild boot --flake .#nixos-config
 
 # 临时测试配置（重启后失效）
-sudo nixos-rebuild test --flake .#nixos-cconfig
+sudo nixos-rebuild test --flake .#nixos-config
 
 # 检查配置语法但不应用
-sudo nixos-rebuild dry-build --flake .#nixos-cconfig
+sudo nixos-rebuild dry-build --flake .#nixos-config
 
 # 显示详细构建日志（使用 nom 美化输出）
-sudo nixos-rebuild switch --flake .#nixos-cconfig |& nom
+sudo nixos-rebuild switch --flake .#nixos-config |& nom
 
 # 使用环境变量覆盖配置（需要 --impure）
-NIXOS_GPU=amd sudo nixos-rebuild switch --impure --flake .#nixos-cconfig
+NIXOS_GPU=amd sudo nixos-rebuild switch --impure --flake .#nixos-config
 ```
 
 ### 系统世代管理
@@ -171,7 +171,7 @@ nix build .#<输出名>
 nix build .#<输出名> && ls -la result/
 
 # 构建 ISO
-nix build .#nixos-cconfig-iso
+nix build .#nixos-config-iso
 
 # 构建并复制到当前目录
 nix build .#<输出名> --out-link ./my-result
@@ -359,12 +359,12 @@ nix show-derivation nixpkgs#<包名>
 nix flake check
 
 # 评估配置表达式
-nix eval .#nixosConfigurations.nixos-cconfig.config.networking.hostName
+nix eval .#nixosConfigurations.nixos-config.config.networking.hostName
 
 # 查看完整配置选项
 nix repl
 > :lf .
-> nixosConfigurations.nixos-cconfig.config.system.build.toplevel
+> nixosConfigurations.nixos-config.config.system.build.toplevel
 ```
 
 ---
@@ -503,16 +503,16 @@ sudo rm /nix/var/nix/gc.lock
 
 ```bash
 # 1. 修改配置文件
-vim home/core/default.nix
+vim nix/home/default.nix
 
 # 2. 检查语法
 nix flake check
 
 # 3. 测试构建（不应用）
-sudo nixos-rebuild dry-build --flake .#nixos-cconfig
+sudo nixos-rebuild dry-build --flake .#nixos-config
 
 # 4. 应用配置
-sudo nixos-rebuild switch --flake .#nixos-cconfig |& nom
+sudo nixos-rebuild switch --flake .#nixos-config |& nom
 
 # 5. 提交更改
 git add .
@@ -529,7 +529,7 @@ sudo nix-store --optimise
 
 # 每月运行一次
 nix flake update
-sudo nixos-rebuild switch --flake .#nixos-cconfig
+sudo nixos-rebuild switch --flake .#nixos-config
 ```
 
 ---

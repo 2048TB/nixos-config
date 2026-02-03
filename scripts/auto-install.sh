@@ -162,7 +162,7 @@ if blkid "$NIXOS_DISK" | grep -q "TYPE" && [[ "${FORCE:-0}" != "1" ]]; then
 fi
 
 if [[ -z "${NIXOS_HOSTNAME:-}" ]]; then
-  NIXOS_HOSTNAME="nixos-cconfig"
+  NIXOS_HOSTNAME="nixos-config"
 fi
 
 if [[ -z "${NIXOS_GPU:-}" ]]; then
@@ -214,6 +214,14 @@ parted -s "$NIXOS_DISK" mklabel gpt
 parted -s "$NIXOS_DISK" mkpart ESP fat32 2MiB 514MiB
 parted -s "$NIXOS_DISK" set 1 esp on
 parted -s "$NIXOS_DISK" mkpart primary 514MiB 100%
+
+log "waiting for partition devices..."
+if command -v partprobe >/dev/null 2>&1; then
+  partprobe "$NIXOS_DISK" || true
+fi
+if command -v udevadm >/dev/null 2>&1; then
+  udevadm settle || true
+fi
 
 log "formatting ESP..."
 mkfs.fat -F 32 -n ESP "$ESP"
@@ -282,14 +290,14 @@ mv "/mnt/persistent/home/${NIXOS_USER}.tmp" "/mnt/persistent/home/${NIXOS_USER}/
 
 log "writing hardware-configuration.nix..."
 cp /mnt/etc/nixos/hardware-configuration.nix \
-  "/mnt/persistent/home/${NIXOS_USER}/nixos-config/hosts/nixos-cconfig/hardware-configuration.nix"
+  "/mnt/persistent/home/${NIXOS_USER}/nixos-config/nix/hosts/nixos-config-hardware.nix"
 
 log "writing gpu choice..."
 printf '%s\n' "$NIXOS_GPU" \
-  > "/mnt/persistent/home/${NIXOS_USER}/nixos-config/vars/detected-gpu.txt"
+  > "/mnt/persistent/home/${NIXOS_USER}/nixos-config/nix/vars/detected-gpu.txt"
 
-log "updating vars/default.nix..."
-VARS_FILE="/mnt/persistent/home/${NIXOS_USER}/nixos-config/vars/default.nix"
+log "updating nix/vars/default.nix..."
+VARS_FILE="/mnt/persistent/home/${NIXOS_USER}/nixos-config/nix/vars/default.nix"
 sed -i \
   "s/username = \"[^\"]*\";/username = \"${NIXOS_USER}\";/" \
   "$VARS_FILE"
@@ -304,7 +312,11 @@ log "fixing ownership..."
 # 不使用硬编码 UID，而是在 activation script 中由系统自动处理
 # 这里只设置一个合理的默认值（首个普通用户通常是 1000）
 # 真正的权限修复会在首次启动时由 NixOS 的 user activation 处理
-chown -R 1000:users "/mnt/persistent/home/${NIXOS_USER}" || true
+owner_group="users"
+if ! getent group "$owner_group" >/dev/null 2>&1; then
+  owner_group="100"
+fi
+chown -R 1000:"$owner_group" "/mnt/persistent/home/${NIXOS_USER}" || true
 
 log "writing hashed password..."
 mkdir -p /mnt/persistent/etc

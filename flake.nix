@@ -36,5 +36,5 @@
     preservation.url = "github:nix-community/preservation";
   };
 
-  outputs = inputs: import ./outputs inputs;
+  outputs = inputs: import ./outputs.nix inputs;
 }

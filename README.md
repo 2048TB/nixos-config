@@ -121,7 +121,7 @@ sudo -E ./scripts/auto-install.sh
 在开发机上构建包含配置的 ISO：
 
 ```bash
-nix build .#nixos-cconfig-iso
+nix build .#nixos-config-iso
 dd if=result/iso/nixos-*.iso of=/dev/sdX bs=4M status=progress
 ```
 
@@ -137,7 +137,7 @@ dd if=result/iso/nixos-*.iso of=/dev/sdX bs=4M status=progress
 - ✅ 检测网络连接
 - ✅ 验证用户名格式
 - ✅ 生成硬件配置 (`hardware-configuration.nix`)
-- ✅ 更新用户变量 (`vars/default.nix`)
+- ✅ 更新用户变量 (`nix/vars/default.nix`)
 
 ### 安全保护机制
 
@@ -181,11 +181,11 @@ dd if=result/iso/nixos-*.iso of=/dev/sdX bs=4M status=progress
 | `NIXOS_PASSWORD` | (交互输入) | 用户密码 |
 | `NIXOS_LUKS_PASSWORD` | 同用户密码 | LUKS 解密密码 |
 | `NIXOS_DISK` | 自动检测 | 目标磁盘（如 `/dev/sda`） |
-| `NIXOS_HOSTNAME` | `nixos-cconfig` | 主机名 |
+| `NIXOS_HOSTNAME` | `nixos-config` | 主机名 |
 | `NIXOS_GPU` | 自动检测 | GPU 驱动 (`nvidia`/`amd`/`none`) |
 | `NIXOS_SWAP_SIZE_GB` | `32` | swapfile 大小（GB） |
 | `NIXOS_LUKS_ITER_TIME` | `5000` | LUKS 密钥派生时间（ms） |
-| `NIXOS_CONFIG_PATH` | `~/nixos-config` | 配置仓库路径（优先级：NIXOS_CONFIG_PATH > `~/nixos-config` > `vars/default.nix`） |
+| `NIXOS_CONFIG_PATH` | `~/nixos-config` | 配置仓库路径（优先级：NIXOS_CONFIG_PATH > `~/nixos-config` > `nix/vars/default.nix`） |
 | `FORCE` | `0` | 强制格式化已有分区（`1` 启用） |
 
 ---
@@ -213,11 +213,11 @@ dd if=result/iso/nixos-*.iso of=/dev/sdX bs=4M status=progress
 
 ```bash
 # 方式 1: 修改检测结果文件
-echo "nvidia" > vars/detected-gpu.txt
-sudo nixos-rebuild switch --flake .#nixos-cconfig
+echo "nvidia" > nix/vars/detected-gpu.txt
+sudo nixos-rebuild switch --flake .#nixos-config
 
 # 方式 2: 环境变量（需 --impure）
-NIXOS_GPU=amd sudo nixos-rebuild switch --impure --flake .#nixos-cconfig
+NIXOS_GPU=amd sudo nixos-rebuild switch --impure --flake .#nixos-config
 ```
 
 ---
@@ -228,7 +228,7 @@ Home Manager 读取配置的优先级如下：
 
 1. `NIXOS_CONFIG_PATH`（如果设置）
 2. `~/nixos-config`（存在则用）
-3. `vars/default.nix` 中的 `configRoot`
+3. `nix/vars/default.nix` 中的 `configRoot`
 
 若仓库位置不同，通过环境变量指定：
 
@@ -236,7 +236,7 @@ Home Manager 读取配置的优先级如下：
 export NIXOS_CONFIG_PATH=/path/to/your/repo
 ```
 
-或修改 `vars/default.nix` 中的 `configRoot`（安装脚本会自动更新）。
+或修改 `nix/vars/default.nix` 中的 `configRoot`（安装脚本会自动更新）。
 
 ---
 
@@ -289,13 +289,13 @@ export NIXOS_CONFIG_PATH=/path/to/your/repo
 5. **生成并修改配置**:
    ```bash
    nixos-generate-config --root /mnt
-   # 复制 /mnt/etc/nixos/hardware-configuration.nix 到 hosts/nixos-cconfig/
+   # 复制 /mnt/etc/nixos/hardware-configuration.nix 到 nix/hosts/nixos-config-hardware.nix
    ```
 
 6. **安装系统**:
    ```bash
    cd ~/nixos-config
-   NIXOS_GPU=nvidia nixos-install --impure --flake .#nixos-cconfig
+   NIXOS_GPU=nvidia nixos-install --impure --flake .#nixos-config
    ```
 
 ---
@@ -315,14 +315,14 @@ export NIXOS_CONFIG_PATH=/path/to/your/repo
    sudo mkdir -p /etc/secureboot
    ```
 
-3. 修改 `modules/system-boot.nix`（或在 host 配置中覆盖）：
+3. 修改 `nix/modules/system.nix`（或在 host 配置中覆盖）：
    ```nix
    boot.lanzaboote.enable = true;
    ```
 
 4. 重新构建系统：
    ```bash
-   sudo nixos-rebuild switch --flake .#nixos-cconfig
+   sudo nixos-rebuild switch --flake .#nixos-config
    ```
 
 ---
@@ -354,11 +354,11 @@ sudo -E ./scripts/auto-install.sh
 Home Manager 找不到配置文件：
 ```bash
 # 检查实际路径
-ls -la ~/nixos-config/home/
+ls -la ~/nixos-config/nix/home/
 
 # 设置正确路径
 export NIXOS_CONFIG_PATH="$HOME/nixos-config"
-sudo nixos-rebuild switch --flake .#nixos-cconfig
+sudo nixos-rebuild switch --flake .#nixos-config
 ```
 
 ### 首次启动权限问题
@@ -373,7 +373,7 @@ sudo chown -R $USER:$USER /persistent/home/$USER
 ## 📦 ISO 构建
 
 ```bash
-nix build .#nixos-cconfig-iso
+nix build .#nixos-config-iso
 ```
 
 生成的 ISO 位于 `./result/iso/nixos-*.iso`。
@@ -399,30 +399,37 @@ deadnix .              # 检测死代码
 ```
 .
 ├── flake.nix                    # Flake 入口
-├── outputs/default.nix          # 输出定义
-├── hosts/nixos-cconfig/         # 主机配置
-│   ├── default.nix
-│   └── hardware-configuration.nix  # 安装时生成
-├── modules/                     # 功能模块
-│   ├── system.nix               # 系统基础
-│   ├── desktop.nix              # 桌面环境
-│   ├── hardware.nix             # 硬件支持
-│   ├── services.nix             # 系统服务
-│   └── storage.nix              # 存储配置
-├── home/                        # Home Manager 配置
-│   ├── default.nix
-│   ├── core/                    # 核心工具
-│   ├── gui/                     # GUI 应用
-│   ├── dev/                     # 开发环境
-│   └── niri/                    # Niri WM 配置
+├── outputs.nix                  # 输出定义
+├── nix/                         # NixOS 相关配置
+│   ├── hosts/                   # 主机配置
+│   │   ├── nixos-config.nix
+│   │   ├── nixos-config-hardware.nix  # 安装时生成
+│   │   └── nixos-config-gpu-choice.txt # 旧式 GPU 选择（可选）
+│   ├── modules/                 # 功能模块
+│   │   ├── system.nix           # 系统基础
+│   │   ├── desktop.nix          # 桌面环境
+│   │   ├── hardware.nix         # 硬件支持
+│   │   ├── services.nix         # 系统服务
+│   │   └── storage.nix          # 存储配置
+│   ├── hardening/               # 安全加固
+│   │   ├── apparmor.nix
+│   │   └── nixpaks/
+│   ├── vars/                    # 全局变量
+│   │   ├── default.nix
+│   │   └── detected-gpu.txt     # GPU 检测结果
+│   ├── lib/                     # 自定义函数
+│   └── home/                    # Home Manager 配置
+│       ├── default.nix
+│       └── configs/             # 配置素材集中目录
+│           ├── niri/
+│           ├── niriswitcher/
+│           ├── noctalia/
+│           ├── fcitx5/
+│           ├── ghostty/
+│           ├── shell/
+│           └── wallpapers/
 ├── scripts/                     # 工具脚本
 │   └── auto-install.sh          # 一键安装脚本
-├── vars/                        # 全局变量
-│   ├── default.nix
-│   └── detected-gpu.txt         # GPU 检测结果
-└── hardening/                   # 安全加固
-    ├── apparmor/
-    └── nixpaks/
 ```
 
 ---

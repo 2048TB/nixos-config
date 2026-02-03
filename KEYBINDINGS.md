@@ -355,7 +355,7 @@
 
 ## 配置文件位置
 
-- **Niri 配置**: `/home/<user>/nixos-config/home/niri/keybindings.kdl`
-- **Ghostty 配置**: `/home/<user>/nixos-config/home/ghostty/ghostty-config`
+- **Niri 配置**: `/home/<user>/nixos-config/nix/home/configs/niri/keybindings.kdl`
+- **Ghostty 配置**: `/home/<user>/nixos-config/nix/home/configs/ghostty/ghostty-config`
 
-修改配置后执行 `sudo nixos-rebuild switch --flake .#nixos-cconfig` 应用更改。
+修改配置后执行 `sudo nixos-rebuild switch --flake .#nixos-config` 应用更改。

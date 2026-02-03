@@ -9,19 +9,19 @@ default:
 
 # 应用配置并立即切换（常用）
 switch:
-    sudo nixos-rebuild switch --flake .#nixos-cconfig |& nom
+    sudo nixos-rebuild switch --flake .#nixos-config |& nom
 
 # 应用配置但下次启动生效
 boot:
-    sudo nixos-rebuild boot --flake .#nixos-cconfig |& nom
+    sudo nixos-rebuild boot --flake .#nixos-config |& nom
 
 # 临时测试配置（重启后失效）
 test:
-    sudo nixos-rebuild test --flake .#nixos-cconfig |& nom
+    sudo nixos-rebuild test --flake .#nixos-config |& nom
 
 # 检查配置但不应用（快速验证）
 check:
-    sudo nixos-rebuild dry-build --flake .#nixos-cconfig
+    sudo nixos-rebuild dry-build --flake .#nixos-config
 
 # 回滚到上一个系统世代
 rollback:
@@ -187,7 +187,7 @@ dev: fmt flake-check test
 
 # 构建 ISO 镜像
 iso:
-    nix build .#nixos-cconfig-iso
+    nix build .#nixos-config-iso
     @echo "✓ ISO 构建完成：./result/iso/"
 
 # 进入开发环境
