@@ -132,15 +132,6 @@ frg() {
     --delimiter ":"
 }
 
-# 合并txt
-hbtxt() {
-  local out="merged_unique.txt"
-
-  find . -type f -name "*.txt" ! -name "$out" \
-    -exec awk 'NF && !seen[$0]++' {} + \
-    > "$out"
-}
-
 # pip 默认用户级安装；在 venv 内关闭该行为
 _pip_auto_user() {
     local cmd="$1"

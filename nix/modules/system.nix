@@ -240,6 +240,7 @@
     type = "fcitx5";
     fcitx5.waylandFrontend = true;
     fcitx5.addons = with pkgs; [
+      kdePackages.fcitx5-qt
       qt6Packages.fcitx5-configtool
       fcitx5-gtk
       (fcitx5-rime.override { rimeDataPkgs = [ rime-data ]; })

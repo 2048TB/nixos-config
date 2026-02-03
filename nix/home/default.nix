@@ -227,7 +227,7 @@ in
     };
     "mozc/config1.db".source = mkSymlink "${fcitx5Conf}/mozc-config1.db";
 
-    "ghostty/config".source = mkSymlink "${ghosttyConf}/ghostty-config";
+    "ghostty/config".source = mkSymlink "${ghosttyConf}/config";
 
     "pnpm/rc".text = ''
       global-dir=${config.home.homeDirectory}/.local/share/pnpm/global
@@ -287,26 +287,6 @@ in
       TimeoutStopSec = 10;
     };
     Install.WantedBy = [ "niri.service" ];
-  };
-
-  systemd.user.services.fcitx5 = {
-    Unit = {
-      Description = "Fcitx5 Input Method";
-      After = [ "graphical-session.target" ];
-      PartOf = [ "graphical-session.target" ];
-    };
-    Service = {
-      ExecStart = lib.getExe pkgs.fcitx5;
-      Restart = "on-failure";
-      RestartSec = 1;
-      Environment = [
-        "GTK_IM_MODULE=fcitx"
-        "QT_IM_MODULE=fcitx"
-        "XMODIFIERS=@im=fcitx"
-        "SDL_IM_MODULE=fcitx"
-      ];
-    };
-    Install.WantedBy = [ "graphical-session.target" ];
   };
 
   systemd.user.services.noctalia-shell = {
