@@ -143,7 +143,6 @@ in
     git # 版本控制
     gh # GitHub CLI
     gnumake # 构建工具
-    gcc
     cmake
     ninja
     pkg-config
