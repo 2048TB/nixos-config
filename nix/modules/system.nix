@@ -54,6 +54,7 @@ in
       "/var/lib/systemd"
       "/var/lib/NetworkManager"
       "/var/lib/bluetooth"
+      "/var/lib/libvirt"  # 虚拟机镜像和配置
     ];
     files = [
       {
@@ -74,6 +75,18 @@ in
         ".local/share"
         ".local/state"
         ".cache"
+
+        # 开发工具全局安装目录
+        ".npm-global"  # npm install -g
+        ".bun"         # bun install -g
+        ".cargo"       # cargo install
+        ".rustup"      # rustup toolchains
+        "go"           # go install
+        "tools"        # 自定义工具目录
+
+        # 安全凭证（不遵循 XDG 规范的传统目录）
+        ".ssh"         # SSH keys
+        ".gnupg"       # GPG keys
       ];
     };
   };
