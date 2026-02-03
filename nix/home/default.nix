@@ -129,7 +129,9 @@ in
 
     # === 基础工具 ===
     git                # 版本控制
+    gh                 # GitHub CLI
     gnumake            # 构建工具
+    gitui              # Git TUI (Rust)
     brightnessctl      # 屏幕亮度控制
     xdg-utils          # XDG 工具集
     xdg-user-dirs      # 用户目录管理
@@ -172,6 +174,7 @@ in
     unar
     arj
     zip
+    unzip
     lrzip
     lzop
     zstd
