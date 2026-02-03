@@ -59,6 +59,7 @@ in
 
   home.sessionPath = [
     "${config.home.homeDirectory}/.npm-global/bin"
+    "${config.home.homeDirectory}/tools"
     "${config.home.homeDirectory}/.bun/bin"
     "${config.home.homeDirectory}/.cargo/bin"
     "${config.home.homeDirectory}/go/bin"
