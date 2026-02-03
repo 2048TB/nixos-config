@@ -102,6 +102,7 @@ in
     enableZshIntegration = true;
   };
 
+  # 保留手动锁屏功能（关闭自动锁屏）
   programs.swaylock.enable = true;
   programs.wlogout.enable = true;
 
@@ -199,7 +200,6 @@ in
 
     # === Wayland 工具 ===
     satty
-    swayidle
     mako
     grim
     slurp

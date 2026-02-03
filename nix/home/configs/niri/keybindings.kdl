@@ -23,7 +23,7 @@ binds {
     XF86Search { spawn "noctalia-shell" "ipc" "call" "launcher" "toggle"; }
     Mod+P { spawn "vicinae"; }
 
-    // Locker
+    // 手动锁屏（关闭了自动锁屏）
     CTRL+Alt+L { spawn "noctalia-shell" "ipc" "call" "lockScreen" "lock"; }
 
     // Use spawn-sh to run a shell command. Do this if you need pipes, multiple commands, etc.
