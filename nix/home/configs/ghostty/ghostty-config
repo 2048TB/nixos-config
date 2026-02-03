@@ -18,11 +18,11 @@ window-padding-x = 12
 window-padding-y = 12
 window-padding-balance = true
 window-padding-color = extend
-window-decoration = true
+window-decoration = auto
 
 # 背景透明度
 background-opacity = 0.93
-background-blur-radius = 20
+background-blur = 20
 
 # 窗口主题
 window-theme = auto
@@ -108,8 +108,8 @@ keybind = shift+up=scroll_page_lines:-1
 keybind = shift+down=scroll_page_lines:1
 
 # --- 面板分割（Tmux 风格）---
-keybind = ctrl+a>percent=new_split:right
-keybind = ctrl+a>quote=new_split:down
+keybind = ctrl+a>shift+five=new_split:right
+keybind = ctrl+a>shift+apostrophe=new_split:down
 keybind = ctrl+a>x=close_surface
 keybind = ctrl+a>z=toggle_split_zoom
 

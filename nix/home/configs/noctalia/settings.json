@@ -532,7 +532,7 @@
     "tooltipsEnabled": true
   },
   "wallpaper": {
-    "directory": "~/Pictures/Wallpapers",
+    "directory": "~/nixos-config/nix/home/configs/wallpapers",
     "enableMultiMonitorDirectories": false,
     "enabled": true,
     "fillColor": "#000000",
