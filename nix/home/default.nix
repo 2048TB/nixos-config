@@ -182,7 +182,7 @@ in
     virt-viewer
     spice-gtk
     nomacs
-    krusader
+    nautilus  # GNOME 文件管理器（Wayland 原生，简洁现代）
 
     # === Wayland 工具 ===
     satty

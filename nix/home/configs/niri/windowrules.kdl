@@ -89,11 +89,7 @@ window-rule {
     open-on-workspace "6file"
 }
 window-rule {
-    match app-id="org.kde.krusader"
-    open-on-workspace "6file"
-}
-window-rule {
-    match app-id="krusader"
+    match app-id="org.gnome.Nautilus"
     open-on-workspace "6file"
 }
 
