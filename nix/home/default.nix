@@ -146,7 +146,6 @@ in
     cmake
     ninja
     pkg-config
-    binutils
     autoconf
     gettext
     libtool
