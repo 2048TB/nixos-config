@@ -53,23 +53,18 @@
 安装完成后，使用 `just` 命令简化日常操作：
 
 ```bash
-# 查看所有可用命令
-just
-
-# 常用命令
-just switch          # 应用配置
-just quick           # 检查 + 应用
-just clean           # 清理旧世代
-just upgrade         # 更新并应用
-just push "消息"      # 提交并推送到 GitHub
-
-# 查看文档
-just keys            # 快捷键说明
-just commands        # Nix 命令
-just help            # 常用命令参考
+just              # 查看所有命令
+just switch       # 应用配置
+just quick        # 检查 + 应用
+just clean        # 清理旧世代
+just upgrade      # 更新并应用
 ```
 
-完整命令列表查看 [justfile](./justfile)。
+📖 **完整命令参考**：
+- [justfile](./justfile) - Just 命令定义
+- [NIX-COMMANDS.md](./NIX-COMMANDS.md) - Nix 命令速查
+- [KEYBINDINGS.md](./KEYBINDINGS.md) - 快捷键说明
+- [CLAUDE.md](./CLAUDE.md) - 架构设计与开发指南（供 AI 使用）
 
 ---
 
@@ -242,88 +237,30 @@ export NIXOS_CONFIG_PATH=/path/to/your/repo
 
 ## 🔧 手动安装步骤
 
-如果不使用自动脚本，参考以下流程：
+**推荐使用自动脚本**：`sudo ./scripts/auto-install.sh`
 
-1. **分区和加密**:
-   ```bash
-   parted /dev/sda mklabel gpt
-   parted /dev/sda mkpart ESP fat32 2MiB 514MiB
-   parted /dev/sda set 1 esp on
-   parted /dev/sda mkpart primary 514MiB 100%
+如需手动安装，参考 `scripts/auto-install.sh` 源码，主要步骤：
+1. 分区和 LUKS 加密
+2. 创建 Btrfs 子卷（@root, @nix, @persistent, @swap 等）
+3. 挂载文件系统
+4. 创建 swapfile
+5. 生成硬件配置：`nixos-generate-config --root /mnt`
+6. 安装系统：`nixos-install --flake .#nixos-config`
 
-   mkfs.fat -F 32 -n ESP /dev/sda1
-   cryptsetup luksFormat /dev/sda2
-   cryptsetup luksOpen /dev/sda2 crypted-nixos
-   ```
-
-2. **创建 Btrfs 子卷**:
-   ```bash
-   mkfs.btrfs /dev/mapper/crypted-nixos
-   mount /dev/mapper/crypted-nixos /mnt
-   btrfs subvolume create /mnt/@root
-   btrfs subvolume create /mnt/@nix
-   btrfs subvolume create /mnt/@persistent
-   btrfs subvolume create /mnt/@snapshots
-   btrfs subvolume create /mnt/@tmp
-   btrfs subvolume create /mnt/@swap
-   umount /mnt
-   ```
-
-3. **挂载子卷**:
-   ```bash
-   mount -o subvol=@root,compress-force=zstd:1,noatime /dev/mapper/crypted-nixos /mnt
-   mkdir -p /mnt/{nix,persistent,snapshots,tmp,swap,boot}
-   mount -o subvol=@nix,compress-force=zstd:1,noatime /dev/mapper/crypted-nixos /mnt/nix
-   mount -o subvol=@persistent,compress-force=zstd:1 /dev/mapper/crypted-nixos /mnt/persistent
-   mount -o subvol=@snapshots,compress-force=zstd:1,noatime /dev/mapper/crypted-nixos /mnt/snapshots
-   mount -o subvol=@tmp,compress-force=zstd:1 /dev/mapper/crypted-nixos /mnt/tmp
-   mount -o subvol=@swap /dev/mapper/crypted-nixos /mnt/swap
-   mount /dev/sda1 /mnt/boot
-   ```
-
-4. **创建 swapfile**:
-   ```bash
-   btrfs filesystem mkswapfile --size 32g --uuid clear /mnt/swap/swapfile
-   ```
-
-5. **生成并修改配置**:
-   ```bash
-   nixos-generate-config --root /mnt
-   # 复制 /mnt/etc/nixos/hardware-configuration.nix 到 nix/hosts/nixos-config-hardware.nix
-   ```
-
-6. **安装系统**:
-   ```bash
-   cd ~/nixos-config
-   NIXOS_GPU=nvidia nixos-install --impure --flake .#nixos-config
-   ```
+详细命令见安装脚本。
 
 ---
 
 ## 🔒 Secure Boot（lanzaboote）
 
-默认关闭，启用步骤：
+默认关闭。启用方法：
 
-1. 安装系统后，生成密钥：
-   ```bash
-   sbctl create-keys
-   sbctl enroll-keys -m
-   ```
-
-2. 创建标记文件：
-   ```bash
-   sudo mkdir -p /etc/secureboot
-   ```
-
-3. 修改 `nix/modules/system.nix`（或在 host 配置中覆盖）：
-   ```nix
-   boot.lanzaboote.enable = true;
-   ```
-
-4. 重新构建系统：
-   ```bash
-   sudo nixos-rebuild switch --flake .#nixos-config
-   ```
+```bash
+sbctl create-keys && sbctl enroll-keys -m
+sudo mkdir -p /etc/secureboot
+# 修改 nix/modules/system.nix: boot.lanzaboote.enable = true
+sudo nixos-rebuild switch --flake .#nixos-config
+```
 
 ---
 
@@ -366,30 +303,6 @@ sudo nixos-rebuild switch --flake .#nixos-config
 系统会在第一次启动时自动修复 `/persistent/home` 的权限。如果仍有问题：
 ```bash
 sudo chown -R $USER:$USER /persistent/home/$USER
-```
-
----
-
-## 📦 ISO 构建
-
-```bash
-nix build .#nixos-config-iso
-```
-
-生成的 ISO 位于 `./result/iso/nixos-*.iso`。
-
----
-
-## 🧪 开发环境
-
-```bash
-nix develop
-
-# 可用命令：
-nix flake check        # 检查配置
-nixpkgs-fmt .          # 格式化代码
-statix check .         # 静态分析
-deadnix .              # 检测死代码
 ```
 
 ---

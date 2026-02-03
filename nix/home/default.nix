@@ -1,16 +1,27 @@
 { config, pkgs, lib, myvars, mainUser, ... }:
 let
+  # 配置常量
+  homeStateVersion = "25.11";
+  polkitStopTimeoutSec = 10;
+  polkitRestartSec = 1;
+  noctaliaRestartSec = 1;
+
+  # 路径常量（减少重复）
+  homeDir = config.home.homeDirectory;
+  localBinDir = "${homeDir}/.local/bin";
+  localShareDir = "${homeDir}/.local/share";
+
   mkSymlink = config.lib.file.mkOutOfStoreSymlink;
   # 支持环境变量覆盖配置路径，向后兼容 nix/vars/default.nix
   repoRoot =
     let
       envPath = builtins.getEnv "NIXOS_CONFIG_PATH";
-      homePath = "${config.home.homeDirectory}/nixos-config";
+      homePath = "${homeDir}/nixos-config";
     in
-      if envPath != "" then envPath
-      else if builtins.pathExists homePath then homePath
-      else if builtins.pathExists myvars.configRoot then myvars.configRoot
-      else homePath;
+    if envPath != "" then envPath
+    else if builtins.pathExists homePath then homePath
+    else if builtins.pathExists myvars.configRoot then myvars.configRoot
+    else homePath;
   niriConf = "${repoRoot}/nix/home/configs/niri";
   noctaliaConf = "${repoRoot}/nix/home/configs/noctalia";
   fcitx5Conf = "${repoRoot}/nix/home/configs/fcitx5";
@@ -35,36 +46,36 @@ in
 
   home.username = mainUser;
   home.homeDirectory = "/home/${mainUser}";
-  home.stateVersion = "25.11";
+  home.stateVersion = homeStateVersion;
 
   # 允许全局工具安装到可写目录，避免写入 /nix/store
   home.sessionVariables = {
-    NPM_CONFIG_PREFIX = "${config.home.homeDirectory}/.npm-global";
-    BUN_INSTALL = "${config.home.homeDirectory}/.bun";
-    BUN_INSTALL_BIN = "${config.home.homeDirectory}/.bun/bin";
-    BUN_INSTALL_GLOBAL_DIR = "${config.home.homeDirectory}/.bun/install/global";
-    BUN_INSTALL_CACHE_DIR = "${config.home.homeDirectory}/.bun/install/cache";
-    UV_TOOL_DIR = "${config.home.homeDirectory}/.local/share/uv/tools";
-    UV_TOOL_BIN_DIR = "${config.home.homeDirectory}/.local/bin";
-    CARGO_HOME = "${config.home.homeDirectory}/.cargo";
-    RUSTUP_HOME = "${config.home.homeDirectory}/.rustup";
-    GOPATH = "${config.home.homeDirectory}/go";
-    GOBIN = "${config.home.homeDirectory}/go/bin";
-    PYTHONUSERBASE = "${config.home.homeDirectory}/.local";
-    PIPX_HOME = "${config.home.homeDirectory}/.local/share/pipx";
-    PIPX_BIN_DIR = "${config.home.homeDirectory}/.local/bin";
-    GEM_HOME = "${config.home.homeDirectory}/.local/share/gem";
-    GEM_PATH = "${config.home.homeDirectory}/.local/share/gem";
+    NPM_CONFIG_PREFIX = "${homeDir}/.npm-global";
+    BUN_INSTALL = "${homeDir}/.bun";
+    BUN_INSTALL_BIN = "${homeDir}/.bun/bin";
+    BUN_INSTALL_GLOBAL_DIR = "${homeDir}/.bun/install/global";
+    BUN_INSTALL_CACHE_DIR = "${homeDir}/.bun/install/cache";
+    UV_TOOL_DIR = "${localShareDir}/uv/tools";
+    UV_TOOL_BIN_DIR = localBinDir;
+    CARGO_HOME = "${homeDir}/.cargo";
+    RUSTUP_HOME = "${homeDir}/.rustup";
+    GOPATH = "${homeDir}/go";
+    GOBIN = "${homeDir}/go/bin";
+    PYTHONUSERBASE = "${homeDir}/.local";
+    PIPX_HOME = "${localShareDir}/pipx";
+    PIPX_BIN_DIR = localBinDir;
+    GEM_HOME = "${localShareDir}/gem";
+    GEM_PATH = "${localShareDir}/gem";
   };
 
   home.sessionPath = [
-    "${config.home.homeDirectory}/.npm-global/bin"
-    "${config.home.homeDirectory}/tools"
-    "${config.home.homeDirectory}/.bun/bin"
-    "${config.home.homeDirectory}/.cargo/bin"
-    "${config.home.homeDirectory}/go/bin"
-    "${config.home.homeDirectory}/.local/share/gem/bin"
-    "${config.home.homeDirectory}/.local/bin"
+    "${homeDir}/.npm-global/bin"
+    "${homeDir}/tools"
+    "${homeDir}/.bun/bin"
+    "${homeDir}/.cargo/bin"
+    "${homeDir}/go/bin"
+    "${localShareDir}/gem/bin"
+    localBinDir
   ];
 
 
@@ -104,34 +115,34 @@ in
 
   home.packages = with pkgs; [
     # === 终端复用器 ===
-    tmux               # 终端复用器（会话保持、多窗格）
-    zellij             # 现代化终端复用器（Rust）
+    tmux # 终端复用器（会话保持、多窗格）
+    zellij # 现代化终端复用器（Rust）
 
     # === 文件管理 ===
-    yazi               # 终端文件管理器
-    bat                # cat 增强版（语法高亮）
-    fd                 # find 增强版（更快、更友好）
-    eza                # ls 增强版（彩色、树状图）
-    ripgrep            # grep 增强版（递归搜索）
-    ripgrep-all        # rg 扩展：搜索 PDF/Office 等
+    yazi # 终端文件管理器
+    bat # cat 增强版（语法高亮）
+    fd # find 增强版（更快、更友好）
+    eza # ls 增强版（彩色、树状图）
+    ripgrep # grep 增强版（递归搜索）
+    ripgrep-all # rg 扩展：搜索 PDF/Office 等
 
     # === 系统监控 ===
-    btop               # 系统资源监控（CPU、内存、进程）
-    duf                # 磁盘使用查看（替代 df）
-    fastfetch          # 系统信息展示
+    btop # 系统资源监控（CPU、内存、进程）
+    duf # 磁盘使用查看（替代 df）
+    fastfetch # 系统信息展示
 
     # === 文本处理 ===
-    jq                 # JSON 处理器（查询、格式化）
-    sd                 # 查找替换（替代 sed）
+    jq # JSON 处理器（查询、格式化）
+    sd # 查找替换（替代 sed）
 
     # === 网络工具 ===
-    curl               # HTTP 请求工具
-    wget               # 文件下载工具
+    curl # HTTP 请求工具
+    wget # 文件下载工具
 
     # === 基础工具 ===
-    git                # 版本控制
-    gh                 # GitHub CLI
-    gnumake            # 构建工具
+    git # 版本控制
+    gh # GitHub CLI
+    gnumake # 构建工具
     gcc
     cmake
     ninja
@@ -145,19 +156,19 @@ in
     clang
     lld
     meson
-    gitui              # Git TUI (Rust)
-    brightnessctl      # 屏幕亮度控制
-    xdg-utils          # XDG 工具集
-    xdg-user-dirs      # 用户目录管理
+    gitui # Git TUI (Rust)
+    brightnessctl # 屏幕亮度控制
+    xdg-utils # XDG 工具集
+    xdg-user-dirs # 用户目录管理
 
     # === Nix 生态工具 ===
     nix-output-monitor # nom - 构建日志美化
-    nix-tree           # 依赖树可视化
-    nix-melt           # flake.lock 查看器
-    cachix             # 二进制缓存管理
+    nix-tree # 依赖树可视化
+    nix-melt # flake.lock 查看器
+    cachix # 二进制缓存管理
 
     # === 开发效率 ===
-    just               # 命令运行器（替代 Makefile）
+    just # 命令运行器（替代 Makefile）
 
     # === GUI 应用 ===
     google-chrome
@@ -209,7 +220,7 @@ in
     mangohud
     umu-launcher
     bbe
-    wineWowPackages.stable  # 原：stagingFull（避免触发本地编译）
+    wineWowPackages.stable # 原：stagingFull（避免触发本地编译）
     winetricks
     protonplus
 
@@ -229,7 +240,7 @@ in
     mullvad-vpn
 
     # 通讯软件
-    telegram-desktop  # 使用官方二进制包（原 nixpaks.telegram-desktop 会触发 30 分钟编译）
+    telegram-desktop # 使用官方二进制包（原 nixpaks.telegram-desktop 会触发 30 分钟编译）
   ];
 
   xdg.configFile = {
@@ -258,8 +269,8 @@ in
     "ghostty/config".source = mkSymlink "${ghosttyConf}/config";
 
     "pnpm/rc".text = ''
-      global-dir=${config.home.homeDirectory}/.local/share/pnpm/global
-      global-bin-dir=${config.home.homeDirectory}/.local/bin
+      global-dir=${localShareDir}/pnpm/global
+      global-bin-dir=${localBinDir}
     '';
   };
 
@@ -294,7 +305,7 @@ in
       executable = true;
     };
     ".yarnrc".text = ''
-      prefix "${config.home.homeDirectory}/.local"
+      prefix "${homeDir}/.local"
     '';
     ".zshrc".source = mkSymlink "${shellConf}/zshrc";
     ".bashrc".source = mkSymlink "${shellConf}/bashrc";
@@ -311,8 +322,8 @@ in
       Type = "simple";
       ExecStart = polkitAgent;
       Restart = "on-failure";
-      RestartSec = 1;
-      TimeoutStopSec = 10;
+      RestartSec = polkitRestartSec;
+      TimeoutStopSec = polkitStopTimeoutSec;
     };
     Install.WantedBy = [ "niri.service" ];
   };

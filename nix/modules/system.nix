@@ -1,4 +1,13 @@
 { config, pkgs, lib, myvars, mainUser, preservation, ... }:
+let
+  # 系统常量
+  defaultUid = 1000;
+  defaultGid = 1000;
+  gcRetentionDays = "7d";
+  gcSchedule = "weekly";
+  optimiseSchedule = [ "weekly" ];
+  gnupgCacheTtlSeconds = 4 * 60 * 60; # 4 hours
+in
 {
   imports = [ preservation.nixosModules.default ];
 
@@ -139,14 +148,14 @@
   # 自动垃圾回收配置
   nix.gc = {
     automatic = true;
-    dates = "weekly";        # 每周执行一次
-    options = "--delete-older-than 7d";  # 删除 7 天前的旧世代
+    dates = gcSchedule; # 每周执行一次
+    options = "--delete-older-than ${gcRetentionDays}"; # 删除 7 天前的旧世代
   };
 
   # 优化配置
   nix.optimise = {
     automatic = true;
-    dates = [ "weekly" ];    # 每周优化存储
+    dates = optimiseSchedule; # 每周优化存储
   };
 
   networking.hostName = myvars.hostname;
@@ -165,15 +174,15 @@
     enable = true;
     pinentryPackage = pkgs.pinentry-qt;
     enableSSHSupport = false;
-    settings.default-cache-ttl = 4 * 60 * 60;
+    settings.default-cache-ttl = gnupgCacheTtlSeconds;
   };
 
   users.mutableUsers = true;
   users.groups.${mainUser} = {
-    gid = 1000;
+    gid = defaultGid;
   };
   users.users.${mainUser} = {
-    uid = 1000;
+    uid = defaultUid;
     isNormalUser = true;
     extraGroups = [
       "wheel"
@@ -246,7 +255,7 @@
       qt6Packages.fcitx5-configtool
       fcitx5-gtk
       (fcitx5-rime.override { rimeDataPkgs = [ rime-data ]; })
-      qt6Packages.fcitx5-chinese-addons  # 中文拼音输入法
+      qt6Packages.fcitx5-chinese-addons # 中文拼音输入法
     ];
   };
 
