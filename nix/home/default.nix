@@ -111,6 +111,14 @@ in
     scripts = [ pkgs.mpvScripts.mpris ];
   };
 
+  # Shell 配置（必需，用于加载 sessionVariables）
+  programs.zsh = {
+    enable = true;
+    enableCompletion = true;
+    autosuggestion.enable = true;
+    syntaxHighlighting.enable = true;
+  };
+
   services.playerctld.enable = true;
 
   home.packages = with pkgs; [
