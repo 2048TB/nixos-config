@@ -162,9 +162,19 @@ in
     wl-screenrec
 
     # === 基础 GUI 工具 ===
-    file-roller
+    kdePackages.ark
     zathura
     gnome-text-editor
+
+    # Ark 格式支持
+    p7zip
+    unrar
+    unar
+    arj
+    zip
+    lrzip
+    lzop
+    zstd
 
     # === Niri 生态 ===
     vicinae
