@@ -192,6 +192,7 @@ in
     kdePackages.ark
     zathura
     gnome-text-editor
+    wpsoffice # WPS Office 办公套件（文档/表格/演示）
 
     # Ark 格式支持
     p7zip
