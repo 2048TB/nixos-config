@@ -36,11 +36,6 @@ let
     fi
     /run/current-system/sw/bin/niri-session
   '';
-  noctaliaEnv = [
-    "QT_QPA_PLATFORM=wayland;xcb"
-    "QT_QPA_PLATFORMTHEME=qt6ct"
-    "QT_AUTO_SCREEN_SCALE_FACTOR=1"
-  ];
 in
 {
 
@@ -334,20 +329,4 @@ in
     Install.WantedBy = [ "niri.service" ];
   };
 
-  systemd.user.services.noctalia-shell = {
-    Unit = {
-      Description = "Noctalia Shell - Wayland desktop shell";
-      Documentation = "https://docs.noctalia.dev/docs";
-      After = [ "niri.service" ];
-      PartOf = [ "niri.service" ];
-    };
-
-    Service = {
-      ExecStart = lib.getExe pkgs.noctalia-shell;
-      Restart = "on-failure";
-      Environment = noctaliaEnv;
-    };
-
-    Install.WantedBy = [ "niri.service" ];
-  };
 }

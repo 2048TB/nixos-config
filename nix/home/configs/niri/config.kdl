@@ -8,6 +8,9 @@ include "./keybindings.kdl"
 include "./windowrules.kdl"
 include "./noctalia-shell.kdl"
 
+// Startup programs
+spawn-at-startup "noctalia-shell"
+
 // Input device configuration.
 // Find the full list of options on the wiki:
 // https://yalter.github.io/niri/Configuration:-Input
