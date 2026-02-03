@@ -9,10 +9,26 @@ set -euo pipefail
 # 或手动下载后运行：
 #   sudo bash auto-install.sh
 
-REPO_URL="${NIXOS_REPO_URL:-https://github.com/2048TB/nixos-config}"
-BRANCH="${NIXOS_BRANCH:-main}"
-# 是否自动清空已存在分区/文件系统（危险：1=自动清空）
-AUTO_ERASE="${NIXOS_AUTO_ERASE:-1}"
+# 配置常量
+readonly REPO_URL="${NIXOS_REPO_URL:-https://github.com/2048TB/nixos-config}"
+readonly BRANCH="${NIXOS_BRANCH:-main}"
+readonly AUTO_ERASE="${NIXOS_AUTO_ERASE:-1}"
+
+# 磁盘分区常量
+readonly ESP_SIZE_MIB=512
+readonly ESP_START_MIB=2
+readonly ESP_END_MIB=$((ESP_START_MIB + ESP_SIZE_MIB))
+
+# Btrfs 挂载选项
+readonly BTRFS_OPTS_COMPRESS="compress-force=zstd:1"
+readonly BTRFS_OPTS_NOATIME="noatime"
+
+# 默认值
+readonly DEFAULT_SWAP_GB=32
+readonly DEFAULT_LUKS_ITER_TIME=5000
+readonly DEFAULT_UID=1000
+readonly DEFAULT_GID_FALLBACK=100
+readonly PASSWORD_FILE_MODE=600
 
 log() {
   echo "[auto-install] $*"
@@ -185,7 +201,7 @@ if [[ -z "${NIXOS_GPU:-}" ]]; then
   fi
 fi
 
-SWAP_GB="${NIXOS_SWAP_SIZE_GB:-32}"
+SWAP_GB="${NIXOS_SWAP_SIZE_GB:-$DEFAULT_SWAP_GB}"
 
 log "Configuration Summary:"
 log "  disk: $NIXOS_DISK"
@@ -211,9 +227,9 @@ ROOT="${NIXOS_DISK}${part_suffix}2"
 
 log "partitioning..."
 parted -s "$NIXOS_DISK" mklabel gpt
-parted -s "$NIXOS_DISK" mkpart ESP fat32 2MiB 514MiB
+parted -s "$NIXOS_DISK" mkpart ESP fat32 "${ESP_START_MIB}MiB" "${ESP_END_MIB}MiB"
 parted -s "$NIXOS_DISK" set 1 esp on
-parted -s "$NIXOS_DISK" mkpart primary 514MiB 100%
+parted -s "$NIXOS_DISK" mkpart primary "${ESP_END_MIB}MiB" 100%
 
 log "waiting for partition devices..."
 if command -v partprobe >/dev/null 2>&1; then
@@ -227,7 +243,7 @@ log "formatting ESP..."
 mkfs.fat -F 32 -n ESP "$ESP"
 
 log "setting up LUKS..."
-ITER_TIME="${NIXOS_LUKS_ITER_TIME:-5000}"
+ITER_TIME="${NIXOS_LUKS_ITER_TIME:-$DEFAULT_LUKS_ITER_TIME}"
 printf '%s' "$NIXOS_LUKS_PASSWORD" | cryptsetup luksFormat --type luks2 --cipher aes-xts-plain64 --hash sha512 --iter-time "$ITER_TIME" --key-size 256 --pbkdf argon2id --batch-mode --key-file - "$ROOT"
 printf '%s' "$NIXOS_LUKS_PASSWORD" | cryptsetup luksOpen --key-file - "$ROOT" crypted-nixos
 
@@ -248,12 +264,12 @@ btrfs subvolume create /mnt/@swap
 umount /mnt
 
 log "mounting subvolumes..."
-mount -o subvol=@root,compress-force=zstd:1,noatime /dev/mapper/crypted-nixos /mnt
+mount -o "subvol=@root,${BTRFS_OPTS_COMPRESS},${BTRFS_OPTS_NOATIME}" /dev/mapper/crypted-nixos /mnt
 mkdir -p /mnt/{nix,persistent,snapshots,tmp,swap,boot}
-mount -o subvol=@nix,compress-force=zstd:1,noatime /dev/mapper/crypted-nixos /mnt/nix
-mount -o subvol=@persistent,compress-force=zstd:1 /dev/mapper/crypted-nixos /mnt/persistent
-mount -o subvol=@snapshots,compress-force=zstd:1,noatime /dev/mapper/crypted-nixos /mnt/snapshots
-mount -o subvol=@tmp,compress-force=zstd:1 /dev/mapper/crypted-nixos /mnt/tmp
+mount -o "subvol=@nix,${BTRFS_OPTS_COMPRESS},${BTRFS_OPTS_NOATIME}" /dev/mapper/crypted-nixos /mnt/nix
+mount -o "subvol=@persistent,${BTRFS_OPTS_COMPRESS}" /dev/mapper/crypted-nixos /mnt/persistent
+mount -o "subvol=@snapshots,${BTRFS_OPTS_COMPRESS},${BTRFS_OPTS_NOATIME}" /dev/mapper/crypted-nixos /mnt/snapshots
+mount -o "subvol=@tmp,${BTRFS_OPTS_COMPRESS}" /dev/mapper/crypted-nixos /mnt/tmp
 mount -o subvol=@swap /dev/mapper/crypted-nixos /mnt/swap
 mount "$ESP" /mnt/boot
 
@@ -271,7 +287,11 @@ log "generating hardware config..."
 nixos-generate-config --root /mnt
 
 log "copying configuration to persistent home..."
-mkdir -p "/mnt/persistent/home/${NIXOS_USER}"
+# 路径变量
+PERSISTENT_HOME="/mnt/persistent/home/${NIXOS_USER}"
+CONFIG_DEST="${PERSISTENT_HOME}/nixos-config"
+
+mkdir -p "$PERSISTENT_HOME"
 
 # 使用 tar 管道复制（不依赖 git/rsync）
 (cd "$repo_root" && tar \
@@ -281,23 +301,23 @@ mkdir -p "/mnt/persistent/home/${NIXOS_USER}"
   --exclude=nix-config-main \
   --exclude=niri-dotfiles.backup \
   -cf - .) | \
-  (cd "/mnt/persistent/home/${NIXOS_USER}" && tar -xf - )
+  (cd "$PERSISTENT_HOME" && tar -xf - )
 
 # 重命名目录
-mv "/mnt/persistent/home/${NIXOS_USER}" "/mnt/persistent/home/${NIXOS_USER}.tmp"
-mkdir -p "/mnt/persistent/home/${NIXOS_USER}"
-mv "/mnt/persistent/home/${NIXOS_USER}.tmp" "/mnt/persistent/home/${NIXOS_USER}/nixos-config"
+mv "$PERSISTENT_HOME" "${PERSISTENT_HOME}.tmp"
+mkdir -p "$PERSISTENT_HOME"
+mv "${PERSISTENT_HOME}.tmp" "$CONFIG_DEST"
 
 log "writing hardware-configuration.nix..."
 cp /mnt/etc/nixos/hardware-configuration.nix \
-  "/mnt/persistent/home/${NIXOS_USER}/nixos-config/nix/hosts/nixos-config-hardware.nix"
+  "${CONFIG_DEST}/nix/hosts/nixos-config-hardware.nix"
 
 log "writing gpu choice..."
 printf '%s\n' "$NIXOS_GPU" \
-  > "/mnt/persistent/home/${NIXOS_USER}/nixos-config/nix/vars/detected-gpu.txt"
+  > "${CONFIG_DEST}/nix/vars/detected-gpu.txt"
 
 log "updating nix/vars/default.nix..."
-VARS_FILE="/mnt/persistent/home/${NIXOS_USER}/nixos-config/nix/vars/default.nix"
+VARS_FILE="${CONFIG_DEST}/nix/vars/default.nix"
 sed -i \
   "s/username = \"[^\"]*\";/username = \"${NIXOS_USER}\";/" \
   "$VARS_FILE"
@@ -314,21 +334,22 @@ log "fixing ownership..."
 # 真正的权限修复会在首次启动时由 NixOS 的 user activation 处理
 owner_group="users"
 if ! getent group "$owner_group" >/dev/null 2>&1; then
-  owner_group="100"
+  owner_group="$DEFAULT_GID_FALLBACK"
 fi
-chown -R 1000:"$owner_group" "/mnt/persistent/home/${NIXOS_USER}" || true
+chown -R "$DEFAULT_UID":"$owner_group" "$PERSISTENT_HOME" || true
 
 log "writing hashed password..."
+PASSWORD_FILE="/mnt/persistent/etc/user-password"
 mkdir -p /mnt/persistent/etc
 if [[ "$HASH_CMD" == "mkpasswd" ]]; then
-  printf '%s' "$NIXOS_PASSWORD" | mkpasswd -m sha-512 -s > /mnt/persistent/etc/user-password
+  printf '%s' "$NIXOS_PASSWORD" | mkpasswd -m sha-512 -s > "$PASSWORD_FILE"
 else
-  printf '%s' "$NIXOS_PASSWORD" | openssl passwd -6 -stdin > /mnt/persistent/etc/user-password
+  printf '%s' "$NIXOS_PASSWORD" | openssl passwd -6 -stdin > "$PASSWORD_FILE"
 fi
-chmod 600 /mnt/persistent/etc/user-password
+chmod "$PASSWORD_FILE_MODE" "$PASSWORD_FILE"
 
 log "installing NixOS..."
-cd "/mnt/persistent/home/${NIXOS_USER}/nixos-config"
+cd "$CONFIG_DEST"
 NIXOS_GPU="$NIXOS_GPU" \
   nixos-install --impure --flake ".#${NIXOS_HOSTNAME}"
 
