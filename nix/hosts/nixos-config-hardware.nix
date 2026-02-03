@@ -55,8 +55,8 @@
 #     options = [ "subvol=@tmp" "compress-force=zstd:1" ];
 #   };
 #
-#   # swap 子卷由 storage.nix 管理，这里只定义基本挂载
-#   # storage.nix 会使用 mkForce 覆盖
+#   # swap 子卷由 system.nix 管理，这里只定义基本挂载
+#   # system.nix 会使用 mkForce 覆盖
 #
 #   fileSystems."/boot" = {
 #     device = "/dev/disk/by-uuid/<ACTUAL-ESP-UUID>";

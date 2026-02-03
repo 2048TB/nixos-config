@@ -406,11 +406,8 @@ deadnix .              # 检测死代码
 │   │   ├── nixos-config-hardware.nix  # 安装时生成
 │   │   └── nixos-config-gpu-choice.txt # 旧式 GPU 选择（可选）
 │   ├── modules/                 # 功能模块
-│   │   ├── system.nix           # 系统基础
-│   │   ├── desktop.nix          # 桌面环境
+│   │   ├── system.nix           # 系统基础（含桌面/服务/存储）
 │   │   ├── hardware.nix         # 硬件支持
-│   │   ├── services.nix         # 系统服务
-│   │   └── storage.nix          # 存储配置
 │   ├── hardening/               # 安全加固
 │   │   ├── apparmor.nix
 │   │   └── nixpaks/

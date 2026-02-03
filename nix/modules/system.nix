@@ -1,5 +1,7 @@
-{ pkgs, lib, myvars, mainUser, ... }:
+{ config, pkgs, lib, myvars, mainUser, preservation, ... }:
 {
+  imports = [ preservation.nixosModules.default ];
+
   # Boot loader
   boot.loader = {
     systemd-boot.enable = lib.mkDefault true;
@@ -26,6 +28,86 @@
     "vfat"
     "exfat"
   ];
+
+  # preservation 需要 initrd systemd
+  boot.initrd.systemd.enable = true;
+
+  preservation.enable = true;
+  preservation.preserveAt."/persistent" = {
+    directories = [
+      "/etc/NetworkManager/system-connections"
+      "/etc/ssh"
+      "/etc/nix"
+      "/etc/secureboot"
+
+      "/var/log"
+      "/var/lib/nixos"
+      "/var/lib/systemd"
+      "/var/lib/NetworkManager"
+      "/var/lib/bluetooth"
+    ];
+    files = [
+      {
+        file = "/etc/machine-id";
+        inInitrd = true;
+      }
+    ];
+
+    users.${mainUser} = {
+      directories = [
+        "Downloads"
+        "Documents"
+        "Pictures"
+        "Videos"
+        "Music"
+        "nixos-config"
+        ".config"
+        ".local/share"
+        ".local/state"
+        ".cache"
+      ];
+    };
+  };
+
+  fileSystems."/" = lib.mkForce {
+    device = "tmpfs";
+    fsType = "tmpfs";
+    options = [
+      "relatime"
+      "mode=755"
+    ];
+  };
+
+  # swap 子卷：禁用 COW 和压缩以支持 swapfile
+  fileSystems."/swap" = lib.mkForce {
+    device =
+      if config.fileSystems ? "/nix" && config.fileSystems."/nix" ? device
+      then config.fileSystems."/nix".device
+      else "/dev/mapper/crypted-nixos";
+    fsType = "btrfs";
+    options = [
+      "subvol=@swap"
+      "noatime"
+      "nodatacow"
+      "compress=no"
+    ];
+  };
+
+  fileSystems."/swap/swapfile" = lib.mkForce {
+    depends = [ "/swap" ];
+    device = "/swap/swapfile";
+    fsType = "none";
+    options = [
+      "bind"
+      "rw"
+    ];
+  };
+
+  swapDevices = [
+    { device = "/swap/swapfile"; }
+  ];
+
+  fileSystems."/persistent".neededForBoot = lib.mkDefault true;
 
   nixpkgs.config.allowUnfree = true;
 
@@ -112,6 +194,83 @@
   users.defaultUserShell = pkgs.zsh;
   programs.zsh.enable = true;
 
+  services.xserver.enable = false;
+  programs.niri.enable = true;
+
+  services.greetd = {
+    enable = true;
+    settings.default_session = {
+      user = mainUser;
+      command = "/home/${mainUser}/.wayland-session";
+    };
+  };
+
+  # Wayland 桌面常用的 portal（文件选择/截图/投屏）
+  xdg.portal = {
+    enable = true;
+    xdgOpenUsePortal = true;
+    config.common.default = [
+      "gtk"
+      "gnome"
+    ];
+    extraPortals = with pkgs; [
+      xdg-desktop-portal-gtk
+      xdg-desktop-portal-gnome
+    ];
+  };
+
+  fonts.packages = with pkgs; [
+    # 编程字体
+    maple-mono.NF-CN-unhinted # Nerd Font with Chinese glyphs
+
+    # CJK 字体（已优化：移除 source-han 重复，仅保留 Noto）
+    # 说明：source-han-sans 和 noto-fonts-cjk-sans 是同一套字体的不同品牌
+    noto-fonts-cjk-sans # CJK 黑体（中日韩）
+    noto-fonts-cjk-serif # CJK 宋体（中日韩）
+
+    # 备用中文字体
+    wqy_zenhei # 文泉驿正黑（轻量级，约 10MB）
+
+    # 优化效果：移除 source-han-sans/serif 节省约 800MB
+  ];
+
+  # 输入法与中文支持
+  i18n.inputMethod = {
+    enable = true;
+    type = "fcitx5";
+    fcitx5.waylandFrontend = true;
+    fcitx5.addons = with pkgs; [
+      qt6Packages.fcitx5-configtool
+      fcitx5-gtk
+      (fcitx5-rime.override { rimeDataPkgs = [ rime-data ]; })
+      qt6Packages.fcitx5-chinese-addons  # 中文拼音输入法
+    ];
+  };
+
+  # 音频（含 32 位支持，便于 Steam/Proton）
+  services.pipewire = {
+    enable = true;
+    alsa.enable = true;
+    alsa.support32Bit = true;
+    pulse.enable = true;
+  };
+
+  # Thunar 文件管理与缩略图/挂载支持
+  services.gvfs.enable = true;
+  services.tumbler.enable = true;
+  programs.thunar = {
+    enable = true;
+    plugins = with pkgs; [
+      thunar-archive-plugin
+      thunar-volman
+    ];
+  };
+
+  # GNOME Keyring
+  services.gnome.gnome-keyring.enable = true;
+  programs.seahorse.enable = true;
+  security.pam.services.greetd.enableGnomeKeyring = true;
+
   # 首次启动时修复 /persistent/home 权限（由于安装脚本使用硬编码 UID）
   system.activationScripts.fixPersistentHomePerms = {
     text = ''
@@ -150,7 +309,30 @@
     ruff
     black
     uv
+    lutris
   ];
+
+  # 游戏支持
+  programs.steam = {
+    enable = true;
+    gamescopeSession.enable = true;
+    protontricks.enable = true;
+  };
+  programs.gamemode.enable = true;
+
+  # Proton-GE 配置：通过 Steam extraCompatPackages 安装
+  # 注意：不能放在 environment.systemPackages（会导致 buildEnv 错误）
+  programs.steam.extraCompatPackages = with pkgs; [
+    proton-ge-bin
+  ];
+
+  # KVM / libvirt
+  virtualisation.libvirtd.enable = true;
+  virtualisation.libvirtd.qemu.swtpm.enable = true;
+  programs.virt-manager.enable = true;
+
+  services.mullvad-vpn.enable = true;
+  services.flatpak.enable = true;
 
   # 兼容通用 Linux 动态链接可执行文件（如第三方 CLI 安装器）
   programs.nix-ld = {
