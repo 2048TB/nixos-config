@@ -16,6 +16,9 @@ set -euo pipefail
 readonly BTRFS_OPTS_COMPRESS="compress-force=zstd:1"
 readonly BTRFS_OPTS_NOATIME="noatime"
 
+# Cleanup 标志
+CLEANUP_NEEDED=0
+
 log() {
   echo "[resume-install] $*"
 }
@@ -24,6 +27,17 @@ fail() {
   echo "[resume-install] ERROR: $*" >&2
   exit 1
 }
+
+# 清理函数：在脚本退出时自动执行
+cleanup() {
+  if [[ "${CLEANUP_NEEDED:-0}" == "1" ]]; then
+    log "Cleaning up mounts..."
+    swapoff /mnt/swap/swapfile 2>/dev/null || true
+    umount -R /mnt 2>/dev/null || true
+    # 注意：不关闭 LUKS（用户可能需要手动检查数据）
+  fi
+}
+trap cleanup EXIT
 
 if [[ $(id -u) -ne 0 ]]; then
   fail "please run as root"
@@ -80,8 +94,13 @@ fi
 # 检查是否已挂载
 if mountpoint -q /mnt; then
   log "WARNING: /mnt already mounted. Unmounting first..."
+  # 先卸载 swap（如果存在且已启用）
+  if [[ -f /mnt/swap/swapfile ]]; then
+    swapoff /mnt/swap/swapfile 2>/dev/null || true
+  fi
+  # 再卸载文件系统
   if ! umount -R /mnt 2>/dev/null; then
-    log "Failed to unmount /mnt. Trying to continue anyway..."
+    fail "/mnt is busy. Please check: lsof +D /mnt"
   fi
 fi
 
@@ -127,17 +146,27 @@ fi
 log "All filesystems mounted successfully!"
 log ""
 
+# 标记需要清理（挂载成功后）
+CLEANUP_NEEDED=1
+
 # 查找配置目录
 log "Looking for configuration..."
 if [[ -z "${NIXOS_USER:-}" ]]; then
-  # 尝试自动检测用户目录
+  # 尝试自动检测用户目录（使用 nullglob 防止空目录时的字面量展开）
+  shopt -s nullglob
   user_dirs=(/mnt/persistent/home/*)
+  shopt -u nullglob
+  
   if [[ ${#user_dirs[@]} -eq 1 ]] && [[ -d "${user_dirs[0]}" ]]; then
     NIXOS_USER=$(basename "${user_dirs[0]}")
     log "Auto-detected user: $NIXOS_USER"
+  elif [[ ${#user_dirs[@]} -eq 0 ]]; then
+    fail "No users found in /persistent/home/. Installation may be incomplete?"
   else
-    log "Available users in /persistent/home/:"
-    ls -1 /mnt/persistent/home/ 2>/dev/null || echo "  (none found)"
+    log "Multiple users found in /persistent/home/:"
+    for dir in "${user_dirs[@]}"; do
+      echo "  - $(basename "$dir")"
+    done
     echo ""
     read -r -p "Enter username: " NIXOS_USER
   fi
@@ -157,6 +186,12 @@ cd "$CONFIG_DIR" || fail "failed to cd to $CONFIG_DIR"
 # 检查是否是 git 仓库
 if [[ -d .git ]]; then
   log "Updating configuration from GitHub..."
+
+  # 设置 git 用户（避免 git 操作时的错误）
+  export GIT_AUTHOR_NAME="Resume Install Script"
+  export GIT_AUTHOR_EMAIL="noreply@localhost"
+  export GIT_COMMITTER_NAME="Resume Install Script"
+  export GIT_COMMITTER_EMAIL="noreply@localhost"
 
   # 显示当前 commit
   current_commit=$(git log --oneline -1 2>/dev/null || echo "unknown")
@@ -228,7 +263,7 @@ log ""
 if [[ -z "${NIXOS_HOSTNAME:-}" ]]; then
   # 尝试从配置文件读取
   if [[ -f "nix/vars/default.nix" ]]; then
-    detected_hostname=$(grep -oP 'hostname\s*=\s*"\K[^"]+' "nix/vars/default.nix" 2>/dev/null || echo "")
+    detected_hostname=$(sed -n 's/.*hostname[[:space:]]*=[[:space:]]*"\([^"]*\)".*/\1/p' "nix/vars/default.nix" 2>/dev/null | head -1 || echo "")
     if [[ -n "$detected_hostname" ]]; then
       log "Detected hostname from config: $detected_hostname"
       NIXOS_HOSTNAME="$detected_hostname"
@@ -272,6 +307,10 @@ if NIXOS_GPU="$NIXOS_GPU" nixos-install --impure --flake ".#${NIXOS_HOSTNAME}"; 
   log "Installation completed successfully!"
   log "========================================="
   log ""
+  
+  # 安装成功，禁用 cleanup（保留挂载点供重启使用）
+  CLEANUP_NEEDED=0
+  
   log "Next steps:"
   log "  1. Reboot: sudo reboot"
   log "  2. Login with user: $NIXOS_USER"
