@@ -195,6 +195,7 @@ in
 
     # Ark 格式支持
     p7zip
+    p7zip-rar
     unrar
     unar
     arj
