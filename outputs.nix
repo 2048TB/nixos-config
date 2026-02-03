@@ -23,7 +23,6 @@ in
     modules = [
       ./nix/hosts/${myvars.hostname}.nix
       ./nix/hardening/apparmor.nix
-      # ./nix/hardening/nixpaks  # 已移除：nixpak telegram 会触发 30 分钟本地编译
       lanzaboote.nixosModules.lanzaboote
       home-manager.nixosModules.home-manager
       {
@@ -40,11 +39,11 @@ in
   devShells.${system}.default = pkgs.mkShell {
     name = "nixos-config-dev";
     packages = with pkgs; [
-      nil                    # Nix LSP
-      nixpkgs-fmt           # Nix 格式化
-      statix                # Nix linter
-      deadnix               # 死代码检测
-      nix-tree              # 依赖树查看
+      nil # Nix LSP
+      nixpkgs-fmt # Nix 格式化
+      statix # Nix linter
+      deadnix # 死代码检测
+      nix-tree # 依赖树查看
     ];
     shellHook = ''
       echo "🚀 NixOS 配置开发环境"
