@@ -414,7 +414,6 @@ deadnix .              # 检测死代码
 │   ├── vars/                    # 全局变量
 │   │   ├── default.nix
 │   │   └── detected-gpu.txt     # GPU 检测结果
-│   ├── lib/                     # 自定义函数
 │   └── home/                    # Home Manager 配置
 │       ├── default.nix
 │       └── configs/             # 配置素材集中目录

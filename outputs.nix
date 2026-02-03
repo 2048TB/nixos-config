@@ -1,7 +1,6 @@
 { self, nixpkgs, home-manager, lanzaboote, preservation, ... }@inputs:
 let
   myvars = import ./nix/vars;
-  mylib = import ./nix/lib { inherit (nixpkgs) lib; };
   system = "x86_64-linux";
 
   # 向后兼容：支持环境变量覆盖
@@ -14,7 +13,7 @@ let
   };
 
   specialArgs = inputs // {
-    inherit myvars mylib mainUser preservation;
+    inherit myvars mainUser preservation;
   };
 in
 {
@@ -31,7 +30,7 @@ in
         nixpkgs.config.allowUnfree = true;
         home-manager.useGlobalPkgs = true;
         home-manager.useUserPackages = true;
-        home-manager.extraSpecialArgs = { inherit myvars mylib mainUser; };
+        home-manager.extraSpecialArgs = { inherit myvars mainUser; };
         home-manager.users.${mainUser} = import ./nix/home;
       }
     ];
