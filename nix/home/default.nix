@@ -137,11 +137,14 @@ in
     # === 系统监控 ===
     btop # 系统资源监控（CPU、内存、进程）
     duf # 磁盘使用查看（替代 df）
+    dust # 磁盘空间树状图（du 替代，可视化目录大小）
+    procs # 进程查看（ps 替代，彩色表格化）
     fastfetch # 系统信息展示
 
     # === 文本处理 ===
     jq # JSON 处理器（查询、格式化）
     sd # 查找替换（替代 sed）
+    tealdeer # 命令示例（tldr，简化版 man 页面）
 
     # === 网络工具 ===
     curl # HTTP 请求工具
@@ -162,6 +165,8 @@ in
     clang
     meson
     gitui # Git TUI (Rust)
+    delta # git diff 美化（语法高亮、并排对比）
+    tokei # 代码统计（行数、语言分布）
     brightnessctl # 屏幕亮度控制
     xdg-utils # XDG 工具集
     xdg-user-dirs # 用户目录管理
