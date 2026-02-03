@@ -173,7 +173,6 @@ in
     google-chrome
     vscode
     remmina
-    virt-manager
     virt-viewer
     spice-gtk
     nomacs
@@ -217,7 +216,6 @@ in
     app2unit
 
     # === Gaming 工具 ===
-    gamescope
     mangohud
     umu-launcher
     bbe
