@@ -300,6 +300,7 @@ in
   # 文件管理常用的缩略图/挂载支持
   services.gvfs.enable = true;
   services.tumbler.enable = true;
+  services.udisks2.enable = true; # USB 设备自动识别和挂载
 
   # GNOME Keyring
   services.gnome.gnome-keyring.enable = true;

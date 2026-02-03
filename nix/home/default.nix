@@ -121,6 +121,14 @@ in
 
   services.playerctld.enable = true;
 
+  # USB 设备自动挂载服务
+  services.udiskie = {
+    enable = true;
+    automount = true;
+    notify = true;
+    tray = "never"; # Niri 不需要托盘图标
+  };
+
   home.packages = with pkgs; [
     # === 终端复用器 ===
     tmux # 终端复用器（会话保持、多窗格）
