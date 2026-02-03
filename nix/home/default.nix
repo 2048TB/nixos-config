@@ -191,8 +191,7 @@ in
     wpsoffice # WPS Office 办公套件（文档/表格/演示）
 
     # Ark 格式支持
-    p7zip
-    p7zip-rar
+    p7zip-rar  # 包含 7-Zip + RAR 支持（unfree）
     unrar
     unar
     arj
