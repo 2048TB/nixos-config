@@ -152,7 +152,6 @@ in
     automake
     ccache
     clang
-    lld
     meson
     gitui # Git TUI (Rust)
     brightnessctl # 屏幕亮度控制
