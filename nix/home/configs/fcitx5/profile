@@ -30,7 +30,7 @@ Name=Default
 # Layout
 Default Layout=us
 # Default Input Method
-DefaultIM=rime
+DefaultIM=pinyin
 
 [Groups/1/Items/0]
 # Name
@@ -40,7 +40,7 @@ Layout=
 
 [Groups/1/Items/1]
 # Name
-Name=rime
+Name=pinyin
 # Layout
 Layout=
 

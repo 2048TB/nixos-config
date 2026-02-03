@@ -277,10 +277,7 @@ in
     '';
   };
 
-  xdg.dataFile = {
-    "fcitx5/rime/default.custom.yaml".source =
-      mkSymlink "${fcitx5Conf}/rime/default.custom.yaml";
-  };
+
 
   xdg.userDirs = {
     enable = true;
