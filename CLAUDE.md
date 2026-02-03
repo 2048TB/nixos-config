@@ -4,6 +4,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ---
 
+## 0 OVERRIDE RULES
+```
+FORBIDDEN: *.md files (unless user says "create/write X.md")
+LANG: zh-CN prose + EN technical
+STYLE: direct, critical, concise, stop when done
+CODE_REF: file_path:line_number
+COMPLETION: communicate results → stop (no suggestions, no .md)
+```
+
 ## Repository Overview
 
 This is a NixOS desktop configuration using:

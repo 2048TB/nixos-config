@@ -10,7 +10,7 @@
 - **开发工具链**: Rust / Zig / Go / Node.js / Python
 - **游戏支持**: Steam / Proton-GE / Wine / Lutris
 - **中文输入**: Fcitx5 中文拼音
-- **终端工具**: Ghostty + Tmux + Zellij + 现代化 CLI 工具链 (bat/fd/eza/ripgrep/duf/jq)
+- **终端工具**: Ghostty + Tmux + Zellij + 现代化 CLI 工具链 (bat/fd/eza/ripgrep/dust/procs/delta/tokei)
 - **存储方案**: tmpfs 根分区 + Btrfs + LUKS 全盘加密 + preservation 持久化
 - **安全加固**: AppArmor + Secure Boot 支持
 - **应用软件**: Chrome / Telegram / VSCode / MPV
