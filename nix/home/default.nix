@@ -261,7 +261,6 @@ in
       source = mkSymlink "${fcitx5Conf}/profile";
       force = true;
     };
-    "mozc/config1.db".source = mkSymlink "${fcitx5Conf}/mozc-config1.db";
 
     "ghostty/config".source = mkSymlink "${ghosttyConf}/config";
 

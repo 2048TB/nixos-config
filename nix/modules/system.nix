@@ -87,6 +87,9 @@ in
         # 安全凭证（不遵循 XDG 规范的传统目录）
         ".ssh"         # SSH keys
         ".gnupg"       # GPG keys
+
+        # 输入法数据
+        ".local/share/fcitx5"  # fcitx5 数据（Rime 用户词典、词频）
       ];
     };
   };
@@ -232,6 +235,7 @@ in
   programs.zsh.enable = true;
 
   services.xserver.enable = false;
+  services.xserver.desktopManager.runXdgAutostartIfNone = true;  # 启用 XDG autostart（fcitx5 等）
   programs.niri.enable = true;
 
   services.greetd = {
