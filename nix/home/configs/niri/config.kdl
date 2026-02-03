@@ -27,7 +27,7 @@ input {
         }
 
         // Enable numlock on startup, omitting this setting disables it.
-        // numlock
+        numlock
 
         // You can set the keyboard repeat parameters. The defaults match wlroots and sway.
         // Delay is in milliseconds before the repeat starts. Rate is in characters per second.
@@ -150,6 +150,14 @@ layout {
         // right 64
         // top 64
         // bottom 64
+    }
+
+    // Window shadow for better depth perception
+    shadow {
+        softness 30
+        spread 5
+        offset x=0 y=5
+        color "#0007"
     }
 }
 

@@ -261,17 +261,11 @@ in
   ];
 
   xdg.configFile = {
+    # niri compositor 配置（4 个文件）
     "niri/config.kdl".source = mkSymlink "${repoRoot}/nix/home/configs/niri/config.kdl";
-    # niri compositor 配置
     "niri/keybindings.kdl".source = mkSymlink "${repoRoot}/nix/home/configs/niri/keybindings.kdl";
-    "niri/noctalia-shell.kdl".source = mkSymlink "${repoRoot}/nix/home/configs/niri/noctalia-shell.kdl";
     "niri/windowrules.kdl".source = mkSymlink "${repoRoot}/nix/home/configs/niri/windowrules.kdl";
-    "niri/scripts".source = mkSymlink "${repoRoot}/nix/home/configs/niri/scripts";
-
-    # niriswitcher 窗口切换器配置（与 niri 统一管理）
-    "niriswitcher/config.toml".source = mkSymlink "${repoRoot}/nix/home/configs/niri/niriswitcher.toml";
-    "niriswitcher/colors.css".source = mkSymlink "${repoRoot}/nix/home/configs/niri/niriswitcher-colors.css";
-    "niriswitcher/style.css".source = mkSymlink "${repoRoot}/nix/home/configs/niri/niriswitcher-style.css";
+    "niri/noctalia-shell.kdl".source = mkSymlink "${repoRoot}/nix/home/configs/niri/noctalia-shell.kdl";
 
     "noctalia".source = mkSymlink "${noctaliaConf}";
     "qt6ct/qt6ct.conf".source = mkSymlink "${noctaliaConf}/qt6ct.conf";
