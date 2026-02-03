@@ -166,5 +166,5 @@
     background-color: var(--highlight-color);
 }
 
-@import "/home/shorin/.config/niriswitcher/colors.css";
+@import "./colors.css";
 

@@ -200,6 +200,7 @@ in
 
     # === Wayland 工具 ===
     satty
+    swayidle # 空闲管理（熄屏、休眠），用户自行配置
     mako
     grim
     slurp
@@ -261,17 +262,16 @@ in
 
   xdg.configFile = {
     "niri/config.kdl".source = mkSymlink "${repoRoot}/nix/home/configs/niri/config.kdl";
+    # niri compositor 配置
     "niri/keybindings.kdl".source = mkSymlink "${repoRoot}/nix/home/configs/niri/keybindings.kdl";
     "niri/noctalia-shell.kdl".source = mkSymlink "${repoRoot}/nix/home/configs/niri/noctalia-shell.kdl";
     "niri/windowrules.kdl".source = mkSymlink "${repoRoot}/nix/home/configs/niri/windowrules.kdl";
-    "niri/niri-hardware.kdl".source = mkSymlink "${repoRoot}/nix/home/configs/niri/niri-hardware.kdl";
-    "niri/animation.kdl".source = mkSymlink "${repoRoot}/nix/home/configs/niri/animation.kdl";
-    "niri/colors.kdl".source = mkSymlink "${repoRoot}/nix/home/configs/niri/colors.kdl";
     "niri/scripts".source = mkSymlink "${repoRoot}/nix/home/configs/niri/scripts";
 
-    "niriswitcher/config.toml".source = mkSymlink "${repoRoot}/nix/home/configs/niriswitcher/config.toml";
-    "niriswitcher/colors.css".source = mkSymlink "${repoRoot}/nix/home/configs/niriswitcher/colors.css";
-    "niriswitcher/style.css".source = mkSymlink "${repoRoot}/nix/home/configs/niriswitcher/style.css";
+    # niriswitcher 窗口切换器配置（与 niri 统一管理）
+    "niriswitcher/config.toml".source = mkSymlink "${repoRoot}/nix/home/configs/niri/niriswitcher.toml";
+    "niriswitcher/colors.css".source = mkSymlink "${repoRoot}/nix/home/configs/niri/niriswitcher-colors.css";
+    "niriswitcher/style.css".source = mkSymlink "${repoRoot}/nix/home/configs/niri/niriswitcher-style.css";
 
     "noctalia".source = mkSymlink "${noctaliaConf}";
     "qt6ct/qt6ct.conf".source = mkSymlink "${noctaliaConf}/qt6ct.conf";
