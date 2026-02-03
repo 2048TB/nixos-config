@@ -113,6 +113,7 @@ in
     fd                 # find 增强版（更快、更友好）
     eza                # ls 增强版（彩色、树状图）
     ripgrep            # grep 增强版（递归搜索）
+    ripgrep-all        # rg 扩展：搜索 PDF/Office 等
 
     # === 系统监控 ===
     btop               # 系统资源监控（CPU、内存、进程）
