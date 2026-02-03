@@ -258,16 +258,9 @@
     pulse.enable = true;
   };
 
-  # Thunar 文件管理与缩略图/挂载支持
+  # 文件管理常用的缩略图/挂载支持
   services.gvfs.enable = true;
   services.tumbler.enable = true;
-  programs.thunar = {
-    enable = true;
-    plugins = with pkgs; [
-      thunar-archive-plugin
-      thunar-volman
-    ];
-  };
 
   # GNOME Keyring
   services.gnome.gnome-keyring.enable = true;

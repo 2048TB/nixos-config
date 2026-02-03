@@ -151,6 +151,7 @@ in
     virt-viewer
     spice-gtk
     nomacs
+    krusader
 
     # === Wayland 工具 ===
     satty
