@@ -4,36 +4,22 @@
 
 // Terminal applications - open in workspace 1
 window-rule {
-    match app-id="foot"
-    open-on-workspace "1terminal"
-    open-maximized true
-}
-window-rule {
-    match app-id="Alacritty"
-    open-on-workspace "1terminal"
-    open-maximized true
-}
-window-rule {
     match app-id="com.mitchellh.ghostty"
     open-on-workspace "1terminal"
-    open-maximized true
 }
 
 // Web browsers - open in workspace 2
 window-rule {
     match app-id="firefox"
     open-on-workspace "2browser"
-    open-maximized true
 }
 window-rule {
     match app-id="google-chrome"
     open-on-workspace "2browser"
-    open-maximized true
 }
 window-rule {
     match app-id="chromium-browser"
     open-on-workspace "2browser"
-    open-maximized true
 }
 
 // Chat applications - open in workspace 3
@@ -42,15 +28,6 @@ window-rule {
     match title="^Telegram"
     open-on-workspace "3chat"
 }
-window-rule {
-    match app-id="wechat"
-    open-on-workspace "3chat"
-}
-window-rule {
-    match app-id="QQ"
-    open-on-workspace "3chat"
-}
-
 // Gaming applications - open in workspace 4
 window-rule {
     match app-id="steam"
@@ -93,12 +70,3 @@ window-rule {
     open-on-workspace "6file"
 }
 
-// Other applications - open in workspace 0
-window-rule {
-    match app-id="Clash-verge"
-    open-on-workspace "0other"
-}
-window-rule {
-    match app-id="Zoom Workplace"
-    open-on-workspace "0other"
-}
