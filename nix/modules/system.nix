@@ -347,11 +347,13 @@ in
   systemd.tmpfiles.rules = [
     # 7天清理缓存
     "e /home/${mainUser}/.cache - - - 7d"
-    # 30天清理下载目录
-    "e /home/${mainUser}/Downloads - - - 30d"
-    # 清理浏览器缓存（可选）
+    # 清理临时文件
+    "e /tmp - - - 1d"
+    "e /var/tmp - - - 7d"
+    # 可选：清理特定应用缓存（取消注释以启用）
     # "e /home/${mainUser}/.cache/mozilla - - - 3d"
     # "e /home/${mainUser}/.cache/chromium - - - 3d"
+    # "e /home/${mainUser}/.cache/thumbnails - - - 7d"
   ];
 
   # 兼容通用 Linux 动态链接可执行文件（如第三方 CLI 安装器）
