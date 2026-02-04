@@ -345,9 +345,9 @@ log "writing hashed password..."
 PASSWORD_FILE="/mnt/persistent/etc/user-password"
 mkdir -p /mnt/persistent/etc
 if [[ "$HASH_CMD" == "mkpasswd" ]]; then
-  printf '%s' "$NIXOS_PASSWORD" | mkpasswd -m sha-512 -s > "$PASSWORD_FILE"
+  printf '%s' "$NIXOS_PASSWORD" | mkpasswd -m sha-512 -s | tr -d '\n' > "$PASSWORD_FILE"
 else
-  printf '%s' "$NIXOS_PASSWORD" | openssl passwd -6 -stdin > "$PASSWORD_FILE"
+  printf '%s' "$NIXOS_PASSWORD" | openssl passwd -6 -stdin | tr -d '\n' > "$PASSWORD_FILE"
 fi
 chmod "$PASSWORD_FILE_MODE" "$PASSWORD_FILE"
 

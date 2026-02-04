@@ -1,7 +1,5 @@
 // This config is in the KDL format: https://kdl.dev
 // "/-" comments out the following node.
-// Check the wiki for a full description of the configuration:
-// https://yalter.github.io/niri/Configuration:-Introduction
 
 // This is the main configuration file that includes all other config files
 include "./keybindings.kdl"
@@ -12,8 +10,6 @@ include "./noctalia-shell.kdl"
 spawn-at-startup "noctalia-shell"
 
 // Input device configuration.
-// Find the full list of options on the wiki:
-// https://yalter.github.io/niri/Configuration:-Input
 input {
     keyboard {
         xkb {
@@ -71,8 +67,6 @@ input {
 }
 
 // Settings that influence how windows are positioned and sized.
-// Find more information on the wiki:
-// https://yalter.github.io/niri/Configuration:-Layout
 layout {
     // Set gaps around windows in logical pixels.
     gaps 8
@@ -201,7 +195,6 @@ screenshot-path "~/Pictures/Screenshots/Screenshot from %Y-%m-%d %H-%M-%S.png"
 
 // Animation settings.
 // The wiki explains how to configure individual animations:
-// https://yalter.github.io/niri/Configuration:-Animations
 animations {
     slowdown 0.9
     workspace-switch {
@@ -220,6 +213,3 @@ recent-windows {
     }
 }
 
-// Window rules let you adjust behavior for individual windows.
-// Find more information on the wiki:
-// https://yalter.github.io/niri/Configuration:-Window-Rules

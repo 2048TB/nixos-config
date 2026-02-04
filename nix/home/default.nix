@@ -233,7 +233,7 @@ in
     swaybg
 
     # === Wayland 基础设施 ===
-    # xwayland-satellite 由 niri-flake 自动提供，无需手动安装
+    xwayland-satellite # X11 应用支持（niri 25.08+ 自动集成）
     wl-clipboard
     qt6Packages.qt6ct
     app2unit
@@ -327,7 +327,7 @@ in
     '';
   };
 
-  # niri-flake 自动提供 polkit agent，移除手动配置
+  # polkit agent 由 niri-flake 的 nixosModules.niri 自动提供（KDE polkit agent）
   # 若需禁用：systemd.user.services.niri-flake-polkit.enable = false;
 
 }

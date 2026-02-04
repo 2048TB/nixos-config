@@ -118,7 +118,7 @@ in
     experimental-features = [ "nix-command" "flakes" ];
 
     # 配置 Binary Cache 以加速包下载
-    # 注意：niri.cachix.org 由 niri.nixosModules.niri 自动添加，此处仅配置额外缓存
+    # 注意：niri.cachix.org 由 niri-flake 的 nixosModules.niri 自动添加（通过 niri-flake.cache.enable 选项，默认启用）
     substituters = [
       "https://cache.nixos.org"
       "https://nix-community.cachix.org"
@@ -218,10 +218,9 @@ in
   services.xserver.desktopManager.runXdgAutostartIfNone = true; # 启用 XDG autostart（fcitx5 等）
 
   # Niri compositor
-  nixpkgs.overlays = [ niri.overlays.niri ];
   programs.niri = {
     enable = true;
-    package = pkgs.niri-unstable; # 使用 unstable 版本获取最新功能
+    package = pkgs.niri; # 使用 nixpkgs 官方包（零编译）
   };
 
   services.greetd = {

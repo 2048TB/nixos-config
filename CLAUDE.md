@@ -88,7 +88,7 @@ nix build .#nixos-config-iso
 ### Flake Structure
 
 - **flake.nix**: Entry point, imports `outputs.nix`
-- Includes `niri-flake` input for official Niri packages and modules
+- Includes `niri-flake` input for NixOS module (niri.nixosModules.niri)
 - **outputs.nix**: Defines nixosConfiguration, devShell, formatter
 - Reads `myvars` from `nix/vars/default.nix`
 - Supports `NIXOS_USER` env override for username
@@ -141,14 +141,13 @@ nix/
 5. **Binary Cache Strategy**
 - All packages use official caches (no local compilation)
 - Removed packages that trigger builds (wine stagingFull → stable, nixpaks)
-- niri.cachix.org automatically added by niri.nixosModules.niri
+- `pkgs.niri` from nixpkgs uses cache.nixos.org (no additional cache needed)
 - See `nix.settings.substituters` in `nix/modules/system.nix`
 
 6. **Niri Configuration**
-- Uses niri-flake official overlay: `niri.overlays.niri`
-- Package: `pkgs.niri-unstable` (latest features)
+- Package: `pkgs.niri` (nixpkgs official, zero compilation)
 - Config method: Manual KDL files (build-time validation disabled via `programs.niri.config = null`)
-- Automatic integrations: polkit agent, xdg-portal, binary cache
+- Automatic integrations: polkit agent, xdg-portal
 - Config files: `nix/home/configs/niri/*.kdl` (symlinked via xdg.configFile)
 
 ---
@@ -175,8 +174,8 @@ nix/
 - IMPORTANT: `programs.niri.config = null` prevents auto-generation of config.kdl (we use manual KDL files)
 
 4. **nix/modules/system.nix**
-- `niri` parameter required for accessing `niri.overlays.niri`
-- NEVER manually add niri.cachix.org to substituters (niri.nixosModules.niri adds it automatically)
+- `niri` parameter only used for `niri.nixosModules.niri` (module import)
+- Uses `pkgs.niri` from nixpkgs (no overlay needed)
 - polkit agent automatically provided by niri-flake (don't create systemd.user.services.niri-polkit)
 
 5. **Binary Cache Violations**
@@ -217,7 +216,7 @@ NIXOS_GPU=nvidia sudo nixos-rebuild switch --impure --flake .#nixos-config
 
 ### Configuring Niri
 
-**Using niri-flake (current setup):**
+**Current setup:**
 1. niri configuration uses manual KDL files in `nix/home/configs/niri/`
 2. `programs.niri.config = null` disables auto-generation
 3. Environment variables in both places:

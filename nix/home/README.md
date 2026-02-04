@@ -28,8 +28,8 @@
 所有配置通过 `default.nix` 中的 symlink 方式链接到用户 home 目录。
 修改这些文件后，运行 `just switch` 应用更改。
 
-**重要**: Niri 配置使用 niri-flake 官方集成：
-- 包管理：通过 `niri.overlays.niri` 获取 `pkgs.niri-unstable`
+**重要**: Niri 配置说明：
+- 包管理：使用 nixpkgs 官方 `pkgs.niri`（零编译）
 - 系统集成：由 `niri.nixosModules.niri` 自动处理 polkit/xdg-portal
 - 配置方式：手动 KDL 文件（禁用自动生成）
 

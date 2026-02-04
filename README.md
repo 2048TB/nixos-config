@@ -32,7 +32,7 @@
   已自动配置以下缓存源：
   - `cache.nixos.org` - 官方缓存（核心系统）
   - `nix-community.cachix.org` - 社区包（游戏工具、开发工具）
-  - `niri.cachix.org` - Niri compositor（由 niri-flake 自动添加）
+
   - `nixpkgs-wayland.cachix.org` - Wayland 生态（Noctalia Shell 等）
   - `cache.garnix.io` - 额外社区缓存（Rust 工具链、游戏工具）
 
