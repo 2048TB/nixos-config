@@ -258,6 +258,7 @@ mount /dev/mapper/crypted-nixos /mnt
 btrfs subvolume create /mnt/@root
 btrfs subvolume create /mnt/@nix
 btrfs subvolume create /mnt/@persistent
+btrfs subvolume create /mnt/@home
 btrfs subvolume create /mnt/@snapshots
 btrfs subvolume create /mnt/@tmp
 btrfs subvolume create /mnt/@swap
@@ -265,9 +266,10 @@ umount /mnt
 
 log "mounting subvolumes..."
 mount -o "subvol=@root,${BTRFS_OPTS_COMPRESS},${BTRFS_OPTS_NOATIME}" /dev/mapper/crypted-nixos /mnt
-mkdir -p /mnt/{nix,persistent,snapshots,tmp,swap,boot}
+mkdir -p /mnt/{nix,persistent,home,snapshots,tmp,swap,boot}
 mount -o "subvol=@nix,${BTRFS_OPTS_COMPRESS},${BTRFS_OPTS_NOATIME}" /dev/mapper/crypted-nixos /mnt/nix
 mount -o "subvol=@persistent,${BTRFS_OPTS_COMPRESS}" /dev/mapper/crypted-nixos /mnt/persistent
+mount -o "subvol=@home,compress=zstd,noatime" /dev/mapper/crypted-nixos /mnt/home
 mount -o "subvol=@snapshots,${BTRFS_OPTS_COMPRESS},${BTRFS_OPTS_NOATIME}" /dev/mapper/crypted-nixos /mnt/snapshots
 mount -o "subvol=@tmp,${BTRFS_OPTS_COMPRESS}" /dev/mapper/crypted-nixos /mnt/tmp
 mount -o subvol=@swap /dev/mapper/crypted-nixos /mnt/swap
@@ -286,12 +288,12 @@ swapon /mnt/swap/swapfile
 log "generating hardware config..."
 nixos-generate-config --root /mnt
 
-log "copying configuration to persistent home..."
-# 路径变量
-PERSISTENT_HOME="/mnt/persistent/home/${NIXOS_USER}"
-CONFIG_DEST="${PERSISTENT_HOME}/nixos-config"
+log "copying configuration to user home..."
+# 路径变量（@home 子卷挂载到 /mnt/home）
+USER_HOME="/mnt/home/${NIXOS_USER}"
+CONFIG_DEST="${USER_HOME}/nixos-config"
 
-mkdir -p "$PERSISTENT_HOME"
+mkdir -p "$USER_HOME"
 
 # 使用 tar 管道复制（不依赖 git/rsync）
 (cd "$repo_root" && tar \
@@ -301,12 +303,12 @@ mkdir -p "$PERSISTENT_HOME"
   --exclude=nix-config-main \
   --exclude=niri-dotfiles.backup \
   -cf - .) | \
-  (cd "$PERSISTENT_HOME" && tar -xf - )
+  (cd "$USER_HOME" && tar -xf - )
 
 # 重命名目录
-mv "$PERSISTENT_HOME" "${PERSISTENT_HOME}.tmp"
-mkdir -p "$PERSISTENT_HOME"
-mv "${PERSISTENT_HOME}.tmp" "$CONFIG_DEST"
+mv "$USER_HOME" "${USER_HOME}.tmp"
+mkdir -p "$USER_HOME"
+mv "${USER_HOME}.tmp" "$CONFIG_DEST"
 
 log "writing hardware-configuration.nix..."
 cp /mnt/etc/nixos/hardware-configuration.nix \
@@ -336,7 +338,7 @@ owner_group="users"
 if ! getent group "$owner_group" >/dev/null 2>&1; then
   owner_group="$DEFAULT_GID_FALLBACK"
 fi
-chown -R "$DEFAULT_UID":"$owner_group" "$PERSISTENT_HOME" || true
+chown -R "$DEFAULT_UID":"$owner_group" "$USER_HOME" || true
 
 log "writing hashed password..."
 PASSWORD_FILE="/mnt/persistent/etc/user-password"

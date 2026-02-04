@@ -44,6 +44,7 @@ in
   preservation.enable = true;
   preservation.preserveAt."/persistent" = {
     directories = [
+      "/root" # root 用户配置（.bashrc, .vimrc, SSH keys 等）
       "/etc/NetworkManager/system-connections"
       "/etc/ssh"
       "/etc/nix"
@@ -290,11 +291,11 @@ in
   programs.seahorse.enable = true;
   security.pam.services.greetd.enableGnomeKeyring = true;
 
-  # 首次启动时修复 /persistent/home 权限（由于安装脚本使用硬编码 UID）
-  system.activationScripts.fixPersistentHomePerms = {
+  # 首次启动时修复用户目录权限（由于安装脚本使用硬编码 UID）
+  system.activationScripts.fixUserHomePerms = {
     text = ''
-      if [ -d /persistent/home/${mainUser} ]; then
-        chown -R ${mainUser}:${mainUser} /persistent/home/${mainUser} || true
+      if [ -d /home/${mainUser} ]; then
+        chown -R ${mainUser}:${mainUser} /home/${mainUser} || true
       fi
     '';
     deps = [ "users" ];
