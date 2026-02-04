@@ -240,6 +240,7 @@ in
     pavucontrol
     playerctl
     pulsemixer
+    splayer # 网易云音乐播放器（支持本地音乐、流媒体、逐字歌词）
     imv
     libva-utils
     vdpauinfo
