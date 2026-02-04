@@ -260,6 +260,9 @@ in
 
     # Virtualisation tools
     qemu_kvm
+    docker-compose # Docker 编排工具
+    dive # Docker 镜像分析
+    lazydocker # Docker TUI 管理器
     mullvad-vpn
 
     # 通讯软件

@@ -56,6 +56,7 @@ in
       "/var/lib/NetworkManager"
       "/var/lib/bluetooth"
       "/var/lib/libvirt" # 虚拟机镜像和配置
+      "/var/lib/docker" # Docker 镜像、容器和卷
       "/etc/mullvad-vpn"
       "/var/lib/flatpak"
     ];
@@ -199,6 +200,7 @@ in
       "input"
       "libvirtd"
       "kvm"
+      "docker"
     ];
     shell = pkgs.zsh;
     hashedPasswordFile = "/persistent/etc/user-password";
@@ -350,6 +352,17 @@ in
   virtualisation.libvirtd.enable = true;
   virtualisation.libvirtd.qemu.swtpm.enable = true;
   programs.virt-manager.enable = true;
+
+  # Docker
+  virtualisation.docker = {
+    enable = true;
+    enableOnBoot = true;
+    autoPrune = {
+      enable = true;
+      dates = "weekly";
+      flags = [ "--all" ]; # 清理所有未使用的镜像（不仅悬空镜像）
+    };
+  };
 
   services.mullvad-vpn.enable = true;
   services.flatpak.enable = true;
