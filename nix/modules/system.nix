@@ -248,7 +248,8 @@ in
 
   fonts.packages = with pkgs; [
     # 编程字体
-    maple-mono.NF-CN-unhinted # Nerd Font with Chinese glyphs
+    jetbrains-mono # JetBrains Mono（2026 业界标准，优秀 CJK 兼容）
+    maple-mono.NF-CN-unhinted # Nerd Font with Chinese glyphs（备用）
 
     # CJK 字体（已优化：移除 source-han 重复，仅保留 Noto）
     # 说明：source-han-sans 和 noto-fonts-cjk-sans 是同一套字体的不同品牌

@@ -3,7 +3,7 @@
 # 配置文档: https://ghostty.org/docs/config
 
 # ===== 字体设置 =====
-font-family = Maple Mono NF CN
+font-family = JetBrains Mono
 font-size = 13
 
 # 连字功能

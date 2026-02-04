@@ -99,7 +99,8 @@ layout {
     }
 
     // You can change the default width of the new windows.
-    default-column-width { proportion 0.500000; }
+    // 设置为 33% 以支持自动三分屏，而非 50% 独占半屏
+    default-column-width { proportion 0.333333; }
     // If you leave the brackets empty, the windows themselves will decide their initial width.
     // default-column-width {}
 
