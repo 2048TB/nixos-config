@@ -1,4 +1,4 @@
-{ self, nixpkgs, home-manager, lanzaboote, preservation, ... }@inputs:
+{ self, nixpkgs, home-manager, lanzaboote, niri, preservation, ... }@inputs:
 let
   myvars = import ./nix/vars;
   system = "x86_64-linux";
@@ -24,6 +24,7 @@ in
       ./nix/hosts/${myvars.hostname}.nix
       ./nix/hardening/apparmor.nix
       lanzaboote.nixosModules.lanzaboote
+      niri.nixosModules.niri
       home-manager.nixosModules.home-manager
       {
         home-manager.useGlobalPkgs = true;

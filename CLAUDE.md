@@ -18,7 +18,7 @@ COMPLETION: communicate results → stop (no suggestions, no .md)
 This is a NixOS desktop configuration using:
 - **Flake-based** system configuration
 - **Home Manager** for user environment
-- **Niri Wayland** compositor + Noctalia Shell
+- **Niri Wayland** compositor (via niri-flake) + Noctalia Shell
 - **tmpfs root** + Btrfs subvolumes + LUKS encryption
 - **preservation** module for persistent storage
 - **Zero compilation** strategy (100% binary cache)
@@ -88,10 +88,12 @@ nix build .#nixos-config-iso
 ### Flake Structure
 
 - **flake.nix**: Entry point, imports `outputs.nix`
+- Includes `niri-flake` input for official Niri packages and modules
 - **outputs.nix**: Defines nixosConfiguration, devShell, formatter
-  - Reads `myvars` from `nix/vars/default.nix`
-  - Supports `NIXOS_USER` env override for username
-  - Main user flows through `mainUser` special arg to all modules
+- Reads `myvars` from `nix/vars/default.nix`
+- Supports `NIXOS_USER` env override for username
+- Main user flows through `mainUser` special arg to all modules
+- Imports `niri.nixosModules.niri` for automatic Niri integration
 
 ### Module Organization
 
@@ -109,37 +111,45 @@ nix/
 │   ├── default.nix                # User environment setup
 │   └── configs/                   # Config files (niri, ghostty, shell, etc.)
 └── vars/                           # Global variables
-    ├── default.nix                # User/hostname/paths
-    └── detected-gpu.txt           # GPU detection result (generated)
+├── default.nix                # User/hostname/paths
+└── detected-gpu.txt           # GPU detection result (generated)
 ```
 
 ### Key Design Patterns
 
 1. **Variable System**
-   - `nix/vars/default.nix` defines `username`, `hostname`, `configRoot`
-   - `outputs.nix` imports as `myvars`, passes to all modules via `specialArgs`
-   - Runtime override: `NIXOS_USER` env var > `myvars.username`
+- `nix/vars/default.nix` defines `username`, `hostname`, `configRoot`
+- `outputs.nix` imports as `myvars`, passes to all modules via `specialArgs`
+- Runtime override: `NIXOS_USER` env var > `myvars.username`
 
 2. **GPU Configuration**
-   - Auto-detect in install script → writes `nix/vars/detected-gpu.txt`
-   - `nix/modules/hardware.nix` reads file (fallback priority chain)
-   - Runtime override: `NIXOS_GPU` env var (requires `--impure`)
-   - Specialisation (boot menu switching) disabled by default to reduce ISO size
+- Auto-detect in install script → writes `nix/vars/detected-gpu.txt`
+- `nix/modules/hardware.nix` reads file (fallback priority chain)
+- Runtime override: `NIXOS_GPU` env var (requires `--impure`)
+- Specialisation (boot menu switching) disabled by default to reduce ISO size
 
 3. **Persistent Storage**
-   - Root = tmpfs (cleared on reboot)
-   - `/persistent` = Btrfs subvolume with `preservation` module
-   - Home Manager configs read from `repoRoot` (env `NIXOS_CONFIG_PATH` > `~/nixos-config` > `myvars.configRoot`)
+- Root = tmpfs (cleared on reboot)
+- `/persistent` = Btrfs subvolume with `preservation` module
+- Home Manager configs read from `repoRoot` (env `NIXOS_CONFIG_PATH` > `~/nixos-config` > `myvars.configRoot`)
 
 4. **Path Constants Pattern**
-   - Extract repeated `config.home.homeDirectory` to `homeDir`
-   - Extract common paths (`localBinDir`, `localShareDir`) to avoid duplication
-   - See `nix/home/default.nix` let bindings
+- Extract repeated `config.home.homeDirectory` to `homeDir`
+- Extract common paths (`localBinDir`, `localShareDir`) to avoid duplication
+- See `nix/home/default.nix` let bindings
 
 5. **Binary Cache Strategy**
-   - All packages use official caches (no local compilation)
-   - Removed packages that trigger builds (wine stagingFull → stable, nixpaks)
-   - See `nix.settings.substituters` in `nix/modules/system.nix`
+- All packages use official caches (no local compilation)
+- Removed packages that trigger builds (wine stagingFull → stable, nixpaks)
+- niri.cachix.org automatically added by niri.nixosModules.niri
+- See `nix.settings.substituters` in `nix/modules/system.nix`
+
+6. **Niri Configuration**
+- Uses niri-flake official overlay: `niri.overlays.niri`
+- Package: `pkgs.niri-unstable` (latest features)
+- Config method: Manual KDL files (build-time validation disabled via `programs.niri.config = null`)
+- Automatic integrations: polkit agent, xdg-portal, binary cache
+- Config files: `nix/home/configs/niri/*.kdl` (symlinked via xdg.configFile)
 
 ---
 
@@ -148,26 +158,33 @@ nix/
 ### When Modifying Files
 
 1. **nix/vars/default.nix**
-   - Changing `username` breaks Home Manager unless you also update:
-     - `users.users.${mainUser}` in system.nix
-     - `/persistent/home/${username}` permissions
-   - Changing `configRoot` requires users to update `NIXOS_CONFIG_PATH` or move repo
+- Changing `username` breaks Home Manager unless you also update:
+- `users.users.${mainUser}` in system.nix
+- `/persistent/home/${username}` permissions
+- Changing `configRoot` requires users to update `NIXOS_CONFIG_PATH` or move repo
 
 2. **nix/modules/hardware.nix**
-   - GPU detection uses `findFirstExistingPath` helper (don't revert to nested if-else)
-   - Driver constants: `driverNvidia`, `driverAmdgpu`, `driverModesetting`
-   - Always test both NVIDIA and AMD configs when modifying
+- GPU detection uses `findFirstExistingPath` helper (don't revert to nested if-else)
+- Driver constants: `driverNvidia`, `driverAmdgpu`, `driverModesetting`
+- Always test both NVIDIA and AMD configs when modifying
 
 3. **nix/home/default.nix**
-   - Use `homeDir` / `localBinDir` / `localShareDir` constants (never raw `config.home.homeDirectory`)
-   - `repoRoot` calculation has env override fallback chain
-   - `mkSymlink` requires repo to exist at calculated path
+- Use `homeDir` / `localBinDir` / `localShareDir` constants (never raw `config.home.homeDirectory`)
+- `repoRoot` calculation has env override fallback chain
+- `mkSymlink` requires repo to exist at calculated path
+- IMPORTANT: `programs.niri.config = null` prevents auto-generation of config.kdl (we use manual KDL files)
 
-4. **Binary Cache Violations**
-   - Never add packages that trigger compilation:
-     - Check with: `nix build --dry-run .#nixosConfigurations.nixos-config.config.system.build.toplevel`
-     - Look for "will be built" vs "will be fetched"
-   - Exceptions documented in comments (e.g., `wineWowPackages.stable` not stagingFull)
+4. **nix/modules/system.nix**
+- `niri` parameter required for accessing `niri.overlays.niri`
+- NEVER manually add niri.cachix.org to substituters (niri.nixosModules.niri adds it automatically)
+- polkit agent automatically provided by niri-flake (don't create systemd.user.services.niri-polkit)
+
+5. **Binary Cache Violations**
+- Never add packages that trigger compilation:
+- Check with: `nix build --dry-run .#nixosConfigurations.nixos-config.config.system.build.toplevel`
+- Look for "will be built" vs "will be fetched"
+- Exceptions documented in comments (e.g., `wineWowPackages.stable` not stagingFull)
+- xwayland-satellite provided by niri-flake, don't add to home.packages
 
 ### File Generation (Don't Edit)
 
@@ -198,6 +215,24 @@ sudo nixos-rebuild switch --flake .#nixos-config
 NIXOS_GPU=nvidia sudo nixos-rebuild switch --impure --flake .#nixos-config
 ```
 
+### Configuring Niri
+
+**Using niri-flake (current setup):**
+1. niri configuration uses manual KDL files in `nix/home/configs/niri/`
+2. `programs.niri.config = null` disables auto-generation
+3. Environment variables in both places:
+- `home.sessionVariables.NIXOS_OZONE_WL` (global shell environment)
+- `environment { NIXOS_OZONE_WL "1" }` in config.kdl (niri-spawned apps)
+4. polkit agent automatically provided by niri-flake (no manual systemd service needed)
+
+**Alternative: Declarative settings (not used):**
+```nix
+programs.niri.settings = {
+outputs."eDP-1".scale = 2.0;
+environment."NIXOS_OZONE_WL" = "1";
+};
+```
+
 ### Adding Home Manager Config
 
 1. Place config files in `nix/home/configs/<app>/`
@@ -210,8 +245,11 @@ NIXOS_GPU=nvidia sudo nixos-rebuild switch --impure --flake .#nixos-config
 # Update all inputs
 nix flake update
 
-# Update specific input
+# Update specific input (nixpkgs)
 nix flake lock --update-input nixpkgs
+
+# Update niri only
+nix flake lock --update-input niri
 
 # View dependency tree
 nix-melt

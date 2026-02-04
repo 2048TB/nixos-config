@@ -2,45 +2,48 @@
 
 一键安装、全自动硬件适配的 NixOS 桌面配置，包含：
 
-📖 **[快捷键说明](./KEYBINDINGS.md)** - 窗口管理器和终端快捷键
-📖 **[Nix 命令速查](./NIX-COMMANDS.md)** - NixOS 和 Flake 常用命令
-⚡ **[Justfile 命令](./justfile)** - 使用 `just` 简化日常操作
+  📖 * *[ 快捷键说明 ] (./KEYBINDINGS.md) * * - 窗口管理器和终端快捷键
+  📖 * * [ Nix 命令速查 ] (./NIX-COMMANDS.md) * * - NixOS 和 Flake 常用命令
+  ⚡ * *[ Justfile 命令 ] (./justfile) * * - 使用 `just` 简化日常操作
 
-- **桌面环境**: Niri Wayland + Home Manager + Noctalia Shell
-- **开发工具链**: Rust / Zig / Go / Node.js / Python
-- **游戏支持**: Steam / Proton-GE / Wine / Lutris
-- **中文输入**: Fcitx5 中文拼音
-- **终端工具**: Ghostty + Tmux + Zellij + 现代化 CLI 工具链 (bat/fd/eza/ripgrep/dust/procs/delta/tokei)
-- **存储方案**: tmpfs 根分区 + Btrfs + LUKS 全盘加密 + preservation 持久化
-- **安全加固**: AppArmor + Secure Boot 支持
-- **应用软件**: Chrome / Telegram / VSCode / MPV
-- **性能优化**: 完全使用 Binary Cache，0 本地编译，15 分钟快速安装
+  - * * 桌面环境* * : Niri Wayland + Home Manager + Noctalia Shell
+  - * * 开发工具链* * : Rust / Zig / Go / Node.js / Python
+  - * * 游戏支持* * : Steam / Proton-GE / Wine / Lutris
+  - * * 中文输入* * : Fcitx5 中文拼音
+  - * * 终端工具* * : Ghostty + Tmux + Zellij + 现代化 CLI 工具链 (bat/fd/eza/ripgrep/dust/procs/delta/tokei)
+  - * * 存储方案* * : tmpfs 根分区 + Btrfs + LUKS 全盘加密 + preservation 持久化
+  - * * 安全加固* * : AppArmor + Secure Boot 支持
+  - * * 应用软件* * : Chrome / Telegram / VSCode / MPV
+  - * * 性能优化* * : 完全使用 Binary Cache，0 本地编译，15 分钟快速安装
 
----
+  - --
 
 ## ⚡ 性能特性
 
 本配置经过深度优化，确保最快的安装速度：
 
-- ✅ **0 本地编译** - 所有包使用官方 Binary Cache
-- ✅ **96%+ 缓存命中率** - 配置 Nix Community + Wayland Cachix
-- ✅ **15-20 分钟快速安装** - 仅网络下载，无编译等待
-- ✅ **1.2GB 精简 ISO** - 移除冗余依赖，优化体积 52%
+- ✅ * * 0 本地编译 * * - 所有包使用官方 Binary Cache
+  - ✅ * * 96% + 缓存命中率* * - 配置 Nix Community + Wayland Cachix
+  - ✅ * * 15 - 20 分钟快速安装 * * - 仅网络下载，无编译等待
+  - ✅ * * 1.2 GB 精简 ISO * * - 移除冗余依赖，优化体积 52%
 
-### Binary Cache 配置
+  ### Binary Cache 配置
 
-已自动配置以下缓存源：
-- `cache.nixos.org` - 官方缓存（核心系统）
-- `nix-community.cachix.org` - 社区包（Niri, 游戏工具, 开发工具）
-- `nixpkgs-wayland.cachix.org` - Wayland 生态（Noctalia Shell 等）
-- `cache.garnix.io` - 额外社区缓存（Rust 工具链、游戏工具）
+  已自动配置以下缓存源：
+  - `cache.nixos.org` - 官方缓存（核心系统）
+  - `nix-community.cachix.org` - 社区包（游戏工具、开发工具）
+  - `niri.cachix.org` - Niri compositor（由 niri-flake 自动添加）
+  - `nixpkgs-wayland.cachix.org` - Wayland 生态（Noctalia Shell 等）
+  - `cache.garnix.io` - 额外社区缓存（Rust 工具链、游戏工具）
 
-### 包体积统计
+  ### 包体积统计
 
-| 类别 | 下载体积 | 说明 |
-|------|---------|------|
+  | 类别 | 下载体积 | 说明 |
+  | - -----|---------|------|
 | 核心系统 | ~1.5 GB | 内核、systemd、基础工具 |
-| 桌面环境 | ~800 MB | Niri, Wayland, 字体 |
+  | 桌面环境 | ~800
+  MB |
+  Niri, Wayland, 字体 |
 | 开发工具 | ~2.5 GB | Rust/Go/Node/Python/Zig 全工具链 |
 | 游戏工具 | ~4 GB | Steam/Wine/Proton/Lutris |
 | 其他应用 | ~1 GB | Chrome/VSCode/Telegram 等 |
@@ -139,11 +142,11 @@ dd if=result/iso/nixos-*.iso of=/dev/sdX bs=4M status=progress
 脚本包含多重安全检查：
 
 1. **磁盘保护**: 默认拒绝格式化已有分区的磁盘
-   ```bash
-   # 强制安装需要显式设置
-   export FORCE=1
-   sudo -E ./scripts/auto-install.sh
-   ```
+```bash
+# 强制安装需要显式设置
+export FORCE=1
+sudo -E ./scripts/auto-install.sh
+```
 
 2. **失败自动清理**: 安装失败时自动卸载挂载点和 LUKS 容器
 
@@ -157,13 +160,13 @@ dd if=result/iso/nixos-*.iso of=/dev/sdX bs=4M status=progress
 /dev/nvme0n1
 ├── nvme0n1p1  EFI (512MB, FAT32)
 └── nvme0n1p2  LUKS 加密容器
-    └── crypted-nixos (Btrfs)
-        ├── @root       → tmpfs (重启清空)
-        ├── @nix        → /nix
-        ├── @persistent → /persistent
-        ├── @snapshots  → /snapshots
-        ├── @tmp        → /tmp
-        └── @swap       → /swap (含 swapfile)
+└── crypted-nixos (Btrfs)
+├── @root       → tmpfs (重启清空)
+├── @nix        → /nix
+├── @persistent → /persistent
+├── @snapshots  → /snapshots
+├── @tmp        → /tmp
+└── @swap       → /swap (含 swapfile)
 ```
 
 ---
@@ -190,8 +193,8 @@ dd if=result/iso/nixos-*.iso of=/dev/sdX bs=4M status=progress
 ### 自动检测规则
 
 1. 检测 `/sys/bus/pci/devices/*/vendor`
-   - `0x10de` → NVIDIA
-   - `0x1002` → AMD
+- `0x10de` → NVIDIA
+- `0x1002` → AMD
 
 2. fallback 到 `lspci` 解析
 
@@ -316,27 +319,24 @@ sudo chown -R $USER:$USER /persistent/home/$USER
 ├── nix/                         # NixOS 相关配置
 │   ├── hosts/                   # 主机配置
 │   │   ├── nixos-config.nix
-│   │   ├── nixos-config-hardware.nix  # 安装时生成
-│   │   └── nixos-config-gpu-choice.txt # 旧式 GPU 选择（可选）
+│   │   └── nixos-config-hardware.nix  # 安装时生成
 │   ├── modules/                 # 功能模块
-│   │   ├── system.nix           # 系统基础（含桌面/服务/存储）
-│   │   ├── hardware.nix         # 硬件支持
+│   │   ├── system.nix           # 系统配置（niri-flake + 桌面 + 包管理）
+│   │   └── hardware.nix         # GPU 驱动 + 自动检测
 │   ├── hardening/               # 安全加固
-│   │   ├── apparmor.nix
-│   │   └── nixpaks/
+│   │   └── apparmor.nix
 │   ├── vars/                    # 全局变量
-│   │   ├── default.nix
-│   │   └── detected-gpu.txt     # GPU 检测结果
+│   │   ├── default.nix          # 用户名/主机名/路径
+│   │   └── detected-gpu.txt     # GPU 检测结果（安装时生成）
 │   └── home/                    # Home Manager 配置
-│       ├── default.nix
-│       └── configs/             # 配置素材集中目录
-│           ├── niri/
-│           ├── niriswitcher/
-│           ├── noctalia/
-│           ├── fcitx5/
-│           ├── ghostty/
-│           ├── shell/
-│           └── wallpapers/
+│       ├── default.nix          # 用户环境 + 应用列表
+│       └── configs/             # 配置文件集中目录
+│           ├── niri/            # Niri compositor (KDL 配置)
+│           ├── noctalia/        # Noctalia Shell
+│           ├── fcitx5/          # 中文输入法
+│           ├── ghostty/         # 终端模拟器
+│           ├── shell/           # Shell 配置（zsh/bash/vim）
+│           └── wallpapers/      # 壁纸资源
 ├── scripts/                     # 工具脚本
 │   └── auto-install.sh          # 一键安装脚本
 ```

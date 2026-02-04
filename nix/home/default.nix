@@ -2,9 +2,6 @@
 let
   # 配置常量
   homeStateVersion = "25.11";
-  polkitStopTimeoutSec = 10;
-  polkitRestartSec = 1;
-  noctaliaRestartSec = 1;
 
   # 路径常量（减少重复）
   homeDir = config.home.homeDirectory;
@@ -22,12 +19,9 @@ let
     else if builtins.pathExists homePath then homePath
     else if builtins.pathExists myvars.configRoot then myvars.configRoot
     else homePath;
-  niriConf = "${repoRoot}/nix/home/configs/niri";
   noctaliaConf = "${repoRoot}/nix/home/configs/noctalia";
   fcitx5Conf = "${repoRoot}/nix/home/configs/fcitx5";
   ghosttyConf = "${repoRoot}/nix/home/configs/ghostty";
-  shellConf = "${repoRoot}/nix/home/configs/shell";
-  polkitAgent = "${pkgs.kdePackages.polkit-kde-agent-1}/libexec/polkit-kde-authentication-agent-1";
   niriSession = pkgs.writeScript "niri-session" ''
     #!/usr/bin/env bash
     # 尝试结束旧的 niri 会话，再启动新的会话
@@ -45,6 +39,10 @@ in
 
   # 允许全局工具安装到可写目录，避免写入 /nix/store
   home.sessionVariables = {
+    # Wayland 支持
+    NIXOS_OZONE_WL = "1"; # Electron 应用 (Chrome, VSCode) Wayland 原生支持
+
+    # 工具链路径
     NPM_CONFIG_PREFIX = "${homeDir}/.npm-global";
     BUN_INSTALL = "${homeDir}/.bun";
     BUN_INSTALL_BIN = "${homeDir}/.bun/bin";
@@ -113,7 +111,7 @@ in
     enableCompletion = true;
     autosuggestion.enable = true;
     syntaxHighlighting.enable = true;
-    initExtra = builtins.readFile ./configs/shell/zshrc-custom;
+    initContent = builtins.readFile ./configs/shell/zshrc-custom;
   };
 
   programs.bash = {
@@ -202,7 +200,8 @@ in
     virt-viewer
     spice-gtk
     nomacs
-    nautilus  # GNOME 文件管理器（Wayland 原生，简洁现代）
+    nautilus # GNOME 文件管理器（Wayland 原生，简洁现代）
+    file-roller # GNOME 压缩管理器（Nautilus 集成必需）
 
     # === Wayland 工具 ===
     satty
@@ -218,7 +217,7 @@ in
     wpsoffice # WPS Office 办公套件（文档/表格/演示）
 
     # 压缩/解压工具（命令行 + Nautilus file-roller 集成）
-    p7zip-rar  # 包含 7-Zip + RAR 支持（unfree）
+    p7zip-rar # 包含 7-Zip + RAR 支持（unfree）
     unrar
     unar
     arj
@@ -234,7 +233,7 @@ in
     swaybg
 
     # === Wayland 基础设施 ===
-    xwayland-satellite
+    # xwayland-satellite 由 niri-flake 自动提供，无需手动安装
     wl-clipboard
     qt6Packages.qt6ct
     app2unit
@@ -266,6 +265,9 @@ in
     # 通讯软件
     telegram-desktop # 使用官方二进制包（原 nixpaks.telegram-desktop 会触发 30 分钟编译）
   ];
+
+  # Niri 配置：使用手动 KDL 文件而非声明式配置
+  programs.niri.config = null; # 阻止自动生成，使用下方的手动配置文件
 
   xdg.configFile = {
     # niri compositor 配置（4 个文件）
@@ -322,20 +324,7 @@ in
     '';
   };
 
-  systemd.user.services.niri-polkit = {
-    Unit = {
-      Description = "PolicyKit Authentication Agent (polkit-kde)";
-      After = [ "niri.service" ];
-      Wants = [ "graphical-session-pre.target" ];
-    };
-    Service = {
-      Type = "simple";
-      ExecStart = polkitAgent;
-      Restart = "on-failure";
-      RestartSec = polkitRestartSec;
-      TimeoutStopSec = polkitStopTimeoutSec;
-    };
-    Install.WantedBy = [ "niri.service" ];
-  };
+  # niri-flake 自动提供 polkit agent，移除手动配置
+  # 若需禁用：systemd.user.services.niri-flake-polkit.enable = false;
 
 }

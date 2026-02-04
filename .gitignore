@@ -9,3 +9,4 @@ niri-dotfiles.backup/
 *~
 .DS_Store
 hosts/*/gpu-choice.txt
+.serena/

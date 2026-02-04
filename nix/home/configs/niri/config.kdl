@@ -183,6 +183,13 @@ hotkey-overlay {
 // After enabling or disabling this, you need to restart the apps for this to take effect.
 // prefer-no-csd
 
+// Environment variables for applications spawned by niri
+// Note: home.sessionVariables also sets these, but explicit KDL config ensures
+// they work for all niri-spawned processes
+environment {
+    NIXOS_OZONE_WL "1"
+}
+
 // You can change the path where screenshots are saved.
 // A ~ at the front will be expanded to the home directory.
 // The path is formatted with strftime(3) to give you the screenshot date and time.

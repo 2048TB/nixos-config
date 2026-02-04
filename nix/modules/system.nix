@@ -1,4 +1,4 @@
-{ config, pkgs, lib, myvars, mainUser, preservation, ... }:
+{ config, pkgs, lib, myvars, mainUser, preservation, niri, ... }:
 let
   # 系统常量
   defaultUid = 1000;
@@ -54,7 +54,9 @@ in
       "/var/lib/systemd"
       "/var/lib/NetworkManager"
       "/var/lib/bluetooth"
-      "/var/lib/libvirt"  # 虚拟机镜像和配置
+      "/var/lib/libvirt" # 虚拟机镜像和配置
+      "/etc/mullvad-vpn"
+      "/var/lib/flatpak"
     ];
     files = [
       {
@@ -107,12 +109,14 @@ in
 
   fileSystems."/persistent".neededForBoot = lib.mkDefault true;
 
+  # outputs.nix 的 allowUnfree 仅影响 flake context，模块内仍需显式配置
   nixpkgs.config.allowUnfree = true;
 
   nix.settings = {
     experimental-features = [ "nix-command" "flakes" ];
 
     # 配置 Binary Cache 以加速包下载
+    # 注意：niri.cachix.org 由 niri.nixosModules.niri 自动添加，此处仅配置额外缓存
     substituters = [
       "https://cache.nixos.org"
       "https://nix-community.cachix.org"
@@ -208,8 +212,14 @@ in
   programs.zsh.enable = true;
 
   services.xserver.enable = false;
-  services.xserver.desktopManager.runXdgAutostartIfNone = true;  # 启用 XDG autostart（fcitx5 等）
-  programs.niri.enable = true;
+  services.xserver.desktopManager.runXdgAutostartIfNone = true; # 启用 XDG autostart（fcitx5 等）
+
+  # Niri compositor
+  nixpkgs.overlays = [ niri.overlays.niri ];
+  programs.niri = {
+    enable = true;
+    package = pkgs.niri-unstable; # 使用 unstable 版本获取最新功能
+  };
 
   services.greetd = {
     enable = true;
@@ -258,7 +268,7 @@ in
       qt6Packages.fcitx5-configtool
       fcitx5-gtk
       qt6Packages.fcitx5-chinese-addons # 中文拼音输入法（Libpinyin 引擎）
-      fcitx5-pinyin-zhwiki              # 中文维基百科词库（提升识别准确率）
+      fcitx5-pinyin-zhwiki # 中文维基百科词库（提升识别准确率）
     ];
   };
 
@@ -295,7 +305,7 @@ in
 
   # 系统级最小软件
   environment.systemPackages = with pkgs; [
-    vim
+    # 编辑器（vim 由 home-manager 配置，此处仅保留 neovim 作为 root 用户编辑器）
     neovim
 
     # 开发语言/工具链（系统级）
@@ -345,6 +355,8 @@ in
 
   # 定期清理临时文件（模拟部分 tmpfs 优势）
   systemd.tmpfiles.rules = [
+    # 确保持久化密码文件权限正确（存在时修正，不创建）
+    "z /persistent/etc/user-password 0600 root root -"
     # 7天清理缓存
     "e /home/${mainUser}/.cache - - - 7d"
     # 清理临时文件
