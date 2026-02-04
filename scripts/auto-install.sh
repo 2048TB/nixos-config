@@ -341,15 +341,25 @@ if ! getent group "$owner_group" >/dev/null 2>&1; then
 fi
 chown -R "$DEFAULT_UID":"$owner_group" "$USER_HOME" || true
 
-log "writing hashed password..."
-PASSWORD_FILE="/mnt/persistent/etc/user-password"
+log "writing hashed passwords..."
 mkdir -p /mnt/persistent/etc
+
+# 生成密码哈希（用于普通用户和 root）
 if [[ "$HASH_CMD" == "mkpasswd" ]]; then
-  printf '%s' "$NIXOS_PASSWORD" | mkpasswd -m sha-512 -s | tr -d '\n' > "$PASSWORD_FILE"
+  HASHED_PASSWORD=$(printf '%s' "$NIXOS_PASSWORD" | mkpasswd -m sha-512 -s | tr -d '\n')
 else
-  printf '%s' "$NIXOS_PASSWORD" | openssl passwd -6 -stdin | tr -d '\n' > "$PASSWORD_FILE"
+  HASHED_PASSWORD=$(printf '%s' "$NIXOS_PASSWORD" | openssl passwd -6 -stdin | tr -d '\n')
 fi
-chmod "$PASSWORD_FILE_MODE" "$PASSWORD_FILE"
+
+# 写入用户密码文件
+USER_PASSWORD_FILE="/mnt/persistent/etc/user-password"
+printf '%s' "$HASHED_PASSWORD" > "$USER_PASSWORD_FILE"
+chmod "$PASSWORD_FILE_MODE" "$USER_PASSWORD_FILE"
+
+# 写入 root 密码文件（使用相同密码用于紧急恢复）
+ROOT_PASSWORD_FILE="/mnt/persistent/etc/root-password"
+printf '%s' "$HASHED_PASSWORD" > "$ROOT_PASSWORD_FILE"
+chmod "$PASSWORD_FILE_MODE" "$ROOT_PASSWORD_FILE"
 
 log "installing NixOS..."
 cd "$CONFIG_DEST"

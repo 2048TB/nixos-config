@@ -131,6 +131,10 @@ nix/
 3. **Persistent Storage**
 - Root = tmpfs (cleared on reboot)
 - `/persistent` = Btrfs subvolume with `preservation` module
+- Password files managed by preservation:
+  - `/persistent/etc/user-password` → `/etc/user-password` (user login)
+  - `/persistent/etc/root-password` → `/etc/root-password` (emergency recovery)
+  - Both files need `inInitrd = true` for early boot access
 - Home Manager configs read from `repoRoot` (env `NIXOS_CONFIG_PATH` > `~/nixos-config` > `myvars.configRoot`)
 
 4. **Path Constants Pattern**
@@ -177,6 +181,10 @@ nix/
 - `niri` parameter only used for `niri.nixosModules.niri` (module import)
 - Uses `pkgs.niri` from nixpkgs (no overlay needed)
 - polkit agent automatically provided by niri-flake (don't create systemd.user.services.niri-polkit)
+- **CRITICAL**: Password files MUST be in `preservation.preserveAt."/persistent".files`:
+  - `/etc/user-password` and `/etc/root-password` with `inInitrd = true`
+  - Without this, user/root login will FAIL (passwords won't be accessible at boot)
+  - hashedPasswordFile paths point to `/etc/` (NOT `/persistent/etc/`)
 
 5. **Binary Cache Violations**
 - Never add packages that trigger compilation:

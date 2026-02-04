@@ -65,6 +65,14 @@ in
         file = "/etc/machine-id";
         inInitrd = true;
       }
+      {
+        file = "/etc/user-password";
+        inInitrd = true; # 用户密码文件需要在 initrd 阶段可用
+      }
+      {
+        file = "/etc/root-password";
+        inInitrd = true; # root 密码文件用于紧急恢复
+      }
     ];
 
     # 用户目录已整体持久化到 /home（Btrfs @home 子卷）
@@ -186,6 +194,12 @@ in
   };
 
   users.mutableUsers = true;
+
+  # Root 用户配置（用于紧急恢复和单用户模式）
+  users.users.root = {
+    hashedPasswordFile = "/etc/root-password"; # preservation 从 /persistent/etc/root-password 绑定而来
+  };
+
   users.groups.${mainUser} = {
     gid = defaultGid;
   };
@@ -203,7 +217,7 @@ in
       "docker"
     ];
     shell = pkgs.zsh;
-    hashedPasswordFile = "/persistent/etc/user-password";
+    hashedPasswordFile = "/etc/user-password"; # preservation 从 /persistent/etc/user-password 绑定而来
   };
 
   # 默认 Shell
