@@ -108,7 +108,7 @@ in
     { device = "/swap/swapfile"; }
   ];
 
-  fileSystems."/persistent".neededForBoot = lib.mkDefault true;
+  # /persistent 的 neededForBoot 由 hardware.nix 设置，此处不再重复
 
   # outputs.nix 的 allowUnfree 仅影响 flake context，模块内仍需显式配置
   nixpkgs.config.allowUnfree = true;

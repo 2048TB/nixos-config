@@ -100,6 +100,7 @@
     device = "/dev/mapper/crypted-nixos";
     fsType = "btrfs";
     options = [ "subvol=@home" "compress=zstd" "noatime" ];
+    neededForBoot = true;  # greetd 依赖 /home/.wayland-session
   };
 
   fileSystems."/boot" = {

@@ -266,14 +266,15 @@ umount /mnt
 
 log "mounting subvolumes..."
 mount -o "subvol=@root,${BTRFS_OPTS_COMPRESS},${BTRFS_OPTS_NOATIME}" /dev/mapper/crypted-nixos /mnt
-mkdir -p /mnt/{nix,persistent,home,snapshots,tmp,swap,boot}
+mkdir -p /mnt/{nix,persistent,home,swap,boot}
 mount -o "subvol=@nix,${BTRFS_OPTS_COMPRESS},${BTRFS_OPTS_NOATIME}" /dev/mapper/crypted-nixos /mnt/nix
 mount -o "subvol=@persistent,${BTRFS_OPTS_COMPRESS}" /dev/mapper/crypted-nixos /mnt/persistent
 mount -o "subvol=@home,compress=zstd,noatime" /dev/mapper/crypted-nixos /mnt/home
-mount -o "subvol=@snapshots,${BTRFS_OPTS_COMPRESS},${BTRFS_OPTS_NOATIME}" /dev/mapper/crypted-nixos /mnt/snapshots
-mount -o "subvol=@tmp,${BTRFS_OPTS_COMPRESS}" /dev/mapper/crypted-nixos /mnt/tmp
 mount -o subvol=@swap /dev/mapper/crypted-nixos /mnt/swap
 mount "$ESP" /mnt/boot
+# 注意：@snapshots 和 @tmp 仅创建子卷备用，安装时不挂载
+# - @snapshots: 预留用于 Btrfs 快照功能
+# - @tmp: 系统使用内存 tmpfs（性能更优）
 
 log "creating swapfile..."
 btrfs filesystem mkswapfile --size "${SWAP_GB}g" --uuid clear /mnt/swap/swapfile
