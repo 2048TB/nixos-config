@@ -291,7 +291,7 @@ in
   };
 
   # 时区
-  time.timeZone = "Asia/Shanghai";
+  time.timeZone = myvars.timezone;
 
   # 系统级最小软件
   environment.systemPackages = with pkgs; [

@@ -26,7 +26,6 @@ in
       lanzaboote.nixosModules.lanzaboote
       home-manager.nixosModules.home-manager
       {
-        nixpkgs.config.allowUnfree = true;
         home-manager.useGlobalPkgs = true;
         home-manager.useUserPackages = true;
         home-manager.extraSpecialArgs = { inherit myvars mainUser; };
