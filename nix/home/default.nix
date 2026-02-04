@@ -279,7 +279,10 @@ in
     "niri/windowrules.kdl".source = mkSymlink "${repoRoot}/nix/home/configs/niri/windowrules.kdl";
     "niri/noctalia-shell.kdl".source = mkSymlink "${repoRoot}/nix/home/configs/niri/noctalia-shell.kdl";
 
-    "noctalia".source = mkSymlink "${noctaliaConf}";
+    # Noctalia Shell 配置（分别链接文件以支持 wallpapers 子目录）
+    "noctalia/settings.json".source = mkSymlink "${noctaliaConf}/settings.json";
+    "noctalia/plugins.json".source = mkSymlink "${noctaliaConf}/plugins.json";
+    "noctalia/wallpapers".source = mkSymlink "${repoRoot}/nix/home/configs/wallpapers";
     "qt6ct/qt6ct.conf".source = mkSymlink "${noctaliaConf}/qt6ct.conf";
 
     "fcitx5/profile" = {
