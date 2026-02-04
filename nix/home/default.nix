@@ -113,6 +113,17 @@ in
     enableCompletion = true;
     autosuggestion.enable = true;
     syntaxHighlighting.enable = true;
+    initExtra = builtins.readFile ./configs/shell/zshrc-custom;
+  };
+
+  programs.bash = {
+    enable = true;
+    initExtra = builtins.readFile ./configs/shell/bashrc;
+  };
+
+  programs.vim = {
+    enable = true;
+    extraConfig = builtins.readFile ./configs/shell/vimrc;
   };
 
   services.playerctld.enable = true;
@@ -309,9 +320,6 @@ in
     ".yarnrc".text = ''
       prefix "${homeDir}/.local"
     '';
-    ".zshrc".source = mkSymlink "${shellConf}/zshrc";
-    ".bashrc".source = mkSymlink "${shellConf}/bashrc";
-    ".vimrc".source = mkSymlink "${shellConf}/vimrc";
   };
 
   systemd.user.services.niri-polkit = {
