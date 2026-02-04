@@ -364,7 +364,22 @@ in
     };
   };
 
+  # Mullvad VPN 配置
   services.mullvad-vpn.enable = true;
+
+  # 修复：防止 lockdown mode 在重启后阻断网络
+  # 问题：tmpfs root + 持久化 /etc/mullvad-vpn 会保留 lockdown mode 设置
+  # 解决：启动时强制禁用 lockdown mode，避免 VPN 连接失败时无网络
+  systemd.services.mullvad-daemon.serviceConfig = {
+    ExecStartPre = pkgs.writeShellScript "disable-mullvad-lockdown" ''
+      settings_file="/etc/mullvad-vpn/settings.json"
+      if [ -f "$settings_file" ]; then
+        ${pkgs.jq}/bin/jq '.block_when_disconnected = false' "$settings_file" > "$settings_file.tmp"
+        mv "$settings_file.tmp" "$settings_file"
+        echo "Mullvad lockdown mode 已禁用（防止启动阻断网络）"
+      fi
+    '';
+  };
   services.flatpak.enable = true;
 
   # 定期清理临时文件（模拟部分 tmpfs 优势）
