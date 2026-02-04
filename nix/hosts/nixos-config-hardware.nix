@@ -96,6 +96,12 @@
     neededForBoot = true;
   };
 
+  fileSystems."/home" = {
+    device = "/dev/mapper/crypted-nixos";
+    fsType = "btrfs";
+    options = [ "subvol=@home" "compress=zstd" "noatime" ];
+  };
+
   fileSystems."/boot" = {
     device = "/dev/disk/by-label/ESP";
     fsType = "vfat";

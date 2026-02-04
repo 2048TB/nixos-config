@@ -63,35 +63,8 @@ in
       }
     ];
 
-    users.${mainUser} = {
-      directories = [
-        "Downloads"
-        "Documents"
-        "Pictures"
-        "Videos"
-        "Music"
-        "nixos-config"
-        ".config"
-        ".local/share"
-        ".local/state"
-        ".cache"
-
-        # 开发工具全局安装目录
-        ".npm-global"  # npm install -g
-        ".bun"         # bun install -g
-        ".cargo"       # cargo install
-        ".rustup"      # rustup toolchains
-        "go"           # go install
-        "tools"        # 自定义工具目录
-
-        # 安全凭证（不遵循 XDG 规范的传统目录）
-        ".ssh"         # SSH keys
-        ".gnupg"       # GPG keys
-
-        # 输入法数据
-        ".local/share/fcitx5"  # fcitx5 数据（Rime 用户词典、词频）
-      ];
-    };
+    # 用户目录已整体持久化到 /home（Btrfs @home 子卷）
+    # 不再需要 preservation 模块管理用户目录
   };
 
   fileSystems."/" = lib.mkForce {
@@ -369,6 +342,17 @@ in
 
   services.mullvad-vpn.enable = true;
   services.flatpak.enable = true;
+
+  # 定期清理临时文件（模拟部分 tmpfs 优势）
+  systemd.tmpfiles.rules = [
+    # 7天清理缓存
+    "e /home/${mainUser}/.cache - - - 7d"
+    # 30天清理下载目录
+    "e /home/${mainUser}/Downloads - - - 30d"
+    # 清理浏览器缓存（可选）
+    # "e /home/${mainUser}/.cache/mozilla - - - 3d"
+    # "e /home/${mainUser}/.cache/chromium - - - 3d"
+  ];
 
   # 兼容通用 Linux 动态链接可执行文件（如第三方 CLI 安装器）
   programs.nix-ld = {
