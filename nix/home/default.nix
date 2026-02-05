@@ -71,7 +71,7 @@ in
     homeDirectory = "/home/${mainUser}";
     stateVersion = homeStateVersion;
 
-    # 允许全局工具安装到可写目录，避免写入 /nix/store
+    # 会话变量（普通 Linux 方案：用户级全局安装目录）
     sessionVariables = {
       # Wayland 支持
       NIXOS_OZONE_WL = "1"; # Electron 应用（Chrome、VSCode）在 Wayland 下原生支持
@@ -83,25 +83,29 @@ in
       BUN_INSTALL_GLOBAL_DIR = "${homeDir}/.bun/install/global";
       BUN_INSTALL_CACHE_DIR = "${homeDir}/.bun/install/cache";
       UV_TOOL_DIR = "${localShareDir}/uv/tools";
-      UV_TOOL_BIN_DIR = localBinDir;
+      UV_TOOL_BIN_DIR = "${localShareDir}/uv/bin";
+      UV_PYTHON_DOWNLOADS = "never";
       CARGO_HOME = "${homeDir}/.cargo";
-      RUSTUP_HOME = "${homeDir}/.rustup";
       GOPATH = "${homeDir}/go";
       GOBIN = "${homeDir}/go/bin";
       PYTHONUSERBASE = "${homeDir}/.local";
-      PIP_REQUIRE_VIRTUALENV = "1";
       PIPX_HOME = "${localShareDir}/pipx";
-      PIPX_BIN_DIR = localBinDir;
-    };
+      PIPX_BIN_DIR = "${localShareDir}/pipx/bin";
 
-    sessionPath = [
-      "${homeDir}/.npm-global/bin"
-      "${homeDir}/tools"
-      "${homeDir}/.bun/bin"
-      "${homeDir}/.cargo/bin"
-      "${homeDir}/go/bin"
-      localBinDir
-    ];
+      # PATH: 系统路径优先，用户 bin 追加在后
+      PATH = lib.concatStringsSep ":" [
+        "$PATH"
+        "${homeDir}/.npm-global/bin"
+        "${homeDir}/tools"
+        "${homeDir}/.bun/bin"
+        "${homeDir}/.cargo/bin"
+        "${homeDir}/go/bin"
+        "${localShareDir}/pnpm/bin"
+        "${localShareDir}/pipx/bin"
+        "${localShareDir}/uv/bin"
+        localBinDir
+      ];
+    };
 
     packages = with pkgs; [
       # === 终端复用器 ===
@@ -246,7 +250,6 @@ in
 
       # === 语言/包管理补齐 ===
       bun
-      rustup
       pnpm
       pipx
     ] ++ hybridPackages;
@@ -363,7 +366,7 @@ in
 
       "pnpm/rc".text = ''
         global-dir=${localShareDir}/pnpm/global
-        global-bin-dir=${localBinDir}
+        global-bin-dir=${localShareDir}/pnpm/bin
       '';
     };
 

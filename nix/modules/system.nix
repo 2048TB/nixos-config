@@ -412,11 +412,8 @@ in
     gnupg # gpg 命令（签名/加密）
 
     # 开发语言/工具链（系统级）
-    rustc
-    cargo
-    rust-analyzer
-    clippy
-    rustfmt
+    rust-bin.stable.latest.default
+    rust-bin.stable.latest.rust-analyzer
     zig
     zls
     go

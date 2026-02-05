@@ -1,4 +1,4 @@
-{ nixpkgs, home-manager, lanzaboote, niri, preservation, ... }@inputs:
+{ nixpkgs, rust-overlay, home-manager, lanzaboote, niri, preservation, ... }@inputs:
 let
   myvars = import ./nix/vars;
   system = "x86_64-linux";
@@ -10,6 +10,7 @@ let
   pkgs = import nixpkgs {
     inherit system;
     config.allowUnfree = true;
+    overlays = [ rust-overlay.overlays.default ];
   };
 
   specialArgs = inputs // {
@@ -22,6 +23,7 @@ in
     inherit system specialArgs;
     modules = [
       ./nix/hosts/${myvars.hostname}.nix
+      { nixpkgs.overlays = [ rust-overlay.overlays.default ]; }
       ./nix/hardening/apparmor.nix
       lanzaboote.nixosModules.lanzaboote
       niri.nixosModules.niri
