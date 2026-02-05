@@ -41,6 +41,28 @@ let
     fi
     /run/current-system/sw/bin/niri-session
   '';
+
+  # 仅在混合显卡（amd-nvidia-hybrid）时安装 GPU 加速相关软件
+  gpuChoice =
+    let
+      envGpu = builtins.getEnv "NIXOS_GPU";
+      gpuFile = "${repoRoot}/nix/vars/detected-gpu.txt";
+      raw =
+        if envGpu != "" then envGpu
+        else if builtins.pathExists gpuFile then builtins.readFile gpuFile
+        else "auto";
+    in
+    lib.strings.removeSuffix "\n" (lib.strings.removeSuffix "\r" raw);
+  ollamaVulkan = if pkgs ? "ollama-vulkan" then pkgs."ollama-vulkan" else null;
+  tensorflowCudaEnv =
+    if pkgs.python3Packages ? tensorflowWithCuda
+    then pkgs.python3.withPackages (ps: [ ps.tensorflowWithCuda ])
+    else null;
+  hashcatPkg = if pkgs ? hashcat then pkgs.hashcat else null;
+  hybridPackages =
+    lib.optionals (gpuChoice == "amd-nvidia-hybrid" && ollamaVulkan != null) [ ollamaVulkan ]
+    ++ lib.optionals (gpuChoice == "amd-nvidia-hybrid" && tensorflowCudaEnv != null) [ tensorflowCudaEnv ]
+    ++ lib.optionals (gpuChoice == "amd-nvidia-hybrid" && hashcatPkg != null) [ hashcatPkg ];
 in
 {
 
@@ -213,6 +235,7 @@ in
     nomacs
     nautilus # GNOME 文件管理器（Wayland 原生，简洁现代）
     file-roller # GNOME 压缩管理器（Nautilus 集成必需）
+    cherry-studio # 多 LLM 提供商桌面客户端
 
     # === Wayland 工具 ===
     satty
@@ -278,7 +301,7 @@ in
 
     # 通讯软件
     telegram-desktop # 使用官方二进制包（原 nixpaks.telegram-desktop 会触发 30 分钟编译）
-  ];
+  ] ++ hybridPackages;
 
   # Niri 配置：使用手动 KDL 文件而非声明式配置
   programs.niri.config = null; # 阻止自动生成，使用下方的手动配置文件

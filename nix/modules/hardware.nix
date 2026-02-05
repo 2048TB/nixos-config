@@ -35,7 +35,8 @@ let
     lib.strings.removeSuffix "\n" (lib.strings.removeSuffix "\r" raw);
   gpuChoice = if envGpu != "" then envGpu else gpuChoiceFile;
   isNvidia = gpuChoice == driverNvidia;
-  isAmd = gpuChoice == driverAmdgpu;
+  # 兼容安装脚本/README 的 "amd" 取值
+  isAmd = gpuChoice == "amd" || gpuChoice == driverAmdgpu;
   isAmdNvidiaHybrid = gpuChoice == driverAmdNvidiaHybrid;
   useNvidia = isNvidia || isAmdNvidiaHybrid;
 
