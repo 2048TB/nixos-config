@@ -267,7 +267,6 @@ in
     swaybg
 
     # === Wayland 基础设施 ===
-    xwayland-satellite # X11 应用支持（niri 25.08+ 自动集成）
     wl-clipboard
     qt6Packages.qt6ct
     app2unit

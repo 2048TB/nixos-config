@@ -83,6 +83,37 @@ require_grep() {
   fi
 }
 
+disk_has_data() {
+  local disk="$1"
+
+  # 如果存在子设备（分区/加密/LVM），认为磁盘非空
+  if lsblk -rno TYPE "$disk" 2>/dev/null | grep -qv '^disk$'; then
+    return 0
+  fi
+
+  # 如果磁盘本身有文件系统签名，也认为非空
+  if lsblk -rno FSTYPE "$disk" 2>/dev/null | grep -qv '^$'; then
+    return 0
+  fi
+
+  # 进一步用 wipefs 检测签名（若可用）
+  if command -v wipefs >/dev/null 2>&1; then
+    if wipefs -n "$disk" 2>/dev/null | grep -q .; then
+      return 0
+    fi
+  fi
+
+  return 1
+}
+
+validate_gpu_choice() {
+  local choice="$1"
+  case "$choice" in
+    none|amd|amdgpu|nvidia|amd-nvidia-hybrid) return 0 ;;
+    *) fail "Invalid GPU mode: $choice (use: none|amd|amdgpu|nvidia|amd-nvidia-hybrid)" ;;
+  esac
+}
+
 verify_install_state() {
   log "verifying install state..."
 
@@ -272,9 +303,9 @@ if [[ ! -b "$NIXOS_DISK" ]]; then
 fi
 
 # 检查磁盘是否已有数据（幂等性保护）
-if blkid "$NIXOS_DISK" | grep -q "TYPE" && [[ "${FORCE:-0}" != "1" ]]; then
+if disk_has_data "$NIXOS_DISK" && [[ "${FORCE:-0}" != "1" ]]; then
   log "WARNING: Disk $NIXOS_DISK appears to have existing partitions or filesystems:"
-  blkid "$NIXOS_DISK"* || true
+  lsblk -f "$NIXOS_DISK" || true
   log ""
   if [[ "${AUTO_ERASE:-0}" == "1" ]]; then
     log "AUTO_ERASE=1 enabled, proceeding to wipe the disk."
@@ -298,18 +329,26 @@ if [[ -z "${NIXOS_GPU:-}" ]]; then
     echo "Select GPU mode:"
     echo "  1) none"
     echo "  2) amd"
-    echo "  3) amd-nvidia-hybrid"
-    read -r -p "Choice [1-3]: " gpu_choice
+    echo "  3) nvidia"
+    echo "  4) amd-nvidia-hybrid"
+    read -r -p "Choice [1-4]: " gpu_choice
     case "$gpu_choice" in
       1) NIXOS_GPU="none"; break ;;
       2) NIXOS_GPU="amd"; break ;;
-      3) NIXOS_GPU="amd-nvidia-hybrid"; break ;;
-      *) log "Invalid choice, please select 1, 2, or 3." ;;
+      3) NIXOS_GPU="nvidia"; break ;;
+      4) NIXOS_GPU="amd-nvidia-hybrid"; break ;;
+      *) log "Invalid choice, please select 1, 2, 3, or 4." ;;
     esac
   done
+else
+  NIXOS_GPU="$(printf '%s' "$NIXOS_GPU" | tr 'A-Z' 'a-z')"
+  validate_gpu_choice "$NIXOS_GPU"
 fi
 
 SWAP_GB="${NIXOS_SWAP_SIZE_GB:-$DEFAULT_SWAP_GB}"
+if [[ ! "$SWAP_GB" =~ ^[1-9][0-9]*$ ]]; then
+  fail "Invalid swap size: ${SWAP_GB} (must be a positive integer, GB)"
+fi
 
 log "Configuration Summary:"
 log "  disk: $NIXOS_DISK"

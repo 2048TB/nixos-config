@@ -207,7 +207,7 @@ in
     enable = true;
     pinentryPackage = pkgs.pinentry-qt;
     enableSSHSupport = false;
-    settings.default-cache-ttl = gnupgCacheTtlSeconds;
+    settings.default-cache-ttl = toString gnupgCacheTtlSeconds;
   };
 
   # 配合 tmpfs 根分区，用户数据库由配置统一管理，避免 passwd 修改丢失
