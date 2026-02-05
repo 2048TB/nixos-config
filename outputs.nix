@@ -39,10 +39,6 @@ in
   devShells.${system}.default = pkgs.mkShell {
     name = "nixos-config-dev";
     packages = with pkgs; [
-      nil # Nix LSP
-      nixpkgs-fmt # Nix 格式化
-      statix # Nix linter
-      deadnix # 死代码检测
       nix-tree # 依赖树查看
     ];
     shellHook = ''

@@ -225,6 +225,10 @@ in
     nix-tree # 依赖树可视化
     nix-melt # flake.lock 查看器
     cachix # 二进制缓存管理
+    nil # Nix LSP
+    nixpkgs-fmt # Nix 格式化
+    statix # Nix linter
+    deadnix # 死代码检测
 
     # === 开发效率 ===
     just # 命令运行器（替代 `Makefile`）
