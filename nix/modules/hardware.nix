@@ -66,17 +66,25 @@ let
 in
 {
   # 图形基础设置（Wayland + Xwayland）
-  hardware.graphics = {
-    enable = true;
-    enable32Bit = true;
+  hardware = {
+    graphics = {
+      enable = true;
+      enable32Bit = true;
+    };
+    nvidia = lib.mkIf useNvidia nvidiaBase;
+    nvidia-container-toolkit.enable = lib.mkIf useNvidia true;
+    bluetooth.enable = true;
   };
 
   # 安装时通过 NIXOS_GPU 或 nix/vars/detected-gpu.txt 选择默认驱动
-  services.xserver.videoDrivers = videoDrivers;
+  services = {
+    xserver.videoDrivers = videoDrivers;
+    blueman.enable = true;
+    power-profiles-daemon.enable = true;
+    upower.enable = true;
+  };
 
   boot.kernelParams = lib.mkIf useNvidia nvidiaKernelParams;
-  hardware.nvidia = lib.mkIf useNvidia nvidiaBase;
-  hardware.nvidia-container-toolkit.enable = lib.mkIf useNvidia true;
 
   # GPU 专用配置：启动时在引导菜单中切换驱动
   # 默认禁用以减少 ISO 体积（~500MB）和安装时间
@@ -89,9 +97,11 @@ in
     gpu-nvidia.configuration = {
       services.xserver.videoDrivers = [ driverNvidia ];
       boot.kernelParams = nvidiaKernelParams;
-      hardware.nvidia = nvidiaBase;
-      hardware.nvidia-container-toolkit.enable = true;
-      hardware.graphics.enable32Bit = true;
+      hardware = {
+        nvidia = nvidiaBase;
+        nvidia-container-toolkit.enable = true;
+        graphics.enable32Bit = true;
+      };
     };
 
     gpu-none.configuration = {
@@ -99,9 +109,4 @@ in
     };
   };
 
-  # Noctalia 依赖项（无线网络/蓝牙/电源/电池）
-  hardware.bluetooth.enable = true;
-  services.blueman.enable = true;
-  services.power-profiles-daemon.enable = true;
-  services.upower.enable = true;
 }

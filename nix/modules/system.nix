@@ -31,35 +31,37 @@ in
 {
   imports = [ preservation.nixosModules.default ];
 
-  # 引导加载器
-  boot.loader = {
-    systemd-boot.enable = lib.mkDefault true;
-    efi.canTouchEfiVariables = true;
+  boot = {
+    # 引导加载器
+    loader = {
+      systemd-boot.enable = lib.mkDefault true;
+      efi.canTouchEfiVariables = true;
+    };
+
+    # 安全启动（lanzaboote）- 默认关闭
+    lanzaboote = {
+      enable = lib.mkDefault false;
+      pkiBundle = "/etc/secureboot";
+    };
+
+    # KVM 内核模块（AMD/Intel）
+    kernelModules = kvmModules;
+    extraModprobeConfig = kvmExtraModprobeConfig;
+
+    # 支持的文件系统
+    supportedFilesystems = [
+      "ext4"
+      "btrfs"
+      "xfs"
+      "ntfs"
+      "fat"
+      "vfat"
+      "exfat"
+    ];
+
+    # preservation 需要 initrd 的 systemd
+    initrd.systemd.enable = true;
   };
-
-  # 安全启动（lanzaboote）- 默认关闭
-  boot.lanzaboote = {
-    enable = lib.mkDefault false;
-    pkiBundle = "/etc/secureboot";
-  };
-
-  # KVM 内核模块（AMD/Intel）
-  boot.kernelModules = kvmModules;
-  boot.extraModprobeConfig = kvmExtraModprobeConfig;
-
-  # 支持的文件系统
-  boot.supportedFilesystems = [
-    "ext4"
-    "btrfs"
-    "xfs"
-    "ntfs"
-    "fat"
-    "vfat"
-    "exfat"
-  ];
-
-  # preservation 需要 initrd 的 systemd
-  boot.initrd.systemd.enable = true;
 
   preservation.enable = true;
   preservation.preserveAt."/persistent" = {
@@ -93,149 +95,210 @@ in
     # 不再需要 preservation 模块管理用户目录
   };
 
-  fileSystems."/" = lib.mkForce {
-    device = "tmpfs";
-    fsType = "tmpfs";
-    options = [
-      "relatime"
-      "mode=755"
-    ];
-  };
+  fileSystems = {
+    "/" = lib.mkForce {
+      device = "tmpfs";
+      fsType = "tmpfs";
+      options = [
+        "relatime"
+        "mode=755"
+      ];
+    };
 
-  # swap 子卷：禁用写时复制（COW）和压缩以支持交换文件
-  fileSystems."/swap" = lib.mkForce {
-    device =
-      if config.fileSystems ? "/nix" && config.fileSystems."/nix" ? device
-      then config.fileSystems."/nix".device
-      else "/dev/mapper/crypted-nixos";
-    fsType = "btrfs";
-    options = [
-      "subvol=@swap"
-      "noatime"
-      "nodatacow"
-      "compress=no"
-    ];
-  };
+    # swap 子卷：禁用写时复制（COW）和压缩以支持交换文件
+    "/swap" = lib.mkForce {
+      device =
+        if config.fileSystems ? "/nix" && config.fileSystems."/nix" ? device
+        then config.fileSystems."/nix".device
+        else "/dev/mapper/crypted-nixos";
+      fsType = "btrfs";
+      options = [
+        "subvol=@swap"
+        "noatime"
+        "nodatacow"
+        "compress=no"
+      ];
+    };
 
-  fileSystems."/swap/swapfile" = lib.mkForce {
-    depends = [ "/swap" ];
-    device = "/swap/swapfile";
-    fsType = "none";
-    options = [
-      "bind"
-      "rw"
-    ];
+    "/swap/swapfile" = lib.mkForce {
+      depends = [ "/swap" ];
+      device = "/swap/swapfile";
+      fsType = "none";
+      options = [
+        "bind"
+        "rw"
+      ];
+    };
+
+    # 确保 /persistent 在 initrd 阶段挂载（密码文件依赖）
+    "/persistent" = {
+      neededForBoot = lib.mkDefault true;
+    };
+
+    # greetd 依赖 /home/.wayland-session
+    "/home" = {
+      neededForBoot = lib.mkDefault true;
+    };
   };
 
   swapDevices = [
     { device = "/swap/swapfile"; }
   ];
 
-  # 确保 /persistent 在 initrd 阶段挂载（密码文件依赖）
-  fileSystems."/persistent".neededForBoot = lib.mkDefault true;
-  # greetd 依赖 /home/.wayland-session
-  fileSystems."/home".neededForBoot = lib.mkDefault true;
 
   # outputs.nix 的 allowUnfree 仅影响 flake 上下文，模块内仍需显式配置
   nixpkgs.config.allowUnfree = true;
 
-  nix.settings = {
-    experimental-features = [ "nix-command" "flakes" ];
+  nix = {
+    settings = {
+      experimental-features = [ "nix-command" "flakes" ];
 
-    # 配置二进制缓存以加速包下载
-    # 注意：niri.cachix.org 由 niri-flake 的 nixosModules.niri 自动添加（通过 niri-flake.cache.enable 选项，默认启用）
-    substituters = [
-      "https://cache.nixos.org"
-      "https://nix-community.cachix.org"
-      "https://nixpkgs-wayland.cachix.org"
-      "https://cache.garnix.io"
-    ];
+      # 配置二进制缓存以加速包下载
+      # 注意：niri.cachix.org 由 niri-flake 的 nixosModules.niri 自动添加（通过 niri-flake.cache.enable 选项，默认启用）
+      substituters = [
+        "https://cache.nixos.org"
+        "https://nix-community.cachix.org"
+        "https://nixpkgs-wayland.cachix.org"
+        "https://cache.garnix.io"
+      ];
 
-    trusted-public-keys = [
-      "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
-      "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
-      "nixpkgs-wayland.cachix.org-1:3lwxaILxMRkVhehr5StQprHdEo4IrE8sRho9R9HOLYA="
-      "cache.garnix.io:CTFPyKSLcx5RMJKfLo5EEPUObbA78b0YQ2DTCJXqr9g="
-    ];
+      trusted-public-keys = [
+        "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
+        "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
+        "nixpkgs-wayland.cachix.org-1:3lwxaILxMRkVhehr5StQprHdEo4IrE8sRho9R9HOLYA="
+        "cache.garnix.io:CTFPyKSLcx5RMJKfLo5EEPUObbA78b0YQ2DTCJXqr9g="
+      ];
 
-    # 信任 wheel 组用户使用自定义替代源（substituters）
-    trusted-users = [ "root" "@wheel" ];
+      # 信任 wheel 组用户使用自定义替代源（substituters）
+      trusted-users = [ "root" "@wheel" ];
 
-    # 自动优化存储（硬链接重复文件）
-    auto-optimise-store = true;
+      # 自动优化存储（硬链接重复文件）
+      auto-optimise-store = true;
+    };
+
+    # 自动垃圾回收配置
+    gc = {
+      automatic = true;
+      dates = "weekly"; # 每周执行一次
+      options = "--delete-older-than ${gcRetentionDays}"; # 删除 7 天前的旧世代
+    };
+
+    # 优化配置
+    optimise = {
+      automatic = true;
+      dates = [ "weekly" ]; # 每周优化存储
+    };
   };
 
-  # 自动垃圾回收配置
-  nix.gc = {
-    automatic = true;
-    dates = "weekly"; # 每周执行一次
-    options = "--delete-older-than ${gcRetentionDays}"; # 删除 7 天前的旧世代
+  networking = {
+    hostName = myvars.hostname;
+    networkmanager.enable = true;
+    useDHCP = lib.mkDefault true;
+
+    # 使 libvirt NAT 在 VPN 场景下更稳
+    firewall.checkReversePath = "loose";
   };
-
-  # 优化配置
-  nix.optimise = {
-    automatic = true;
-    dates = [ "weekly" ]; # 每周优化存储
-  };
-
-  networking.hostName = myvars.hostname;
-  networking.networkmanager.enable = true;
-  networking.useDHCP = lib.mkDefault true;
-
-  # 使 libvirt NAT 在 VPN 场景下更稳
-  networking.firewall.checkReversePath = "loose";
 
   # 安全加固与桌面所需
-  security.polkit = {
-    enable = true;
-    # 允许 wheel 组用户挂载 USB 等外部存储设备
-    extraConfig = ''
-      polkit.addRule(function(action, subject) {
-        if (
-          subject.isInGroup("wheel")
-          && action.id.match("org.freedesktop.udisks2.")
-        ) {
-          return polkit.Result.YES;
-        }
-      });
-    '';
+  security = {
+    polkit = {
+      enable = true;
+      # 允许 wheel 组用户挂载 USB 等外部存储设备
+      extraConfig = ''
+        polkit.addRule(function(action, subject) {
+          if (
+            subject.isInGroup("wheel")
+            && action.id.match("org.freedesktop.udisks2.")
+          ) {
+            return polkit.Result.YES;
+          }
+        });
+      '';
+    };
+    pam.services.greetd.enableGnomeKeyring = true;
   };
-  programs.dconf.enable = true;
 
-  # GnuPG 代理
-  programs.gnupg.agent = {
-    enable = true;
-    pinentryPackage = pkgs.pinentry-qt;
-    enableSSHSupport = false;
-    settings.default-cache-ttl = toString gnupgCacheTtlSeconds;
+  programs = {
+    dconf.enable = true;
+
+    # GnuPG 代理
+    gnupg.agent = {
+      enable = true;
+      pinentryPackage = pkgs.pinentry-qt;
+      enableSSHSupport = false;
+      settings.default-cache-ttl = toString gnupgCacheTtlSeconds;
+    };
+
+    zsh.enable = true;
+
+    # Niri 合成器
+    niri = {
+      enable = true;
+      package = pkgs.niri; # 使用 nixpkgs 官方包（零编译）
+    };
+
+    seahorse.enable = true;
+
+    # 游戏支持
+    steam = {
+      enable = true;
+      gamescopeSession.enable = true;
+      protontricks.enable = true;
+
+      # Proton-GE 配置：通过 Steam 的 extraCompatPackages 安装
+      # 注意：不能放在 environment.systemPackages（会导致 buildEnv 错误）
+      extraCompatPackages = with pkgs; [
+        proton-ge-bin
+      ];
+    };
+
+    gamemode.enable = true;
+
+    # KVM / libvirt 虚拟化管理
+    virt-manager.enable = true;
+
+    # 兼容通用 Linux 动态链接可执行文件（如第三方 CLI 安装器）
+    nix-ld = {
+      enable = true;
+      libraries = with pkgs; [
+        stdenv.cc.cc
+        zlib
+        openssl
+      ];
+    };
   };
 
   # 配合 tmpfs 根分区，用户数据库由配置统一管理，避免 passwd 修改丢失
-  users.mutableUsers = false;
+  users = {
+    mutableUsers = false;
 
-  # root 账户配置（用于紧急恢复和单用户模式）
-  users.users.root = {
-    hashedPasswordFile = "/etc/root-password"; # preservation 从 /persistent/etc/root-password 绑定而来
-  };
+    # root 账户配置（用于紧急恢复和单用户模式）
+    users.root = {
+      hashedPasswordFile = "/etc/root-password"; # preservation 从 /persistent/etc/root-password 绑定而来
+    };
 
-  users.groups.${mainUser} = {
-    gid = defaultGid;
-  };
-  users.users.${mainUser} = {
-    uid = defaultUid;
-    isNormalUser = true;
-    extraGroups = [
-      "wheel"
-      "networkmanager"
-      "audio"
-      "video"
-      "input"
-      "libvirtd"
-      "kvm"
-      "docker"
-    ];
-    shell = pkgs.zsh;
-    hashedPasswordFile = "/etc/user-password"; # preservation 从 /persistent/etc/user-password 绑定而来
+    groups.${mainUser} = {
+      gid = defaultGid;
+    };
+
+    users.${mainUser} = {
+      uid = defaultUid;
+      isNormalUser = true;
+      extraGroups = [
+        "wheel"
+        "networkmanager"
+        "audio"
+        "video"
+        "input"
+        "libvirtd"
+        "kvm"
+        "docker"
+      ];
+      shell = pkgs.zsh;
+      hashedPasswordFile = "/etc/user-password"; # preservation 从 /persistent/etc/user-password 绑定而来
+    };
+
+    defaultUserShell = pkgs.zsh;
   };
 
   # 默认 Shell
@@ -243,24 +306,41 @@ in
     bashInteractive
     zsh
   ];
-  users.defaultUserShell = pkgs.zsh;
-  programs.zsh.enable = true;
 
-  services.xserver.enable = false;
-  services.xserver.desktopManager.runXdgAutostartIfNone = true; # 启用 XDG 自启动（fcitx5 等）
-
-  # Niri 合成器
-  programs.niri = {
-    enable = true;
-    package = pkgs.niri; # 使用 nixpkgs 官方包（零编译）
-  };
-
-  services.greetd = {
-    enable = true;
-    settings.default_session = {
-      user = mainUser;
-      command = "${homeDir}/.wayland-session";
+  services = {
+    xserver = {
+      enable = false;
+      desktopManager.runXdgAutostartIfNone = true; # 启用 XDG 自启动（fcitx5 等）
     };
+
+    greetd = {
+      enable = true;
+      settings.default_session = {
+        user = mainUser;
+        command = "${homeDir}/.wayland-session";
+      };
+    };
+
+    # 音频（含 32 位支持，便于 Steam/Proton）
+    pipewire = {
+      enable = true;
+      alsa.enable = true;
+      alsa.support32Bit = true;
+      pulse.enable = true;
+    };
+
+    # 文件管理常用的缩略图/挂载支持
+    gvfs.enable = true;
+    tumbler.enable = true;
+    udisks2.enable = true; # USB 设备自动识别和挂载
+
+    # GNOME 密钥环
+    gnome.gnome-keyring.enable = true;
+
+    # Mullvad VPN
+    mullvad-vpn.enable = true;
+
+    flatpak.enable = true;
   };
 
   # Wayland 桌面常用门户（文件选择/截图/投屏）
@@ -306,24 +386,6 @@ in
       fcitx5-pinyin-zhwiki # 中文维基百科词库（提升识别准确率）
     ];
   };
-
-  # 音频（含 32 位支持，便于 Steam/Proton）
-  services.pipewire = {
-    enable = true;
-    alsa.enable = true;
-    alsa.support32Bit = true;
-    pulse.enable = true;
-  };
-
-  # 文件管理常用的缩略图/挂载支持
-  services.gvfs.enable = true;
-  services.tumbler.enable = true;
-  services.udisks2.enable = true; # USB 设备自动识别和挂载
-
-  # GNOME 密钥环
-  services.gnome.gnome-keyring.enable = true;
-  programs.seahorse.enable = true;
-  security.pam.services.greetd.enableGnomeKeyring = true;
 
   # 首次启动时修复用户目录权限（由于安装脚本使用硬编码 UID）
   system.activationScripts.fixUserHomePerms = {
@@ -373,77 +435,54 @@ in
     lutris
   ];
 
-  # 游戏支持
-  programs.steam = {
-    enable = true;
-    gamescopeSession.enable = true;
-    protontricks.enable = true;
-  };
-  programs.gamemode.enable = true;
-
-  # Proton-GE 配置：通过 Steam 的 extraCompatPackages 安装
-  # 注意：不能放在 environment.systemPackages（会导致 buildEnv 错误）
-  programs.steam.extraCompatPackages = with pkgs; [
-    proton-ge-bin
-  ];
-
   # KVM / libvirt 虚拟化
-  virtualisation.libvirtd.enable = true;
-  virtualisation.libvirtd.qemu.swtpm.enable = true;
-  programs.virt-manager.enable = true;
-
-  # Docker 容器
-  virtualisation.docker = {
-    enable = true;
-    enableOnBoot = true;
-    autoPrune = {
+  virtualisation = {
+    libvirtd = {
       enable = true;
-      dates = "weekly";
-      flags = [ "--all" ]; # 清理所有未使用的镜像（不仅悬空镜像）
+      qemu.swtpm.enable = true;
+    };
+
+    # Docker 容器
+    docker = {
+      enable = true;
+      enableOnBoot = true;
+      autoPrune = {
+        enable = true;
+        dates = "weekly";
+        flags = [ "--all" ]; # 清理所有未使用的镜像（不仅悬空镜像）
+      };
     };
   };
-
-  # Mullvad VPN 配置
-  services.mullvad-vpn.enable = true;
 
   # 修复：防止锁定模式在重启后阻断网络
   # 问题：tmpfs 根分区 + 持久化 /etc/mullvad-vpn 会保留锁定模式设置
   # 解决：启动时强制禁用锁定模式，避免 VPN 连接失败时无网络
-  systemd.services.mullvad-daemon.serviceConfig = {
-    ExecStartPre = pkgs.writeShellScript "disable-mullvad-lockdown" ''
-      settings_file="/etc/mullvad-vpn/settings.json"
-      if [ -f "$settings_file" ]; then
-        ${pkgs.jq}/bin/jq '.block_when_disconnected = false' "$settings_file" > "$settings_file.tmp"
-        mv "$settings_file.tmp" "$settings_file"
-        echo "Mullvad lockdown mode 已禁用（防止启动阻断网络）"
-      fi
-    '';
-  };
-  services.flatpak.enable = true;
+  systemd = {
+    services.mullvad-daemon.serviceConfig = {
+      ExecStartPre = pkgs.writeShellScript "disable-mullvad-lockdown" ''
+        settings_file="/etc/mullvad-vpn/settings.json"
+        if [ -f "$settings_file" ]; then
+          ${pkgs.jq}/bin/jq '.block_when_disconnected = false' "$settings_file" > "$settings_file.tmp"
+          mv "$settings_file.tmp" "$settings_file"
+          echo "Mullvad lockdown mode 已禁用（防止启动阻断网络）"
+        fi
+      '';
+    };
 
-  # 定期清理临时文件（模拟部分 tmpfs 优势）
-  systemd.tmpfiles.rules = [
-    # 确保持久化密码文件权限正确（存在时修正，不创建）
-    "z /persistent/etc/user-password 0600 root root -"
-    "z /persistent/etc/root-password 0600 root root -"
-    # 7天清理缓存
-    "e ${homeDir}/.cache - - - 7d"
-    # 清理临时文件
-    "e /tmp - - - 1d"
-    "e /var/tmp - - - 7d"
-    # 可选：清理特定应用缓存（取消注释以启用）
-    # "e /home/${mainUser}/.cache/mozilla - - - 3d"
-    # "e /home/${mainUser}/.cache/chromium - - - 3d"
-    # "e /home/${mainUser}/.cache/thumbnails - - - 7d"
-  ];
-
-  # 兼容通用 Linux 动态链接可执行文件（如第三方 CLI 安装器）
-  programs.nix-ld = {
-    enable = true;
-    libraries = with pkgs; [
-      stdenv.cc.cc
-      zlib
-      openssl
+    # 定期清理临时文件（模拟部分 tmpfs 优势）
+    tmpfiles.rules = [
+      # 确保持久化密码文件权限正确（存在时修正，不创建）
+      "z /persistent/etc/user-password 0600 root root -"
+      "z /persistent/etc/root-password 0600 root root -"
+      # 7天清理缓存
+      "e ${homeDir}/.cache - - - 7d"
+      # 清理临时文件
+      "e /tmp - - - 1d"
+      "e /var/tmp - - - 7d"
+      # 可选：清理特定应用缓存（取消注释以启用）
+      # "e /home/${mainUser}/.cache/mozilla - - - 3d"
+      # "e /home/${mainUser}/.cache/chromium - - - 3d"
+      # "e /home/${mainUser}/.cache/thumbnails - - - 7d"
     ];
   };
 }

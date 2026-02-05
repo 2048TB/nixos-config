@@ -73,51 +73,55 @@
 # 临时占位符，防止 flake check 失败
 # 注意：此配置仅用于开发/检查，实际安装会完全替换此文件
 { lib, ... }: {
-  boot.initrd.availableKernelModules = lib.mkDefault [
-    "nvme"
-    "xhci_pci"
-    "ahci"
-    "usb_storage"
-    "sd_mod"
-  ];
-  boot.initrd.luks.devices."crypted-nixos" = lib.mkDefault {
-    device = "/dev/disk/by-partlabel/NIXOS-CRYPT";
-    allowDiscards = true;
-    bypassWorkqueues = true;
+  boot = {
+    initrd.availableKernelModules = lib.mkDefault [
+      "nvme"
+      "xhci_pci"
+      "ahci"
+      "usb_storage"
+      "sd_mod"
+    ];
+    initrd.luks.devices."crypted-nixos" = lib.mkDefault {
+      device = "/dev/disk/by-partlabel/NIXOS-CRYPT";
+      allowDiscards = true;
+      bypassWorkqueues = true;
+    };
+    loader.systemd-boot.enable = lib.mkDefault true;
+    loader.efi.canTouchEfiVariables = lib.mkDefault true;
   };
-  boot.loader.systemd-boot.enable = lib.mkDefault true;
-  boot.loader.efi.canTouchEfiVariables = lib.mkDefault true;
 
   # 占位符文件系统（实际安装后会被 nixos-generate-config 覆盖）
-  fileSystems."/" = {
-    device = "tmpfs";
-    fsType = "tmpfs";
-    options = [ "relatime" "mode=755" ];
-  };
+  fileSystems = {
+    "/" = {
+      device = "tmpfs";
+      fsType = "tmpfs";
+      options = [ "relatime" "mode=755" ];
+    };
 
-  fileSystems."/nix" = {
-    device = "/dev/mapper/crypted-nixos";
-    fsType = "btrfs";
-    options = [ "subvol=@nix" "noatime" "compress-force=zstd:1" ];
-  };
+    "/nix" = {
+      device = "/dev/mapper/crypted-nixos";
+      fsType = "btrfs";
+      options = [ "subvol=@nix" "noatime" "compress-force=zstd:1" ];
+    };
 
-  fileSystems."/persistent" = {
-    device = "/dev/mapper/crypted-nixos";
-    fsType = "btrfs";
-    options = [ "subvol=@persistent" "compress-force=zstd:1" ];
-    neededForBoot = true;
-  };
+    "/persistent" = {
+      device = "/dev/mapper/crypted-nixos";
+      fsType = "btrfs";
+      options = [ "subvol=@persistent" "compress-force=zstd:1" ];
+      neededForBoot = true;
+    };
 
-  fileSystems."/home" = {
-    device = "/dev/mapper/crypted-nixos";
-    fsType = "btrfs";
-    options = [ "subvol=@home" "compress=zstd" "noatime" ];
-    neededForBoot = true;  # greetd 依赖 /home/.wayland-session
-  };
+    "/home" = {
+      device = "/dev/mapper/crypted-nixos";
+      fsType = "btrfs";
+      options = [ "subvol=@home" "compress=zstd" "noatime" ];
+      neededForBoot = true; # greetd 依赖 /home/.wayland-session
+    };
 
-  fileSystems."/boot" = {
-    device = "/dev/disk/by-label/ESP";
-    fsType = "vfat";
+    "/boot" = {
+      device = "/dev/disk/by-label/ESP";
+      fsType = "vfat";
+    };
   };
 
   swapDevices = [ ];

@@ -1,4 +1,4 @@
-{ self, nixpkgs, home-manager, lanzaboote, niri, preservation, ... }@inputs:
+{ nixpkgs, home-manager, lanzaboote, niri, preservation, ... }@inputs:
 let
   myvars = import ./nix/vars;
   system = "x86_64-linux";
@@ -27,10 +27,12 @@ in
       niri.nixosModules.niri
       home-manager.nixosModules.home-manager
       {
-        home-manager.useGlobalPkgs = true;
-        home-manager.useUserPackages = true;
-        home-manager.extraSpecialArgs = { inherit myvars mainUser; };
-        home-manager.users.${mainUser} = import ./nix/home;
+        home-manager = {
+          useGlobalPkgs = true;
+          useUserPackages = true;
+          extraSpecialArgs = { inherit myvars mainUser; };
+          users.${mainUser} = import ./nix/home;
+        };
       }
     ];
   };
