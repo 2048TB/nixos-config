@@ -1,31 +1,51 @@
-{ config, pkgs, lib, myvars, mainUser, preservation, niri, ... }:
+{ config, pkgs, lib, myvars, mainUser, preservation, ... }:
 let
   # 系统常量
   defaultUid = 1000;
   defaultGid = 1000;
   gcRetentionDays = "7d";
-  gcSchedule = "weekly";
-  optimiseSchedule = [ "weekly" ];
-  gnupgCacheTtlSeconds = 4 * 60 * 60; # 4 hours
+  gnupgCacheTtlSeconds = 4 * 60 * 60; # 4 小时
+  homeDir = "/home/${mainUser}";
+
+  # 密码文件必须在 initrd 可用，且权限固定
+  passwordFileAttrs = {
+    inInitrd = true;
+    mode = "0600";
+    user = "root";
+    group = "root";
+  };
+
+  hasAmd = config.hardware.cpu.amd.updateMicrocode or false;
+  hasIntel = config.hardware.cpu.intel.updateMicrocode or false;
+  kvmModules =
+    if hasAmd || hasIntel
+    then
+      (lib.optionals hasAmd [ "kvm-amd" ])
+      ++ (lib.optionals hasIntel [ "kvm-intel" ])
+    else [ "kvm-amd" "kvm-intel" ];
+  kvmExtraModprobeConfig = lib.concatStringsSep "\n" (lib.flatten [
+    (lib.optional hasAmd "options kvm_amd nested=1")
+    (lib.optional hasIntel "options kvm_intel nested=1")
+  ]);
 in
 {
   imports = [ preservation.nixosModules.default ];
 
-  # Boot loader
+  # 引导加载器
   boot.loader = {
     systemd-boot.enable = lib.mkDefault true;
     efi.canTouchEfiVariables = true;
   };
 
-  # Secure Boot (lanzaboote) - 默认关闭
+  # 安全启动（lanzaboote）- 默认关闭
   boot.lanzaboote = {
     enable = lib.mkDefault false;
     pkiBundle = "/etc/secureboot";
   };
 
-  # AMD CPU
-  boot.kernelModules = [ "kvm-amd" ];
-  boot.extraModprobeConfig = "options kvm_amd nested=1";
+  # KVM 内核模块（AMD/Intel）
+  boot.kernelModules = kvmModules;
+  boot.extraModprobeConfig = kvmExtraModprobeConfig;
 
   # 支持的文件系统
   boot.supportedFilesystems = [
@@ -38,13 +58,13 @@ in
     "exfat"
   ];
 
-  # preservation 需要 initrd systemd
+  # preservation 需要 initrd 的 systemd
   boot.initrd.systemd.enable = true;
 
   preservation.enable = true;
   preservation.preserveAt."/persistent" = {
     directories = [
-      "/root" # root 用户配置（.bashrc, .vimrc, SSH keys 等）
+      "/root" # root 账户配置（.bashrc、.vimrc、SSH 密钥等）
       "/etc/NetworkManager/system-connections"
       "/etc/ssh"
       "/etc/nix"
@@ -65,20 +85,8 @@ in
         file = "/etc/machine-id";
         inInitrd = true;
       }
-      {
-        file = "/etc/user-password";
-        inInitrd = true; # 用户密码文件需要在 initrd 阶段可用
-        mode = "0600";
-        user = "root";
-        group = "root";
-      }
-      {
-        file = "/etc/root-password";
-        inInitrd = true; # root 密码文件用于紧急恢复
-        mode = "0600";
-        user = "root";
-        group = "root";
-      }
+      (passwordFileAttrs // { file = "/etc/user-password"; }) # 用户密码文件
+      (passwordFileAttrs // { file = "/etc/root-password"; }) # root 账户密码文件
     ];
 
     # 用户目录已整体持久化到 /home（Btrfs @home 子卷）
@@ -94,7 +102,7 @@ in
     ];
   };
 
-  # swap 子卷：禁用 COW 和压缩以支持 swapfile
+  # swap 子卷：禁用写时复制（COW）和压缩以支持交换文件
   fileSystems."/swap" = lib.mkForce {
     device =
       if config.fileSystems ? "/nix" && config.fileSystems."/nix" ? device
@@ -128,13 +136,13 @@ in
   # greetd 依赖 /home/.wayland-session
   fileSystems."/home".neededForBoot = lib.mkDefault true;
 
-  # outputs.nix 的 allowUnfree 仅影响 flake context，模块内仍需显式配置
+  # outputs.nix 的 allowUnfree 仅影响 flake 上下文，模块内仍需显式配置
   nixpkgs.config.allowUnfree = true;
 
   nix.settings = {
     experimental-features = [ "nix-command" "flakes" ];
 
-    # 配置 Binary Cache 以加速包下载
+    # 配置二进制缓存以加速包下载
     # 注意：niri.cachix.org 由 niri-flake 的 nixosModules.niri 自动添加（通过 niri-flake.cache.enable 选项，默认启用）
     substituters = [
       "https://cache.nixos.org"
@@ -150,7 +158,7 @@ in
       "cache.garnix.io:CTFPyKSLcx5RMJKfLo5EEPUObbA78b0YQ2DTCJXqr9g="
     ];
 
-    # 信任 wheel 组用户使用自定义 substituters
+    # 信任 wheel 组用户使用自定义替代源（substituters）
     trusted-users = [ "root" "@wheel" ];
 
     # 自动优化存储（硬链接重复文件）
@@ -160,14 +168,14 @@ in
   # 自动垃圾回收配置
   nix.gc = {
     automatic = true;
-    dates = gcSchedule; # 每周执行一次
+    dates = "weekly"; # 每周执行一次
     options = "--delete-older-than ${gcRetentionDays}"; # 删除 7 天前的旧世代
   };
 
   # 优化配置
   nix.optimise = {
     automatic = true;
-    dates = optimiseSchedule; # 每周优化存储
+    dates = [ "weekly" ]; # 每周优化存储
   };
 
   networking.hostName = myvars.hostname;
@@ -194,7 +202,7 @@ in
   };
   programs.dconf.enable = true;
 
-  # GnuPG
+  # GnuPG 代理
   programs.gnupg.agent = {
     enable = true;
     pinentryPackage = pkgs.pinentry-qt;
@@ -202,9 +210,10 @@ in
     settings.default-cache-ttl = gnupgCacheTtlSeconds;
   };
 
-  users.mutableUsers = true;
+  # 配合 tmpfs 根分区，用户数据库由配置统一管理，避免 passwd 修改丢失
+  users.mutableUsers = false;
 
-  # Root 用户配置（用于紧急恢复和单用户模式）
+  # root 账户配置（用于紧急恢复和单用户模式）
   users.users.root = {
     hashedPasswordFile = "/etc/root-password"; # preservation 从 /persistent/etc/root-password 绑定而来
   };
@@ -238,9 +247,9 @@ in
   programs.zsh.enable = true;
 
   services.xserver.enable = false;
-  services.xserver.desktopManager.runXdgAutostartIfNone = true; # 启用 XDG autostart（fcitx5 等）
+  services.xserver.desktopManager.runXdgAutostartIfNone = true; # 启用 XDG 自启动（fcitx5 等）
 
-  # Niri compositor
+  # Niri 合成器
   programs.niri = {
     enable = true;
     package = pkgs.niri; # 使用 nixpkgs 官方包（零编译）
@@ -250,11 +259,11 @@ in
     enable = true;
     settings.default_session = {
       user = mainUser;
-      command = "/home/${mainUser}/.wayland-session";
+      command = "${homeDir}/.wayland-session";
     };
   };
 
-  # Wayland 桌面常用的 portal（文件选择/截图/投屏）
+  # Wayland 桌面常用门户（文件选择/截图/投屏）
   xdg.portal = {
     enable = true;
     xdgOpenUsePortal = true;
@@ -271,12 +280,12 @@ in
   fonts.packages = with pkgs; [
     # 编程字体
     jetbrains-mono # JetBrains Mono（2026 业界标准，优秀 CJK 兼容）
-    maple-mono.NF-CN-unhinted # Nerd Font with Chinese glyphs（备用）
+    maple-mono.NF-CN-unhinted # Nerd Font（含中文字形，备用）
 
-    # CJK 字体（已优化：移除 source-han 重复，仅保留 Noto）
+    # 中日韩字体（已优化：移除 source-han 重复，仅保留 Noto）
     # 说明：source-han-sans 和 noto-fonts-cjk-sans 是同一套字体的不同品牌
-    noto-fonts-cjk-sans # CJK 黑体（中日韩）
-    noto-fonts-cjk-serif # CJK 宋体（中日韩）
+    noto-fonts-cjk-sans # 中日韩黑体
+    noto-fonts-cjk-serif # 中日韩宋体
 
     # 备用中文字体
     wqy_zenhei # 文泉驿正黑（轻量级，约 10MB）
@@ -311,7 +320,7 @@ in
   services.tumbler.enable = true;
   services.udisks2.enable = true; # USB 设备自动识别和挂载
 
-  # GNOME Keyring
+  # GNOME 密钥环
   services.gnome.gnome-keyring.enable = true;
   programs.seahorse.enable = true;
   security.pam.services.greetd.enableGnomeKeyring = true;
@@ -319,8 +328,13 @@ in
   # 首次启动时修复用户目录权限（由于安装脚本使用硬编码 UID）
   system.activationScripts.fixUserHomePerms = {
     text = ''
-      if [ -d /home/${mainUser} ]; then
-        chown -R ${mainUser}:${mainUser} /home/${mainUser} || true
+      if [ -d ${homeDir} ] && id -u ${mainUser} >/dev/null 2>&1; then
+        current_uid=$(stat -c %u ${homeDir} 2>/dev/null || echo "")
+        target_uid=$(id -u ${mainUser})
+        if [ -n "$current_uid" ] && [ "$current_uid" != "$target_uid" ]; then
+          find ${homeDir} -xdev \( -not -user ${mainUser} -o -not -group ${mainUser} \) \
+            -exec chown ${mainUser}:${mainUser} {} + || true
+        fi
       fi
     '';
     deps = [ "users" ];
@@ -365,18 +379,18 @@ in
   };
   programs.gamemode.enable = true;
 
-  # Proton-GE 配置：通过 Steam extraCompatPackages 安装
+  # Proton-GE 配置：通过 Steam 的 extraCompatPackages 安装
   # 注意：不能放在 environment.systemPackages（会导致 buildEnv 错误）
   programs.steam.extraCompatPackages = with pkgs; [
     proton-ge-bin
   ];
 
-  # KVM / libvirt
+  # KVM / libvirt 虚拟化
   virtualisation.libvirtd.enable = true;
   virtualisation.libvirtd.qemu.swtpm.enable = true;
   programs.virt-manager.enable = true;
 
-  # Docker
+  # Docker 容器
   virtualisation.docker = {
     enable = true;
     enableOnBoot = true;
@@ -390,9 +404,9 @@ in
   # Mullvad VPN 配置
   services.mullvad-vpn.enable = true;
 
-  # 修复：防止 lockdown mode 在重启后阻断网络
-  # 问题：tmpfs root + 持久化 /etc/mullvad-vpn 会保留 lockdown mode 设置
-  # 解决：启动时强制禁用 lockdown mode，避免 VPN 连接失败时无网络
+  # 修复：防止锁定模式在重启后阻断网络
+  # 问题：tmpfs 根分区 + 持久化 /etc/mullvad-vpn 会保留锁定模式设置
+  # 解决：启动时强制禁用锁定模式，避免 VPN 连接失败时无网络
   systemd.services.mullvad-daemon.serviceConfig = {
     ExecStartPre = pkgs.writeShellScript "disable-mullvad-lockdown" ''
       settings_file="/etc/mullvad-vpn/settings.json"
@@ -411,7 +425,7 @@ in
     "z /persistent/etc/user-password 0600 root root -"
     "z /persistent/etc/root-password 0600 root root -"
     # 7天清理缓存
-    "e /home/${mainUser}/.cache - - - 7d"
+    "e ${homeDir}/.cache - - - 7d"
     # 清理临时文件
     "e /tmp - - - 1d"
     "e /var/tmp - - - 7d"

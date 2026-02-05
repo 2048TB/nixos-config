@@ -1,35 +1,15 @@
-{ config
-, pkgs
-, ...
-}:
+{ pkgs, ... }:
 {
+  # 通过 D-Bus 开启 AppArmor 介入，避免仅在内核层生效
   services.dbus.apparmor = "enabled";
   security.apparmor = {
     enable = true;
 
-    # kill process that are not confined but have apparmor profiles enabled
+    # 强制终止未被约束但已有配置文件的进程，避免部分程序绕过策略
     killUnconfinedConfinables = true;
     packages = with pkgs; [
       apparmor-utils
       apparmor-profiles
     ];
-
-    # apparmor policies (disabled for now - can be re-enabled later)
-    # policies = {
-    #   "default_deny".profile = ''
-    #     profile default_deny /** { }
-    #   '';
-    #   "sudo".profile = ''
-    #     ${pkgs.sudo}/bin/sudo {
-    #       file /** rwlkUx,
-    #     }
-    #   '';
-    #   "nix".profile = ''
-    #     ${config.nix.package}/bin/nix {
-    #       unconfined,
-    #     }
-    #   '';
-    # };
   };
-
 }

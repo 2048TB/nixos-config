@@ -15,16 +15,27 @@ let
       envPath = builtins.getEnv "NIXOS_CONFIG_PATH";
       homePath = "${homeDir}/nixos-config";
     in
-    if envPath != "" then envPath
-    else if builtins.pathExists homePath then homePath
+    if envPath != "" && builtins.pathExists envPath then envPath
     else if builtins.pathExists myvars.configRoot then myvars.configRoot
+    else if builtins.pathExists homePath then homePath
     else homePath;
-  noctaliaConf = "${repoRoot}/nix/home/configs/noctalia";
-  fcitx5Conf = "${repoRoot}/nix/home/configs/fcitx5";
-  ghosttyConf = "${repoRoot}/nix/home/configs/ghostty";
+  configsRoot = "${repoRoot}/nix/home/configs";
+  noctaliaConf = "${configsRoot}/noctalia";
+  fcitx5Conf = "${configsRoot}/fcitx5";
+  ghosttyConf = "${configsRoot}/ghostty";
+  niriConf = "${configsRoot}/niri";
+  imageMimeTypes = [
+    "image/jpeg"
+    "image/png"
+    "image/webp"
+    "image/gif"
+    "image/bmp"
+    "image/tiff"
+  ];
+  imageApps = [ "org.nomacs.ImageLounge.desktop" "nomacs.desktop" ];
   niriSession = pkgs.writeScript "niri-session" ''
     #!/usr/bin/env bash
-    # 尝试结束旧的 niri 会话，再启动新的会话
+    # 尝试结束旧的 niri 会话，避免残留服务状态影响新会话
     if systemctl --user is-active niri.service >/dev/null 2>&1; then
       systemctl --user stop niri.service
     fi
@@ -40,7 +51,7 @@ in
   # 允许全局工具安装到可写目录，避免写入 /nix/store
   home.sessionVariables = {
     # Wayland 支持
-    NIXOS_OZONE_WL = "1"; # Electron 应用 (Chrome, VSCode) Wayland 原生支持
+    NIXOS_OZONE_WL = "1"; # Electron 应用（Chrome、VSCode）在 Wayland 下原生支持
 
     # 工具链路径
     NPM_CONFIG_PREFIX = "${homeDir}/.npm-global";
@@ -105,13 +116,13 @@ in
     scripts = [ pkgs.mpvScripts.mpris ];
   };
 
-  # Shell 配置（必需，用于加载 sessionVariables）
+  # 终端 Shell 配置（必需，用于加载会话变量）
   programs.zsh = {
     enable = true;
     enableCompletion = true;
     autosuggestion.enable = true;
     syntaxHighlighting.enable = true;
-    initContent = builtins.readFile ./configs/shell/zshrc-custom;
+    initContent = builtins.readFile ./configs/shell/zshrc;
   };
 
   programs.bash = {
@@ -141,23 +152,23 @@ in
 
     # === 文件管理 ===
     yazi # 终端文件管理器
-    bat # cat 增强版（语法高亮）
-    fd # find 增强版（更快、更友好）
-    eza # ls 增强版（彩色、树状图）
-    ripgrep # grep 增强版（递归搜索）
+    bat # `cat` 增强版（语法高亮）
+    fd # `find` 增强版（更快、更友好）
+    eza # `ls` 增强版（彩色、树状图）
+    ripgrep # `grep` 增强版（递归搜索）
     ripgrep-all # rg 扩展：搜索 PDF/Office 等
 
     # === 系统监控 ===
     btop # 系统资源监控（CPU、内存、进程）
-    duf # 磁盘使用查看（替代 df）
-    dust # 磁盘空间树状图（du 替代，可视化目录大小）
-    procs # 进程查看（ps 替代，彩色表格化）
+    duf # 磁盘使用查看（替代 `df`）
+    dust # 磁盘空间树状图（替代 `du`，可视化目录大小）
+    procs # 进程查看（替代 `ps`，彩色表格化）
     fastfetch # 系统信息展示
 
     # === 文本处理 ===
     jq # JSON 处理器（查询、格式化）
-    sd # 查找替换（替代 sed）
-    tealdeer # 命令示例（tldr，简化版 man 页面）
+    sd # 查找替换（替代 `sed`）
+    tealdeer # 命令示例（`tldr`，简化版 `man` 页面）
 
     # === 网络工具 ===
     curl # HTTP 请求工具
@@ -165,7 +176,7 @@ in
 
     # === 基础工具 ===
     git # 版本控制
-    gh # GitHub CLI
+    gh # GitHub 命令行工具
     gnumake # 构建工具
     cmake
     ninja
@@ -177,7 +188,7 @@ in
     ccache
     clang
     meson
-    gitui # Git TUI (Rust)
+    gitui # Git TUI（Rust）
     delta # git diff 美化（语法高亮、并排对比）
     tokei # 代码统计（行数、语言分布）
     brightnessctl # 屏幕亮度控制
@@ -191,9 +202,9 @@ in
     cachix # 二进制缓存管理
 
     # === 开发效率 ===
-    just # 命令运行器（替代 Makefile）
+    just # 命令运行器（替代 `Makefile`）
 
-    # === GUI 应用 ===
+    # === 图形界面应用 ===
     google-chrome
     vscode
     remmina
@@ -211,13 +222,13 @@ in
     slurp
     wl-screenrec
 
-    # === 基础 GUI 工具 ===
+    # === 基础图形工具 ===
     zathura
     gnome-text-editor
     wpsoffice # WPS Office 办公套件（文档/表格/演示）
 
     # 压缩/解压工具（命令行 + Nautilus file-roller 集成）
-    p7zip-rar # 包含 7-Zip + RAR 支持（unfree）
+    p7zip-rar # 包含 7-Zip + RAR 支持（非自由许可）
     unrar
     unar
     arj
@@ -238,7 +249,7 @@ in
     qt6Packages.qt6ct
     app2unit
 
-    # === Gaming 工具 ===
+    # === 游戏工具 ===
     mangohud
     umu-launcher
     bbe
@@ -246,7 +257,7 @@ in
     winetricks
     protonplus
 
-    # Media / graphics
+    # 媒体 / 图形
     pavucontrol
     playerctl
     pulsemixer
@@ -258,7 +269,7 @@ in
     mesa-demos
     nvitop
 
-    # Virtualisation tools
+    # 虚拟化工具
     qemu_kvm
     docker-compose # Docker 编排工具
     dive # Docker 镜像分析
@@ -273,16 +284,16 @@ in
   programs.niri.config = null; # 阻止自动生成，使用下方的手动配置文件
 
   xdg.configFile = {
-    # niri compositor 配置（4 个文件）
-    "niri/config.kdl".source = mkSymlink "${repoRoot}/nix/home/configs/niri/config.kdl";
-    "niri/keybindings.kdl".source = mkSymlink "${repoRoot}/nix/home/configs/niri/keybindings.kdl";
-    "niri/windowrules.kdl".source = mkSymlink "${repoRoot}/nix/home/configs/niri/windowrules.kdl";
-    "niri/noctalia-shell.kdl".source = mkSymlink "${repoRoot}/nix/home/configs/niri/noctalia-shell.kdl";
+    # niri 合成器配置（4 个文件）
+    "niri/config.kdl".source = mkSymlink "${niriConf}/config.kdl";
+    "niri/keybindings.kdl".source = mkSymlink "${niriConf}/keybindings.kdl";
+    "niri/windowrules.kdl".source = mkSymlink "${niriConf}/windowrules.kdl";
+    "niri/noctalia-shell.kdl".source = mkSymlink "${niriConf}/noctalia-shell.kdl";
 
-    # Noctalia Shell 配置（分别链接文件以支持 wallpapers 子目录）
+    # Noctalia Shell（外壳）配置（分别链接文件以支持壁纸子目录）
     "noctalia/settings.json".source = mkSymlink "${noctaliaConf}/settings.json";
     "noctalia/plugins.json".source = mkSymlink "${noctaliaConf}/plugins.json";
-    "noctalia/wallpapers".source = mkSymlink "${repoRoot}/nix/home/configs/wallpapers";
+    "noctalia/wallpapers".source = mkSymlink "${configsRoot}/wallpapers";
     "qt6ct/qt6ct.conf".source = mkSymlink "${noctaliaConf}/qt6ct.conf";
 
     "fcitx5/profile" = {
@@ -310,14 +321,9 @@ in
 
   xdg.mimeApps = {
     enable = true;
-    defaultApplications = {
-      "image/jpeg" = [ "org.nomacs.ImageLounge.desktop" "nomacs.desktop" ];
-      "image/png" = [ "org.nomacs.ImageLounge.desktop" "nomacs.desktop" ];
-      "image/webp" = [ "org.nomacs.ImageLounge.desktop" "nomacs.desktop" ];
-      "image/gif" = [ "org.nomacs.ImageLounge.desktop" "nomacs.desktop" ];
-      "image/bmp" = [ "org.nomacs.ImageLounge.desktop" "nomacs.desktop" ];
-      "image/tiff" = [ "org.nomacs.ImageLounge.desktop" "nomacs.desktop" ];
-    };
+    # 统一图片默认打开方式
+    # 使用 genAttrs 保持行为一致，减少重复
+    defaultApplications = lib.genAttrs imageMimeTypes (_: imageApps);
   };
 
   home.file = {
@@ -333,8 +339,4 @@ in
       prefix "${homeDir}/.local"
     '';
   };
-
-  # polkit agent 由 niri-flake 的 nixosModules.niri 自动提供（KDE polkit agent）
-  # 若需禁用：systemd.user.services.niri-flake-polkit.enable = false;
-
 }

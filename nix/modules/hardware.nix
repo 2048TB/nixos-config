@@ -3,6 +3,7 @@ let
   # GPU 驱动常量
   driverNvidia = "nvidia";
   driverAmdgpu = "amdgpu";
+  driverAmdNvidiaHybrid = "amd-nvidia-hybrid";
   driverModesetting = "modesetting";
   gpuDefaultValue = "auto";
 
@@ -12,9 +13,8 @@ let
   gpuConfigPaths = [
     ../vars/detected-gpu.txt
     ../hosts/${myvars.hostname}-gpu-choice.txt
-    ../hosts/nixos-config-gpu-choice.txt
     ../hosts/${myvars.hostname}/gpu-choice.txt
-    ../hosts/nixos-cconfig/gpu-choice.txt
+    ../hosts/nixos-config/gpu-choice.txt
   ];
 
   # 查找第一个存在的 GPU 配置文件
@@ -36,21 +36,35 @@ let
   gpuChoice = if envGpu != "" then envGpu else gpuChoiceFile;
   isNvidia = gpuChoice == driverNvidia;
   isAmd = gpuChoice == driverAmdgpu;
-  isNone = gpuChoice == "none";
+  isAmdNvidiaHybrid = gpuChoice == driverAmdNvidiaHybrid;
+  useNvidia = isNvidia || isAmdNvidiaHybrid;
+
+  # 统一 NVIDIA 配置，避免专用配置与默认配置漂移
+  nvidiaKernelParams = [ "nvidia-drm.fbdev=1" ];
+  nvidiaBase = {
+    open = true;
+    package = config.boot.kernelPackages.nvidiaPackages.production;
+    modesetting.enable = true;
+    powerManagement.enable = true;
+  };
 
   # "auto" 不应出现在实际配置中（安装脚本已修复），但为向后兼容保留
   # 如果是 "auto" 或其他未知值，使用安全的通用 modesetting 驱动
   videoDrivers =
     if isNvidia then [ driverNvidia ]
     else if isAmd then [ driverAmdgpu ]
+    else if isAmdNvidiaHybrid then [
+      driverNvidia
+      driverAmdgpu
+    ]
     else [ driverModesetting ]; # none、auto 或其他值都使用通用驱动
 
-  # 是否启用 GPU specialisation（启动菜单中切换驱动）
+  # 是否启用 GPU 专用配置（启动菜单中切换驱动）
   # 默认禁用以减少 ISO 体积和安装时间
   enableGpuSpecialisation = builtins.getEnv "ENABLE_GPU_SPECIALISATION" == "1";
 in
 {
-  # Base graphics setup (Wayland + Xwayland)
+  # 图形基础设置（Wayland + Xwayland）
   hardware.graphics = {
     enable = true;
     enable32Bit = true;
@@ -59,16 +73,11 @@ in
   # 安装时通过 NIXOS_GPU 或 nix/vars/detected-gpu.txt 选择默认驱动
   services.xserver.videoDrivers = videoDrivers;
 
-  boot.kernelParams = lib.mkIf isNvidia [ "nvidia-drm.fbdev=1" ];
-  hardware.nvidia = lib.mkIf isNvidia {
-    open = true;
-    package = config.boot.kernelPackages.nvidiaPackages.production;
-    modesetting.enable = true;
-    powerManagement.enable = true;
-  };
-  hardware.nvidia-container-toolkit.enable = lib.mkIf isNvidia true;
+  boot.kernelParams = lib.mkIf useNvidia nvidiaKernelParams;
+  hardware.nvidia = lib.mkIf useNvidia nvidiaBase;
+  hardware.nvidia-container-toolkit.enable = lib.mkIf useNvidia true;
 
-  # GPU Specialisation：启动时在引导菜单中切换驱动
+  # GPU 专用配置：启动时在引导菜单中切换驱动
   # 默认禁用以减少 ISO 体积（~500MB）和安装时间
   # 启用方式：export ENABLE_GPU_SPECIALISATION=1
   specialisation = lib.mkIf enableGpuSpecialisation {
@@ -78,13 +87,8 @@ in
 
     gpu-nvidia.configuration = {
       services.xserver.videoDrivers = [ driverNvidia ];
-      boot.kernelParams = [ "nvidia-drm.fbdev=1" ];
-      hardware.nvidia = {
-        open = true;
-        package = config.boot.kernelPackages.nvidiaPackages.production;
-        modesetting.enable = true;
-        powerManagement.enable = true;
-      };
+      boot.kernelParams = nvidiaKernelParams;
+      hardware.nvidia = nvidiaBase;
       hardware.nvidia-container-toolkit.enable = true;
       hardware.graphics.enable32Bit = true;
     };
@@ -94,7 +98,7 @@ in
     };
   };
 
-  # Noctalia 依赖项（WiFi/蓝牙/电源/电池）
+  # Noctalia 依赖项（无线网络/蓝牙/电源/电池）
   hardware.bluetooth.enable = true;
   services.blueman.enable = true;
   services.power-profiles-daemon.enable = true;

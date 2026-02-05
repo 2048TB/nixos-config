@@ -1,47 +1,47 @@
 [Groups/0]
-# Group Name
+# 组名称
 Name=Intl
-# Layout
+# 布局
 Default Layout=us
-# Default Input Method
+# 默认输入法
 DefaultIM=keyboard-us-altgr-intl
 
 [Groups/0/Items/0]
-# Name
+# 名称
 Name=keyboard-us
-# Layout
+# 布局
 Layout=
 
 [Groups/0/Items/1]
-# Name
+# 名称
 Name=keyboard-us-intl
-# Layout
+# 布局
 Layout=
 
 [Groups/0/Items/2]
-# Name
+# 名称
 Name=keyboard-us-altgr-intl
-# Layout
+# 布局
 Layout=
 
 [Groups/1]
-# Group Name
+# 组名称
 Name=Default
-# Layout
+# 布局
 Default Layout=us
-# Default Input Method
+# 默认输入法
 DefaultIM=pinyin
 
 [Groups/1/Items/0]
-# Name
+# 名称
 Name=keyboard-us
-# Layout
+# 布局
 Layout=
 
 [Groups/1/Items/1]
-# Name
+# 名称
 Name=pinyin
-# Layout
+# 布局
 Layout=
 
 [Groups/1/Items/2]

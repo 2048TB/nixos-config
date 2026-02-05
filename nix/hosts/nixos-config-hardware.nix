@@ -73,6 +73,18 @@
 # 临时占位符，防止 flake check 失败
 # 注意：此配置仅用于开发/检查，实际安装会完全替换此文件
 { lib, ... }: {
+  boot.initrd.availableKernelModules = lib.mkDefault [
+    "nvme"
+    "xhci_pci"
+    "ahci"
+    "usb_storage"
+    "sd_mod"
+  ];
+  boot.initrd.luks.devices."crypted-nixos" = lib.mkDefault {
+    device = "/dev/disk/by-partlabel/NIXOS-CRYPT";
+    allowDiscards = true;
+    bypassWorkqueues = true;
+  };
   boot.loader.systemd-boot.enable = lib.mkDefault true;
   boot.loader.efi.canTouchEfiVariables = lib.mkDefault true;
 

@@ -1,5 +1,5 @@
-# If not running interactively, don't do anything
+# 非交互式 shell 直接返回
 [[ $- != *i* ]] && return
 
-# Starship prompt
+# Starship 提示符
 eval "$(starship init bash)"

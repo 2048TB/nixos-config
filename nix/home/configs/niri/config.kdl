@@ -1,115 +1,111 @@
-// This config is in the KDL format: https://kdl.dev
-// "/-" comments out the following node.
+// 此配置使用 KDL 格式：https://kdl.dev
+// "/-" 用于注释掉后续节点。
 
-// This is the main configuration file that includes all other config files
+// 这是主配置文件，负责包含其他配置文件
 include "./keybindings.kdl"
 include "./windowrules.kdl"
 include "./noctalia-shell.kdl"
 
-// Startup programs
+// 开机启动程序
 spawn-at-startup "noctalia-shell"
 
-// Input device configuration.
+// 输入设备配置。
 input {
     keyboard {
         xkb {
-            // You can set rules, model, layout, variant and options.
-            // For more information, see xkeyboard-config(7).
+            // 可以设置规则、型号、布局、变体与选项。
+            // 更多信息见 xkeyboard-config(7)。
 
-            // For example:
+            // 例如：
             // layout "us,ru"
             // options "grp:win_space_toggle,compose:ralt,ctrl:nocaps"
 
-            // If this section is empty, niri will fetch xkb settings
-            // from org.freedesktop.locale1. You can control these using
-            // localectl set-x11-keymap.
+            // 如果此段为空，niri 会从 org.freedesktop.locale1 获取 xkb 设置。
+            // 可使用 localectl set-x11-keymap 管理这些设置。
         }
 
-        // Enable numlock on startup, omitting this setting disables it.
+        // 启动时开启 NumLock；省略此项则禁用。
         numlock
 
-        // You can set the keyboard repeat parameters. The defaults match wlroots and sway.
-        // Delay is in milliseconds before the repeat starts. Rate is in characters per second.
+        // 可设置键盘连发参数，默认值与 wlroots 和 sway 一致。
+        // Delay 为开始连发前的毫秒数；Rate 为每秒字符数。
         // repeat-delay 600
         // repeat-rate 25
 
-        // Niri can remember the keyboard layout globally (the default) or per-window.
-        // - "global" - layout change is global for all windows.
-        // - "window" - layout is tracked for each window individually.
+        // Niri 可全局（默认）或按窗口记忆键盘布局。
+        // - "global" - 所有窗口共享布局切换。
+        // - "window" - 每个窗口单独记录布局。
         // track-layout "global"
     }
 
-    // Next sections include libinput settings.
-    // Omitting settings disables them, or leaves them at their default values.
-    // All commented-out settings here are examples, not defaults.
+    // 接下来的部分是 libinput 设置。
+    // 省略某项会禁用或保持默认值。
+    // 所有被注释的设置仅为示例，非默认值。
     touchpad {
-        // tap  // tap-to-click
-        dwt // disable-when-typing.
-        // dwtp // disable-when-trackpointing.
-        natural-scroll // inverts the scrolling direction.
+        // tap  // 轻触点击
+        dwt // 输入时禁用。
+        // dwtp // 使用指点杆时禁用。
+        natural-scroll // 反转滚动方向。
         // accel-speed 0.2
         // accel-profile "flat"
         // tap-button-map "left-middle-right"
     }
 
     mouse {
-        // natural-scroll // inverts the scrolling direction.
+        // natural-scroll // 反转滚动方向。
         // accel-speed 0.2
         // accel-profile "flat"
     }
 
-    // Uncomment this to make the mouse warp to the center of newly focused windows.
+    // 取消注释后，鼠标会跳到新聚焦窗口中心。
     // warp-mouse-to-focus
 
-    // Focus windows and outputs automatically when moving the mouse into them.
-    // Setting max-scroll-amount="0%" makes it work only on windows already fully on screen.
+    // 鼠标移入时自动聚焦窗口与输出。
+    // 设置 max-scroll-amount="0%" 仅对完全在屏幕内的窗口生效。
     // focus-follows-mouse max-scroll-amount="0%"
 }
 
-// Settings that influence how windows are positioned and sized.
+// 影响窗口位置与尺寸的设置。
 layout {
-    // Set gaps around windows in logical pixels.
+    // 设置窗口外边距（逻辑像素）。
     gaps 8
 
-    // When to center a column when changing focus, options are:
-    // - "never", default behavior, focusing an off-screen column will keep at the left
-    //   or right edge of the screen.
-    // - "always", the focused column will always be centered.
-    // - "on-overflow", focusing a column will center it if it doesn't fit
-    //   together with the previously focused column.
+    // 切换焦点时是否居中列，选项：
+    // - "never"：默认行为，聚焦屏幕外列时保持在屏幕左/右边缘。
+    // - "always"：始终居中当前列。
+    // - "on-overflow"：当与前一个聚焦列无法同时完整显示时才居中。
     center-focused-column "never"
 
-    // You can customize the widths that "switch-preset-column-width" (Mod+R) toggles between.
+    // 可自定义 "switch-preset-column-width"（Mod+R）在不同宽度间切换的预设值。
     preset-column-widths {
-        // Proportion sets the width as a fraction of the output width, taking gaps into account.
-        // For example, you can perfectly fit four windows sized "proportion 0.25" on an output.
-        // The default preset widths are 1/3, 1/2 and 2/3 of the output.
+        // proportion 以输出宽度的比例设置列宽，并考虑 gaps。
+        // 例如 proportion 0.25 可在一个输出上正好放下四个窗口。
+        // 默认预设宽度为输出宽度的 1/3、1/2、2/3。
         proportion 0.333333
         proportion 0.500000
         proportion 0.666667
+        proportion 1.000000
 
-        // Fixed sets the width in logical pixels exactly.
+        // fixed 以逻辑像素设置固定宽度。
         // fixed 1920
     }
 
-    // You can change the default width of the new windows.
-    // 设置为 33% 以支持自动三分屏，而非 50% 独占半屏
-    default-column-width { proportion 0.333333; }
-    // If you leave the brackets empty, the windows themselves will decide their initial width.
+    // 可以修改新窗口的默认宽度。
+    // 默认半屏，通过 Mod+R 快捷键在 33%, 50%, 67%, 100% 之间切换
+    default-column-width { proportion 0.5; }
+    // 若花括号留空，由窗口自身决定初始宽度。
     // default-column-width {}
 
-    // By default focus ring and border are rendered as a solid background rectangle
-    // behind windows. That is, they will show up through semitransparent windows.
-    // This is because windows using client-side decorations can have an arbitrary shape.
+    // 默认情况下，焦点环与边框作为实心背景矩形绘制在窗口后方，
+    // 因此会透过半透明窗口显示。
+    // 这是因为使用客户端装饰（CSD）的窗口形状可能是任意的。
     //
-    // If you don't like that, you should uncomment `prefer-no-csd` below.
-    // Niri will draw focus ring and border *around* windows that agree to omit their
-    // client-side decorations.
+    // 如果不喜欢这样，可取消下面的 `prefer-no-csd`。
+    // Niri 会对同意省略客户端装饰的窗口在外围绘制焦点环与边框。
     //
-    // Alternatively, you can override it with a window rule called
-    // `draw-border-with-background`.
+    // 也可以用名为 `draw-border-with-background` 的窗口规则覆盖。
 
-    // You can change how the focus ring looks.
+    // 可以调整焦点环外观。
     focus-ring {
         width 4
         active-gradient from="#88d6bbcc" to="#a8cbe2cc" angle=135
@@ -117,32 +113,31 @@ layout {
         urgent-color "#ffb4ab"
     }
 
-    // You can also add a border. It's similar to the focus ring, but always visible.
+    // 也可以添加边框，类似焦点环但始终可见。
     border {
-        // The settings are the same as for the focus ring.
-        // If you enable the border, you probably want to disable the focus ring.
+        // 设置项与焦点环相同。
+        // 启用边框时通常应关闭焦点环。
         off
 
         width 4
         active-color "#ffc87f"
         inactive-color "#505050"
 
-        // Color of the border around windows that request your attention.
+        // 请求注意的窗口边框颜色。
         urgent-color "#9b0000"
 
-        // Gradients can use a few different interpolation color spaces.
-        // For example, this is a pastel rainbow gradient via in="oklch longer hue".
+        // 渐变可使用不同的插值色彩空间。
+        // 例如通过 in="oklch longer hue" 可实现柔和的彩虹渐变。
         //
         // active-gradient from="#e5989b" to="#ffb4a2" angle=45 relative-to="workspace-view" in="oklch longer hue"
 
         // inactive-gradient from="#505050" to="#808080" angle=45 relative-to="workspace-view"
     }
 
-    // Struts shrink the area occupied by windows, similarly to layer-shell panels.
-    // You can think of them as a kind of outer gaps. They are set in logical pixels.
-    // Left and right struts will cause the next window to the side to always be visible.
-    // Top and bottom struts will simply add outer gaps in addition to the area occupied by
-    // layer-shell panels and regular gaps.
+    // struts 会缩小窗口可用区域，类似 layer-shell 面板。
+    // 可将其理解为外边距，单位为逻辑像素。
+    // 左/右 struts 会让相邻侧的下一个窗口始终可见。
+    // 上/下 struts 则会在 layer-shell 面板与常规 gaps 之外再增加外边距。
     struts {
         // left 64
         // right 64
@@ -150,7 +145,7 @@ layout {
         // bottom 64
     }
 
-    // Window shadow for better depth perception
+    // 窗口阴影用于增强层次感
     shadow {
         softness 30
         spread 5
@@ -160,41 +155,41 @@ layout {
 }
 
 cursor {
-    // Change the theme and size of the cursor as well as set the
-    // `XCURSOR_THEME` and `XCURSOR_SIZE` env variables.
+    // 设置光标主题与大小，并同时设置
+    // `XCURSOR_THEME` 与 `XCURSOR_SIZE` 环境变量。
     // xcursor-theme "default"
     // xcursor-size 24
 }
 
 hotkey-overlay {
-    // Uncomment this line to disable the "Important Hotkeys" pop-up at startup.
+    // 取消注释以在启动时禁用“重要快捷键”弹窗。
     skip-at-startup
 }
 
-// Uncomment this line to ask the clients to omit their client-side decorations if possible.
-// If the client will specifically ask for CSD, the request will be honored.
-// Additionally, clients will be informed that they are tiled, removing some client-side rounded corners.
-// This option will also fix border/focus ring drawing behind some semitransparent windows.
-// After enabling or disabling this, you need to restart the apps for this to take effect.
+// 取消注释后会请求客户端在可能时省略客户端装饰（CSD）。
+// 若客户端明确请求 CSD，将尊重该请求。
+// 同时会通知客户端处于平铺模式，去除部分客户端圆角。
+// 该选项还能修复某些半透明窗口下边框/焦点环绘制在后方的问题。
+// 启用或禁用后需重启应用才能生效。
 // prefer-no-csd
 
-// Environment variables for applications spawned by niri
-// Note: home.sessionVariables also sets these, but explicit KDL config ensures
-// they work for all niri-spawned processes
+// 由 niri 启动的应用环境变量
+// 注意：home.sessionVariables 也会设置这些，但在 KDL 中显式配置
+// 可确保对所有 niri 启动的进程生效
 environment {
     NIXOS_OZONE_WL "1"
 }
 
-// You can change the path where screenshots are saved.
-// A ~ at the front will be expanded to the home directory.
-// The path is formatted with strftime(3) to give you the screenshot date and time.
+// 可更改截图保存路径。
+// 路径开头的 ~ 会展开为主目录。
+// 路径可用 strftime(3) 格式化，以写入截图日期与时间。
 screenshot-path "~/Pictures/Screenshots/Screenshot from %Y-%m-%d %H-%M-%S.png"
 
-// You can also set this to null to disable saving screenshots to disk.
+// 也可设为 null 以禁用保存到磁盘。
 // screenshot-path null
 
-// Animation settings.
-// The wiki explains how to configure individual animations:
+// 动画设置。
+// 维基说明了如何配置单项动画：
 animations {
     slowdown 0.9
     workspace-switch {
@@ -205,11 +200,10 @@ animations {
     }
 }
 
-// Recent windows switcher (Alt+Tab) styling
+// 最近窗口切换器（Alt+Tab）样式
 recent-windows {
     highlight {
         active-color "#343b38"
         urgent-color "#ffb4ab"
     }
 }
-

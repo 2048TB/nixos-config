@@ -1,19 +1,19 @@
 // https://docs.noctalia.dev/getting-started/compositor-settings/niri/
 
 window-rule {
-  // Rounded corners for a modern look.
+  // 圆角边框，外观更现代。
   geometry-corner-radius 20
 
-  // Clips window contents to the rounded corner boundaries.
+  // 将窗口内容裁剪到圆角边界内。
   clip-to-geometry true
 }
 
 debug {
-  // Allows notification actions and window activation from Noctalia.
+  // 允许 Noctalia 触发通知动作与窗口激活。
   honor-xdg-activation-with-invalid-serial
 }
 
-// Set the overview wallpaper on the backdrop.
+// 在背景层设置概览壁纸。
 layer-rule {
   match namespace="^noctalia-overview*"
   place-within-backdrop true
