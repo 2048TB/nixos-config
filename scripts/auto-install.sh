@@ -361,6 +361,13 @@ ROOT_PASSWORD_FILE="/mnt/persistent/etc/root-password"
 printf '%s' "$HASHED_PASSWORD" > "$ROOT_PASSWORD_FILE"
 chmod "$PASSWORD_FILE_MODE" "$ROOT_PASSWORD_FILE"
 
+# 安装阶段需要 /etc/user-password 与 /etc/root-password 可读
+log "staging password files into /etc..."
+mkdir -p /mnt/etc
+cp -f "$USER_PASSWORD_FILE" /mnt/etc/user-password
+cp -f "$ROOT_PASSWORD_FILE" /mnt/etc/root-password
+chmod "$PASSWORD_FILE_MODE" /mnt/etc/user-password /mnt/etc/root-password
+
 log "installing NixOS..."
 cd "$CONFIG_DEST"
 NIXOS_GPU="$NIXOS_GPU" \

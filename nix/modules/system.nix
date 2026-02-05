@@ -68,10 +68,16 @@ in
       {
         file = "/etc/user-password";
         inInitrd = true; # 用户密码文件需要在 initrd 阶段可用
+        mode = "0600";
+        user = "root";
+        group = "root";
       }
       {
         file = "/etc/root-password";
         inInitrd = true; # root 密码文件用于紧急恢复
+        mode = "0600";
+        user = "root";
+        group = "root";
       }
     ];
 
@@ -117,7 +123,10 @@ in
     { device = "/swap/swapfile"; }
   ];
 
-  # /persistent 的 neededForBoot 由 hardware.nix 设置，此处不再重复
+  # 确保 /persistent 在 initrd 阶段挂载（密码文件依赖）
+  fileSystems."/persistent".neededForBoot = lib.mkDefault true;
+  # greetd 依赖 /home/.wayland-session
+  fileSystems."/home".neededForBoot = lib.mkDefault true;
 
   # outputs.nix 的 allowUnfree 仅影响 flake context，模块内仍需显式配置
   nixpkgs.config.allowUnfree = true;
@@ -400,6 +409,7 @@ in
   systemd.tmpfiles.rules = [
     # 确保持久化密码文件权限正确（存在时修正，不创建）
     "z /persistent/etc/user-password 0600 root root -"
+    "z /persistent/etc/root-password 0600 root root -"
     # 7天清理缓存
     "e /home/${mainUser}/.cache - - - 7d"
     # 清理临时文件

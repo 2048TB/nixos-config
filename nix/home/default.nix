@@ -325,6 +325,10 @@ in
       source = niriSession;
       executable = true;
     };
+    ".cache/noctalia/wallpapers.json".text = builtins.toJSON {
+      defaultWallpaper = "${homeDir}/.config/noctalia/wallpapers/1.png";
+      wallpapers = { };
+    };
     ".yarnrc".text = ''
       prefix "${homeDir}/.local"
     '';
