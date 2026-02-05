@@ -88,10 +88,9 @@ in
     GOPATH = "${homeDir}/go";
     GOBIN = "${homeDir}/go/bin";
     PYTHONUSERBASE = "${homeDir}/.local";
+    PIP_REQUIRE_VIRTUALENV = "1";
     PIPX_HOME = "${localShareDir}/pipx";
     PIPX_BIN_DIR = localBinDir;
-    GEM_HOME = "${localShareDir}/gem";
-    GEM_PATH = "${localShareDir}/gem";
   };
 
   home.sessionPath = [
@@ -100,7 +99,6 @@ in
     "${homeDir}/.bun/bin"
     "${homeDir}/.cargo/bin"
     "${homeDir}/go/bin"
-    "${localShareDir}/gem/bin"
     localBinDir
   ];
 
@@ -126,6 +124,11 @@ in
   programs.fzf = {
     enable = true;
     enableZshIntegration = true;
+  };
+
+  programs.direnv = {
+    enable = true;
+    nix-direnv.enable = true;
   };
 
   # 保留手动锁屏功能（关闭自动锁屏）
@@ -225,6 +228,9 @@ in
 
     # === 开发效率 ===
     just # 命令运行器（替代 `Makefile`）
+    nix-index # nix-locate 查询工具
+    shellcheck # Shell 脚本静态检查
+    git-lfs # Git 大文件支持
 
     # === 图形界面应用 ===
     google-chrome
@@ -300,6 +306,12 @@ in
 
     # 通讯软件
     telegram-desktop # 使用官方二进制包（原 nixpaks.telegram-desktop 会触发 30 分钟编译）
+
+    # === 语言/包管理补齐 ===
+    bun
+    rustup
+    pnpm
+    pipx
   ] ++ hybridPackages;
 
   # Niri 配置：使用手动 KDL 文件而非声明式配置

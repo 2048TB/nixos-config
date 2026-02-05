@@ -347,6 +347,7 @@ in
   environment.systemPackages = with pkgs; [
     # 编辑器（vim 由 home-manager 配置，此处仅保留 neovim 作为 root 用户编辑器）
     neovim
+    gnupg # gpg 命令（签名/加密）
 
     # 开发语言/工具链（系统级）
     rustc
@@ -364,6 +365,7 @@ in
     nodePackages.typescript
     nodePackages.typescript-language-server
     python3
+    python3Packages.pip
     pyright
     ruff
     black
