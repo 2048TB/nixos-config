@@ -10,3 +10,16 @@ niri-dotfiles.backup/
 .DS_Store
 hosts/*/gpu-choice.txt
 .serena/
+
+# 敏感文件防泄露（配合 justfile 的 git add .）
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.pfx
+id_rsa*
+id_ed25519*
+secrets/
+credentials.json
+token.json

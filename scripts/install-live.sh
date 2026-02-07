@@ -14,7 +14,7 @@ REPO_ROOT="$(cd -- "${SCRIPT_DIR}/.." && pwd -P)"
 HOST="zly"
 FLAKE="${REPO_ROOT}"
 DRY_RUN="${DRY_RUN:-0}"
-CONFIRM="${CONFIRM:-0}"
+CONFIRM="${CONFIRM:-1}"
 NIXOS_DISK_DEVICE="${NIXOS_DISK_DEVICE:-}"
 LUKS_DEVICE=""
 DISK_DEVICE=""
@@ -35,7 +35,7 @@ This script is fully automated:
 
 Environment variables:
   DRY_RUN=1         Print commands without executing
-  CONFIRM=1         Require confirmation before destructive steps
+  CONFIRM=0         Skip confirmation before destructive steps (default: confirm)
   NIXOS_DISK_DEVICE=/dev/sdX  Use explicit target disk (overrides auto-selection)
 
 Help:
@@ -76,12 +76,12 @@ run_root() {
 
 preflight_cleanup() {
   # 尽量释放旧挂载/加密设备，避免分区表无法更新
-  run_root swapoff -a || true
-  run_root umount -R /mnt || true
-  run_root umount -R /boot || true
-  run_root cryptsetup luksClose crypted-nixos || true
-  run_root partprobe "$DISK_DEVICE" || true
-  run_root udevadm settle || true
+  run_root swapoff -a 2>/dev/null || echo "WARN: swapoff failed (may be inactive)" >&2
+  run_root umount -R /mnt 2>/dev/null || echo "WARN: umount /mnt failed (may not be mounted)" >&2
+  run_root umount -R /boot 2>/dev/null || echo "WARN: umount /boot failed (may not be mounted)" >&2
+  run_root cryptsetup luksClose crypted-nixos 2>/dev/null || echo "WARN: luksClose failed (may not be open)" >&2
+  run_root partprobe "$DISK_DEVICE" || echo "WARN: partprobe failed on $DISK_DEVICE" >&2
+  run_root udevadm settle || echo "WARN: udevadm settle failed" >&2
 }
 
 check_disko_result() {
@@ -281,6 +281,10 @@ fi
 run_root rm -rf "$TARGET_FLAKE_DIR"
 run_root mkdir -p "$TARGET_FLAKE_DIR"
 run_root cp -a "${REPO_ROOT}/." "$TARGET_FLAKE_DIR/"
+
+# 清理历史 Mullvad 设置，避免旧 lockdown/auto-connect 状态导致新系统首启无网
+run_root rm -f /mnt/persistent/etc/mullvad-vpn/settings.json
+
 run_root rm -rf /mnt/etc/nixos
 run_root ln -sfn /persistent/nixos-config /mnt/etc/nixos
 STEP=$((STEP + 1))

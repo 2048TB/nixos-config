@@ -363,7 +363,7 @@
     "bluetoothRssiPollIntervalMs": 10000,
     "bluetoothRssiPollingEnabled": false,
     "wifiDetailsViewMode": "grid",
-    "wifiEnabled": false
+    "wifiEnabled": true
   },
   "nightLight": {
     "autoSchedule": false,

@@ -32,17 +32,22 @@ let
       raw = myvars.gpuMode or "auto";
     in
     lib.strings.removeSuffix "\n" (lib.strings.removeSuffix "\r" raw);
-  ollamaVulkan = pkgs."ollama-vulkan" or null;
-  tensorflowCudaPkg = pkgs.python3Packages.tensorflowWithCuda or null;
+  ollamaVulkan = if pkgs ? ollama-vulkan then pkgs.ollama-vulkan else null;
+  tensorflowCudaPkg =
+    if (pkgs.python3Packages ? tensorflowWithCuda)
+    then pkgs.python3Packages.tensorflowWithCuda
+    else null;
   tensorflowCudaEnv =
     if tensorflowCudaPkg != null
     then pkgs.python3.withPackages (_: [ tensorflowCudaPkg ])
     else null;
-  hashcatPkg = pkgs.hashcat or null;
+  hashcatPkg = if pkgs ? hashcat then pkgs.hashcat else null;
   noctaliaShellPkg =
-    if pkgsUnstable != null
-    then pkgsUnstable.noctalia-shell or null
-    else pkgs.noctalia-shell or null;
+    if pkgsUnstable != null && (pkgsUnstable ? noctalia-shell)
+    then pkgsUnstable.noctalia-shell
+    else if pkgs ? noctalia-shell
+    then pkgs.noctalia-shell
+    else null;
   hybridPackages =
     lib.optionals (gpuChoice == "amd-nvidia-hybrid" && ollamaVulkan != null) [ ollamaVulkan ]
     ++ lib.optionals (gpuChoice == "amd-nvidia-hybrid" && tensorflowCudaEnv != null) [ tensorflowCudaEnv ]

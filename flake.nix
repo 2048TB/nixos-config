@@ -82,7 +82,7 @@
         config.allowUnfree = true;
       };
 
-      specialArgs = inputs // {
+      specialArgs = {
         inherit myvars mainUser preservation;
       };
     in
