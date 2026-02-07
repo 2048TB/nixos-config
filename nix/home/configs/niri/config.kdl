@@ -6,6 +6,14 @@ include "./keybindings.kdl"
 include "./windowrules.kdl"
 include "./noctalia-shell.kdl"
 
+// 命名工作区预定义（确保启动时顺序一致）
+workspace "1terminal"
+workspace "2browser"
+workspace "3chat"
+workspace "4music"
+workspace "5mail"
+workspace "6file"
+
 // 开机启动程序
 spawn-at-startup "noctalia-shell"
 
@@ -81,8 +89,8 @@ layout {
         // proportion 以输出宽度的比例设置列宽，并考虑 gaps。
         // 例如 proportion 0.25 可在一个输出上正好放下四个窗口。
         // 默认预设宽度为输出宽度的 1/3、1/2、2/3。
-        proportion 0.500000
         proportion 0.333333
+        proportion 0.500000
         proportion 0.666667
         proportion 1.000000
 
@@ -166,12 +174,9 @@ hotkey-overlay {
     skip-at-startup
 }
 
-// 取消注释后会请求客户端在可能时省略客户端装饰（CSD）。
-// 若客户端明确请求 CSD，将尊重该请求。
-// 同时会通知客户端处于平铺模式，去除部分客户端圆角。
-// 该选项还能修复某些半透明窗口下边框/焦点环绘制在后方的问题。
+// 请求客户端省略客户端装饰（CSD），统一使用 server-side 边框。
 // 启用或禁用后需重启应用才能生效。
-// prefer-no-csd
+prefer-no-csd
 
 // 可更改截图保存路径。
 // 路径开头的 ~ 会展开为主目录。

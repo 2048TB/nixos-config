@@ -16,6 +16,7 @@
 |---|---|
 | `Mod` + `Shift` + `/` | 显示快捷键帮助 |
 | `Mod` + `Q` | 关闭当前窗口 |
+| `Alt` + `Tab` | 最近窗口切换器 |
 | `Ctrl` + `Alt` + `Delete` | 退出会话（确认对话框） |
 | `Mod` + `Escape` | 切换快捷键抑制模式 |
 
@@ -24,7 +25,7 @@
 | 快捷键 | 功能 |
 |---|---|
 | `Mod` + `Enter` | 打开终端（Ghostty） |
-| `Mod` + `Shift` + `Enter` | 打开终端（Ghostty） |
+| `Mod` + `Shift` + `Enter` | 打开浮动终端（Ghostty） |
 | `Mod` + `D` / `Mod` + `Space` | 启动器 |
 | `XF86Search` | 启动器 |
 | `Mod` + `P` | 窗口切换器（Vicinae） |
@@ -65,6 +66,7 @@
 | `Mod` + `7-9` | 切换到数字工作区 |
 | `Mod` + `0` | 切换到 0other |
 | `Mod` + `Ctrl` + `1-0` | 移动列到对应工作区 |
+| `Mod` + `Tab` | 切换到上一个工作区 |
 
 布局与尺寸：
 
@@ -78,6 +80,7 @@
 | `Mod` + `Ctrl` + `F` | 扩展列到可用宽度 |
 | `Mod` + `Ctrl` + `C` | 居中显示所有可见列 |
 | `Mod` + `V` | 切换窗口浮动/平铺 |
+| `Mod` + `G` | 切换焦点：浮动窗口 ↔ 平铺窗口 |
 | `Mod` + `W` | 切换列标签页模式 |
 | `Mod` + `-` / `Mod` + `=` | 列宽 -10% / +10% |
 | `Mod` + `Shift` + `-` / `Mod` + `Shift` + `=` | 窗口高度 -10% / +10% |
@@ -94,7 +97,8 @@
 
 | 快捷键 | 功能 |
 |---|---|
-| `Print` | 区域截图 |
+| `Print` | 截图（niri 内置） |
+| `Mod` + `A` | 区域截图 + 复制到剪贴板（grim+slurp） |
 | `Ctrl` + `Print` | 全屏截图 |
 | `Alt` + `Print` | 窗口截图 |
 
@@ -135,6 +139,7 @@
 |---|---|
 | `Ctrl` + `Shift` + `C` | 复制 |
 | `Ctrl` + `Shift` + `V` | 粘贴 |
+| `Ctrl` + `V` | 已解绑（保留给 Vim visual block / Bash literal insert） |
 
 清屏：
 
