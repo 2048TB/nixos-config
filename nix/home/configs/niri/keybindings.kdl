@@ -11,7 +11,8 @@ binds {
 
     // 建议的程序启动快捷键：终端、应用启动器、锁屏。
     Mod+Return { spawn "ghostty"; }
-    Mod+Shift+Return { spawn "ghostty"; }
+    // 浮动终端
+    Mod+Shift+Return { spawn "ghostty"; toggle-window-floating; }
 
     // 启动器
     Mod+D { spawn "noctalia-shell" "ipc" "call" "launcher" "toggle"; }
@@ -166,7 +167,7 @@ binds {
     // Mod+Ctrl+1 { move-window-to-workspace 1; }
 
     // 在当前与上一个工作区之间切换焦点。
-    // Mod+Tab { focus-workspace-previous; }
+    Mod+Tab { focus-workspace-previous; }
 
     // 以下绑定用于在列内/列外移动焦点窗口。
     // 如果窗口独立存在，将其并入旁边的列；
@@ -212,6 +213,9 @@ binds {
     // 在浮动与平铺布局间切换当前窗口。
     Mod+V       { toggle-window-floating; }
 
+    // 在浮动窗口与平铺窗口之间切换焦点。
+    Mod+G       { switch-focus-between-floating-and-tiling; }
+
     // 切换列的标签页显示模式。
     // 该列窗口将以纵向标签显示，
     // 而非堆叠在一起。
@@ -236,6 +240,9 @@ binds {
     // allow-inhibiting=false 也可用于其他绑定，
     // 确保即使抑制器开启，niri 仍处理它们。
     Mod+Escape allow-inhibiting=false { toggle-keyboard-shortcuts-inhibit; }
+
+    // 最近窗口切换器（Alt+Tab）
+    Alt+Tab { show-recent-windows; }
 
     // 退出动作会显示确认对话框，避免误退出。
     Ctrl+Alt+Delete { quit; }
