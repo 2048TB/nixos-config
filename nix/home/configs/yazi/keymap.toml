@@ -1,0 +1,49 @@
+[[manager.prepend_keymap]]
+on = [ "h" ]
+run = "leave"
+desc = "Go to parent directory"
+
+[[manager.prepend_keymap]]
+on = [ "l" ]
+run = "enter"
+desc = "Enter directory"
+
+[[manager.prepend_keymap]]
+on = [ "j" ]
+run = "arrow 1"
+desc = "Move down"
+
+[[manager.prepend_keymap]]
+on = [ "k" ]
+run = "arrow -1"
+desc = "Move up"
+
+[[manager.prepend_keymap]]
+on = [ "g", "g" ]
+run = "arrow top"
+desc = "Go to top"
+
+[[manager.prepend_keymap]]
+on = [ "G" ]
+run = "arrow bottom"
+desc = "Go to bottom"
+
+[[manager.prepend_keymap]]
+on = [ "/" ]
+run = "find --smart"
+desc = "Find"
+
+[[manager.prepend_keymap]]
+on = [ "n" ]
+run = "find_next"
+desc = "Next match"
+
+[[manager.prepend_keymap]]
+on = [ "N" ]
+run = "find_prev"
+desc = "Previous match"
+
+[[manager.prepend_keymap]]
+on = [ "." ]
+run = "toggle_hidden"
+desc = "Toggle hidden files"

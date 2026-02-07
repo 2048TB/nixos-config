@@ -1,0 +1,27 @@
+[mgr]
+show_hidden = false
+sort_by = "natural"
+sort_dir_first = true
+linemode = "size"
+scrolloff = 5
+mouse_events = [ "click", "scroll" ]
+
+[preview]
+max_width = 140
+max_height = 40
+tab_size = 2
+
+[opener]
+text = [
+  { run = 'gnome-text-editor "$@"', orphan = true },
+]
+edit = [
+  { run = 'nvim "$@"', block = true },
+]
+
+[open]
+rules = [
+  { mime = "text/*", use = "text" },
+  { name = "*.md", use = "text" },
+  { name = "*.txt", use = "text" },
+]
