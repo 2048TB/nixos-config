@@ -72,6 +72,7 @@ in
       "/var/lib/libvirt" # 虚拟机镜像和配置
       "/var/lib/docker" # Docker 镜像、容器和卷
       "/etc/provider-app-vpn"
+      "/var/cache/provider-app-vpn" # relay 列表缓存（避免重启后重新下载）
       "/var/lib/flatpak"
     ];
     files = [
@@ -149,8 +150,8 @@ in
         "cache.garnix.io:CTFPyKSLcx5RMJKfLo5EEPUObbA78b0YQ2DTCJXqr9g="
       ];
 
-      # 信任 wheel 组用户使用自定义替代源（substituters）
-      trusted-users = [ "root" "@wheel" ];
+      # 仅信任 root（@wheel 可通过恶意 substituter 提权，已移除）
+      trusted-users = [ "root" ];
 
       # 自动优化存储（硬链接重复文件）
       auto-optimise-store = true;
@@ -193,12 +194,21 @@ in
 
     polkit = {
       enable = true;
-      # 允许 wheel 组用户挂载 USB 等外部存储设备
+      # 允许 wheel 组用户挂载/卸载外部存储设备（仅限 mount 类操作）
       extraConfig = ''
         polkit.addRule(function(action, subject) {
           if (
             subject.isInGroup("wheel")
-            && action.id.match("org.freedesktop.udisks2.")
+            && (
+              action.id == "org.freedesktop.udisks2.filesystem-mount" ||
+              action.id == "org.freedesktop.udisks2.filesystem-mount-system" ||
+              action.id == "org.freedesktop.udisks2.filesystem-mount-other-seat" ||
+              action.id == "org.freedesktop.udisks2.filesystem-unmount-others" ||
+              action.id == "org.freedesktop.udisks2.encrypted-unlock" ||
+              action.id == "org.freedesktop.udisks2.encrypted-lock-others" ||
+              action.id == "org.freedesktop.udisks2.loop-setup" ||
+              action.id == "org.freedesktop.udisks2.power-off-drive"
+            )
           ) {
             return polkit.Result.YES;
           }
@@ -282,7 +292,6 @@ in
         "input"
         "libvirtd"
         "kvm"
-        "docker"
       ];
       shell = pkgs.zsh;
       hashedPassword = myvars.userPasswordHash;
@@ -329,6 +338,9 @@ in
 
     # Provider app VPN
     provider-app-vpn.enable = true;
+
+    # Provider app 依赖 systemd-resolved 管理 DNS 分流（防止 VPN 连接后 DNS 泄漏）
+    resolved.enable = true;
 
     flatpak.enable = true;
   };
@@ -483,7 +495,7 @@ in
         ExecStartPre = pkgs.writeShellScript "disable-provider-app-lockdown" ''
           settings_file="/etc/provider-app-vpn/settings.json"
           if [ -f "$settings_file" ]; then
-            if ${pkgs.jq}/bin/jq '.block_when_disconnected = false' "$settings_file" > "$settings_file.tmp"; then
+            if ${pkgs.jq}/bin/jq '.block_when_disconnected = false | .auto_connect = false' "$settings_file" > "$settings_file.tmp"; then
               mv "$settings_file.tmp" "$settings_file"
               echo "Provider app lockdown mode 已禁用（防止启动阻断网络）"
             else
@@ -493,6 +505,8 @@ in
           fi
         '';
       };
+
+      # provider-app-network-safety 已移除：ExecStartPre 已在 daemon 启动前禁用 lockdown mode
     };
 
     # 定期清理临时文件（模拟部分 tmpfs 优势）
@@ -501,8 +515,8 @@ in
       # Keep a stable entrypoint; /etc/nixos is a symlink to persistent config.
       # This relies on /persistent being mounted early (neededForBoot=true).
       "L+ /etc/nixos - - - - /persistent/nixos-config"
-      # 7天清理缓存
-      "e ${homeDir}/.cache - - - 7d"
+      # 30天清理缓存（浏览器/shader/包管理器缓存需要较长保留期）
+      "e ${homeDir}/.cache - - - 30d"
       # 清理临时文件
       "e /tmp - - - 1d"
       "e /var/tmp - - - 7d"
