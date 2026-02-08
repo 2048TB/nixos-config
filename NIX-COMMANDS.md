@@ -14,11 +14,7 @@ sudo nixos-rebuild dry-build --flake /etc/nixos#zly
 sudo nixos-rebuild switch --flake /etc/nixos#zly |& nom
 ```
 
-使用环境变量覆盖（需 `--impure`）：
-
-```bash
-NIXOS_GPU=amd sudo nixos-rebuild switch --impure --flake /etc/nixos#zly
-```
+说明：GPU 使用 `flake.nix` 中的 `myvars.gpuMode` 固定配置。
 
 ---
 

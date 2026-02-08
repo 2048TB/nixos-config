@@ -232,7 +232,7 @@ binds {
     // Mod+Shift+Space { switch-layout "prev"; }
 
     Print { screenshot; }
-    Mod+A { spawn "sh" "-c" "path=\"$XDG_SCREENSHOTS_DIR/Screenshot from $(date '+%Y-%m-%d %H-%M-%S').png\"; grim -g \"$(slurp)\" - | tee \"$path\" | wl-copy --type image/png"; }
+    Mod+A { spawn "sh" "-c" "dir=\"${XDG_SCREENSHOTS_DIR:-$HOME/Pictures/Screenshots}\"; mkdir -p \"$dir\"; path=\"$dir/Screenshot from $(date '+%Y-%m-%d %H-%M-%S').png\"; grim -g \"$(slurp)\" - | tee \"$path\" | wl-copy --type image/png"; }
     Ctrl+Print { screenshot-screen; }
     Alt+Print { screenshot-window; }
 

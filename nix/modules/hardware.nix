@@ -50,7 +50,7 @@ in
     bluetooth.enable = true;
   };
 
-  # 默认使用 myvars.gpuMode；可用 NIXOS_GPU 临时覆盖（需 --impure）
+  # GPU 驱动来源：使用 flake.nix 的 myvars.gpuMode 固定配置
   services = {
     xserver.videoDrivers = videoDrivers;
     blueman.enable = true;
