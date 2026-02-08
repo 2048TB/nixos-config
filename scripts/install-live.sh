@@ -269,7 +269,7 @@ STEP=$((STEP + 1))
 
 echo
 echo "[${STEP}/${TOTAL_STEPS}] Installing NixOS..."
-run_root env NIXOS_DISK_DEVICE="$DISK_DEVICE" nixos-install --flake "$FLAKE_REF"
+run_root env NIXOS_DISK_DEVICE="$DISK_DEVICE" nixos-install --impure --flake "$FLAKE_REF"
 STEP=$((STEP + 1))
 
 echo
