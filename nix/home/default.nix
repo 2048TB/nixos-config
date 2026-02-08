@@ -52,6 +52,14 @@ let
     lib.optionals (gpuChoice == "amd-nvidia-hybrid" && ollamaVulkan != null) [ ollamaVulkan ]
     ++ lib.optionals (gpuChoice == "amd-nvidia-hybrid" && tensorflowCudaEnv != null) [ tensorflowCudaEnv ]
     ++ lib.optionals (gpuChoice == "amd-nvidia-hybrid" && hashcatPkg != null) [ hashcatPkg ];
+
+  # WPS Office steam-run 包装器
+  # 修复 NixOS 上 WPS 无法启动的问题（FHS 兼容性）
+  # 参考：https://github.com/NixOS/nixpkgs/issues/125951
+  wpsRunWrapper = bin: lib.hiPrio (pkgs.writeShellScriptBin bin ''
+    exec steam-run ${pkgs.wpsoffice}/bin/${bin} "$@"
+  '');
+  wpsWrappedBins = map wpsRunWrapper [ "wps" "et" "wpp" "wpspdf" ];
 in
 {
   home = {
@@ -186,7 +194,7 @@ in
       # === 基础图形工具 ===
       zathura
       gnome-text-editor
-      wpsoffice # WPS Office 办公套件（文档/表格/演示）
+      wpsoffice # WPS Office 办公套件（.desktop 文件和图标由此包提供）
 
       # 压缩/解压工具（命令行 + Nautilus file-roller 集成）
       p7zip-rar # 包含 7-Zip + RAR 支持（非自由许可）
@@ -208,6 +216,7 @@ in
       xwayland
       qt6Packages.qt6ct
       app2unit
+      polkit_gnome # Polkit 认证代理（权限提升对话框，virt-manager/Nautilus 等需要）
 
       # === 游戏工具 ===
       mangohud
@@ -245,7 +254,8 @@ in
       pipx
     ]
     ++ lib.optionals (noctaliaShellPkg != null) [ noctaliaShellPkg ]
-    ++ hybridPackages;
+    ++ hybridPackages
+    ++ wpsWrappedBins; # WPS steam-run 包装器（覆盖原始二进制，修复启动问题）
 
     file = {
       ".wayland-session" = {
@@ -339,6 +349,23 @@ in
       automount = true;
       notify = true;
       tray = "never"; # Niri 不需要托盘图标
+    };
+  };
+
+  # Polkit 认证代理（图形会话自启）
+  # 无此服务时，需要权限提升的操作（virt-manager、Nautilus 挂载等）会静默失败
+  systemd.user.services.polkit-gnome-authentication-agent-1 = {
+    Unit = {
+      Description = "polkit-gnome-authentication-agent-1";
+      After = [ "graphical-session.target" ];
+    };
+    Install.WantedBy = [ "graphical-session.target" ];
+    Service = {
+      Type = "simple";
+      ExecStart = "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1";
+      Restart = "on-failure";
+      RestartSec = 1;
+      TimeoutStopSec = 10;
     };
   };
 

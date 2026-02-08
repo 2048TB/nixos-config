@@ -35,7 +35,7 @@ This script is fully automated:
 
 Environment variables:
   DRY_RUN=1         Print commands without executing
-  CONFIRM=0         Skip confirmation before destructive steps (default: confirm)
+  CONFIRM=1         Skip confirmation before destructive steps (default: confirm)
   NIXOS_DISK_DEVICE=/dev/sdX  Use explicit target disk (overrides auto-selection)
 
 Help:
