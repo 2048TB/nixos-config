@@ -11,8 +11,8 @@ binds {
 
     // 建议的程序启动快捷键：终端、应用启动器、锁屏。
     Mod+Return { spawn "ghostty"; }
-    // 浮动终端
-    Mod+Shift+Return { spawn "ghostty"; toggle-window-floating; }
+    // 浮动终端（通过 --class 区分，由 windowrules 设为浮动）
+    Mod+Shift+Return { spawn "ghostty" "--class=ghostty-float"; }
 
     // 启动器
     Mod+D { spawn "noctalia-shell" "ipc" "call" "launcher" "toggle"; }
@@ -240,9 +240,6 @@ binds {
     // allow-inhibiting=false 也可用于其他绑定，
     // 确保即使抑制器开启，niri 仍处理它们。
     Mod+Escape allow-inhibiting=false { toggle-keyboard-shortcuts-inhibit; }
-
-    // 最近窗口切换器（Alt+Tab）
-    Alt+Tab { show-recent-windows; }
 
     // 退出动作会显示确认对话框，避免误退出。
     Ctrl+Alt+Delete { quit; }
