@@ -23,17 +23,18 @@
 推荐方式（在 Live ISO 中）：
 
 ```bash
-git clone https://github.com/2048TB/nixos-config ~/nixos-config
-cd ~/nixos-config
+git clone https://github.com/2048TB/nixos-config-main ~/nixos-config-main
+cd ~/nixos-config-main
 ```
 
 1. 设置密码哈希（必须）
 
 ```bash
 mkpasswd -m sha-512
+mkpasswd -m sha-512
 ```
 
-把输出填入 `flake.nix` 的 `myvars.userPasswordHash` 和 `myvars.rootPasswordHash`。
+把两次输出分别填入 `flake.nix` 的 `myvars.userPasswordHash` 和 `myvars.rootPasswordHash`。
 
 2. 磁盘分区与挂载（会清空目标磁盘）
 
@@ -48,7 +49,7 @@ findmnt /mnt/boot
 3. 安装系统
 
 ```bash
-sudo nixos-install --flake .#zly
+sudo nixos-install --impure --flake .#zly
 ```
 
 安装完成后：
@@ -74,7 +75,7 @@ sudo nixos-rebuild switch --flake /etc/nixos#zly
 已提供脚本：`scripts/install-live.sh`
 
 ```bash
-cd ~/nixos-config
+cd ~/nixos-config-main
 ./scripts/install-live.sh
 ```
 
@@ -88,15 +89,15 @@ cd ~/nixos-config
 ## 一键式完整安装命令（Live ISO）
 
 ```bash
-git clone https://github.com/2048TB/nixos-config ~/nixos-config
-cd ~/nixos-config
+git clone https://github.com/2048TB/nixos-config-main ~/nixos-config-main
+cd ~/nixos-config-main
 
 sudo nix --extra-experimental-features "nix-command flakes" \
   run github:nix-community/disko -- --mode disko --flake .#zly
 
 findmnt /mnt/boot
 
-sudo nixos-install --flake .#zly
+sudo nixos-install --impure --flake .#zly
 ```
 
 重启后执行：
@@ -164,4 +165,3 @@ GPU 使用 `flake.nix` 的 `myvars.gpuMode` 固定配置。
 ## 可选：构建 ISO
 
 （当前未提供 ISO 输出）
-

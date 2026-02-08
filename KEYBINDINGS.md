@@ -61,11 +61,11 @@
 | `Mod` + `I` / `Mod` + `Page Up` | 上一个工作区 |
 | `Mod` + `Ctrl` + `U/I` | 移动列到上下工作区 |
 | `Mod` + `Shift` + `U/I` | 移动整个工作区 |
-| `Mod` + `1-6` | 切换到命名工作区 |
-| `Mod` + `7-9` | 切换到数字工作区 |
+| `Mod` + `1-9` | 切换到对应索引工作区（动态工作区，尽力匹配） |
 | `Mod` + `0` | 切换到 0other |
 | `Mod` + `Ctrl` + `1-0` | 移动列到对应工作区 |
 | `Mod` + `Tab` | 切换到上一个工作区 |
+| `Mod` + `Shift` + `N` | 跳转到新的空工作区 |
 
 布局与尺寸：
 
@@ -97,7 +97,7 @@
 | 快捷键 | 功能 |
 |---|---|
 | `Print` | 截图（niri 内置） |
-| `Mod` + `A` | 区域截图 + 复制到剪贴板（grim+slurp） |
+| `Mod` + `A` | 区域截图 + 复制到剪贴板（保存到 `$XDG_SCREENSHOTS_DIR`，默认 `~/Pictures/Screenshots`） |
 | `Ctrl` + `Print` | 全屏截图 |
 | `Alt` + `Print` | 窗口截图 |
 
@@ -209,5 +209,5 @@
 修改配置后执行：
 
 ```bash
-sudo nixos-rebuild switch --flake .#zly
+sudo nixos-rebuild switch --flake /etc/nixos#zly
 ```
