@@ -24,10 +24,11 @@
 
 ## 关键约定
 
-- GPU 默认来自 `flake.nix` 的 `myvars.gpuMode`，可用 `NIXOS_GPU` 临时覆盖。
+- GPU 驱动配置固定来自 `flake.nix` 的 `myvars.gpuMode`。
 - GPU 启动菜单切换默认关闭，需 `ENABLE_GPU_SPECIALISATION=1` 才启用。
 - `programs.niri.config = null` 使用手写 KDL 配置。
 - `xwayland-satellite` 由 niri 模块集成，不要重复加入 home 包。
+- 安装流程若依赖 `NIXOS_DISK_DEVICE` 覆盖目标盘，`nixos-install` 需使用 `--impure`。
 
 ---
 

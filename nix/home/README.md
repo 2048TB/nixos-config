@@ -15,7 +15,7 @@
 
 ## 使用方式
 
-`default.nix` 通过 `mkOutOfStoreSymlink` 链接这些配置到用户目录。
+`default.nix` 通过 Home Manager 的 `xdg.configFile` / `home.file` 管理这些配置文件。
 
 应用更改：
 
@@ -25,5 +25,5 @@ just switch
 
 ## 重要说明
 
-- Niri 使用手动 KDL 配置，`programs.niri.config = null`。
+- Niri 使用手动 KDL 配置（`nix/home/configs/niri/*.kdl`）。
 - 相关配置位置见：`nix/home/configs/niri/`。

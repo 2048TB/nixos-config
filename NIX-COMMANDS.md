@@ -84,6 +84,21 @@ home-manager expire-generations "-7 days"
 
 ---
 
+## 密码哈希更新
+
+```bash
+mkpasswd -m sha-512
+mkpasswd -m sha-512
+```
+
+将两次输出分别写入 `flake.nix` 的 `myvars.userPasswordHash` 与 `myvars.rootPasswordHash`，然后执行：
+
+```bash
+sudo nixos-rebuild switch --flake /etc/nixos#zly
+```
+
+---
+
 ## 常用排查
 
 ```bash
