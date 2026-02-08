@@ -68,7 +68,7 @@ binds {
     // 打开/关闭概览：工作区与窗口的缩略视图。
     // 也可将鼠标移到左上角热区，
     // 或在触控板上四指上滑。
-    // Mod+O repeat=false { toggle-overview; }
+    Mod+O repeat=false { toggle-overview; }
 
     Mod+Left { focus-column-left; }
     Mod+Down { focus-window-down; }
