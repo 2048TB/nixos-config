@@ -8,6 +8,12 @@ window-rule {
     open-on-workspace "1terminal"
 }
 
+// 浮动终端（Mod+Shift+Enter 启动，class=ghostty-float）
+window-rule {
+    match app-id="ghostty-float"
+    open-floating true
+}
+
 // 浏览器：在工作区 2 打开
 window-rule {
     match app-id="google-chrome"
