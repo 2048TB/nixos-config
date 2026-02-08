@@ -107,31 +107,6 @@ sudo nixos-rebuild switch --flake /etc/nixos#zly
 
 ---
 
-## LUKS 密码提示说明（disko）
-
-`disko` 没提示输入加密密码，通常是正常行为，不一定表示未加密。
-
-- 首次格式化为 LUKS 时才会要求输入两次密码。
-- 如果目标分区已经是 LUKS，`disko` 只会直接打开已有容器，不会再次要求“设置新密码”。
-
-可用以下命令确认：
-
-```bash
-sudo cryptsetup isLuks /dev/nvme0n1p2 && echo "LUKS header exists"
-sudo cryptsetup status crypted-nixos
-```
-
-如果你要清盘并重新设置新密码（危险操作）：
-
-```bash
-sudo umount -R /mnt || true
-sudo cryptsetup close crypted-nixos || true
-sudo nix --extra-experimental-features "nix-command flakes" \
-  run github:nix-community/disko -- --mode destroy,format,mount --flake .#zly
-```
-
----
-
 ## 配置入口
 
 主要变量集中在 `flake.nix` 的 `myvars`：
@@ -190,41 +165,3 @@ GPU 使用 `flake.nix` 的 `myvars.gpuMode` 固定配置。
 
 （当前未提供 ISO 输出）
 
-
-
-$FZF_DEFAULT_OPTS: unsupported style preset: numbers
-
-~
-❯ y
-WARNING: `[manager]` has been deprecated in favor of the new `[mgr]`, see #2803 for more details: https://github.com/sxyazi/yazi/pull/2803
-
-Trying to migrate your config automatically failed, please edit the file manually, error while writing "/home/z/.config/yazi/yazi.toml": Read-only file system (os error 30)
-invalid type: boolean `true`, expected a sequence
-in `mouse_events`
-
-
-Press <Enter> to continue with preset settings...
-
-
-~ took 4s
-❯ y
-WARNING: `[manager]` has been deprecated in favor of the new `[mgr]`, see #2803 for more details: https://github.com/sxyazi/yazi/pull/2803
-
-Trying to migrate your config automatically failed, please edit the file manually, error while writing "/home/z/.config/yazi/yazi.toml": Read-only file system (os error 30)
-invalid type: boolean `true`, expected a sequence
-in `mouse_events`
-
-
-Press <Enter> to continue with preset settings...
-
-
-/etc/nixos🔒 took 46s
-❯ codex
-zsh: command not found: codex
-
-/etc/nixos🔒
-❯ code
-Warning: 'ozone-platform-hint' is not in the list of known options, but still passed to Electron/Chromium.
-Warning: 'enable-features' is not in the list of known options, but still passed to Electron/Chromium.
-Warning: 'enable-wayland-ime' is not in the list of known options, but still passed to Electron/Chromium.
-Warning: 'wayland-text-input-version' is not in the list of known options, but still passed to Electron/Chromium.

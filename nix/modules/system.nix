@@ -244,6 +244,7 @@ in
       enable = true;
       gamescopeSession.enable = true;
       protontricks.enable = true;
+      extest.enable = true; # Wayland 下将 X11 输入事件转换为 uinput（Steam Input 控制器支持）
 
       # Proton-GE 配置：通过 Steam 的 extraCompatPackages 安装
       # 注意：不能放在 environment.systemPackages（会导致 buildEnv 错误）
@@ -353,6 +354,11 @@ in
       "gtk"
       "gnome"
     ];
+    # niri 专用 portal 配置：确保文件选择器使用 GTK backend
+    config.niri.default = [
+      "gnome"
+      "gtk"
+    ];
     extraPortals = with pkgs; [
       xdg-desktop-portal-gtk
       xdg-desktop-portal-gnome
@@ -412,6 +418,7 @@ in
     # 编辑器（vim 由 home-manager 配置，此处仅保留 neovim 作为 root 用户编辑器）
     neovim
     gnupg # gpg 命令（签名/加密）
+    xwayland-satellite # niri 内置 XWayland 集成所需（Steam/WPS 等 X11 应用依赖）
 
     # 开发语言/工具链（系统级）
     rust-bin.stable.latest.default
@@ -444,7 +451,7 @@ in
     # Docker 容器
     docker = {
       enable = true;
-      enableOnBoot = true;
+      enableOnBoot = false; # 按需 socket activation 启动（减少开机时间）
       autoPrune = {
         enable = true;
         dates = "weekly";
@@ -470,6 +477,10 @@ in
   systemd = {
     services = {
       systemd-machine-id-commit.enable = false;
+
+      # 禁用 NetworkManager-wait-online：该服务在网络不可用时阻塞启动（最多 30s 超时）
+      # 在 nsncd 失败导致名称解析不可用时尤其严重，会造成级联等待
+      NetworkManager-wait-online.enable = false;
 
       create-swapfile = {
         description = "Create Btrfs swapfile if missing";
@@ -507,10 +518,20 @@ in
       };
 
       # mullvad-network-safety 已移除：ExecStartPre 已在 daemon 启动前禁用 lockdown mode
+
+      # nsncd 修复：tmpfs root 下 /var/run 可能被其他服务提前创建为目录（非符号链接）
+      # 导致 nsncd 无法在 /var/run/nscd/socket 创建套接字
+      # 参考：https://github.com/NixOS/nixpkgs/issues/432251
+      nscd = {
+        after = [ "systemd-tmpfiles-setup.service" ];
+        wants = [ "systemd-tmpfiles-setup.service" ];
+      };
     };
 
     # 定期清理临时文件（模拟部分 tmpfs 优势）
     tmpfiles.rules = [
+      # 修复 tmpfs root 下 /var/run 竞态：确保为 /run 的符号链接
+      "L+ /var/run - - - - /run"
       "d /persistent/nixos-config 0755 root root -"
       # Keep a stable entrypoint; /etc/nixos is a symlink to persistent config.
       # This relies on /persistent being mounted early (neededForBoot=true).
