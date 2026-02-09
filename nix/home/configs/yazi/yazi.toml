@@ -16,28 +16,28 @@ image_delay = 30
 
 [opener]
 text = [
-  { run = 'gnome-text-editor "$@"', orphan = true },
+  { run = "gnome-text-editor %s", orphan = true },
 ]
 edit = [
-  { run = 'nvim "$@"', block = true },
+  { run = "nvim %s", block = true },
 ]
 image = [
-  { run = 'imv "$@"', orphan = true },
+  { run = "imv %s", orphan = true },
 ]
 video = [
-  { run = 'mpv "$@"', orphan = true },
+  { run = "mpv %s", orphan = true },
 ]
 pdf = [
-  { run = 'zathura "$@"', orphan = true },
+  { run = "zathura %s", orphan = true },
 ]
 archive = [
-  { run = 'file-roller "$@"', orphan = true },
+  { run = "file-roller %s", orphan = true },
 ]
 directory = [
-  { run = 'nautilus "$@"', orphan = true },
+  { run = "nautilus %s", orphan = true },
 ]
 fallback = [
-  { run = 'xdg-open "$@"', orphan = true },
+  { run = "xdg-open %s", orphan = true },
 ]
 
 [open]
@@ -56,5 +56,5 @@ rules = [
   { mime = "application/xz", use = "archive" },
   { mime = "application/zstd", use = "archive" },
   { mime = "inode/directory", use = "directory" },
-  { name = "*", use = "fallback" },
+  { url = "*", use = "fallback" },
 ]

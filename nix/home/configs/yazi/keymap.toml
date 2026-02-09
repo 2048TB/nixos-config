@@ -47,22 +47,22 @@ desc = "Find"
 
 [[mgr.prepend_keymap]]
 on = [ "n" ]
-run = "find_next"
+run = "find_arrow"
 desc = "Next match"
 
 [[mgr.prepend_keymap]]
 on = [ "N" ]
-run = "find_prev"
+run = "find_arrow --previous"
 desc = "Previous match"
 
 [[mgr.prepend_keymap]]
 on = [ "s" ]
-run = "search fd"
+run = "search --via=fd"
 desc = "Search files by name (fd)"
 
 [[mgr.prepend_keymap]]
 on = [ "S" ]
-run = "search rg"
+run = "search --via=rg"
 desc = "Search files by content (rg)"
 
 # ── 选择 ──────────────────────────────────────────────
@@ -124,8 +124,8 @@ desc = "Rename (cursor before ext)"
 
 [[mgr.prepend_keymap]]
 on = [ "R" ]
-run = "bulk_rename"
-desc = "Bulk rename"
+run = "rename"
+desc = "Rename (bulk when multiple selected)"
 
 # ── 复制路径 ──────────────────────────────────────────
 [[mgr.prepend_keymap]]
@@ -151,7 +151,7 @@ desc = "Copy filename without ext"
 # ── 显示与排序 ────────────────────────────────────────
 [[mgr.prepend_keymap]]
 on = [ "." ]
-run = "toggle_hidden"
+run = "hidden toggle"
 desc = "Toggle hidden files"
 
 [[mgr.prepend_keymap]]
@@ -224,7 +224,7 @@ desc = "Next tab"
 
 [[mgr.prepend_keymap]]
 on = [ "w" ]
-run = "tab_close 0"
+run = "close"
 desc = "Close current tab"
 
 # ── 其他 ──────────────────────────────────────────────
@@ -242,8 +242,3 @@ desc = "Cancel / clear"
 on = [ "q" ]
 run = "quit"
 desc = "Quit yazi"
-
-[[mgr.prepend_keymap]]
-on = [ "~" ]
-run = "help"
-desc = "Show help"

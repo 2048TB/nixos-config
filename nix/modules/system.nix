@@ -396,6 +396,22 @@ in
   };
 
   # 首次启动时修复用户目录权限（由于安装脚本使用硬编码 UID）
+  # 同时在激活阶段兜底创建 swapfile（仅在缺失时），避免开机阶段引入 systemd 依赖环。
+  # 说明：曾出现 create-swapfile.service 与 swap.target/run-wrappers 形成 ordering cycle，
+  # 导致 suid-sgid-wrappers 被跳过，进而触发 greetd 的 pam_unix helper 缺失。
+  system.activationScripts.createSwapfileIfMissing = {
+    text = ''
+      if [ -d /swap ] && [ ! -f /swap/swapfile ]; then
+        ${pkgs.btrfs-progs}/bin/btrfs filesystem mkswapfile \
+          --size ${toString myvars.swapSizeGb}g \
+          --uuid clear \
+          /swap/swapfile
+        chmod 600 /swap/swapfile
+      fi
+    '';
+    deps = [ "specialfs" ];
+  };
+
   system.activationScripts.fixUserHomePerms = {
     text = ''
       if [ -d ${homeDir} ] && id -u ${mainUser} >/dev/null 2>&1; then
@@ -482,26 +498,6 @@ in
       # 在 nsncd 失败导致名称解析不可用时尤其严重，会造成级联等待
       NetworkManager-wait-online.enable = false;
 
-      create-swapfile = {
-        description = "Create Btrfs swapfile if missing";
-        after = [ "local-fs.target" ];
-        before = [ "swap.target" ];
-        wantedBy = [ "swap.target" ];
-        serviceConfig = {
-          Type = "oneshot";
-          RemainAfterExit = true;
-        };
-        script = ''
-          if [ ! -f /swap/swapfile ]; then
-            ${pkgs.btrfs-progs}/bin/btrfs filesystem mkswapfile \
-              --size ${toString myvars.swapSizeGb}g \
-              --uuid clear \
-              /swap/swapfile
-            chmod 600 /swap/swapfile
-          fi
-        '';
-      };
-
       mullvad-daemon.serviceConfig = {
         ExecStartPre = pkgs.writeShellScript "disable-mullvad-lockdown" ''
           settings_file="/etc/mullvad-vpn/settings.json"
@@ -527,6 +523,10 @@ in
         wants = [ "systemd-tmpfiles-setup.service" ];
       };
     };
+
+    # niri-flake 会默认启用一个 polkit-kde agent；此配置已在 Home Manager
+    # 启用 polkit-gnome-authentication-agent-1，避免重复启动导致循环失败日志。
+    user.services.niri-flake-polkit.enable = lib.mkForce false;
 
     # 定期清理临时文件（模拟部分 tmpfs 优势）
     tmpfiles.rules = [
