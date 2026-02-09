@@ -74,6 +74,11 @@
           "usePrimaryColor": false
         },
         {
+          "compactMode": true,
+          "displayMode": "auto",
+          "id": "SystemMonitor"
+        },
+        {
           "colorizeIcons": false,
           "hideMode": "hidden",
           "id": "ActiveWindow",
@@ -219,6 +224,9 @@
         },
         {
           "id": "WallpaperSelector"
+        },
+        {
+          "id": "NoctaliaPerformance"
         }
       ],
       "right": [
