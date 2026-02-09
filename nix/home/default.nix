@@ -212,6 +212,7 @@ in
       swaybg
 
       # === Wayland 基础设施 ===
+      cliphist
       wl-clipboard
       xwayland
       qt6Packages.qt6ct
@@ -261,10 +262,6 @@ in
       ".wayland-session" = {
         source = niriSession;
         executable = true;
-      };
-      ".cache/noctalia/wallpapers.json".text = builtins.toJSON {
-        defaultWallpaper = "${homeDir}/.config/noctalia/wallpapers/1.png";
-        wallpapers = { };
       };
       ".yarnrc".text = ''
         prefix "${homeDir}/.local"
@@ -369,6 +366,66 @@ in
     };
   };
 
+  # Clipboard history 依赖（Noctalia 官方示例）
+  systemd.user.services.cliphist-daemon = {
+    Unit = {
+      Description = "cliphist clipboard history daemon";
+      After = [ "graphical-session.target" ];
+      PartOf = [ "graphical-session.target" ];
+    };
+    Install.WantedBy = [ "graphical-session.target" ];
+    Service = {
+      Type = "simple";
+      ExecStart = "${pkgs.wl-clipboard}/bin/wl-paste --watch ${pkgs.cliphist}/bin/cliphist store";
+      Restart = "always";
+      RestartSec = 2;
+    };
+  };
+
+  # Noctalia 状态文件改为“用户可写”：
+  # - 官方文档说明声明式模块会生成只读 symlink，GUI 修改不会持久化
+  # - 这里仅在文件不存在（或历史遗留 symlink）时初始化默认值
+  home.activation.noctaliaMutableStateFiles = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
+    settings_dir="${config.xdg.configHome}/noctalia"
+    settings_file="$settings_dir/settings.json"
+    plugins_file="$settings_dir/plugins.json"
+    cache_dir="${config.xdg.cacheHome}/noctalia"
+    cache_file="$cache_dir/wallpapers.json"
+
+    mkdir -p "$settings_dir"
+    mkdir -p "$cache_dir"
+
+    if [ -L "$settings_file" ]; then
+      rm -f "$settings_file"
+    fi
+
+    if [ ! -e "$settings_file" ]; then
+      install -m 0644 ${./configs/noctalia/settings.json} "$settings_file"
+    fi
+
+    if [ -L "$plugins_file" ]; then
+      rm -f "$plugins_file"
+    fi
+
+    if [ ! -e "$plugins_file" ]; then
+      install -m 0644 ${./configs/noctalia/plugins.json} "$plugins_file"
+    fi
+
+    if [ -L "$cache_file" ]; then
+      rm -f "$cache_file"
+    fi
+
+    if [ ! -e "$cache_file" ]; then
+      cat > "$cache_file" <<EOF
+{
+  "defaultWallpaper": "${homeDir}/.config/noctalia/wallpapers/1.png",
+  "wallpapers": {}
+}
+EOF
+      chmod 0644 "$cache_file"
+    fi
+  '';
+
   xdg = {
     configFile = {
       # niri 合成器配置（4 个文件）
@@ -378,8 +435,6 @@ in
       "niri/noctalia-shell.kdl".source = ./configs/niri/noctalia-shell.kdl;
 
       # Noctalia Shell（外壳）配置（分别链接文件以支持壁纸子目录）
-      "noctalia/settings.json".source = ./configs/noctalia/settings.json;
-      "noctalia/plugins.json".source = ./configs/noctalia/plugins.json;
       "noctalia/wallpapers".source = ./configs/wallpapers;
       "qt6ct/qt6ct.conf".source = ./configs/noctalia/qt6ct.conf;
 
