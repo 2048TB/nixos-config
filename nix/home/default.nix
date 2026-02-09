@@ -383,8 +383,8 @@ in
   };
 
   # Noctalia 状态文件改为“用户可写”：
-  # - 官方文档说明声明式模块会生成只读 symlink，GUI 修改不会持久化
-  # - 这里仅在文件不存在（或历史遗留 symlink）时初始化默认值
+  # - 声明式 source 会生成只读 symlink，GUI 修改无法持久化
+  # - 仅在文件不存在（或历史遗留 symlink）时初始化默认值
   home.activation.noctaliaMutableStateFiles = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
     settings_dir="${config.xdg.configHome}/noctalia"
     settings_file="$settings_dir/settings.json"
