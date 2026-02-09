@@ -381,6 +381,10 @@ in
     # 优化效果：移除 source-han-sans/serif 节省约 800MB
   ];
 
+  # 系统语言（中文）与 Locale 生成
+  i18n.defaultLocale = "zh_CN.UTF-8";
+  i18n.extraLocales = [ "en_US.UTF-8/UTF-8" ];
+
   # 输入法与中文支持
   i18n.inputMethod = {
     enable = true;
