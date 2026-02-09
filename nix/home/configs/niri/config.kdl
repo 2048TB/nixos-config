@@ -200,3 +200,8 @@ recent-windows {
         urgent-color "#ffb4ab"
     }
 }
+
+// 全局输出缩放（百分比 = scale * 100）
+output "*" {
+    scale 1.25
+}
