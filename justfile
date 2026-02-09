@@ -60,24 +60,24 @@ disk:
 
 # 更新所有 flake 输入
 update:
-    nix flake update
+    nix flake update --flake path:/persistent/nixos-config
     @echo "✓ flake.lock 已更新"
 
 # 只更新 nixpkgs
 update-nixpkgs:
-    nix flake lock --update-input nixpkgs
+    nix flake lock --update-input nixpkgs --flake path:/persistent/nixos-config
     @echo "✓ nixpkgs 已更新"
 
 # 查看 flake 信息
 info:
-    nix flake show
+    nix flake show path:/persistent/nixos-config
     @echo ""
     @echo "=== Flake 元数据 ==="
-    nix flake metadata
+    nix flake metadata path:/persistent/nixos-config
 
 # 检查 flake 配置
 flake-check:
-    nix flake check
+    nix flake check path:/persistent/nixos-config
     @echo "✓ Flake 配置检查通过"
 
 # 查看 flake.lock 依赖树
