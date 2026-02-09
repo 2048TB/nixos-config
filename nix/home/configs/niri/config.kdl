@@ -201,7 +201,8 @@ recent-windows {
     }
 }
 
-// 全局输出缩放（百分比 = scale * 100）
-output "*" {
+// 输出缩放（百分比 = scale * 100）
+// 使用 niri msg outputs 中的输出名匹配（当前显示器：DP-2）
+output "DP-2" {
     scale 1.25
 }
