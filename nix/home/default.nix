@@ -89,20 +89,20 @@ in
       PIPX_HOME = "${localShareDir}/pipx";
       PIPX_BIN_DIR = "${localShareDir}/pipx/bin";
 
-      # PATH: 系统路径优先，用户 bin 追加在后
-      PATH = lib.concatStringsSep ":" [
-        "$PATH"
-        "${homeDir}/.npm-global/bin"
-        "${homeDir}/tools"
-        "${homeDir}/.bun/bin"
-        "${homeDir}/.cargo/bin"
-        "${homeDir}/go/bin"
-        "${localShareDir}/pnpm/bin"
-        "${localShareDir}/pipx/bin"
-        "${localShareDir}/uv/bin"
-        localBinDir
-      ];
     };
+
+    # PATH: 交由 Home Manager 维护，避免手动拼接导致重复/覆盖问题
+    sessionPath = [
+      "${homeDir}/.npm-global/bin"
+      "${homeDir}/tools"
+      "${homeDir}/.bun/bin"
+      "${homeDir}/.cargo/bin"
+      "${homeDir}/go/bin"
+      "${localShareDir}/pnpm/bin"
+      "${localShareDir}/pipx/bin"
+      "${localShareDir}/uv/bin"
+      localBinDir
+    ];
 
     packages = with pkgs; [
       # === 终端复用器 ===
