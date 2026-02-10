@@ -381,22 +381,22 @@ in
     # 优化效果：移除 source-han-sans/serif 节省约 800MB
   ];
 
-  # 系统语言（中文）与 Locale 生成
-  i18n.defaultLocale = "zh_CN.UTF-8";
-  i18n.extraLocales = [ "en_US.UTF-8/UTF-8" ];
-
-  # 输入法与中文支持
-  i18n.inputMethod = {
-    enable = true;
-    type = "fcitx5";
-    fcitx5.waylandFrontend = true;
-    fcitx5.addons = with pkgs; [
-      kdePackages.fcitx5-qt
-      qt6Packages.fcitx5-configtool
-      fcitx5-gtk
-      qt6Packages.fcitx5-chinese-addons # 中文拼音输入法（Libpinyin 引擎）
-      fcitx5-pinyin-zhwiki # 中文维基百科词库（提升识别准确率）
-    ];
+  # 系统语言（中文）与 Locale 生成 + 输入法支持
+  i18n = {
+    defaultLocale = "zh_CN.UTF-8";
+    extraLocales = [ "en_US.UTF-8/UTF-8" ];
+    inputMethod = {
+      enable = true;
+      type = "fcitx5";
+      fcitx5.waylandFrontend = true;
+      fcitx5.addons = with pkgs; [
+        kdePackages.fcitx5-qt
+        qt6Packages.fcitx5-configtool
+        fcitx5-gtk
+        qt6Packages.fcitx5-chinese-addons # 中文拼音输入法（Libpinyin 引擎）
+        fcitx5-pinyin-zhwiki # 中文维基百科词库（提升识别准确率）
+      ];
+    };
   };
 
   # 首次启动时修复用户目录权限（由于安装脚本使用硬编码 UID）
