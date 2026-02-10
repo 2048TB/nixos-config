@@ -441,8 +441,13 @@ in
     xwayland-satellite # niri 内置 XWayland 集成所需（Steam/WPS 等 X11 应用依赖）
 
     # 开发语言/工具链（系统级）
-    rust-bin.stable.latest.default
+    # Rust: 预装 Windows GNU target，支持在 Linux 主机交叉编译 .exe
+    (rust-bin.stable.latest.default.override {
+      targets = [ "x86_64-pc-windows-gnu" ];
+    })
     rust-bin.stable.latest.rust-analyzer
+    # MinGW 交叉工具链：为 x86_64-pc-windows-gnu 提供 linker（x86_64-w64-mingw32-gcc）
+    pkgsCross.mingwW64.stdenv.cc
     zig
     zls
     go

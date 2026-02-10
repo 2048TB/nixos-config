@@ -263,6 +263,10 @@ in
         source = niriSession;
         executable = true;
       };
+      ".cargo/config.toml".text = ''
+        [target.x86_64-pc-windows-gnu]
+        linker = "x86_64-w64-mingw32-gcc"
+      '';
       ".yarnrc".text = ''
         prefix "${homeDir}/.local"
       '';
