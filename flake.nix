@@ -39,7 +39,7 @@
 
   };
 
-  outputs = inputs@{ nixpkgs, nixpkgs-unstable, rust-overlay, home-manager, lanzaboote, niri, preservation, disko, ... }:
+  outputs = { nixpkgs, nixpkgs-unstable, rust-overlay, home-manager, lanzaboote, niri, preservation, disko, ... }:
     let
       myvars = rec {
         # 用户配置
