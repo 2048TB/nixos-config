@@ -88,6 +88,11 @@ in
       PYTHONUSERBASE = "${homeDir}/.local";
       PIPX_HOME = "${localShareDir}/pipx";
       PIPX_BIN_DIR = "${localShareDir}/pipx/bin";
+      # OpenSSL for Rust openssl-sys on NixOS
+      OPENSSL_INCLUDE_DIR = "${pkgs.openssl.dev}/include";
+      OPENSSL_LIB_DIR = "${pkgs.openssl.out}/lib";
+      OPENSSL_DIR = "${pkgs.openssl.dev}";
+      PKG_CONFIG_PATH = "${pkgs.openssl.dev}/lib/pkgconfig";
 
     };
 
@@ -141,6 +146,7 @@ in
       cmake
       ninja
       pkg-config
+      openssl
       autoconf
       gettext
       libtool
@@ -266,6 +272,9 @@ in
       ".cargo/config.toml".text = ''
         [target.x86_64-pc-windows-gnu]
         linker = "x86_64-w64-mingw32-gcc"
+        rustflags = [
+          "-Lnative=${pkgs.pkgsCross.mingwW64.windows.pthreads}/lib"
+        ]
       '';
       ".yarnrc".text = ''
         prefix "${homeDir}/.local"
