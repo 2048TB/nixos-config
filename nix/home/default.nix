@@ -394,44 +394,44 @@ in
   # - 声明式 source 会生成只读 symlink，GUI 修改无法持久化
   # - 仅在文件不存在（或历史遗留 symlink）时初始化默认值
   home.activation.noctaliaMutableStateFiles = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
-    settings_dir="${config.xdg.configHome}/noctalia"
-    settings_file="$settings_dir/settings.json"
-    plugins_file="$settings_dir/plugins.json"
-    cache_dir="${config.xdg.cacheHome}/noctalia"
-    cache_file="$cache_dir/wallpapers.json"
+        settings_dir="${config.xdg.configHome}/noctalia"
+        settings_file="$settings_dir/settings.json"
+        plugins_file="$settings_dir/plugins.json"
+        cache_dir="${config.xdg.cacheHome}/noctalia"
+        cache_file="$cache_dir/wallpapers.json"
 
-    mkdir -p "$settings_dir"
-    mkdir -p "$cache_dir"
+        mkdir -p "$settings_dir"
+        mkdir -p "$cache_dir"
 
-    if [ -L "$settings_file" ]; then
-      rm -f "$settings_file"
-    fi
+        if [ -L "$settings_file" ]; then
+          rm -f "$settings_file"
+        fi
 
-    if [ ! -e "$settings_file" ]; then
-      install -m 0644 ${./configs/noctalia/settings.json} "$settings_file"
-    fi
+        if [ ! -e "$settings_file" ]; then
+          install -m 0644 ${./configs/noctalia/settings.json} "$settings_file"
+        fi
 
-    if [ -L "$plugins_file" ]; then
-      rm -f "$plugins_file"
-    fi
+        if [ -L "$plugins_file" ]; then
+          rm -f "$plugins_file"
+        fi
 
-    if [ ! -e "$plugins_file" ]; then
-      install -m 0644 ${./configs/noctalia/plugins.json} "$plugins_file"
-    fi
+        if [ ! -e "$plugins_file" ]; then
+          install -m 0644 ${./configs/noctalia/plugins.json} "$plugins_file"
+        fi
 
-    if [ -L "$cache_file" ]; then
-      rm -f "$cache_file"
-    fi
+        if [ -L "$cache_file" ]; then
+          rm -f "$cache_file"
+        fi
 
-    if [ ! -e "$cache_file" ]; then
-      cat > "$cache_file" <<EOF
-{
-  "defaultWallpaper": "${homeDir}/.config/noctalia/wallpapers/1.png",
-  "wallpapers": {}
-}
-EOF
-      chmod 0644 "$cache_file"
-    fi
+        if [ ! -e "$cache_file" ]; then
+          cat > "$cache_file" <<EOF
+    {
+      "defaultWallpaper": "${homeDir}/.config/noctalia/wallpapers/1.png",
+      "wallpapers": {}
+    }
+    EOF
+          chmod 0644 "$cache_file"
+        fi
   '';
 
   xdg = {
