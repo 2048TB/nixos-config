@@ -451,6 +451,7 @@ in
     zig
     zls
     go
+    gcc # cgo 依赖本机 C 编译器（gcc）
     gopls
     delve
     gotools
@@ -541,6 +542,8 @@ in
     tmpfiles.rules = [
       # 修复 tmpfs root 下 /var/run 竞态：确保为 /run 的符号链接
       "L+ /var/run - - - - /run"
+      # 兼容硬编码 shebang（#!/bin/bash）的第三方脚本
+      "L+ /bin/bash - - - - /run/current-system/sw/bin/bash"
       "d /persistent/nixos-config 0755 root root -"
       # Keep a stable entrypoint; /etc/nixos is a symlink to persistent config.
       # This relies on /persistent being mounted early (neededForBoot=true).
