@@ -7,6 +7,7 @@ let
   homeDir = config.home.homeDirectory;
   localBinDir = "${homeDir}/.local/bin";
   localShareDir = "${homeDir}/.local/share";
+  waylandUserTarget = lib.attrByPath [ "wayland" "systemd" "target" ] "graphical-session.target" config;
 
   imageMimeTypes = [
     "image/jpeg"
@@ -395,8 +396,8 @@ in
     Unit = {
       Description = "Noctalia Shell - Wayland desktop shell";
       Documentation = "https://docs.noctalia.dev/docs";
-      After = [ "graphical-session.target" ];
-      PartOf = [ "graphical-session.target" ];
+      After = [ waylandUserTarget ];
+      PartOf = [ waylandUserTarget ];
     };
     Service = {
       ExecStart = lib.getExe noctaliaShellPkg;
@@ -407,7 +408,7 @@ in
         "QT_AUTO_SCREEN_SCALE_FACTOR=1"
       ];
     };
-    Install.WantedBy = [ "graphical-session.target" ];
+    Install.WantedBy = [ waylandUserTarget ];
   };
 
   # Noctalia 状态文件改为“用户可写”：
