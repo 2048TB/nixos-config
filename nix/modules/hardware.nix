@@ -47,7 +47,11 @@ in
     };
     nvidia = lib.mkIf useNvidia nvidiaBase;
     nvidia-container-toolkit.enable = lib.mkIf useNvidia true;
-    bluetooth.enable = true;
+    bluetooth = {
+      enable = true;
+      # 避免适配器默认掉电，减少桌面层蓝牙开关“点了无效”的概率
+      powerOnBoot = true;
+    };
   };
 
   # GPU 驱动来源：使用 flake.nix 的 myvars.gpuMode 固定配置

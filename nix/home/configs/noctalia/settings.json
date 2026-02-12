@@ -49,7 +49,7 @@
           "enableScrollWheel": true,
           "followFocusedScreen": false,
           "groupedBorderOpacity": 1,
-          "hideUnoccupied": true,
+          "hideUnoccupied": false,
           "iconScale": 0.8,
           "id": "Workspace",
           "labelMode": "index",
@@ -74,15 +74,25 @@
           "usePrimaryColor": false
         },
         {
-          "compactMode": true,
-          "displayMode": "auto",
-          "id": "SystemMonitor"
+          "compactMode": false,
+          "diskPath": "/persistent",
+          "id": "SystemMonitor",
+          "showCpuTemp": false,
+          "showCpuUsage": true,
+          "showDiskUsage": true,
+          "showGpuTemp": false,
+          "showLoadAverage": true,
+          "showMemoryAsPercent": true,
+          "showMemoryUsage": true,
+          "showNetworkStats": true,
+          "useMonospaceFont": true,
+          "usePrimaryColor": false
         },
         {
           "colorizeIcons": false,
           "hideMode": "hidden",
           "id": "ActiveWindow",
-          "maxWidth": 120,
+          "maxWidth": 145,
           "scrollingMode": "hover",
           "showIcon": true,
           "useFixedWidth": false
@@ -106,7 +116,7 @@
           "id": "ScreenRecorder"
         },
         {
-          "hideWhenZero": true,
+          "hideWhenZero": false,
           "id": "NotificationHistory",
           "showUnreadBadge": true
         },
@@ -224,9 +234,6 @@
         },
         {
           "id": "WallpaperSelector"
-        },
-        {
-          "id": "NoctaliaPerformance"
         }
       ],
       "right": [
@@ -357,10 +364,10 @@
     "wifiEnabled": true
   },
   "nightLight": {
-    "autoSchedule": false,
+    "autoSchedule": true,
     "dayTemp": "6500",
-    "enabled": false,
-    "forced": false,
+    "enabled": true,
+    "forced": true,
     "manualSunrise": "06:30",
     "manualSunset": "18:30",
     "nightTemp": "4000"
