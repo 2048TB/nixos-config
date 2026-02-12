@@ -65,7 +65,7 @@ update:
 
 # 只更新 nixpkgs
 update-nixpkgs:
-    nix flake lock --update-input nixpkgs --flake path:/persistent/nixos-config
+    nix flake update nixpkgs --flake path:/persistent/nixos-config
     @echo "✓ nixpkgs 已更新"
 
 # 查看 flake 信息
@@ -117,7 +117,7 @@ generations:
 
 # 对比最近两个世代的差异
 diff:
-    @bash -c 'nix store diff-closures /nix/var/nix/profiles/system-{$(ls -l /nix/var/nix/profiles/system-*-link | tail -2 | head -1 | grep -o "system-[0-9]*" | grep -o "[0-9]*"),$(ls -l /nix/var/nix/profiles/system-*-link | tail -1 | grep -o "system-[0-9]*" | grep -o "[0-9]*")}-link'
+    @bash -c 'gens=($(ls -d /nix/var/nix/profiles/system-*-link 2>/dev/null | sort -t- -k2 -n)); n=${#gens[@]}; if (( n < 2 )); then echo "Need at least 2 generations to diff"; exit 1; fi; nix store diff-closures "${gens[$((n-2))]}" "${gens[$((n-1))]}"'
 
 # 查看当前系统包列表
 packages:
@@ -150,7 +150,7 @@ commit MESSAGE:
 # 提交并推送
 push MESSAGE:
     git add .
-    git commit -m "{{MESSAGE}}\n\nCo-Authored-By: Claude Sonnet 4.5 (1M context) <noreply@anthropic.com>"
+    git commit -m "{{MESSAGE}}" -m "Co-Authored-By: Claude Sonnet 4.5 (1M context) <noreply@anthropic.com>"
     git push origin main
     @echo "✓ 已推送到 GitHub"
 
