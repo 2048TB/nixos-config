@@ -1,6 +1,21 @@
 {
   description = "NixOS desktop config";
 
+  nixConfig = {
+    extra-substituters = [
+      "https://cache.nixos.org"
+      "https://nix-community.cachix.org"
+      "https://nixpkgs-wayland.cachix.org"
+      "https://cache.garnix.io"
+    ];
+    extra-trusted-public-keys = [
+      "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
+      "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
+      "nixpkgs-wayland.cachix.org-1:3lwxaILxMRkVhehr5StQprHdEo4IrE8sRho9R9HOLYA="
+      "cache.garnix.io:CTFPyKSLcx5RMJKfLo5EEPUObbA78b0YQ2DTCJXqr9g="
+    ];
+  };
+
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-25.11";
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
@@ -25,6 +40,11 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    nix-gaming = {
+      url = "github:fufexan/nix-gaming";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     # nixpak = {
     #   url = "github:nixpak/nixpak";
     #   inputs.nixpkgs.follows = "nixpkgs";
@@ -39,7 +59,7 @@
 
   };
 
-  outputs = { nixpkgs, nixpkgs-unstable, rust-overlay, home-manager, lanzaboote, niri, preservation, disko, ... }:
+  outputs = { nixpkgs, nixpkgs-unstable, rust-overlay, home-manager, lanzaboote, niri, nix-gaming, preservation, disko, ... }:
     let
       myvars = rec {
         # 用户配置
@@ -86,7 +106,7 @@
         inherit myvars mainUser preservation;
       };
     in
-    {
+    rec {
       # NixOS 配置
       nixosConfigurations.${myvars.hostname} = nixpkgs.lib.nixosSystem {
         inherit system specialArgs;
@@ -95,6 +115,8 @@
           { nixpkgs.overlays = [ rust-overlay.overlays.default ]; }
           lanzaboote.nixosModules.lanzaboote
           niri.nixosModules.niri
+          nix-gaming.nixosModules.pipewireLowLatency
+          nix-gaming.nixosModules.platformOptimizations
           disko.nixosModules.disko
           home-manager.nixosModules.home-manager
           {
@@ -107,6 +129,24 @@
           }
         ];
       };
+
+      # 检查项（6）+ 轻量 eval tests（7）
+      checks.${system} =
+        let
+          cfg = nixosConfigurations.${myvars.hostname}.config;
+          expectedHome = "/home/${mainUser}";
+        in
+        {
+          eval-hostname = pkgs.runCommand "eval-hostname" { } ''
+            test "${cfg.networking.hostName}" = "${myvars.hostname}"
+            touch "$out"
+          '';
+
+          eval-home-directory = pkgs.runCommand "eval-home-directory" { } ''
+            test "${cfg.home-manager.users.${mainUser}.home.homeDirectory}" = "${expectedHome}"
+            touch "$out"
+          '';
+        };
 
       # 开发环境
       devShells.${system}.default = pkgs.mkShell {

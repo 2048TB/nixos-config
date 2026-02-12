@@ -6,6 +6,15 @@ let
   gcRetentionDays = "7d";
   gnupgCacheTtlSeconds = 4 * 60 * 60; # 4 小时
   homeDir = "/home/${mainUser}";
+  allowedGpuModes = [
+    "auto"
+    "none"
+    "amd"
+    "amdgpu"
+    "nvidia"
+    "modesetting"
+    "amd-nvidia-hybrid"
+  ];
 
   hasAmd = config.hardware.cpu.amd.updateMicrocode or false;
   hasIntel = config.hardware.cpu.intel.updateMicrocode or false;
@@ -27,6 +36,8 @@ in
     # 引导加载器
     loader = {
       systemd-boot.enable = lib.mkDefault true;
+      systemd-boot.configurationLimit = lib.mkDefault 10;
+      systemd-boot.consoleMode = lib.mkDefault "max";
       efi.canTouchEfiVariables = true;
     };
 
@@ -126,6 +137,22 @@ in
     { device = "/swap/swapfile"; }
   ];
 
+  # 内存压缩交换：优先于磁盘 swapfile，减少高负载时的磁盘 I/O 抖动
+  zramSwap = {
+    enable = true;
+    algorithm = "zstd";
+    priority = 100;
+    memoryPercent = 50;
+  };
+
+  # zram 场景下的内核内存回收参数
+  boot.kernel.sysctl = {
+    "vm.swappiness" = 180;
+    "vm.watermark_boost_factor" = 0;
+    "vm.watermark_scale_factor" = 125;
+    "vm.page-cluster" = 0;
+  };
+
 
   # flake.nix 的 allowUnfree 仅影响 flake 上下文，模块内仍需显式配置
   nixpkgs.config.allowUnfree = true;
@@ -155,7 +182,10 @@ in
 
       # 自动优化存储（硬链接重复文件）
       auto-optimise-store = true;
+      builders-use-substitutes = true;
     };
+
+    channel.enable = false;
 
     # 自动垃圾回收配置
     gc = {
@@ -215,6 +245,7 @@ in
         });
       '';
     };
+    rtkit.enable = true;
     pam.services.greetd.enableGnomeKeyring = true;
   };
 
@@ -245,6 +276,7 @@ in
       gamescopeSession.enable = true;
       protontricks.enable = true;
       extest.enable = true; # Wayland 下将 X11 输入事件转换为 uinput（Steam Input 控制器支持）
+      platformOptimizations.enable = true;
 
       # Proton-GE 配置：通过 Steam 的 extraCompatPackages 安装
       # 注意：不能放在 environment.systemPackages（会导致 buildEnv 错误）
@@ -327,7 +359,9 @@ in
       alsa.enable = true;
       alsa.support32Bit = true;
       pulse.enable = true;
+      lowLatency.enable = true;
     };
+    pulseaudio.enable = false;
 
     # 文件管理常用的缩略图/挂载支持
     gvfs.enable = true;
@@ -490,6 +524,10 @@ in
   # 问题：tmpfs 根分区 + 持久化 /etc/mullvad-vpn 会保留锁定模式设置
   # 解决：启动时强制禁用锁定模式，避免 VPN 连接失败时无网络
   assertions = [
+    {
+      assertion = builtins.elem (myvars.gpuMode or "auto") allowedGpuModes;
+      message = "myvars.gpuMode must be one of: auto, none, amd, amdgpu, nvidia, modesetting, amd-nvidia-hybrid.";
+    }
     {
       assertion = myvars ? userPasswordHash && myvars.userPasswordHash != "CHANGE_ME";
       message = "Set myvars.userPasswordHash in flake.nix (use mkpasswd -m sha-512).";
