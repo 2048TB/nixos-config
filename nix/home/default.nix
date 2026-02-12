@@ -390,6 +390,26 @@ in
     };
   };
 
+  # Noctalia Shell 由 systemd 用户服务托管（替代 niri 的 spawn-at-startup）
+  systemd.user.services.noctalia-shell = lib.mkIf (noctaliaShellPkg != null) {
+    Unit = {
+      Description = "Noctalia Shell - Wayland desktop shell";
+      Documentation = "https://docs.noctalia.dev/docs";
+      After = [ "graphical-session.target" ];
+      PartOf = [ "graphical-session.target" ];
+    };
+    Service = {
+      ExecStart = lib.getExe noctaliaShellPkg;
+      Restart = "on-failure";
+      Environment = [
+        "QT_QPA_PLATFORM=wayland;xcb"
+        "QT_QPA_PLATFORMTHEME=qt6ct"
+        "QT_AUTO_SCREEN_SCALE_FACTOR=1"
+      ];
+    };
+    Install.WantedBy = [ "graphical-session.target" ];
+  };
+
   # Noctalia 状态文件改为“用户可写”：
   # - 声明式 source 会生成只读 symlink，GUI 修改无法持久化
   # - 仅在文件不存在（或历史遗留 symlink）时初始化默认值
@@ -442,7 +462,7 @@ in
       "niri/windowrules.kdl".source = ./configs/niri/windowrules.kdl;
       "niri/noctalia-shell.kdl".source = ./configs/niri/noctalia-shell.kdl;
 
-      # Noctalia Shell（外壳）配置（分别链接文件以支持壁纸子目录）
+      # Noctalia Shell（外壳）配置
       "noctalia/wallpapers".source = ./configs/wallpapers;
       "qt6ct/qt6ct.conf".source = ./configs/noctalia/qt6ct.conf;
 

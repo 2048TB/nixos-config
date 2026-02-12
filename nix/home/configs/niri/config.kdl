@@ -9,8 +9,7 @@ include "./noctalia-shell.kdl"
 // 工作区不做预分类，默认使用动态工作区
 workspace "telegram"
 
-// 开机启动程序
-spawn-at-startup "noctalia-shell"
+// Noctalia Shell 改由 systemd --user 服务管理，避免重复启动。
 
 // 输入设备配置。
 input {
