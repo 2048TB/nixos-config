@@ -35,9 +35,11 @@ in
   boot = {
     # 引导加载器
     loader = {
-      systemd-boot.enable = lib.mkDefault true;
-      systemd-boot.configurationLimit = lib.mkDefault 10;
-      systemd-boot.consoleMode = lib.mkDefault "max";
+      systemd-boot = {
+        enable = lib.mkDefault true;
+        configurationLimit = lib.mkDefault 10;
+        consoleMode = lib.mkDefault "max";
+      };
       efi.canTouchEfiVariables = true;
     };
 
