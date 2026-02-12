@@ -261,6 +261,9 @@ in
     ++ wpsWrappedBins; # WPS steam-run 包装器（覆盖原始二进制，修复启动问题）
 
     file = {
+      # 便捷入口：保持 /etc/nixos 作为系统入口，同时在主目录提供快速访问路径
+      "nixos".source = config.lib.file.mkOutOfStoreSymlink "/persistent/nixos-config";
+
       ".wayland-session" = {
         source = niriSession;
         executable = true;

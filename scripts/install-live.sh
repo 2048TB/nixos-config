@@ -281,6 +281,9 @@ fi
 run_root rm -rf "$TARGET_FLAKE_DIR"
 run_root mkdir -p "$TARGET_FLAKE_DIR"
 run_root cp -a "${REPO_ROOT}/." "$TARGET_FLAKE_DIR/"
+# 保持目标仓库所有权与源仓库一致，避免首次启动后配置目录变成 root-only
+SOURCE_OWNER="$(stat -c '%u:%g' "${REPO_ROOT}")"
+run_root chown -R "$SOURCE_OWNER" "$TARGET_FLAKE_DIR"
 
 # 清理历史 Mullvad 设置，避免旧 lockdown/auto-connect 状态导致新系统首启无网
 run_root rm -f /mnt/persistent/etc/mullvad-vpn/settings.json

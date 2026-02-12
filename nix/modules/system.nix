@@ -466,6 +466,22 @@ in
     deps = [ "users" ];
   };
 
+  # 确保持久化配置仓库归属普通用户，避免 Git safe.directory/写权限问题
+  system.activationScripts.fixPersistentConfigRepoPerms = {
+    text = ''
+      repo_dir="/persistent/nixos-config"
+      if [ -d "$repo_dir" ] && id -u ${mainUser} >/dev/null 2>&1; then
+        current_uid=$(stat -c %u "$repo_dir" 2>/dev/null || echo "")
+        target_uid=$(id -u ${mainUser})
+        if [ -n "$current_uid" ] && [ "$current_uid" != "$target_uid" ]; then
+          find "$repo_dir" -xdev \( -not -user ${mainUser} -o -not -group ${mainUser} \) \
+            -exec chown ${mainUser}:${mainUser} {} + || true
+        fi
+      fi
+    '';
+    deps = [ "users" ];
+  };
+
   # 时区
   time.timeZone = myvars.timezone;
 
@@ -584,7 +600,7 @@ in
       "L+ /var/run - - - - /run"
       # 兼容硬编码 shebang（#!/bin/bash）的第三方脚本
       "L+ /bin/bash - - - - /run/current-system/sw/bin/bash"
-      "d /persistent/nixos-config 0755 root root -"
+      "d /persistent/nixos-config 0755 ${mainUser} ${mainUser} -"
       # Keep a stable entrypoint; /etc/nixos is a symlink to persistent config.
       # This relies on /persistent being mounted early (neededForBoot=true).
       "L+ /etc/nixos - - - - /persistent/nixos-config"
