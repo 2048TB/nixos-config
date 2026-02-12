@@ -20,7 +20,7 @@
   },
   "audio": {
     "cavaFrameRate": 30,
-    "externalMixer": "pavucontrol",
+    "externalMixer": "pwvucontrol || pavucontrol",
     "mprisBlacklist": [],
     "preferredPlayer": "",
     "visualizerType": "linear",
@@ -65,11 +65,6 @@
           "usePrimaryColor": false
         },
         {
-          "compactMode": true,
-          "displayMode": "auto",
-          "id": "SystemMonitor"
-        },
-        {
           "customFont": "",
           "formatHorizontal": "HH:mm ddd, MMM dd",
           "formatVertical": "HH mm - dd MM",
@@ -77,6 +72,11 @@
           "tooltipFormat": "HH:mm ddd, MMM dd",
           "useCustomFont": false,
           "usePrimaryColor": false
+        },
+        {
+          "compactMode": true,
+          "displayMode": "auto",
+          "id": "SystemMonitor"
         },
         {
           "colorizeIcons": false,
@@ -266,6 +266,19 @@
             "y": 161
           },
           {
+            "hideMode": "visible",
+            "id": "MediaPlayer",
+            "roundedCorners": true,
+            "scale": 1.1501312913284876,
+            "showAlbumArt": true,
+            "showBackground": true,
+            "showButtons": true,
+            "showVisualizer": true,
+            "visualizerType": "linear",
+            "x": 92,
+            "y": 299
+          },
+          {
             "id": "Weather",
             "scale": 1.339282355295889,
             "showBackground": true,
@@ -282,14 +295,12 @@
     "colorizeIcons": false,
     "deadOpacity": 0.6,
     "displayMode": "auto_hide",
-    "enabled": true,
+    "enabled": false,
     "floatingRatio": 1,
     "inactiveIndicators": false,
     "monitors": [],
     "onlySameOutput": true,
-    "pinnedApps": [
-      "vicinae"
-    ],
+    "pinnedApps": [],
     "pinnedStatic": false,
     "size": 1
   },
@@ -305,7 +316,7 @@
     "forceBlackScreenCorners": false,
     "iRadiusRatio": 1,
     "language": "",
-    "lockOnSuspend": false,
+    "lockOnSuspend": true,
     "radiusRatio": 1,
     "scaleRatio": 1,
     "screenRadiusRatio": 1,
@@ -487,7 +498,7 @@
     "helix": false,
     "hyprland": false,
     "kcolorscheme": false,
-
+    "kitty": false,
     "mango": false,
     "niri": false,
     "pywalfox": false,
