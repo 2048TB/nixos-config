@@ -1,4 +1,4 @@
-{ config, lib, myvars, ... }:
+{ config, lib, pkgs, myvars, ... }:
 let
   # GPU 驱动常量
   driverNvidia = "nvidia";
@@ -60,6 +60,21 @@ in
     blueman.enable = true;
     power-profiles-daemon.enable = true;
     upower.enable = true;
+  };
+
+  # 兜底解除 rfkill soft block：否则 Noctalia 中蓝牙开关会失效
+  systemd.services.unblock-bluetooth-rfkill = {
+    description = "Unblock Bluetooth rfkill state";
+    wantedBy = [ "multi-user.target" ];
+    after = [
+      "systemd-rfkill.service"
+      "bluetooth.service"
+    ];
+    wants = [ "bluetooth.service" ];
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStart = "${pkgs.util-linux}/bin/rfkill unblock bluetooth";
+    };
   };
 
   boot.kernelParams = lib.mkIf useNvidia nvidiaKernelParams;
