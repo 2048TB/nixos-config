@@ -28,12 +28,8 @@ let
   '';
 
   # 仅在混合显卡（amd-nvidia-hybrid）时安装 GPU 加速相关软件
-  gpuChoice =
-    let
-      raw = myvars.gpuMode or "auto";
-    in
-    lib.strings.removeSuffix "\n" (lib.strings.removeSuffix "\r" raw);
-  ollamaVulkan = pkgs.ollama-vulkan or null;
+  gpuChoice = myvars.gpuMode or "auto";
+  ollamaVulkan = pkgs.ollama or null;
   tensorflowCudaPkg = pkgs.python3Packages.tensorflowWithCuda or null;
   tensorflowCudaEnv =
     if tensorflowCudaPkg != null
@@ -88,8 +84,6 @@ in
       OPENSSL_INCLUDE_DIR = "${pkgs.openssl.dev}/include";
       OPENSSL_LIB_DIR = "${pkgs.openssl.out}/lib";
       OPENSSL_DIR = "${pkgs.openssl.dev}";
-      PKG_CONFIG_PATH = "${pkgs.openssl.dev}/lib/pkgconfig";
-
     };
 
     # PATH: 交由 Home Manager 维护，避免手动拼接导致重复/覆盖问题
@@ -183,12 +177,12 @@ in
       nomacs
       nautilus # GNOME 文件管理器（Wayland 原生，简洁现代）
       file-roller # GNOME 压缩管理器（Nautilus 集成必需）
+      ghostty
       cherry-studio # 多 LLM 提供商桌面客户端
 
       # === Wayland 工具 ===
       satty
       swayidle # 空闲管理（熄屏、休眠），用户自行配置
-      mako
       grim
       slurp
       wl-screenrec
@@ -231,7 +225,6 @@ in
 
       # 媒体 / 图形
       pavucontrol
-      playerctl
       pulsemixer
       splayer # 网易云音乐播放器（支持本地音乐、流媒体、逐字歌词）
       imv
@@ -282,14 +275,6 @@ in
   };
 
   programs = {
-    ghostty = {
-      enable = true;
-      package = pkgs.ghostty;
-      enableBashIntegration = false;
-      enableZshIntegration = true;
-      installBatSyntax = false;
-    };
-
     starship = {
       enable = true;
       enableZshIntegration = true;
@@ -325,7 +310,7 @@ in
 
     mpv = {
       enable = true;
-      defaultProfiles = [ "gpu-hq" ];
+      defaultProfiles = [ "high-quality" ];
       scripts = [ pkgs.mpvScripts.mpris ];
     };
 
@@ -335,6 +320,9 @@ in
       enableCompletion = true;
       autosuggestion.enable = true;
       syntaxHighlighting.enable = true;
+      envExtra = ''
+        export PKG_CONFIG_PATH="${pkgs.openssl.dev}/lib/pkgconfig''${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+      '';
       initContent = builtins.readFile ./configs/shell/zshrc;
     };
 

@@ -35,7 +35,7 @@ This script is fully automated:
 
 Environment variables:
   DRY_RUN=1         Print commands without executing
-  CONFIRM=1         Skip confirmation before destructive steps (default: confirm)
+  CONFIRM=0         Skip confirmation before destructive steps (default: confirm)
   NIXOS_DISK_DEVICE=/dev/sdX  Use explicit target disk (overrides auto-selection)
 
 Help:
@@ -236,9 +236,10 @@ STEP=$((STEP + 1))
 
 echo
 echo "[${STEP}/${TOTAL_STEPS}] Running disko..."
+DISKO_REV="$(jq -r '.nodes.disko.locked.rev' "${FLAKE}/flake.lock")"
 run_root env NIXOS_DISK_DEVICE="$DISK_DEVICE" \
   nix --extra-experimental-features nix-command --extra-experimental-features flakes \
-  run --impure github:nix-community/disko -- --mode "$DISKO_MODE" --flake "$FLAKE_REF"
+  run --impure "github:nix-community/disko/${DISKO_REV}" -- --mode "$DISKO_MODE" --flake "$FLAKE_REF"
 check_disko_result
 STEP=$((STEP + 1))
 
@@ -278,12 +279,17 @@ TARGET_FLAKE_DIR="/mnt/persistent/nixos-config"
 if ! run_root findmnt /mnt/persistent >/dev/null 2>&1; then
   die "/mnt/persistent is not mounted. Refusing to sync flake."
 fi
+TARGET_FLAKE_TMP="${TARGET_FLAKE_DIR}.tmp.$$"
+run_root rm -rf "$TARGET_FLAKE_TMP"
+run_root cp -a "${REPO_ROOT}/." "$TARGET_FLAKE_TMP/"
+# 使用目标系统的用户 UID:GID（而非 live ISO 的，避免安装后权限不正确）
+if run_root test -f /mnt/etc/passwd; then
+  TARGET_OWNER="$(run_root awk -F: '$3 >= 1000 && $3 < 60000 {print $3":"$4; exit}' /mnt/etc/passwd)"
+fi
+run_root chown -R "${TARGET_OWNER:-1000:100}" "$TARGET_FLAKE_TMP"
+# 原子替换：先复制到临时目录，再 mv 替换，避免中途失败导致目标不完整
 run_root rm -rf "$TARGET_FLAKE_DIR"
-run_root mkdir -p "$TARGET_FLAKE_DIR"
-run_root cp -a "${REPO_ROOT}/." "$TARGET_FLAKE_DIR/"
-# 保持目标仓库所有权与源仓库一致，避免首次启动后配置目录变成 root-only
-SOURCE_OWNER="$(stat -c '%u:%g' "${REPO_ROOT}")"
-run_root chown -R "$SOURCE_OWNER" "$TARGET_FLAKE_DIR"
+run_root mv "$TARGET_FLAKE_TMP" "$TARGET_FLAKE_DIR"
 
 # 清理历史 Provider app 设置，避免旧 lockdown/auto-connect 状态导致新系统首启无网
 run_root rm -f /mnt/persistent/etc/provider-app-vpn/settings.json

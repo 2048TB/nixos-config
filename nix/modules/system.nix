@@ -439,47 +439,49 @@ in
   # 同时在激活阶段兜底创建 swapfile（仅在缺失时），避免开机阶段引入 systemd 依赖环。
   # 说明：曾出现 create-swapfile.service 与 swap.target/run-wrappers 形成 ordering cycle，
   # 导致 suid-sgid-wrappers 被跳过，进而触发 greetd 的 pam_unix helper 缺失。
-  system.activationScripts.createSwapfileIfMissing = {
-    text = ''
-      if [ -d /swap ] && [ ! -f /swap/swapfile ]; then
-        ${pkgs.btrfs-progs}/bin/btrfs filesystem mkswapfile \
-          --size ${toString myvars.swapSizeGb}g \
-          --uuid clear \
-          /swap/swapfile
-        chmod 600 /swap/swapfile
-      fi
-    '';
-    deps = [ "specialfs" ];
-  };
-
-  system.activationScripts.fixUserHomePerms = {
-    text = ''
-      if [ -d ${homeDir} ] && id -u ${mainUser} >/dev/null 2>&1; then
-        current_uid=$(stat -c %u ${homeDir} 2>/dev/null || echo "")
-        target_uid=$(id -u ${mainUser})
-        if [ -n "$current_uid" ] && [ "$current_uid" != "$target_uid" ]; then
-          find ${homeDir} -xdev \( -not -user ${mainUser} -o -not -group ${mainUser} \) \
-            -exec chown ${mainUser}:${mainUser} {} + || true
+  system.activationScripts = {
+    createSwapfileIfMissing = {
+      text = ''
+        if [ -d /swap ] && [ ! -f /swap/swapfile ]; then
+          ${pkgs.btrfs-progs}/bin/btrfs filesystem mkswapfile \
+            --size ${toString myvars.swapSizeGb}g \
+            --uuid clear \
+            /swap/swapfile
+          chmod 600 /swap/swapfile
         fi
-      fi
-    '';
-    deps = [ "users" ];
-  };
+      '';
+      deps = [ "specialfs" ];
+    };
 
-  # 确保持久化配置仓库归属普通用户，避免 Git safe.directory/写权限问题
-  system.activationScripts.fixPersistentConfigRepoPerms = {
-    text = ''
-      repo_dir="/persistent/nixos-config"
-      if [ -d "$repo_dir" ] && id -u ${mainUser} >/dev/null 2>&1; then
-        current_uid=$(stat -c %u "$repo_dir" 2>/dev/null || echo "")
-        target_uid=$(id -u ${mainUser})
-        if [ -n "$current_uid" ] && [ "$current_uid" != "$target_uid" ]; then
-          find "$repo_dir" -xdev \( -not -user ${mainUser} -o -not -group ${mainUser} \) \
-            -exec chown ${mainUser}:${mainUser} {} + || true
+    fixUserHomePerms = {
+      text = ''
+        if [ -d ${homeDir} ] && id -u ${mainUser} >/dev/null 2>&1; then
+          current_uid=$(stat -c %u ${homeDir} 2>/dev/null || echo "")
+          target_uid=$(id -u ${mainUser})
+          if [ -n "$current_uid" ] && [ "$current_uid" != "$target_uid" ]; then
+            find ${homeDir} -xdev \( -not -user ${mainUser} -o -not -group ${mainUser} \) \
+              -exec chown ${mainUser}:${mainUser} {} + || true
+          fi
         fi
-      fi
-    '';
-    deps = [ "users" ];
+      '';
+      deps = [ "users" ];
+    };
+
+    # 确保持久化配置仓库归属普通用户，避免 Git safe.directory/写权限问题
+    fixPersistentConfigRepoPerms = {
+      text = ''
+        repo_dir="/persistent/nixos-config"
+        if [ -d "$repo_dir" ] && id -u ${mainUser} >/dev/null 2>&1; then
+          current_uid=$(stat -c %u "$repo_dir" 2>/dev/null || echo "")
+          target_uid=$(id -u ${mainUser})
+          if [ -n "$current_uid" ] && [ "$current_uid" != "$target_uid" ]; then
+            find "$repo_dir" -xdev \( -not -user ${mainUser} -o -not -group ${mainUser} \) \
+              -exec chown ${mainUser}:${mainUser} {} + || true
+          fi
+        fi
+      '';
+      deps = [ "users" ];
+    };
   };
 
   # 时区
