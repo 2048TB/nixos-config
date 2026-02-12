@@ -358,57 +358,63 @@ in
     };
   };
 
-  # Polkit 认证代理（图形会话自启）
-  # 无此服务时，需要权限提升的操作（virt-manager、Nautilus 挂载等）会静默失败
-  systemd.user.services.polkit-gnome-authentication-agent-1 = {
-    Unit = {
-      Description = "polkit-gnome-authentication-agent-1";
-      After = [ "graphical-session.target" ];
-    };
-    Install.WantedBy = [ "graphical-session.target" ];
-    Service = {
-      Type = "simple";
-      ExecStart = "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1";
-      Restart = "on-failure";
-      RestartSec = 1;
-      TimeoutStopSec = 10;
-    };
-  };
+  systemd = {
+    user.services =
+      {
+        # Polkit 认证代理（图形会话自启）
+        # 无此服务时，需要权限提升的操作（virt-manager、Nautilus 挂载等）会静默失败
+        polkit-gnome-authentication-agent-1 = {
+          Unit = {
+            Description = "polkit-gnome-authentication-agent-1";
+            After = [ "graphical-session.target" ];
+          };
+          Install.WantedBy = [ "graphical-session.target" ];
+          Service = {
+            Type = "simple";
+            ExecStart = "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1";
+            Restart = "on-failure";
+            RestartSec = 1;
+            TimeoutStopSec = 10;
+          };
+        };
 
-  # Clipboard history 依赖（Noctalia 官方示例）
-  systemd.user.services.cliphist-daemon = {
-    Unit = {
-      Description = "cliphist clipboard history daemon";
-      After = [ "graphical-session.target" ];
-      PartOf = [ "graphical-session.target" ];
-    };
-    Install.WantedBy = [ "graphical-session.target" ];
-    Service = {
-      Type = "simple";
-      ExecStart = "${pkgs.wl-clipboard}/bin/wl-paste --watch ${pkgs.cliphist}/bin/cliphist store";
-      Restart = "always";
-      RestartSec = 2;
-    };
-  };
-
-  # Noctalia Shell 由 systemd 用户服务托管（替代 niri 的 spawn-at-startup）
-  systemd.user.services.noctalia-shell = lib.mkIf (noctaliaShellPkg != null) {
-    Unit = {
-      Description = "Noctalia Shell - Wayland desktop shell";
-      Documentation = "https://docs.noctalia.dev/docs";
-      After = [ waylandUserTarget ];
-      PartOf = [ waylandUserTarget ];
-    };
-    Service = {
-      ExecStart = lib.getExe noctaliaShellPkg;
-      Restart = "on-failure";
-      Environment = [
-        "QT_QPA_PLATFORM=wayland;xcb"
-        "QT_QPA_PLATFORMTHEME=qt6ct"
-        "QT_AUTO_SCREEN_SCALE_FACTOR=1"
-      ];
-    };
-    Install.WantedBy = [ waylandUserTarget ];
+        # Clipboard history 依赖（Noctalia 官方示例）
+        cliphist-daemon = {
+          Unit = {
+            Description = "cliphist clipboard history daemon";
+            After = [ "graphical-session.target" ];
+            PartOf = [ "graphical-session.target" ];
+          };
+          Install.WantedBy = [ "graphical-session.target" ];
+          Service = {
+            Type = "simple";
+            ExecStart = "${pkgs.wl-clipboard}/bin/wl-paste --watch ${pkgs.cliphist}/bin/cliphist store";
+            Restart = "always";
+            RestartSec = 2;
+          };
+        };
+      }
+      // lib.optionalAttrs (noctaliaShellPkg != null) {
+        # Noctalia Shell 由 systemd 用户服务托管（替代 niri 的 spawn-at-startup）
+        noctalia-shell = {
+          Unit = {
+            Description = "Noctalia Shell - Wayland desktop shell";
+            Documentation = "https://docs.noctalia.dev/docs";
+            After = [ waylandUserTarget ];
+            PartOf = [ waylandUserTarget ];
+          };
+          Service = {
+            ExecStart = lib.getExe noctaliaShellPkg;
+            Restart = "on-failure";
+            Environment = [
+              "QT_QPA_PLATFORM=wayland;xcb"
+              "QT_QPA_PLATFORMTHEME=qt6ct"
+              "QT_AUTO_SCREEN_SCALE_FACTOR=1"
+            ];
+          };
+          Install.WantedBy = [ waylandUserTarget ];
+        };
+      };
   };
 
   # Noctalia 状态文件改为“用户可写”：
