@@ -205,7 +205,7 @@ in
 
       # === Niri 生态 ===
       vicinae
-      swaybg
+      swaybg # 备用壁纸工具（noctalia 主管壁纸，仅做 fallback）
 
       # === Wayland 基础设施 ===
       cliphist
@@ -304,9 +304,7 @@ in
       nix-direnv.enable = true;
     };
 
-    # 保留手动锁屏功能（关闭自动锁屏）
-    swaylock.enable = true;
-    wlogout.enable = true;
+    # 锁屏与会话菜单由 noctalia 处理（Mod+E / Ctrl+Alt+L）
 
     mpv = {
       enable = true;

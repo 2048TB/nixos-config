@@ -403,18 +403,19 @@ in
 
   fonts.packages = with pkgs; [
     # 编程字体
-    jetbrains-mono # JetBrains Mono（2026 业界标准，优秀 CJK 兼容）
+    cascadia-code
+    jetbrains-mono
+    fira-code
+    sarasa-gothic # 更纱黑体（CJK+Latin 等宽对齐）
     maple-mono.NF-CN-unhinted # Nerd Font（含中文字形，备用）
 
-    # 中日韩字体（已优化：移除 source-han 重复，仅保留 Noto）
-    # 说明：source-han-sans 和 noto-fonts-cjk-sans 是同一套字体的不同品牌
-    noto-fonts-cjk-sans # 中日韩黑体
-    noto-fonts-cjk-serif # 中日韩宋体
+    # Emoji
+    noto-fonts-color-emoji
 
-    # 备用中文字体
-    wqy_zenhei # 文泉驿正黑（轻量级，约 10MB）
-
-    # 优化效果：移除 source-han-sans/serif 节省约 800MB
+    # 中日韩字体
+    noto-fonts-cjk-sans
+    noto-fonts-cjk-serif
+    wqy_zenhei
   ];
 
   # 系统语言（中文）与 Locale 生成 + 输入法支持

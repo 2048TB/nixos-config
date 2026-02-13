@@ -15,6 +15,6 @@ debug {
 
 // 在背景层设置概览壁纸。
 layer-rule {
-  match namespace="^noctalia-overview*"
+  match namespace="^noctalia-overview"
   place-within-backdrop true
 }
