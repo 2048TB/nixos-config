@@ -1,4 +1,4 @@
-{ config, pkgs, lib, myvars, mainUser, pkgsUnstable ? null, ... }:
+{ config, pkgs, lib, myvars, mainUser, pkgsUnstable ? null, noctaliaShellPkg ? null, ... }:
 let
   # 配置常量
   homeStateVersion = "25.11";
@@ -36,10 +36,7 @@ let
     then pkgs.python3.withPackages (_: [ tensorflowCudaPkg ])
     else null;
   hashcatPkg = pkgs.hashcat or null;
-  noctaliaShellPkg =
-    if pkgsUnstable != null
-    then (pkgsUnstable.noctalia-shell or (pkgs.noctalia-shell or null))
-    else pkgs.noctalia-shell or null;
+  # noctaliaShellPkg 由 flake.nix 通过 extraSpecialArgs 传入（来自 noctalia flake）
   hybridPackages =
     lib.optionals (gpuChoice == "amd-nvidia-hybrid" && ollamaVulkan != null) [ ollamaVulkan ]
     ++ lib.optionals (gpuChoice == "amd-nvidia-hybrid" && tensorflowCudaEnv != null) [ tensorflowCudaEnv ]

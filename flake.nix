@@ -25,6 +25,11 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    noctalia = {
+      url = "github:noctalia-dev/noctalia-shell";
+      inputs.nixpkgs.follows = "nixpkgs-unstable";
+    };
+
     nix-gaming = {
       url = "github:fufexan/nix-gaming";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -44,7 +49,7 @@
 
   };
 
-  outputs = { nixpkgs, nixpkgs-unstable, rust-overlay, home-manager, lanzaboote, niri, nix-gaming, preservation, disko, ... }:
+  outputs = { nixpkgs, nixpkgs-unstable, rust-overlay, home-manager, lanzaboote, niri, noctalia, nix-gaming, preservation, disko, ... }:
     let
       myvars = rec {
         # 用户配置
@@ -108,7 +113,10 @@
             home-manager = {
               useGlobalPkgs = true;
               useUserPackages = true;
-              extraSpecialArgs = { inherit myvars mainUser pkgsUnstable; };
+              extraSpecialArgs = {
+                inherit myvars mainUser pkgsUnstable;
+                noctaliaShellPkg = noctalia.packages.${system}.default;
+              };
               users.${mainUser} = import ./nix/home;
             };
           }
