@@ -20,7 +20,7 @@
   },
   "audio": {
     "cavaFrameRate": 30,
-    "externalMixer": "pwvucontrol || pavucontrol",
+    "externalMixer": "pavucontrol",
     "mprisBlacklist": [],
     "preferredPlayer": "",
     "visualizerType": "linear",
@@ -257,7 +257,7 @@
     "gridSnap": true,
     "monitorWidgets": [
       {
-        "name": "eDP-1",
+        "name": "DP-1",
         "widgets": [
           {
             "clockStyle": "digital",
@@ -500,14 +500,14 @@
     "enableUserTemplates": false,
     "foot": false,
     "fuzzel": false,
-    "ghostty": false,
+    "ghostty": true,
     "gtk": false,
     "helix": false,
     "hyprland": false,
     "kcolorscheme": false,
     "kitty": false,
     "mango": false,
-    "niri": false,
+    "niri": true,
     "pywalfox": false,
     "qt": false,
     "spicetify": false,
@@ -520,9 +520,9 @@
   },
   "ui": {
     "boxBorderEnabled": false,
-    "fontDefault": "Maple Mono NF CN",
+    "fontDefault": "Sarasa UI SC",
     "fontDefaultScale": 1,
-    "fontFixed": "Maple Mono NF CN",
+    "fontFixed": "Sarasa Mono SC",
     "fontFixedScale": 1,
     "panelBackgroundOpacity": 0.85,
     "panelsAttachedToBar": true,
