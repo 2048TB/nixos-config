@@ -15,8 +15,8 @@ binds {
     Mod+Shift+Return { spawn "ghostty" "--class=ghostty-float"; }
 
     // 启动器
-    Mod+Space { spawn "vicinae" "toggle"; }
-    XF86Search { spawn "vicinae" "toggle"; }
+    Mod+Space { spawn "fuzzel"; }
+    XF86Search { spawn "fuzzel"; }
 
     // 文件管理器
     Mod+D { spawn "nautilus"; }
@@ -240,7 +240,7 @@ binds {
     Mod+Shift+P { power-off-monitors; }
 
     // 实用快捷键
-    Mod+Shift+V { spawn "vicinae" "deeplink" "vicinae://extensions/vicinae/clipboard/history"; }
+    Mod+Shift+V { spawn "sh" "-c" "cliphist list | fuzzel --dmenu | cliphist decode | wl-copy"; }
 
     Mod+S { spawn "pavucontrol"; }
     Mod+E { spawn "sh" "-c" "/etc/profiles/per-user/$USER/bin/wlogout-menu"; }

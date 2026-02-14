@@ -9,6 +9,8 @@
 - `configs/niri/` Niri KDL 配置
 - `configs/waybar/` Waybar 状态栏
 - `configs/wlogout/` Wlogout 电源菜单
+- `configs/fuzzel/` Fuzzel 应用启动器
+- `configs/foot/` Foot 终端
 - `configs/ghostty/` Ghostty 终端
 - `configs/shell/` Shell 配置（zsh/vim）
 - `configs/git/` Git + delta
