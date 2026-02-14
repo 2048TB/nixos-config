@@ -93,8 +93,8 @@
   "temperature": {
     "format": "󰔄 {temperatureC}°C",
     "warning-threshold": 75,
-    "format-warning": "󰔄 {temperatureC}°C",
-    "critical-threshold": 85
+    "critical-threshold": 85,
+    "format-critical": " {temperatureC}°C"
   },
 
   "network": {
@@ -127,8 +127,6 @@
   "pulseaudio": {
     "format": "{icon} {volume}%",
     "format-muted": "",
-    "scroll-step": 1,
-    "max-volume": 100,
     "format-icons": {
       "default": [
         "",
@@ -148,8 +146,8 @@
       "󰃟",
       "󰃠"
     ],
-    "on-scroll-up": "brightnessctl set 1%+",
-    "on-scroll-down": "brightnessctl set 1%-",
+    "on-scroll-up": "brightnessctl --class=backlight set 1%+",
+    "on-scroll-down": "brightnessctl --class=backlight set 1%-",
     "tooltip": false
   },
 

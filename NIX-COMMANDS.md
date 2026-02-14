@@ -75,11 +75,16 @@ nix-tree /run/current-system
 
 ## Home Manager
 
+本项目 Home Manager 作为 NixOS module 集成，不支持独立运行。配置更改通过 `nixos-rebuild` 统一应用：
+
 ```bash
-home-manager switch --flake .#<user>
+sudo nixos-rebuild switch --flake /etc/nixos#zly
+```
+
+查看 HM 世代历史：
+
+```bash
 home-manager generations
-home-manager switch --rollback
-home-manager expire-generations "-7 days"
 ```
 
 ---

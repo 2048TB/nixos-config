@@ -26,9 +26,9 @@
 |---|---|
 | `Mod` + `Enter` | 打开终端（Ghostty） |
 | `Mod` + `Shift` + `Enter` | 打开浮动终端（Ghostty） |
-| `Mod` + `D` / `Mod` + `Space` | 启动器 |
-| `XF86Search` | 启动器 |
-| `Mod` + `P` | 窗口切换器（Vicinae） |
+| `Mod` + `Space` | 启动器（Vicinae） |
+| `XF86Search` | 启动器（Vicinae） |
+| `Mod` + `N` | 文件管理器（Nautilus） |
 | `Ctrl` + `Alt` + `L` | 锁屏 |
 
 窗口焦点：
@@ -63,8 +63,7 @@
 | `Mod` + `Ctrl` + `U/I` | 移动列到上下工作区 |
 | `Mod` + `Shift` + `U/I` | 移动整个工作区 |
 | `Mod` + `1-9` | 切换到对应索引工作区（动态工作区，尽力匹配） |
-| `Mod` + `0` | 切换到 0other |
-| `Mod` + `Ctrl` + `1-0` | 移动列到对应工作区 |
+| `Mod` + `Ctrl` + `1-9` | 移动列到对应工作区 |
 | `Mod` + `Tab` | 切换到上一个工作区 |
 | `Mod` + `Shift` + `N` | 跳转到新的空工作区 |
 
@@ -98,7 +97,7 @@
 | 快捷键 | 功能 |
 |---|---|
 | `Print` | 截图（niri 内置） |
-| `Mod` + `A` | 区域截图 + 复制到剪贴板（保存到 `$XDG_SCREENSHOTS_DIR`，默认 `~/Pictures/Screenshots`） |
+| `Mod` + `A` | 区域截图 + 复制到剪贴板（保存到 `~/Pictures/Screenshots`） |
 | `Ctrl` + `Print` | 全屏截图 |
 | `Alt` + `Print` | 窗口截图 |
 
@@ -106,8 +105,8 @@
 
 | 快捷键 | 功能 |
 |---|---|
-| `Mod` + `S` | 控制中心 |
-| `Mod` + `E` | 会话菜单 |
+| `Mod` + `S` | 音量控制（pavucontrol） |
+| `Mod` + `E` | 电源菜单（wlogout） |
 | `Mod` + `C` | 计算器 |
 | `Mod` + `Shift` + `V` | 剪贴板历史 |
 | `Mod` + `Shift` + `P` | 关闭显示器 |

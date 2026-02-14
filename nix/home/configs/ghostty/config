@@ -1,5 +1,4 @@
 # Ghostty 终端配置
-# 基于 nixos-config 的配置，保持 Maple Mono NF CN 字体
 # 配置文档：https://ghostty.org/docs/config
 
 # ===== 字体设置 =====
@@ -22,7 +21,6 @@ window-decoration = auto
 
 # 背景透明度
 background-opacity = 1.0
-background-blur = 20
 
 # 窗口主题
 window-theme = auto
