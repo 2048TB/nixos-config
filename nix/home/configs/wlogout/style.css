@@ -13,13 +13,16 @@ button {
   background-color: #1f2430;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 14px;
-  margin: 8px;
-  padding: 10px 16px;
-  min-width: 120px;
-  min-height: 72px;
+  margin: 6px;
+  padding: 58px 10px 10px;
+  min-width: 104px;
+  min-height: 96px;
   font-family: "Maple Mono NF CN", "Sarasa UI SC", "JetBrainsMono Nerd Font", sans-serif;
-  font-size: 15px;
+  font-size: 13px;
   font-weight: 700;
+  background-repeat: no-repeat;
+  background-position: center 20px;
+  background-size: 26px;
 }
 
 button:hover {
@@ -29,21 +32,32 @@ button:hover {
 
 #lock {
   color: #7aa2f7;
+  background-image: image(url("icons/lock.png"));
 }
 
 #logout {
   color: #9ccfd8;
+  background-image: image(url("icons/logout.png"));
 }
 
 #suspend,
 #hibernate {
   color: #e6c384;
 }
+#suspend {
+  background-image: image(url("icons/suspend.png"));
+}
+
+#hibernate {
+  background-image: image(url("icons/hibernate.png"));
+}
 
 #reboot {
   color: #ff9e64;
+  background-image: image(url("icons/reboot.png"));
 }
 
 #shutdown {
   color: #e46876;
+  background-image: image(url("icons/shutdown.png"));
 }

@@ -6,7 +6,6 @@ include "./keybindings.kdl"
 include "./windowrules.kdl"
 
 // 工作区不做预分类，默认使用动态工作区
-workspace "telegram"
 
 // Waybar 由 Home Manager 的 systemd --user 服务管理。
 

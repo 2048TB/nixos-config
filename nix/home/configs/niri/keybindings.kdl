@@ -239,5 +239,5 @@ binds {
     Mod+C { spawn "gnome-calculator"; }
 
     Mod+S { spawn "pavucontrol"; }
-    Mod+E { spawn "wlogout" "--buttons-per-row" "3" "--column-spacing" "12" "--row-spacing" "12" "--margin-top" "180" "--margin-bottom" "180"; }
+    Mod+E { spawn "wlogout" "--no-span" "--buttons-per-row" "3" "--column-spacing" "8" "--row-spacing" "8" "--margin-top" "80" "--margin-bottom" "80"; }
 }
