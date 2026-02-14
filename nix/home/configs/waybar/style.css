@@ -138,6 +138,13 @@ window#waybar {
 
 #power-profiles-daemon {
   color: #98bb6c;
+  min-width: 26px;
+  text-align: center;
+}
+
+#power-profiles-daemon label {
+  color: inherit;
+  background: transparent;
 }
 
 #power-profiles-daemon.performance {

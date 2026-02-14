@@ -47,6 +47,16 @@ let
     exec steam-run ${pkgs.wpsoffice}/bin/${bin} "$@"
   '');
   wpsWrappedBins = map wpsRunWrapper [ "wps" "et" "wpp" "wpspdf" ];
+  # 统一 Wlogout 调用入口，避免 Waybar/Niri 参数漂移
+  wlogoutMenu = pkgs.writeShellScriptBin "wlogout-menu" ''
+    exec ${pkgs.wlogout}/bin/wlogout \
+      --protocol layer-shell \
+      --no-span \
+      --buttons-per-row 3 \
+      --column-spacing 18 \
+      --row-spacing 18 \
+      "$@"
+  '';
 in
 {
   home = {
@@ -250,6 +260,7 @@ in
       pipx
     ]
     ++ hybridPackages
+    ++ [ wlogoutMenu ]
     ++ wpsWrappedBins; # WPS steam-run 包装器（覆盖原始二进制，修复启动问题）
 
     file = {

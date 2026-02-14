@@ -243,5 +243,5 @@ binds {
     Mod+Shift+V { spawn "vicinae" "deeplink" "vicinae://extensions/vicinae/clipboard/history"; }
 
     Mod+S { spawn "pavucontrol"; }
-    Mod+E { spawn "sh" "-c" "wlogout --protocol layer-shell --no-span --buttons-per-row 3 --column-spacing 18 --row-spacing 18 --margin-left 750 --margin-right 750 --margin-top 400 --margin-bottom 400"; }
+    Mod+E { spawn "sh" "-c" "/etc/profiles/per-user/$USER/bin/wlogout-menu"; }
 }
