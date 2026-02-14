@@ -42,7 +42,8 @@
 
   "niri/workspaces": {
     "format": "{value}",
-    "all-outputs": true
+    "all-outputs": false,
+    "current-only": true
   },
 
   "niri/window": {

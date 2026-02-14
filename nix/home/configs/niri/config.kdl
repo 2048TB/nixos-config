@@ -5,7 +5,8 @@
 include "./keybindings.kdl"
 include "./windowrules.kdl"
 
-// 工作区不做预分类，默认使用动态工作区
+// 为聊天应用预留命名工作区，便于窗口规则定向打开
+workspace "chat"
 
 // Waybar 由 Home Manager 的 systemd --user 服务管理。
 
