@@ -37,7 +37,7 @@
   "custom/power": {
     "format": "",
     "tooltip": false,
-    "on-click": "/etc/profiles/per-user/$USER/bin/wlogout --protocol layer-shell --no-span --buttons-per-row 3 --column-spacing 18 --row-spacing 18 --margin-left 750 --margin-right 750 --margin-top 400 --margin-bottom 400"
+    "on-click": "/etc/profiles/per-user/$USER/bin/wlogout-menu"
   },
 
   "niri/workspaces": {
@@ -174,10 +174,10 @@
     "format": "{icon}",
     "tooltip-format": "Power profile: {profile}\nDriver: {driver}",
     "format-icons": {
-      "default": "",
-      "performance": "󱐋",
-      "balanced": "",
-      "power-saver": ""
+      "default": "B",
+      "performance": "P",
+      "balanced": "B",
+      "power-saver": "S"
     }
   },
 
