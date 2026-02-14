@@ -5,6 +5,7 @@
 相关文档：
 - `KEYBINDINGS.md` 快捷键说明
 - `NIX-COMMANDS.md` 常用 Nix 命令速查
+- `AGENTS.md` 贡献与协作约定
 - `justfile` 日常操作命令
 - `CLAUDE.md` 项目维护约定（给 AI/自动化工具）
 
@@ -23,8 +24,8 @@
 推荐方式（在 Live ISO 中）：
 
 ```bash
-git clone https://github.com/2048TB/nixos-config-main ~/nixos-config-main
-cd ~/nixos-config-main
+git clone https://github.com/aicode12/nixos.git ~/nixos
+cd ~/nixos
 ```
 
 1. 设置密码哈希（必须）
@@ -73,7 +74,7 @@ sudo nixos-rebuild switch --flake /etc/nixos#zly
 已提供脚本：`scripts/install-live.sh`
 
 ```bash
-cd ~/nixos-config-main
+cd ~/nixos
 ./scripts/install-live.sh
 ```
 
@@ -87,8 +88,8 @@ cd ~/nixos-config-main
 ## 一键式完整安装命令（Live ISO）
 
 ```bash
-git clone https://github.com/2048TB/nixos-config-main ~/nixos-config-main
-cd ~/nixos-config-main
+git clone https://github.com/aicode12/nixos.git ~/nixos
+cd ~/nixos
 
 sudo nix --extra-experimental-features "nix-command flakes" \
   run github:nix-community/disko -- --mode disko --flake .#zly
@@ -115,6 +116,26 @@ sudo nixos-rebuild switch --flake /etc/nixos#zly
 - `swapSizeGb`
 - `userPasswordHash`
 - `rootPasswordHash`
+
+---
+
+## 主题统一策略
+
+当前配置使用「全局暗色 + 分层覆盖」：
+- GTK：`dconf.settings` 统一 `prefer-dark` + `Adwaita-dark`
+- Qt6：`qt6ct` 使用 `darker.conf`
+- Wayland 组件（Niri / Waybar / Fuzzel / Wlogout / Foot / Ghostty）：统一到深色调（Catppuccin 风格）
+
+说明：
+- 浏览器与 Electron 类应用（如 Chrome、VS Code）通常需要应用内单独选择主题，无法仅靠 GTK/Qt 全局主题强制统一。
+
+---
+
+## Shell 快捷命令
+
+`zsh` 中内置以下快捷函数（见 `nix/home/configs/shell/zshrc`）：
+- `ccv` / `ccv r`：Claude Code 快捷启动与恢复
+- `cdx` / `cdx r`：Codex 快捷启动与恢复
 
 ---
 
@@ -158,14 +179,14 @@ GPU 使用 `flake.nix` 的 `myvars.gpuMode` 固定配置。
 │           ├── niri/         # Niri 合成器（KDL）
 │           ├── waybar/       # Waybar 状态栏
 │           ├── wlogout/      # 电源菜单
-│           ├── fuzzel/        # 应用启动器
-│           ├── foot/          # Foot 终端
-│           ├── ghostty/       # Ghostty 终端
-│           ├── shell/         # zsh/vim
+│           ├── fuzzel/       # 应用启动器
+│           ├── foot/         # Foot 终端
+│           ├── ghostty/      # Ghostty 终端
+│           ├── shell/        # zsh/vim
 │           ├── fcitx5/       # 输入法
 │           ├── git/          # Git + delta
 │           ├── qt6ct/        # Qt6 主题
-│           ├── yazi/         # 文件管理器
+│           ├── yazi/         # 终端文件管理器
 │           ├── tmux/         # 终端复用器
 │           ├── zellij/       # 终端复用器
 │           └── wallpapers/   # 壁纸

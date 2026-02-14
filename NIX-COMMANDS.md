@@ -30,6 +30,20 @@ nix flake metadata
 
 ---
 
+## 配置验证（推荐顺序）
+
+```bash
+just fmt
+just lint
+just dead
+just flake-check
+
+# 可选：完整系统构建验证（不切换）
+nix build .#nixosConfigurations.zly.config.system.build.toplevel --no-link
+```
+
+---
+
 ## 垃圾回收与优化
 
 ```bash
@@ -85,6 +99,18 @@ sudo nixos-rebuild switch --flake /etc/nixos#zly
 
 ```bash
 home-manager generations
+```
+
+---
+
+## 主题相关排查
+
+```bash
+# 查看 GTK 暗色偏好
+gsettings get org.gnome.desktop.interface color-scheme
+
+# 重启 Nautilus（让主题配置立即刷新）
+nautilus -q
 ```
 
 ---

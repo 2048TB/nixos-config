@@ -35,3 +35,4 @@ just switch
 
 - Niri 使用手动 KDL 配置（`nix/home/configs/niri/*.kdl`）。
 - Waybar 由 systemd 用户服务管理（`systemd.user.services.waybar`）。
+- 主题采用统一暗色策略：GTK（`dconf.settings`）+ Qt6（`qt6ct`）+ Wayland 组件单独配色文件。

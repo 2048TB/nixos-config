@@ -23,7 +23,7 @@ window-decoration = auto
 background-opacity = 1.0
 
 # 窗口主题
-window-theme = auto
+window-theme = dark
 
 # ===== 主题 =====
 theme = Catppuccin Mocha
