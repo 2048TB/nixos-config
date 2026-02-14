@@ -6,7 +6,7 @@
 }
 
 window {
-  background-color: rgba(26, 27, 38, 0.88) !important;
+  background-color: rgba(26, 27, 38, 0.88);
 }
 
 button {
@@ -21,7 +21,7 @@ button {
   max-width: 220px;
   max-height: 155px;
   font-family: "Maple Mono NF CN", "Sarasa UI SC", "JetBrainsMono Nerd Font", sans-serif;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 700;
   background-repeat: no-repeat;
   background-position: center 14px;
