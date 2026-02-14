@@ -380,6 +380,22 @@ in
           };
         };
 
+        vicinae = {
+          Unit = {
+            Description = "Vicinae launcher server";
+            After = [ "graphical-session.target" ];
+            PartOf = [ "graphical-session.target" ];
+          };
+          Install.WantedBy = [ "graphical-session.target" ];
+          Service = {
+            Type = "simple";
+            ExecStart = "${pkgs.vicinae}/bin/vicinae server";
+            Environment = [ "USE_LAYER_SHELL=1" ];
+            Restart = "on-failure";
+            RestartSec = 2;
+          };
+        };
+
         waybar = {
           Unit = {
             Description = "Waybar status bar";

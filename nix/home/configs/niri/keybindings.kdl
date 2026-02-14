@@ -15,8 +15,8 @@ binds {
     Mod+Shift+Return { spawn "ghostty" "--class=ghostty-float"; }
 
     // 启动器
-    Mod+Space { spawn "vicinae"; }
-    XF86Search { spawn "vicinae"; }
+    Mod+Space { spawn "vicinae" "toggle"; }
+    XF86Search { spawn "vicinae" "toggle"; }
 
     // 文件管理器
     Mod+N { spawn "nautilus"; }
@@ -235,9 +235,9 @@ binds {
     Mod+Shift+P { power-off-monitors; }
 
     // 实用快捷键
-    Mod+Shift+V { spawn "vicinae" "vicinae://extensions/vicinae/clipboard/history"; }
+    Mod+Shift+V { spawn "vicinae" "deeplink" "vicinae://extensions/vicinae/clipboard/history"; }
     Mod+C { spawn "gnome-calculator"; }
 
     Mod+S { spawn "pavucontrol"; }
-    Mod+E { spawn "wlogout"; }
+    Mod+E { spawn "wlogout" "--buttons-per-row" "3" "--column-spacing" "12" "--row-spacing" "12" "--margin-top" "180" "--margin-bottom" "180"; }
 }
