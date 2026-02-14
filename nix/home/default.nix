@@ -55,6 +55,8 @@ let
       --buttons-per-row 3 \
       --column-spacing 18 \
       --row-spacing 18 \
+      -l "${homeDir}/.config/wlogout/layout" \
+      -C "${homeDir}/.config/wlogout/style.css" \
       "$@"
   '';
 in
