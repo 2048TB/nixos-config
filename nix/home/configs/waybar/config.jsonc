@@ -8,11 +8,12 @@
   "modules-left": [
     "custom/launcher",
     "clock",
-    "dwl/window",
+    "river/layout",
+    "river/window",
     "mpris"
   ],
   "modules-center": [
-    "dwl/tags"
+    "river/tags"
   ],
   "modules-right": [
     "cpu",
@@ -40,12 +41,17 @@
     "on-click": "/etc/profiles/per-user/$USER/bin/wlogout-menu"
   },
 
-  "dwl/tags": {
+  "river/tags": {
     "num-tags": 9
   },
 
-  "dwl/window": {
-    "format": "[{layout}] {title}",
+  "river/layout": {
+    "format": "[{}]",
+    "min-length": 3
+  },
+
+  "river/window": {
+    "format": "{}",
     "max-length": 50
   },
 
