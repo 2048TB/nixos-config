@@ -116,6 +116,9 @@ binds {
     "Mod+Ctrl+Page_Up" { move-column-to-workspace-up; }
     Mod+Ctrl+U { move-column-to-workspace-down; }
     Mod+Ctrl+I { move-column-to-workspace-up; }
+    // 2 键别名：快速将当前列投递到相邻工作区
+    Mod+X { move-column-to-workspace-down; }
+    Mod+Z { move-column-to-workspace-up; }
     "Mod+Shift+Page_Down" { move-workspace-down; }
     "Mod+Shift+Page_Up" { move-workspace-up; }
     Mod+Shift+U { move-workspace-down; }
@@ -126,24 +129,12 @@ binds {
     // 会指向最底部的（空）工作区。
     //
     // 例如有 2 个工作区 + 1 个空位时，索引 3、4、5 等都会指向第 3 个工作区。
+    // 工作区直达：精简为常用 1-5
     Mod+1 { focus-workspace 1; }
     Mod+2 { focus-workspace 2; }
     Mod+3 { focus-workspace 3; }
     Mod+4 { focus-workspace 4; }
     Mod+5 { focus-workspace 5; }
-    Mod+6 { focus-workspace 6; }
-    Mod+7 { focus-workspace 7; }
-    Mod+8 { focus-workspace 8; }
-    Mod+9 { focus-workspace 9; }
-    Mod+Ctrl+1 { move-column-to-workspace 1; }
-    Mod+Ctrl+2 { move-column-to-workspace 2; }
-    Mod+Ctrl+3 { move-column-to-workspace 3; }
-    Mod+Ctrl+4 { move-column-to-workspace 4; }
-    Mod+Ctrl+5 { move-column-to-workspace 5; }
-    Mod+Ctrl+6 { move-column-to-workspace 6; }
-    Mod+Ctrl+7 { move-column-to-workspace 7; }
-    Mod+Ctrl+8 { move-column-to-workspace 8; }
-    Mod+Ctrl+9 { move-column-to-workspace 9; }
 
     // 也可以只移动单个窗口：
     // Mod+Ctrl+1 { move-window-to-workspace 1; }
@@ -151,8 +142,13 @@ binds {
     // 在当前与上一个工作区之间切换焦点。
     Mod+Tab { focus-workspace-previous; }
 
+    // chat 命名工作区：快速切换/投递当前列
+    Mod+T { focus-workspace "chat"; }
+    Mod+Y { move-column-to-workspace "chat"; }
+
     // 新建工作区（类别）并切换到它：
     // 使用动态工作区，跳到“最底部空工作区”。
+    Mod+M { focus-workspace 99; }
     Mod+Shift+N { focus-workspace 99; }
 
     // 以下绑定用于在列内/列外移动焦点窗口。
