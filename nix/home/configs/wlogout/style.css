@@ -1,5 +1,6 @@
 * {
   background-image: none;
+  background-color: transparent;
   box-shadow: none;
   text-shadow: none;
 }
@@ -14,17 +15,17 @@ button {
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 16px;
   margin: 8px;
-  padding: 50px 16px 16px;
-  min-width: 170px;
-  min-height: 115px;
-  max-width: 210px;
-  max-height: 150px;
+  padding: 40px 14px 14px;
+  min-width: 140px;
+  min-height: 95px;
+  max-width: 175px;
+  max-height: 125px;
   font-family: "Maple Mono NF CN", "Sarasa UI SC", "JetBrainsMono Nerd Font", sans-serif;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 700;
   background-repeat: no-repeat;
-  background-position: center 18px;
-  background-size: 34px;
+  background-position: center 14px;
+  background-size: 30px;
 }
 
 button:hover {
