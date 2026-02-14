@@ -9,7 +9,7 @@
 
 window#waybar {
   background: transparent;
-  color: #dcd7ba;
+  color: #cdd6f4;
   margin: 2px 4px 0 4px;
 }
 
@@ -29,8 +29,8 @@ window#waybar {
 #tray,
 #custom-launcher,
 #custom-power {
-  background-color: #1f2430;
-  color: #dcd7ba;
+  background-color: #1e1e2e;
+  color: #cdd6f4;
   margin: 4px 2px 0 2px;
   padding: 0 9px;
   border-radius: 14px;
@@ -47,7 +47,7 @@ window#waybar {
 }
 
 #workspaces button {
-  color: #7e9cd8;
+  color: #89b4fa;
   background: transparent;
   margin: 2px 1px;
   padding: 0 10px;
@@ -56,88 +56,88 @@ window#waybar {
 
 #workspaces button.active,
 #workspaces button.focused {
-  background-color: #7aa2f7;
-  color: #1f2430;
+  background-color: #89b4fa;
+  color: #1e1e2e;
 }
 
 #workspaces button:hover {
-  background-color: rgba(122, 162, 247, 0.25);
-  color: #dcd7ba;
+  background-color: rgba(137, 180, 250, 0.25);
+  color: #cdd6f4;
 }
 
 #window {
-  color: #9ccfd8;
+  color: #94e2d5;
 }
 
 #mpris {
-  color: #bb9af7;
+  color: #cba6f7;
   font-style: italic;
 }
 
 #clock {
-  color: #e6c384;
+  color: #f9e2af;
   letter-spacing: 0.4px;
 }
 
 #network {
-  color: #7e9cd8;
+  color: #89b4fa;
 }
 
 #network.disconnected {
-  color: #e46876;
+  color: #f38ba8;
 }
 
 #network.disabled {
-  color: #e46876;
+  color: #f38ba8;
 }
 
 #bluetooth {
-  color: #957fb8;
+  color: #cba6f7;
 }
 
 #bluetooth.off,
 #bluetooth.disabled {
-  color: #e46876;
+  color: #f38ba8;
 }
 
 #pulseaudio {
-  color: #957fb8;
+  color: #cba6f7;
 }
 
 #pulseaudio.muted {
-  color: #727169;
+  color: #6c7086;
 }
 
 #backlight {
-  color: #ffa066;
+  color: #fab387;
 }
 
 #cpu.warning,
 #memory.warning,
 #temperature.warning {
-  color: #e6c384;
+  color: #f9e2af;
 }
 
 #cpu.critical,
 #memory.critical,
 #temperature.critical {
-  color: #e46876;
+  color: #f38ba8;
 }
 
 #battery.charging {
-  color: #98bb6c;
+  color: #a6e3a1;
 }
 
 #battery.warning:not(.charging) {
-  color: #e6c384;
+  color: #f9e2af;
 }
 
 #battery.critical:not(.charging) {
-  color: #e46876;
+  color: #f38ba8;
 }
 
 #power-profiles-daemon {
-  color: #98bb6c;
+  color: #a6e3a1;
   min-width: 26px;
 }
 
@@ -147,28 +147,28 @@ window#waybar {
 }
 
 #power-profiles-daemon.performance {
-  color: #e46876;
+  color: #f38ba8;
 }
 
 #power-profiles-daemon.balanced {
-  color: #98bb6c;
+  color: #a6e3a1;
 }
 
 #power-profiles-daemon.power-saver {
-  color: #7aa2f7;
+  color: #89b4fa;
 }
 
 #custom-power {
-  color: #e46876;
+  color: #f38ba8;
 }
 
 tooltip {
-  background-color: #1f2430;
+  background-color: #1e1e2e;
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 10px;
 }
 
 tooltip label {
-  color: #dcd7ba;
+  color: #cdd6f4;
   padding: 6px 8px;
 }

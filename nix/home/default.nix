@@ -1,4 +1,4 @@
-{ config, pkgs, lib, myvars, mainUser, pkgsUnstable ? null, ... }:
+{ config, pkgs, lib, myvars, mainUser, ... }:
 let
   # 配置常量
   homeStateVersion = "25.11";
@@ -433,6 +433,7 @@ in
       "niri/keybindings.kdl".source = ./configs/niri/keybindings.kdl;
       "niri/windowrules.kdl".source = ./configs/niri/windowrules.kdl;
       "qt6ct/qt6ct.conf".source = ./configs/qt6ct/qt6ct.conf;
+      "qt6ct/colors/darker.conf".source = "${pkgs.qt6Packages.qt6ct}/share/qt6ct/colors/darker.conf";
       "waybar/config".source = ./configs/waybar/config.jsonc;
       "waybar/style.css".source = ./configs/waybar/style.css;
       "wlogout/layout".source = ./configs/wlogout/layout;
@@ -478,6 +479,15 @@ in
       # 统一图片默认打开方式
       # 使用 genAttrs 保持行为一致，减少重复
       defaultApplications = lib.genAttrs imageMimeTypes (_: imageApps);
+    };
+  };
+
+  dconf.settings = {
+    # GTK 全局暗色偏好（Nautilus/libadwaita 等会跟随）
+    "org/gnome/desktop/interface" = {
+      color-scheme = "prefer-dark";
+      gtk-theme = "Adwaita-dark";
+      icon-theme = "Papirus";
     };
   };
 }

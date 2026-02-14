@@ -106,9 +106,9 @@ layout {
     // 可以调整焦点环外观。
     focus-ring {
         width 4
-        active-gradient from="#88d6bbcc" to="#a8cbe2cc" angle=135
-        inactive-color "#505050"
-        urgent-color "#ffb4ab"
+        active-gradient from="#89b4facc" to="#cba6f7cc" angle=135
+        inactive-color "#585b70"
+        urgent-color "#f38ba8"
     }
 
     // 也可以添加边框，类似焦点环但始终可见。
@@ -118,11 +118,11 @@ layout {
         off
 
         width 4
-        active-color "#ffc87f"
-        inactive-color "#505050"
+        active-color "#f9e2af"
+        inactive-color "#585b70"
 
         // 请求注意的窗口边框颜色。
-        urgent-color "#9b0000"
+        urgent-color "#f38ba8"
 
         // 渐变可使用不同的插值色彩空间。
         // 例如通过 in="oklch longer hue" 可实现柔和的彩虹渐变。
@@ -148,7 +148,7 @@ layout {
         softness 30
         spread 5
         offset x=0 y=5
-        color "#0007"
+        color "#0008"
     }
 }
 
@@ -191,8 +191,8 @@ animations {
 // 最近窗口切换器（Alt+Tab）样式
 recent-windows {
     highlight {
-        active-color "#343b38"
-        urgent-color "#ffb4ab"
+        active-color "#313244"
+        urgent-color "#f38ba8"
     }
 }
 

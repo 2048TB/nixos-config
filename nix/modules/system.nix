@@ -28,6 +28,10 @@ let
     (lib.optional hasAmd "options kvm_amd nested=1")
     (lib.optional hasIntel "options kvm_intel nested=1")
   ]);
+  portalDefaults = [
+    "gnome"
+    "gtk"
+  ];
 in
 {
   imports = [ preservation.nixosModules.default ];
@@ -386,15 +390,9 @@ in
   xdg.portal = {
     enable = true;
     xdgOpenUsePortal = true;
-    config.common.default = [
-      "gtk"
-      "gnome"
-    ];
+    config.common.default = portalDefaults;
     # niri 专用 portal 配置：确保文件选择器使用 GTK backend
-    config.niri.default = [
-      "gnome"
-      "gtk"
-    ];
+    config.niri.default = portalDefaults;
     extraPortals = with pkgs; [
       xdg-desktop-portal-gtk
       xdg-desktop-portal-gnome

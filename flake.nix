@@ -44,7 +44,7 @@
 
   };
 
-  outputs = { nixpkgs, nixpkgs-unstable, rust-overlay, home-manager, lanzaboote, niri, nix-gaming, preservation, disko, ... }:
+  outputs = { nixpkgs, rust-overlay, home-manager, lanzaboote, niri, nix-gaming, preservation, disko, ... }:
     let
       myvars = rec {
         # 用户配置
@@ -82,11 +82,6 @@
         config.allowUnfree = true;
         overlays = [ rust-overlay.overlays.default ];
       };
-      pkgsUnstable = import nixpkgs-unstable {
-        inherit system;
-        config.allowUnfree = true;
-      };
-
       specialArgs = {
         inherit myvars mainUser preservation;
       };
@@ -109,7 +104,7 @@
               useGlobalPkgs = true;
               useUserPackages = true;
               extraSpecialArgs = {
-                inherit myvars mainUser pkgsUnstable;
+                inherit myvars mainUser;
               };
               users.${mainUser} = {
                 imports = [

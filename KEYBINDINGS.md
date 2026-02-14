@@ -250,3 +250,16 @@
 ```bash
 sudo nixos-rebuild switch --flake /etc/nixos#zly
 ```
+
+---
+
+## Shell 快捷命令（zsh）
+
+以下为命令行快捷函数（非 GUI 快捷键）：
+
+| 命令 | 功能 |
+|---|---|
+| `ccv` | 启动 Claude Code（危险权限模式） |
+| `ccv r` | 恢复 Claude Code 会话 |
+| `cdx` | 启动 Codex（`--dangerously-bypass-approvals-and-sandbox`） |
+| `cdx r` | 恢复 Codex 会话（`codex resume`） |
