@@ -115,9 +115,13 @@
               useUserPackages = true;
               extraSpecialArgs = {
                 inherit myvars mainUser pkgsUnstable;
-                noctaliaShellPkg = noctalia.packages.${system}.default;
               };
-              users.${mainUser} = import ./nix/home;
+              users.${mainUser} = {
+                imports = [
+                  ./nix/home
+                  noctalia.homeModules.default
+                ];
+              };
             };
           }
         ];
