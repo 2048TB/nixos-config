@@ -9,7 +9,7 @@
 - `CLAUDE.md` 项目维护约定（给 AI/自动化工具）
 
 主要特性：
-- Wayland 桌面：Niri + Waybar + Wlogout
+- Wayland 桌面：Niri + Waybar + Fuzzel + Wlogout
 - 开发工具链：Rust / Zig / Go / Node.js / Python
 - 游戏支持：Steam / Proton / Wine / Lutris
 - 中文输入：Fcitx5
@@ -158,8 +158,10 @@ GPU 使用 `flake.nix` 的 `myvars.gpuMode` 固定配置。
 │           ├── niri/         # Niri 合成器（KDL）
 │           ├── waybar/       # Waybar 状态栏
 │           ├── wlogout/      # 电源菜单
-│           ├── ghostty/      # 终端
-│           ├── shell/        # zsh/vim
+│           ├── fuzzel/        # 应用启动器
+│           ├── foot/          # Foot 终端
+│           ├── ghostty/       # Ghostty 终端
+│           ├── shell/         # zsh/vim
 │           ├── fcitx5/       # 输入法
 │           ├── git/          # Git + delta
 │           ├── qt6ct/        # Qt6 主题

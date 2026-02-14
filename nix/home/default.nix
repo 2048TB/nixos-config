@@ -185,6 +185,7 @@ in
       nautilus # GNOME 文件管理器（Wayland 原生，简洁现代）
       file-roller # GNOME 压缩管理器（Nautilus 集成必需）
       ghostty
+      foot # 轻量 Wayland 终端（备用）
       cherry-studio # 多 LLM 提供商桌面客户端
 
       # === Wayland 工具 ===
@@ -211,7 +212,7 @@ in
       zstd
 
       # === Niri 生态 ===
-      vicinae
+      fuzzel
       waybar
       swaylock
       wlogout
@@ -393,22 +394,6 @@ in
           };
         };
 
-        vicinae = {
-          Unit = {
-            Description = "Vicinae launcher server";
-            After = [ "graphical-session.target" ];
-            PartOf = [ "graphical-session.target" ];
-          };
-          Install.WantedBy = [ "graphical-session.target" ];
-          Service = {
-            Type = "simple";
-            ExecStart = "${pkgs.vicinae}/bin/vicinae server";
-            Environment = [ "USE_LAYER_SHELL=1" ];
-            Restart = "on-failure";
-            RestartSec = 2;
-          };
-        };
-
         waybar = {
           Unit = {
             Description = "Waybar status bar";
@@ -464,6 +449,8 @@ in
         force = true;
       };
 
+      "fuzzel/fuzzel.ini".source = ./configs/fuzzel/fuzzel.ini;
+      "foot/foot.ini".source = ./configs/foot/foot.ini;
       "ghostty/config".source = ./configs/ghostty/config;
       "yazi/yazi.toml".source = ./configs/yazi/yazi.toml;
       "yazi/keymap.toml".source = ./configs/yazi/keymap.toml;

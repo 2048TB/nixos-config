@@ -3,6 +3,8 @@
 本文档基于当前配置文件：
 - `nix/home/configs/niri/keybindings.kdl`
 - `nix/home/configs/ghostty/config`
+- `nix/home/configs/fuzzel/fuzzel.ini`
+- `nix/home/configs/foot/foot.ini`
 
 说明：Niri 中的 `Mod` 通常是 `Super`（Windows 键）。
 
@@ -26,8 +28,8 @@
 |---|---|
 | `Mod` + `Enter` | 打开终端（Ghostty） |
 | `Mod` + `Shift` + `Enter` | 打开浮动终端（Ghostty） |
-| `Mod` + `Space` | 启动器（Vicinae） |
-| `XF86Search` | 启动器（Vicinae） |
+| `Mod` + `Space` | 启动器（Fuzzel） |
+| `XF86Search` | 启动器（Fuzzel） |
 | `Mod` + `D` | 文件管理器（Nautilus） |
 | `Ctrl` + `Alt` + `L` | 锁屏 |
 
@@ -110,7 +112,7 @@
 |---|---|
 | `Mod` + `S` | 音量控制（pavucontrol） |
 | `Mod` + `E` | 电源菜单（wlogout） |
-| `Mod` + `Shift` + `V` | 剪贴板历史 |
+| `Mod` + `Shift` + `V` | 剪贴板历史（cliphist + Fuzzel） |
 | `Mod` + `Shift` + `P` | 关闭显示器 |
 
 媒体与亮度：
@@ -203,9 +205,44 @@
 
 ---
 
+## 终端（Foot）
+
+复制粘贴：
+
+| 快捷键 | 功能 |
+|---|---|
+| `Ctrl` + `Shift` + `C` | 复制 |
+| `Ctrl` + `Shift` + `V` | 粘贴 |
+
+字体大小：
+
+| 快捷键 | 功能 |
+|---|---|
+| `Ctrl` + `+` / `Ctrl` + `=` | 增大字体 |
+| `Ctrl` + `-` | 减小字体 |
+| `Ctrl` + `0` | 重置字体 |
+
+滚动：
+
+| 快捷键 | 功能 |
+|---|---|
+| `Shift` + `Page Up` | 向上翻页 |
+| `Shift` + `Page Down` | 向下翻页 |
+
+其他：
+
+| 快捷键 | 功能 |
+|---|---|
+| `Ctrl` + `Shift` + `N` | 新建窗口 |
+| `Ctrl` + `Shift` + `R` | 搜索回滚缓冲区 |
+
+---
+
 ## 配置文件位置
 
 - Niri：`nix/home/configs/niri/keybindings.kdl`
+- Fuzzel：`nix/home/configs/fuzzel/fuzzel.ini`
+- Foot：`nix/home/configs/foot/foot.ini`
 - Ghostty：`nix/home/configs/ghostty/config`
 
 修改配置后执行：
