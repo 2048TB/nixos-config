@@ -6,7 +6,7 @@
 }
 
 window {
-  background-color: rgba(26, 27, 38, 0.88);
+  background-color: rgba(26, 27, 38, 0.88) !important;
 }
 
 button {
@@ -16,10 +16,10 @@ button {
   border-radius: 16px;
   margin: 8px;
   padding: 40px 14px 14px;
-  min-width: 140px;
-  min-height: 95px;
-  max-width: 175px;
-  max-height: 125px;
+  min-width: 180px;
+  min-height: 120px;
+  max-width: 220px;
+  max-height: 155px;
   font-family: "Maple Mono NF CN", "Sarasa UI SC", "JetBrainsMono Nerd Font", sans-serif;
   font-size: 16px;
   font-weight: 700;
