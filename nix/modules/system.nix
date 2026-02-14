@@ -272,6 +272,7 @@ in
       enable = true;
       package = pkgs.river-classic;
       xwayland.enable = true;
+      extraPackages = [ ];
     };
 
     seahorse.enable = true;
@@ -396,7 +397,6 @@ in
     extraPortals = with pkgs; [
       xdg-desktop-portal-wlr
       xdg-desktop-portal-gtk
-      xdg-desktop-portal-gnome
     ];
   };
 
