@@ -8,11 +8,11 @@
   "modules-left": [
     "custom/launcher",
     "clock",
-    "niri/window",
+    "dwl/window",
     "mpris"
   ],
   "modules-center": [
-    "niri/workspaces"
+    "dwl/tags"
   ],
   "modules-right": [
     "cpu",
@@ -40,16 +40,13 @@
     "on-click": "/etc/profiles/per-user/$USER/bin/wlogout-menu"
   },
 
-  "niri/workspaces": {
-    "format": "{index}",
-    "all-outputs": false,
-    "current-only": false
+  "dwl/tags": {
+    "num-tags": 9
   },
 
-  "niri/window": {
-    "format": "{title}",
-    "max-length": 50,
-    "separate-outputs": true
+  "dwl/window": {
+    "format": "[{layout}] {title}",
+    "max-length": 50
   },
 
   "mpris": {

@@ -168,7 +168,6 @@ in
       experimental-features = [ "nix-command" "flakes" ];
 
       # 配置二进制缓存以加速包下载
-      # 注意：niri.cachix.org 由 niri-flake 的 nixosModules.niri 自动添加（通过 niri-flake.cache.enable 选项，默认启用）
       substituters = [
         "https://cache.nixos.org"
         "https://nix-community.cachix.org"
@@ -268,10 +267,11 @@ in
 
     zsh.enable = true;
 
-    # Niri 合成器
-    niri = {
+    # river-classic 合成器（dwm 风格 tags）
+    "river-classic" = {
       enable = true;
-      package = pkgs.niri; # 使用 nixpkgs 官方包（零编译）
+      package = pkgs.river-classic;
+      xwayland.enable = true;
     };
 
     seahorse.enable = true;
@@ -391,9 +391,10 @@ in
     enable = true;
     xdgOpenUsePortal = true;
     config.common.default = portalDefaults;
-    # niri 专用 portal 配置：确保文件选择器使用 GTK backend
-    config.niri.default = portalDefaults;
+    # river 专用 portal 配置：屏幕共享与截图走 wlr backend
+    config.river.default = [ "wlr" "gtk" ];
     extraPortals = with pkgs; [
+      xdg-desktop-portal-wlr
       xdg-desktop-portal-gtk
       xdg-desktop-portal-gnome
     ];
@@ -491,7 +492,7 @@ in
     # 编辑器（vim 由 home-manager 配置，此处仅保留 neovim 作为 root 用户编辑器）
     neovim
     gnupg # gpg 命令（签名/加密）
-    xwayland-satellite # niri 内置 XWayland 集成所需（Steam/WPS 等 X11 应用依赖）
+    xwayland # XWayland 运行时工具（Steam/WPS 等 X11 应用依赖）
 
     # 开发语言/工具链（系统级）
     # Rust: 预装 Windows GNU target，支持在 Linux 主机交叉编译 .exe
@@ -590,10 +591,6 @@ in
         wants = [ "systemd-tmpfiles-setup.service" ];
       };
     };
-
-    # niri-flake 会默认启用一个 polkit-kde agent；此配置已在 Home Manager
-    # 启用 polkit-gnome-authentication-agent-1，避免重复启动导致循环失败日志。
-    user.services.niri-flake-polkit.enable = lib.mkForce false;
 
     # 定期清理临时文件（模拟部分 tmpfs 优势）
     tmpfiles.rules = [
