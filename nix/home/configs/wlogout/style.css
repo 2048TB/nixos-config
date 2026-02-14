@@ -1,64 +1,58 @@
+/* 清除 GTK 主题默认渐变 */
 * {
   background-image: none;
-  background-color: transparent;
   box-shadow: none;
-  text-shadow: none;
 }
 
+/* 全局背景设置 */
 window {
-  background-color: rgba(26, 27, 38, 0.88);
+  background-color: rgba(0, 0, 0, 0.5);
 }
 
+/* 按钮基础样式 */
 button {
-  color: #dcd7ba;
-  background-color: #1f2430;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 14px;
-  margin: 6px 24px;
-  padding: 20px 10px 6px;
-  min-width: 132px;
-  min-height: 64px;
-  font-family: "Maple Mono NF CN", "Sarasa UI SC", "JetBrainsMono Nerd Font", sans-serif;
-  font-size: 14px;
-  font-weight: 700;
+  margin: 10px;
+  border-radius: 20px;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  background-color: rgba(30, 30, 46, 0.5);
   background-repeat: no-repeat;
-  background-position: center 12px;
-  background-size: 26px;
+  background-position: center;
+  background-size: 25%;
+  color: #cdd6f4;
+  transition: all 0.3s cubic-bezier(.55, 0.0, .28, 1.4);
 }
 
+/* 悬浮状态 */
+button:focus,
+button:active,
 button:hover {
-  background-color: #2a3244;
-  border-color: rgba(122, 162, 247, 0.55);
+  background-color: rgba(137, 180, 250, 0.2);
+  border: 2px solid #89b4fa;
+  background-size: 35%;
+  outline-style: none;
 }
 
+/* 图标绑定 */
 #lock {
-  color: #7aa2f7;
-  background-image: image(url("icons/lock.png"));
+  background-image: url("icons/lock.png");
 }
 
 #logout {
-  color: #9ccfd8;
-  background-image: image(url("icons/logout.png"));
+  background-image: url("icons/logout.png");
 }
 
-#suspend,
-#hibernate {
-  color: #e6c384;
-}
 #suspend {
-  background-image: image(url("icons/suspend.png"));
+  background-image: url("icons/suspend.png");
 }
 
 #hibernate {
-  background-image: image(url("icons/hibernate.png"));
-}
-
-#reboot {
-  color: #ff9e64;
-  background-image: image(url("icons/reboot.png"));
+  background-image: url("icons/hibernate.png");
 }
 
 #shutdown {
-  color: #e46876;
-  background-image: image(url("icons/shutdown.png"));
+  background-image: url("icons/shutdown.png");
+}
+
+#reboot {
+  background-image: url("icons/reboot.png");
 }
