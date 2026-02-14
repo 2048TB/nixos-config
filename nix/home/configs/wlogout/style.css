@@ -13,19 +13,17 @@ button {
   color: #dcd7ba;
   background-color: #1f2430;
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 16px;
-  margin: 8px;
-  padding: 40px 14px 14px;
-  min-width: 180px;
-  min-height: 120px;
-  max-width: 220px;
-  max-height: 155px;
+  border-radius: 14px;
+  margin: 6px;
+  padding: 34px 12px 12px;
+  min-width: 160px;
+  min-height: 104px;
   font-family: "Maple Mono NF CN", "Sarasa UI SC", "JetBrainsMono Nerd Font", sans-serif;
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 700;
   background-repeat: no-repeat;
-  background-position: center 14px;
-  background-size: 30px;
+  background-position: center 12px;
+  background-size: 26px;
 }
 
 button:hover {
