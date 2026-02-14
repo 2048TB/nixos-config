@@ -17,13 +17,13 @@ let
     "image/tiff"
   ];
   imageApps = [ "org.nomacs.ImageLounge.desktop" "nomacs.desktop" ];
-  niriSession = pkgs.writeScript "niri-session" ''
+  waylandSession = pkgs.writeScript "wayland-session" ''
     #!/usr/bin/env bash
-    # 尝试结束旧的 niri 会话，避免残留服务状态影响新会话
-    if systemctl --user is-active niri.service >/dev/null 2>&1; then
-      systemctl --user stop niri.service
+    # 尝试结束旧的 river 会话，避免残留服务状态影响新会话
+    if systemctl --user is-active river-session.target >/dev/null 2>&1; then
+      systemctl --user stop river-session.target
     fi
-    /run/current-system/sw/bin/niri-session
+    exec /run/current-system/sw/bin/river
   '';
 
   # 仅在混合显卡（amd-nvidia-hybrid）时安装 GPU 加速相关软件
@@ -271,7 +271,7 @@ in
       "nixos".source = config.lib.file.mkOutOfStoreSymlink "/persistent/nixos-config";
 
       ".wayland-session" = {
-        source = niriSession;
+        source = waylandSession;
         executable = true;
       };
       ".cargo/config.toml".text = ''
@@ -346,6 +346,70 @@ in
 
   };
 
+  wayland.windowManager.river = {
+    enable = true;
+    package = null; # 由 NixOS 的 programs.river-classic 安装
+    systemd.enable = true;
+    extraSessionVariables = {
+      XDG_CURRENT_DESKTOP = "river";
+      XDG_SESSION_DESKTOP = "river";
+    };
+    extraConfig = ''
+      riverctl background-color 0x1e1e2e
+      riverctl border-color-focused 0x89b4fa
+      riverctl border-color-unfocused 0x585b70
+      riverctl set-repeat 50 300
+      riverctl set-cursor-warp on-output-change
+
+      riverctl map normal Super Return spawn ghostty
+      riverctl map normal Super Space spawn fuzzel
+      riverctl map normal Super D spawn nautilus
+      riverctl map normal Super Q close
+      riverctl map normal Control+Alt L spawn 'swaylock -f'
+      riverctl map normal Super E spawn 'sh -c /etc/profiles/per-user/$USER/bin/wlogout-menu'
+
+      riverctl map normal Super J focus-view next
+      riverctl map normal Super K focus-view previous
+      riverctl map normal Super+Shift J swap next
+      riverctl map normal Super+Shift K swap previous
+
+      riverctl map normal Super Period focus-output next
+      riverctl map normal Super Comma focus-output previous
+      riverctl map normal Super+Shift Period send-to-output next
+      riverctl map normal Super+Shift Comma send-to-output previous
+
+      riverctl map normal Super F toggle-fullscreen
+      riverctl map normal Super V toggle-float
+
+      for i in $(seq 1 9); do
+          tags=$((1 << ($i - 1)))
+          riverctl map normal Super $i set-focused-tags $tags
+          riverctl map normal Super+Shift $i set-view-tags $tags
+          riverctl map normal Super+Control $i toggle-focused-tags $tags
+          riverctl map normal Super+Shift+Control $i toggle-view-tags $tags
+      done
+
+      all_tags=$(((1 << 32) - 1))
+      riverctl map normal Super 0 set-focused-tags $all_tags
+      riverctl map normal Super+Shift 0 set-view-tags $all_tags
+
+      for mode in normal locked; do
+          riverctl map $mode None XF86AudioRaiseVolume spawn 'wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.01+ --limit 1.0'
+          riverctl map $mode None XF86AudioLowerVolume spawn 'wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.01-'
+          riverctl map $mode None XF86AudioMute spawn 'wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle'
+          riverctl map $mode None XF86AudioMicMute spawn 'wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle'
+          riverctl map $mode None XF86AudioPlay spawn 'playerctl play-pause'
+          riverctl map $mode None XF86AudioPrev spawn 'playerctl previous'
+          riverctl map $mode None XF86AudioNext spawn 'playerctl next'
+          riverctl map $mode None XF86MonBrightnessUp spawn 'brightnessctl --class=backlight set 1%+'
+          riverctl map $mode None XF86MonBrightnessDown spawn 'brightnessctl --class=backlight set 1%-'
+      done
+
+      riverctl default-layout rivertile
+      rivertile -view-padding 8 -outer-padding 8 &
+    '';
+  };
+
   services = {
     playerctld.enable = true;
 
@@ -354,7 +418,7 @@ in
       enable = true;
       automount = true;
       notify = true;
-      tray = "never"; # Niri 不需要托盘图标
+      tray = "never"; # Wayland 会话使用 Waybar 托盘模块
     };
   };
 
@@ -428,10 +492,6 @@ in
 
   xdg = {
     configFile = {
-      # niri 合成器配置（3 个文件）
-      "niri/config.kdl".source = ./configs/niri/config.kdl;
-      "niri/keybindings.kdl".source = ./configs/niri/keybindings.kdl;
-      "niri/windowrules.kdl".source = ./configs/niri/windowrules.kdl;
       "qt6ct/qt6ct.conf".source = ./configs/qt6ct/qt6ct.conf;
       "qt6ct/colors/darker.conf".source = "${pkgs.qt6Packages.qt6ct}/share/qt6ct/colors/darker.conf";
       "waybar/config".source = ./configs/waybar/config.jsonc;

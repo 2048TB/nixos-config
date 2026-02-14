@@ -20,11 +20,6 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    niri = {
-      url = "github:sodiboo/niri-flake";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
     nix-gaming = {
       url = "github:fufexan/nix-gaming";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -44,7 +39,7 @@
 
   };
 
-  outputs = { nixpkgs, rust-overlay, home-manager, lanzaboote, niri, nix-gaming, preservation, disko, ... }:
+  outputs = { nixpkgs, rust-overlay, home-manager, lanzaboote, nix-gaming, preservation, disko, ... }:
     let
       myvars = rec {
         # 用户配置
@@ -94,7 +89,6 @@
           ./nix/hosts/${myvars.hostname}.nix
           { nixpkgs.overlays = [ rust-overlay.overlays.default ]; }
           lanzaboote.nixosModules.lanzaboote
-          niri.nixosModules.niri
           nix-gaming.nixosModules.pipewireLowLatency
           nix-gaming.nixosModules.platformOptimizations
           disko.nixosModules.disko
