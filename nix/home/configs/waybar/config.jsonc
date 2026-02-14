@@ -41,9 +41,9 @@
   },
 
   "niri/workspaces": {
-    "format": "{value}",
+    "format": "{index}",
     "all-outputs": false,
-    "current-only": true
+    "current-only": false
   },
 
   "niri/window": {

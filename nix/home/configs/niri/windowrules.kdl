@@ -28,8 +28,4 @@ window-rule {
     open-floating true
 }
 
-// Telegram 默认在独立聊天工作区打开
-window-rule {
-    match app-id=r#"^org\.telegram\.desktop$"#
-    open-on-workspace "chat"
-}
+// 如需将某应用固定到命名工作区，可在这里添加 open-on-workspace 规则。
