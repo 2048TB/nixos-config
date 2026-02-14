@@ -5,7 +5,7 @@
 }
 
 window {
-  background-color: #1a1b26;
+  background-color: rgba(26, 27, 38, 0.36);
 }
 
 button {
@@ -14,17 +14,17 @@ button {
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 16px;
   margin: 8px;
-  padding: 72px 20px 20px;
-  min-width: 240px;
-  min-height: 170px;
-  max-width: 300px;
-  max-height: 210px;
+  padding: 64px 18px 18px;
+  min-width: 220px;
+  min-height: 156px;
+  max-width: 270px;
+  max-height: 190px;
   font-family: "Maple Mono NF CN", "Sarasa UI SC", "JetBrainsMono Nerd Font", sans-serif;
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 700;
   background-repeat: no-repeat;
-  background-position: center 26px;
-  background-size: 44px;
+  background-position: center 22px;
+  background-size: 38px;
 }
 
 button:hover {
