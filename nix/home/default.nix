@@ -410,6 +410,21 @@ in
             RestartSec = 2;
           };
         };
+
+        swaybg = {
+          Unit = {
+            Description = "Wallpaper daemon (swaybg)";
+            After = [ "graphical-session.target" ];
+            PartOf = [ "graphical-session.target" ];
+          };
+          Install.WantedBy = [ "graphical-session.target" ];
+          Service = {
+            Type = "simple";
+            ExecStart = "${pkgs.swaybg}/bin/swaybg -i ${homeDir}/.config/wallpapers/default.png -m fill";
+            Restart = "on-failure";
+            RestartSec = 2;
+          };
+        };
       };
   };
 
@@ -424,6 +439,12 @@ in
       "waybar/style.css".source = ./configs/waybar/style.css;
       "wlogout/layout".source = ./configs/wlogout/layout;
       "wlogout/style.css".source = ./configs/wlogout/style.css;
+      "wlogout/icons/lock.png".source = "${pkgs.wlogout}/share/wlogout/icons/lock.png";
+      "wlogout/icons/logout.png".source = "${pkgs.wlogout}/share/wlogout/icons/logout.png";
+      "wlogout/icons/suspend.png".source = "${pkgs.wlogout}/share/wlogout/icons/suspend.png";
+      "wlogout/icons/hibernate.png".source = "${pkgs.wlogout}/share/wlogout/icons/hibernate.png";
+      "wlogout/icons/reboot.png".source = "${pkgs.wlogout}/share/wlogout/icons/reboot.png";
+      "wlogout/icons/shutdown.png".source = "${pkgs.wlogout}/share/wlogout/icons/shutdown.png";
 
       "fcitx5/profile" = {
         source = ./configs/fcitx5/profile;
@@ -436,6 +457,7 @@ in
       "git/config".source = ./configs/git/config;
       "zellij/config.kdl".source = ./configs/zellij/config.kdl;
       "tmux/tmux.conf".source = ./configs/tmux/tmux.conf;
+      "wallpapers/default.png".source = ./configs/wallpapers/1.png;
 
       "pnpm/rc".text = ''
         global-dir=${localShareDir}/pnpm/global

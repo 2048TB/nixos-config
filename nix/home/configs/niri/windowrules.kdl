@@ -27,9 +27,3 @@ window-rule {
     match app-id="ghostty-float"
     open-floating true
 }
-
-// Telegram 默认放到独立工作区
-window-rule {
-    match app-id=r#"^org\.telegram\.desktop$"#
-    open-on-workspace "telegram"
-}
