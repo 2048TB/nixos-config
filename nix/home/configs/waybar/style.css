@@ -104,6 +104,10 @@ window#waybar {
   color: #957fb8;
 }
 
+#pulseaudio.muted {
+  color: #727169;
+}
+
 #backlight {
   color: #ffa066;
 }

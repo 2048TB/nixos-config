@@ -17,7 +17,6 @@ binds {
     // 启动器
     Mod+Space { spawn "vicinae"; }
     XF86Search { spawn "vicinae"; }
-    Mod+P { spawn "vicinae"; }
 
     // 文件管理器
     Mod+N { spawn "nautilus"; }
@@ -30,36 +29,19 @@ binds {
     // 例如：下面是切换屏幕阅读器（orca）的常见绑定。
     // Super+Alt+S allow-when-locked=true hotkey-overlay-title=null { spawn-sh "pkill orca || exec orca"; }
 
-    // PipeWire 与 WirePlumber 的音量键示例。
-    // allow-when-locked=true 让其在锁屏时生效。
-    // 使用 spawn-sh 可一次传递多个参数。
-    // "-l 1.0" 将音量限制为 100%。
-    // XF86AudioRaiseVolume allow-when-locked=true { spawn-sh "wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.01+ --limit 1.0"; }
-    // XF86AudioLowerVolume allow-when-locked=true { spawn-sh "wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.01-"; }
-    // XF86AudioMute        allow-when-locked=true { spawn-sh "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"; }
-    // XF86AudioMicMute     allow-when-locked=true { spawn-sh "wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"; }
+    // 音量键（allow-when-locked 锁屏时生效，--limit 1.0 限制上限 100%）
     XF86AudioRaiseVolume allow-when-locked=true { spawn-sh "wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.01+ --limit 1.0"; }
     XF86AudioLowerVolume allow-when-locked=true { spawn-sh "wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.01-"; }
     XF86AudioMute allow-when-locked=true { spawn-sh "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"; }
     XF86AudioMicMute allow-when-locked=true { spawn-sh "wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"; }
 
+    // 媒体键（playerctl MPRIS）
+    XF86AudioPlay allow-when-locked=true { spawn-sh "playerctl play-pause"; }
+    XF86AudioStop allow-when-locked=true { spawn-sh "playerctl stop"; }
+    XF86AudioPrev allow-when-locked=true { spawn-sh "playerctl previous"; }
+    XF86AudioNext allow-when-locked=true { spawn-sh "playerctl next"; }
 
-    // 使用 playerctl 的媒体键示例。
-    // 适用于任何支持 MPRIS 的播放器。
-    // XF86AudioPlay        allow-when-locked=true { spawn-sh "playerctl play-pause"; }
-    // XF86AudioStop        allow-when-locked=true { spawn-sh "playerctl stop"; }
-    // XF86AudioPrev        allow-when-locked=true { spawn-sh "playerctl previous"; }
-    // XF86AudioNext        allow-when-locked=true { spawn-sh "playerctl next"; }
-    XF86AudioPlay        allow-when-locked=true { spawn-sh "playerctl play-pause"; }
-    XF86AudioStop        allow-when-locked=true { spawn-sh "playerctl stop"; }
-    XF86AudioPrev        allow-when-locked=true { spawn-sh "playerctl previous"; }
-    XF86AudioNext        allow-when-locked=true { spawn-sh "playerctl next"; }
-
-    // brightnessctl 的亮度键示例。
-    // 也可使用普通 spawn 传多个参数（避免走 "sh"），
-    // 但需要将每个参数单独放在 "" 中。
-    // XF86MonBrightnessUp allow-when-locked=true { spawn "brightnessctl" "--class=backlight" "set" "1%+"; }
-    // XF86MonBrightnessDown allow-when-locked=true { spawn "brightnessctl" "--class=backlight" "set" "1%-"; }
+    // 屏幕亮度
     XF86MonBrightnessUp allow-when-locked=true { spawn "brightnessctl" "--class=backlight" "set" "1%+"; }
     XF86MonBrightnessDown allow-when-locked=true { spawn "brightnessctl" "--class=backlight" "set" "1%-"; }
 

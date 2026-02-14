@@ -64,9 +64,7 @@ sudo nixos-rebuild switch --flake /etc/nixos#zly
 2. 真实仓库在 `/persistent/nixos-config`（持久化盘），避免 `/` 为 tmpfs 时丢失配置。
 3. 编辑 `/etc/nixos` 等同于编辑 `/persistent/nixos-config`。
 4. symlink 的创建依赖 `/persistent` 在早期启动阶段已挂载；当前已设置 `fileSystems."/persistent".neededForBoot = true`。
-5. 如果你将来修改 disko 布局（改名/移除 `/persistent` 子卷），必须同步调整 disko 配置里 `/persistent` 的挂载点。
-6. 如果你将来修改 disko 布局（改名/移除 `/persistent` 子卷），必须同步调整 `fileSystems."/persistent"`。
-7. 如果你将来修改 disko 布局（改名/移除 `/persistent` 子卷），必须同步调整 `tmpfiles` 规则（`/etc/nixos` 的 symlink）。
+5. 如果你将来修改 disko 布局（改名/移除 `/persistent` 子卷），必须同步调整：disko 配置中的挂载点、`fileSystems."/persistent"` 以及 `tmpfiles` 规则（`/etc/nixos` symlink）。
 
 ---
 
@@ -144,24 +142,30 @@ GPU 使用 `flake.nix` 的 `myvars.gpuMode` 固定配置。
 
 ---
 
-## 生成文件
-
----
-
 ## 目录结构
 
 ```
 .
-├── flake.nix
+├── flake.nix                 # 入口（inputs/outputs/myvars）
 ├── nix/
-│   ├── hosts/
+│   ├── hosts/                # 主机配置
 │   ├── modules/
+│   │   ├── system.nix        # 系统配置
+│   │   └── hardware.nix      # GPU 驱动
 │   └── home/
-└── scripts/
+│       ├── default.nix       # Home Manager 入口
+│       └── configs/          # 应用配置
+│           ├── niri/         # Niri 合成器（KDL）
+│           ├── waybar/       # Waybar 状态栏
+│           ├── wlogout/      # 电源菜单
+│           ├── ghostty/      # 终端
+│           ├── shell/        # zsh/vim
+│           ├── fcitx5/       # 输入法
+│           ├── git/          # Git + delta
+│           ├── qt6ct/        # Qt6 主题
+│           ├── yazi/         # 文件管理器
+│           ├── tmux/         # 终端复用器
+│           ├── zellij/       # 终端复用器
+│           └── wallpapers/   # 壁纸
+└── scripts/                  # 安装脚本
 ```
-
----
-
-## 可选：构建 ISO
-
-（当前未提供 ISO 输出）
