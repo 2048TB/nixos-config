@@ -31,13 +31,13 @@
   "custom/launcher": {
     "format": "󱄅",
     "tooltip": false,
-    "on-click": "vicinae"
+    "on-click": "/etc/profiles/per-user/$USER/bin/vicinae toggle"
   },
 
   "custom/power": {
     "format": "",
     "tooltip": false,
-    "on-click": "wlogout"
+    "on-click": "/etc/profiles/per-user/$USER/bin/wlogout --buttons-per-row 3 --column-spacing 12 --row-spacing 12 --margin-top 180 --margin-bottom 180"
   },
 
   "niri/workspaces": {
