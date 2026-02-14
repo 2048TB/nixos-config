@@ -1,4 +1,4 @@
-{ config, pkgs, lib, myvars, mainUser, pkgsUnstable ? null, noctaliaShellPkg ? null, ... }:
+{ config, pkgs, lib, myvars, mainUser, pkgsUnstable ? null, ... }:
 let
   # 配置常量
   homeStateVersion = "25.11";
@@ -7,7 +7,6 @@ let
   homeDir = config.home.homeDirectory;
   localBinDir = "${homeDir}/.local/bin";
   localShareDir = "${homeDir}/.local/share";
-  waylandUserTarget = lib.attrByPath [ "wayland" "systemd" "target" ] "graphical-session.target" config;
 
   imageMimeTypes = [
     "image/jpeg"
@@ -36,7 +35,6 @@ let
     then pkgs.python3.withPackages (_: [ tensorflowCudaPkg ])
     else null;
   hashcatPkg = pkgs.hashcat or null;
-  # noctaliaShellPkg 由 flake.nix 通过 extraSpecialArgs 传入（来自 noctalia flake）
   hybridPackages =
     lib.optionals (gpuChoice == "amd-nvidia-hybrid" && ollamaVulkan != null) [ ollamaVulkan ]
     ++ lib.optionals (gpuChoice == "amd-nvidia-hybrid" && tensorflowCudaEnv != null) [ tensorflowCudaEnv ]
@@ -246,7 +244,6 @@ in
       pnpm
       pipx
     ]
-    ++ lib.optionals (noctaliaShellPkg != null) [ noctaliaShellPkg ]
     ++ hybridPackages
     ++ wpsWrappedBins; # WPS steam-run 包装器（覆盖原始二进制，修复启动问题）
 
@@ -299,6 +296,15 @@ in
     direnv = {
       enable = true;
       nix-direnv.enable = true;
+    };
+
+    # Noctalia Shell 声明式配置（settings/plugins 为 read-only symlink）
+    # GUI 修改后需导出回 Nix：noctalia-shell ipc call state all | jq .settings
+    noctalia-shell = {
+      enable = true;
+      settings = builtins.fromJSON (builtins.readFile ./configs/noctalia/settings.json);
+      plugins = builtins.fromJSON (builtins.readFile ./configs/noctalia/plugins.json);
+      systemd.enable = true;
     };
 
     # 锁屏与会话菜单由 noctalia 处理（Mod+E / Ctrl+Alt+L）
@@ -379,73 +385,8 @@ in
             RestartSec = 2;
           };
         };
-      }
-      // lib.optionalAttrs (noctaliaShellPkg != null) {
-        # Noctalia Shell 由 systemd 用户服务托管（替代 niri 的 spawn-at-startup）
-        noctalia-shell = {
-          Unit = {
-            Description = "Noctalia Shell - Wayland desktop shell";
-            Documentation = "https://docs.noctalia.dev/docs";
-            After = [ waylandUserTarget ];
-            PartOf = [ waylandUserTarget ];
-          };
-          Service = {
-            ExecStart = lib.getExe noctaliaShellPkg;
-            Restart = "on-failure";
-            Environment = [
-              "QT_QPA_PLATFORM=wayland;xcb"
-              "QT_QPA_PLATFORMTHEME=qt6ct"
-              "QT_AUTO_SCREEN_SCALE_FACTOR=1"
-            ];
-          };
-          Install.WantedBy = [ waylandUserTarget ];
-        };
       };
   };
-
-  # Noctalia 状态文件改为“用户可写”：
-  # - 声明式 source 会生成只读 symlink，GUI 修改无法持久化
-  # - 仅在文件不存在（或历史遗留 symlink）时初始化默认值
-  home.activation.noctaliaMutableStateFiles = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
-        settings_dir="${config.xdg.configHome}/noctalia"
-        settings_file="$settings_dir/settings.json"
-        plugins_file="$settings_dir/plugins.json"
-        cache_dir="${config.xdg.cacheHome}/noctalia"
-        cache_file="$cache_dir/wallpapers.json"
-
-        mkdir -p "$settings_dir"
-        mkdir -p "$cache_dir"
-
-        if [ -L "$settings_file" ]; then
-          rm -f "$settings_file"
-        fi
-
-        if [ ! -e "$settings_file" ]; then
-          install -m 0644 ${./configs/noctalia/settings.json} "$settings_file"
-        fi
-
-        if [ -L "$plugins_file" ]; then
-          rm -f "$plugins_file"
-        fi
-
-        if [ ! -e "$plugins_file" ]; then
-          install -m 0644 ${./configs/noctalia/plugins.json} "$plugins_file"
-        fi
-
-        if [ -L "$cache_file" ]; then
-          rm -f "$cache_file"
-        fi
-
-        if [ ! -e "$cache_file" ]; then
-          cat > "$cache_file" <<EOF
-    {
-      "defaultWallpaper": "${homeDir}/.config/noctalia/wallpapers/1.png",
-      "wallpapers": {}
-    }
-    EOF
-          chmod 0644 "$cache_file"
-        fi
-  '';
 
   xdg = {
     configFile = {
