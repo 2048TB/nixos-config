@@ -51,6 +51,12 @@ in
       enable = true;
       # 避免适配器默认掉电，减少桌面层蓝牙开关“点了无效”的概率
       powerOnBoot = true;
+      # Waybar bluetooth 模块的设备电量显示依赖 BlueZ experimental
+      settings = {
+        General = {
+          Experimental = true;
+        };
+      };
     };
   };
 
@@ -62,7 +68,7 @@ in
     upower.enable = true;
   };
 
-  # 兜底解除 rfkill soft block：否则 Noctalia 中蓝牙开关会失效
+  # 兜底解除 rfkill soft block：避免蓝牙控制器在桌面会话中无法正常启用
   systemd.services.unblock-bluetooth-rfkill = {
     description = "Unblock Bluetooth rfkill state";
     wantedBy = [ "multi-user.target" ];

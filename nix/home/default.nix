@@ -200,7 +200,12 @@ in
 
       # === Niri 生态 ===
       vicinae
-      swaybg # 备用壁纸工具（noctalia 主管壁纸，仅做 fallback）
+      waybar
+      swaylock
+      wlogout
+      playerctl
+      gnome-calculator
+      swaybg # 备用壁纸工具（手动/脚本场景可用）
 
       # === Wayland 基础设施 ===
       cliphist
@@ -298,17 +303,6 @@ in
       nix-direnv.enable = true;
     };
 
-    # Noctalia Shell 声明式配置（settings/plugins 为 read-only symlink）
-    # GUI 修改后需导出回 Nix：noctalia-shell ipc call state all | jq .settings
-    noctalia-shell = {
-      enable = true;
-      settings = builtins.fromJSON (builtins.readFile ./configs/noctalia/settings.json);
-      plugins = builtins.fromJSON (builtins.readFile ./configs/noctalia/plugins.json);
-      systemd.enable = true;
-    };
-
-    # 锁屏与会话菜单由 noctalia 处理（Mod+E / Ctrl+Alt+L）
-
     mpv = {
       enable = true;
       defaultProfiles = [ "high-quality" ];
@@ -370,7 +364,7 @@ in
           };
         };
 
-        # Clipboard history 依赖（Noctalia 官方示例）
+        # Clipboard history
         cliphist-daemon = {
           Unit = {
             Description = "cliphist clipboard history daemon";
@@ -385,20 +379,35 @@ in
             RestartSec = 2;
           };
         };
+
+        waybar = {
+          Unit = {
+            Description = "Waybar status bar";
+            After = [ "graphical-session.target" ];
+            PartOf = [ "graphical-session.target" ];
+          };
+          Install.WantedBy = [ "graphical-session.target" ];
+          Service = {
+            Type = "simple";
+            ExecStart = "${pkgs.waybar}/bin/waybar";
+            Restart = "always";
+            RestartSec = 2;
+          };
+        };
       };
   };
 
   xdg = {
     configFile = {
-      # niri 合成器配置（4 个文件）
+      # niri 合成器配置（3 个文件）
       "niri/config.kdl".source = ./configs/niri/config.kdl;
       "niri/keybindings.kdl".source = ./configs/niri/keybindings.kdl;
       "niri/windowrules.kdl".source = ./configs/niri/windowrules.kdl;
-      "niri/noctalia-shell.kdl".source = ./configs/niri/noctalia-shell.kdl;
-
-      # Noctalia Shell（外壳）配置
-      "noctalia/wallpapers".source = ./configs/wallpapers;
-      "qt6ct/qt6ct.conf".source = ./configs/noctalia/qt6ct.conf;
+      "qt6ct/qt6ct.conf".source = ./configs/qt6ct/qt6ct.conf;
+      "waybar/config".source = ./configs/waybar/config.jsonc;
+      "waybar/style.css".source = ./configs/waybar/style.css;
+      "wlogout/layout".source = ./configs/wlogout/layout;
+      "wlogout/style.css".source = ./configs/wlogout/style.css;
 
       "fcitx5/profile" = {
         source = ./configs/fcitx5/profile;

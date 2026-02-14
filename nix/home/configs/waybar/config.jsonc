@@ -1,0 +1,190 @@
+{
+  "layer": "top",
+  "position": "top",
+  "height": 34,
+  "spacing": 6,
+  "reload_style_on_change": true,
+
+  "modules-left": [
+    "custom/launcher",
+    "niri/workspaces",
+    "niri/window",
+    "mpris"
+  ],
+  "modules-center": [
+    "clock"
+  ],
+  "modules-right": [
+    "cpu",
+    "memory",
+    "temperature",
+    "network",
+    "bluetooth",
+    "pulseaudio",
+    "backlight",
+    "battery",
+    "power-profiles-daemon",
+    "tray",
+    "custom/power"
+  ],
+
+  "custom/launcher": {
+    "format": "󱄅",
+    "tooltip": false,
+    "on-click": "vicinae"
+  },
+
+  "custom/power": {
+    "format": "",
+    "tooltip": false,
+    "on-click": "wlogout"
+  },
+
+  "niri/workspaces": {
+    "format": "{value}",
+    "all-outputs": true
+  },
+
+  "niri/window": {
+    "format": "{title}",
+    "max-length": 50,
+    "separate-outputs": true
+  },
+
+  "mpris": {
+    "format": "{player_icon} {title} - {artist}",
+    "format-paused": "{status_icon} {title} - {artist}",
+    "max-length": 40,
+    "player-icons": {
+      "default": "󰎈",
+      "spotify": "",
+      "firefox": "",
+      "chromium": "",
+      "netease-cloud-music": "󰓇"
+    },
+    "status-icons": {
+      "paused": "󰏤"
+    }
+  },
+
+  "clock": {
+    "format": " {:%Y-%m-%d  %H:%M}",
+    "tooltip-format": "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>"
+  },
+
+  "cpu": {
+    "format": "󰻠 {usage}%",
+    "interval": 3,
+    "states": {
+      "warning": 70,
+      "critical": 90
+    }
+  },
+
+  "memory": {
+    "format": "󰍛 {}%",
+    "interval": 3,
+    "states": {
+      "warning": 75,
+      "critical": 90
+    }
+  },
+
+  "temperature": {
+    "format": "󰔄 {temperatureC}°C",
+    "warning-threshold": 75,
+    "format-warning": "󰔄 {temperatureC}°C",
+    "critical-threshold": 85
+  },
+
+  "network": {
+    "format-wifi": "  {essid}",
+    "format-ethernet": "󰈀  {ifname}",
+    "format-linked": "󰈀  {ifname} (no ip)",
+    "format-disconnected": "󰖪  Disconnected",
+    "format-disabled": "󰖪  Disabled",
+    "tooltip-format-wifi": "{ipaddr}/{cidr}  {signalStrength}%",
+    "tooltip-format-ethernet": "{ifname}  {ipaddr}/{cidr}",
+    "tooltip-format-disconnected": "No network connection",
+    "tooltip-format-disabled": "RFKILL blocked",
+    "on-click": "ghostty -e nmtui"
+  },
+
+  "bluetooth": {
+    "format": " {status}",
+    "format-disabled": " off",
+    "format-off": " off",
+    "format-no-controller": " no ctrl",
+    "format-connected": " {device_alias}",
+    "format-connected-battery": " {device_alias} {device_battery_percentage}%",
+    "tooltip-format": "{controller_alias}\n{controller_address}",
+    "tooltip-format-connected": "{controller_alias}\n{num_connections} connected\n\n{device_enumerate}",
+    "tooltip-format-enumerate-connected": "{device_alias}",
+    "tooltip-format-enumerate-connected-battery": "{device_alias}  {device_battery_percentage}%",
+    "on-click": "blueman-manager"
+  },
+
+  "pulseaudio": {
+    "format": "{icon} {volume}%",
+    "format-muted": "",
+    "scroll-step": 1,
+    "max-volume": 100,
+    "format-icons": {
+      "default": [
+        "",
+        "",
+        ""
+      ]
+    },
+    "on-click": "pavucontrol",
+    "on-scroll-up": "wpctl set-volume @DEFAULT_AUDIO_SINK@ 1%+ --limit 1.0",
+    "on-scroll-down": "wpctl set-volume @DEFAULT_AUDIO_SINK@ 1%-"
+  },
+
+  "backlight": {
+    "format": "{icon} {percent}%",
+    "format-icons": [
+      "󰃞",
+      "󰃟",
+      "󰃠"
+    ],
+    "on-scroll-up": "brightnessctl set 1%+",
+    "on-scroll-down": "brightnessctl set 1%-",
+    "tooltip": false
+  },
+
+  "battery": {
+    "states": {
+      "warning": 20,
+      "critical": 10
+    },
+    "format": "{icon} {capacity}%",
+    "format-charging": "󱐋 {capacity}%",
+    "format-plugged": " {capacity}%",
+    "tooltip-format": "{capacity}% {time}",
+    "format-icons": [
+      "",
+      "",
+      "",
+      "",
+      ""
+    ]
+  },
+
+  "power-profiles-daemon": {
+    "format": "{icon}",
+    "tooltip-format": "Power profile: {profile}\nDriver: {driver}",
+    "format-icons": {
+      "default": "",
+      "performance": "󱐋",
+      "balanced": "",
+      "power-saver": ""
+    }
+  },
+
+  "tray": {
+    "icon-size": 14,
+    "show-passive-items": true,
+    "spacing": 8
+  }
+}
