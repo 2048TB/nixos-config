@@ -9,7 +9,7 @@
 - `CLAUDE.md` 项目维护约定（给 AI/自动化工具）
 
 主要特性：
-- Wayland 桌面：Niri + Noctalia Shell
+- Wayland 桌面：Niri + Waybar + Wlogout
 - 开发工具链：Rust / Zig / Go / Node.js / Python
 - 游戏支持：Steam / Proton / Wine / Lutris
 - 中文输入：Fcitx5

@@ -4,12 +4,11 @@
 // 这是主配置文件，负责包含其他配置文件
 include "./keybindings.kdl"
 include "./windowrules.kdl"
-include "./noctalia-shell.kdl"
 
 // 工作区不做预分类，默认使用动态工作区
 workspace "telegram"
 
-// Noctalia Shell 改由 systemd --user 服务管理，避免重复启动。
+// Waybar 由 Home Manager 的 systemd --user 服务管理。
 
 // 输入设备配置。
 input {

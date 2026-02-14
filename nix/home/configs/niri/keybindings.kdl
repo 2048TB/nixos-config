@@ -15,15 +15,15 @@ binds {
     Mod+Shift+Return { spawn "ghostty" "--class=ghostty-float"; }
 
     // 启动器
-    Mod+Space { spawn "noctalia-shell" "ipc" "call" "launcher" "toggle"; }
-    XF86Search { spawn "noctalia-shell" "ipc" "call" "launcher" "toggle"; }
+    Mod+Space { spawn "vicinae"; }
+    XF86Search { spawn "vicinae"; }
     Mod+P { spawn "vicinae"; }
 
     // 文件管理器
     Mod+N { spawn "nautilus"; }
 
     // 手动锁屏（关闭了自动锁屏）
-    CTRL+Alt+L { spawn "noctalia-shell" "ipc" "call" "lockScreen" "lock"; }
+    CTRL+Alt+L { spawn "swaylock" "-f"; }
 
     // 使用 spawn-sh 运行 shell 命令，如需管道、多条命令等。
     // 注意：整条命令作为单个参数传递，原样交给 `sh -c`。
@@ -38,10 +38,10 @@ binds {
     // XF86AudioLowerVolume allow-when-locked=true { spawn-sh "wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.01-"; }
     // XF86AudioMute        allow-when-locked=true { spawn-sh "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"; }
     // XF86AudioMicMute     allow-when-locked=true { spawn-sh "wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"; }
-    XF86AudioRaiseVolume allow-when-locked=true { spawn "noctalia-shell" "ipc" "call" "volume" "increase"; }
-    XF86AudioLowerVolume allow-when-locked=true { spawn "noctalia-shell" "ipc" "call" "volume" "decrease"; }
-    XF86AudioMute allow-when-locked=true { spawn "noctalia-shell" "ipc" "call" "volume" "muteOutput"; }
-    XF86AudioMicMute allow-when-locked=true { spawn "noctalia-shell" "ipc" "call" "volume" "muteInput"; }
+    XF86AudioRaiseVolume allow-when-locked=true { spawn-sh "wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.01+ --limit 1.0"; }
+    XF86AudioLowerVolume allow-when-locked=true { spawn-sh "wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.01-"; }
+    XF86AudioMute allow-when-locked=true { spawn-sh "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"; }
+    XF86AudioMicMute allow-when-locked=true { spawn-sh "wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"; }
 
 
     // 使用 playerctl 的媒体键示例。
@@ -50,18 +50,18 @@ binds {
     // XF86AudioStop        allow-when-locked=true { spawn-sh "playerctl stop"; }
     // XF86AudioPrev        allow-when-locked=true { spawn-sh "playerctl previous"; }
     // XF86AudioNext        allow-when-locked=true { spawn-sh "playerctl next"; }
-    XF86AudioPlay        allow-when-locked=true { spawn "noctalia-shell" "ipc" "call" "media" "playPause"; }
-    XF86AudioStop        allow-when-locked=true { spawn "noctalia-shell" "ipc" "call" "media" "pause"; }
-    XF86AudioPrev        allow-when-locked=true { spawn "noctalia-shell" "ipc" "call" "media" "previous"; }
-    XF86AudioNext        allow-when-locked=true { spawn "noctalia-shell" "ipc" "call" "media" "next"; }
+    XF86AudioPlay        allow-when-locked=true { spawn-sh "playerctl play-pause"; }
+    XF86AudioStop        allow-when-locked=true { spawn-sh "playerctl stop"; }
+    XF86AudioPrev        allow-when-locked=true { spawn-sh "playerctl previous"; }
+    XF86AudioNext        allow-when-locked=true { spawn-sh "playerctl next"; }
 
     // brightnessctl 的亮度键示例。
     // 也可使用普通 spawn 传多个参数（避免走 "sh"），
     // 但需要将每个参数单独放在 "" 中。
     // XF86MonBrightnessUp allow-when-locked=true { spawn "brightnessctl" "--class=backlight" "set" "1%+"; }
     // XF86MonBrightnessDown allow-when-locked=true { spawn "brightnessctl" "--class=backlight" "set" "1%-"; }
-    XF86MonBrightnessUp allow-when-locked=true { spawn "noctalia-shell" "ipc" "call" "brightness" "increase"; }
-    XF86MonBrightnessDown allow-when-locked=true { spawn "noctalia-shell" "ipc" "call" "brightness" "decrease"; }
+    XF86MonBrightnessUp allow-when-locked=true { spawn "brightnessctl" "--class=backlight" "set" "1%+"; }
+    XF86MonBrightnessDown allow-when-locked=true { spawn "brightnessctl" "--class=backlight" "set" "1%-"; }
 
     // 键盘背光
     XF86KbdBrightnessUp allow-when-locked=true { spawn "brightnessctl" "--device=kbd_backlight" "set" "10%+"; }
@@ -253,9 +253,9 @@ binds {
     Mod+Shift+P { power-off-monitors; }
 
     // 实用快捷键
-    Mod+Shift+V { spawn "noctalia-shell" "ipc" "call" "launcher" "clipboard"; }
-    Mod+C { spawn "noctalia-shell" "ipc" "call" "launcher" "calculator"; }
+    Mod+Shift+V { spawn "vicinae" "vicinae://extensions/vicinae/clipboard/history"; }
+    Mod+C { spawn "gnome-calculator"; }
 
-    Mod+S { spawn "noctalia-shell" "ipc" "call" "controlCenter" "toggle"; }
-    Mod+E { spawn "noctalia-shell" "ipc" "call" "sessionMenu" "toggle"; }
+    Mod+S { spawn "pavucontrol"; }
+    Mod+E { spawn "wlogout"; }
 }

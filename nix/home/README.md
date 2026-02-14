@@ -7,7 +7,9 @@
 - `default.nix` Home Manager 入口
 - `configs/` 配置素材目录
 - `configs/niri/` Niri KDL 配置
-- `configs/noctalia/` Noctalia Shell 配置
+- `configs/waybar/` Waybar 配置
+- `configs/wlogout/` Wlogout 配置
+- `configs/qt6ct/` Qt6 主题配置
 - `configs/ghostty/` Ghostty 配置
 - `configs/fcitx5/` Fcitx5 配置
 - `configs/shell/` shell 配置（zsh/bash/vim）

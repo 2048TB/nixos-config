@@ -1,0 +1,47 @@
+* {
+  background-image: none;
+  box-shadow: none;
+  text-shadow: none;
+}
+
+window {
+  background-color: rgba(15, 20, 28, 0.82);
+}
+
+button {
+  color: #dcd7ba;
+  background-color: #1f2430;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  margin: 14px;
+  padding: 14px 24px;
+  min-width: 140px;
+  font-family: "Maple Mono NF CN", "Sarasa UI SC", "JetBrainsMono Nerd Font", sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+button:hover {
+  background-color: #2a3244;
+}
+
+#lock {
+  color: #7aa2f7;
+}
+
+#logout {
+  color: #9ccfd8;
+}
+
+#suspend,
+#hibernate {
+  color: #e6c384;
+}
+
+#reboot {
+  color: #ff9e64;
+}
+
+#shutdown {
+  color: #e46876;
+}
