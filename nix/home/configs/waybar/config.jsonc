@@ -37,7 +37,7 @@
   "custom/power": {
     "format": "",
     "tooltip": false,
-    "on-click": "/etc/profiles/per-user/$USER/bin/wlogout --no-span --buttons-per-row 3 --column-spacing 8 --row-spacing 8 --margin-top 80 --margin-bottom 80"
+    "on-click": "/etc/profiles/per-user/$USER/bin/wlogout --no-span --buttons-per-row 3 --column-spacing 18 --row-spacing 18 --margin-left 900 --margin-right 900 --margin-top 500 --margin-bottom 500"
   },
 
   "niri/workspaces": {
