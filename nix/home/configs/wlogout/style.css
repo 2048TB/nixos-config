@@ -14,9 +14,9 @@ button {
   background-color: #1f2430;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 14px;
-  margin: 6px;
-  padding: 34px 12px 12px;
-  min-width: 160px;
+  margin: 6px 24px;
+  padding: 34px 10px 12px;
+  min-width: 132px;
   min-height: 104px;
   font-family: "Maple Mono NF CN", "Sarasa UI SC", "JetBrainsMono Nerd Font", sans-serif;
   font-size: 12px;
