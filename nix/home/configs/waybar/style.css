@@ -23,6 +23,7 @@ window#waybar {
 #network,
 #bluetooth,
 #pulseaudio,
+#mode,
 #backlight,
 #battery,
 #power-profiles-daemon,
@@ -77,6 +78,18 @@ window#waybar {
 #clock {
   color: #f9e2af;
   letter-spacing: 0.4px;
+}
+
+#mode {
+  color: #f9e2af;
+}
+
+#mode.normal {
+  color: #6c7086;
+}
+
+#mode.passthrough {
+  color: #f38ba8;
 }
 
 #network {

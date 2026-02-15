@@ -8,6 +8,7 @@
   "modules-left": [
     "custom/launcher",
     "clock",
+    "river/mode",
     "river/layout",
     "river/window",
     "mpris"
@@ -32,7 +33,7 @@
   "custom/launcher": {
     "format": "󱄅",
     "tooltip": false,
-    "on-click": "fuzzel"
+    "on-click": "/etc/profiles/per-user/$USER/bin/fuzzel"
   },
 
   "custom/power": {
@@ -48,6 +49,11 @@
   "river/layout": {
     "format": "[{}]",
     "min-length": 3
+  },
+
+  "river/mode": {
+    "format": "MODE {}",
+    "max-length": 14
   },
 
   "river/window": {

@@ -90,6 +90,7 @@
 |---|---|
 | `Super + P`（normal） | 进入 `passthrough` 模式 |
 | `Super + P`（passthrough） | 返回 `normal` 模式 |
+| `Esc`（passthrough） | 返回 `normal` 模式（兜底） |
 
 ## 备注
 

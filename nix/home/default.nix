@@ -393,7 +393,7 @@ in
       riverctl set-cursor-warp on-output-change
 
       riverctl map normal Super Return spawn ghostty
-      riverctl map normal Super Space spawn fuzzel
+      riverctl map normal Super Space spawn '/etc/profiles/per-user/${mainUser}/bin/fuzzel'
       riverctl map normal Super D spawn nautilus
       riverctl map normal Super Q close
       riverctl map normal Super+Shift E exit
@@ -443,6 +443,7 @@ in
       riverctl declare-mode passthrough
       riverctl map normal Super P enter-mode passthrough
       riverctl map passthrough Super P enter-mode normal
+      riverctl map passthrough None Escape enter-mode normal
 
       for i in $(seq 1 9); do
           tags=$((1 << ($i - 1)))
