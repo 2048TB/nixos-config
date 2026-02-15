@@ -396,6 +396,7 @@ in
       riverctl map normal Super Space spawn fuzzel
       riverctl map normal Super D spawn nautilus
       riverctl map normal Super Q close
+      riverctl map normal Super+Shift E exit
       riverctl map normal Control+Alt L spawn 'swaylock -f'
       riverctl map normal Super E spawn 'sh -c /etc/profiles/per-user/$USER/bin/wlogout-menu'
 
@@ -409,8 +410,39 @@ in
       riverctl map normal Super+Shift Period send-to-output next
       riverctl map normal Super+Shift Comma send-to-output previous
 
+      riverctl map normal Super Z zoom
       riverctl map normal Super F toggle-fullscreen
       riverctl map normal Super V toggle-float
+
+      riverctl map normal Super H send-layout-cmd rivertile "main-ratio -0.05"
+      riverctl map normal Super L send-layout-cmd rivertile "main-ratio +0.05"
+      riverctl map normal Super+Shift H send-layout-cmd rivertile "main-count +1"
+      riverctl map normal Super+Shift L send-layout-cmd rivertile "main-count -1"
+      riverctl map normal Super+Control K send-layout-cmd rivertile "main-location top"
+      riverctl map normal Super+Control L send-layout-cmd rivertile "main-location right"
+      riverctl map normal Super+Control J send-layout-cmd rivertile "main-location bottom"
+      riverctl map normal Super+Control H send-layout-cmd rivertile "main-location left"
+
+      riverctl map normal Super+Alt H move left 100
+      riverctl map normal Super+Alt J move down 100
+      riverctl map normal Super+Alt K move up 100
+      riverctl map normal Super+Alt L move right 100
+      riverctl map normal Super+Alt+Control H snap left
+      riverctl map normal Super+Alt+Control J snap down
+      riverctl map normal Super+Alt+Control K snap up
+      riverctl map normal Super+Alt+Control L snap right
+      riverctl map normal Super+Alt+Shift H resize horizontal -100
+      riverctl map normal Super+Alt+Shift J resize vertical 100
+      riverctl map normal Super+Alt+Shift K resize vertical -100
+      riverctl map normal Super+Alt+Shift L resize horizontal 100
+
+      riverctl map-pointer normal Super BTN_LEFT move-view
+      riverctl map-pointer normal Super BTN_RIGHT resize-view
+      riverctl map-pointer normal Super BTN_MIDDLE toggle-float
+
+      riverctl declare-mode passthrough
+      riverctl map normal Super P enter-mode passthrough
+      riverctl map passthrough Super P enter-mode normal
 
       for i in $(seq 1 9); do
           tags=$((1 << ($i - 1)))
