@@ -18,11 +18,6 @@ let
   ];
   imageApps = [ "org.nomacs.ImageLounge.desktop" "nomacs.desktop" ];
   riverSessionBootstrap = pkgs.writeShellScript "river-session-bootstrap" ''
-    # 兜底启动 XDG autostart（Mullvad GUI/Fcitx5 等桌面项）
-    systemctl --user start xdg-desktop-autostart.target || true
-    # 显式启动输入法，避免不同 session manager 行为差异
-    ${pkgs.fcitx5}/bin/fcitx5 -d --replace || true
-
     # 等待输出初始化完成后统一设置缩放，避免字体过小
     sleep 1
     for out in $(${pkgs.wlr-randr}/bin/wlr-randr | ${pkgs.gawk}/bin/awk '/^[^[:space:]]/ { print $1 }'); do
@@ -519,6 +514,36 @@ in
           Service = {
             Type = "simple";
             ExecStart = "${pkgs.swaybg}/bin/swaybg -i ${homeDir}/.config/wallpapers/default.png -m fill";
+            Restart = "on-failure";
+            RestartSec = 2;
+          };
+        };
+
+        fcitx5 = {
+          Unit = {
+            Description = "Fcitx5 input method daemon";
+            After = [ "graphical-session.target" ];
+            PartOf = [ "graphical-session.target" ];
+          };
+          Install.WantedBy = [ "graphical-session.target" ];
+          Service = {
+            Type = "simple";
+            ExecStart = "${pkgs.fcitx5}/bin/fcitx5 --replace";
+            Restart = "on-failure";
+            RestartSec = 1;
+          };
+        };
+
+        mullvad-vpn-ui = {
+          Unit = {
+            Description = "Mullvad VPN GUI";
+            After = [ "graphical-session.target" ];
+            PartOf = [ "graphical-session.target" ];
+          };
+          Install.WantedBy = [ "graphical-session.target" ];
+          Service = {
+            Type = "simple";
+            ExecStart = "${pkgs.mullvad-vpn}/bin/mullvad-vpn";
             Restart = "on-failure";
             RestartSec = 2;
           };
