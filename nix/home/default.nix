@@ -588,6 +588,24 @@ in
           };
         };
 
+        # 在 greetd + river 会话中显式拉起输入法，避免仅依赖 XDG autostart 导致未启动
+        fcitx5 = {
+          Unit = {
+            Description = "Fcitx5 input method daemon";
+            After = [ "graphical-session.target" ];
+            PartOf = [ "graphical-session.target" ];
+          };
+          Install.WantedBy = [ "graphical-session.target" ];
+          Service = {
+            Type = "simple";
+            # Use the system wrapper from i18n.inputMethod so selected addons
+            # (e.g. fcitx5-chinese-addons) are available at runtime.
+            ExecStart = "/run/current-system/sw/bin/fcitx5 --replace";
+            Restart = "on-failure";
+            RestartSec = 1;
+          };
+        };
+
         mullvad-vpn-ui = {
           Unit = {
             Description = "Mullvad VPN GUI";
