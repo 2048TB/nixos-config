@@ -429,7 +429,7 @@ in
         kdePackages.fcitx5-qt
         qt6Packages.fcitx5-configtool
         fcitx5-gtk
-        qt6Packages.fcitx5-chinese-addons # 中文拼音输入法（Libpinyin 引擎）
+        qt6Packages.fcitx5-chinese-addons # 中文拼音输入法（Libpinyin 引擎，nixpkgs 中该包名已迁移到 qt6Packages 命名空间）
         fcitx5-pinyin-zhwiki # 中文维基百科词库（提升识别准确率）
       ];
     };
