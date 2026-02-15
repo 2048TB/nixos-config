@@ -81,6 +81,33 @@ let
       -C "${homeDir}/.config/wlogout/style.css" \
       "$@"
   '';
+  riverScreenshot = pkgs.writeShellScriptBin "river-screenshot" ''
+    set -euo pipefail
+    mode="''${1:-full}"
+    dir="''${XDG_SCREENSHOTS_DIR:-$HOME/Pictures/Screenshots}"
+    mkdir -p "$dir"
+    path="$dir/Screenshot from $(date '+%Y-%m-%d %H-%M-%S').png"
+
+    case "$mode" in
+      full)
+        ${pkgs.grim}/bin/grim - | tee "$path" | ${pkgs.wl-clipboard}/bin/wl-copy --type image/png
+        ;;
+      area)
+        region="$(${pkgs.slurp}/bin/slurp)" || exit 0
+        [ -n "$region" ] || exit 0
+        ${pkgs.grim}/bin/grim -g "$region" - | tee "$path" | ${pkgs.wl-clipboard}/bin/wl-copy --type image/png
+        ;;
+      *)
+        exit 1
+        ;;
+    esac
+  '';
+  riverCliphistMenu = pkgs.writeShellScriptBin "river-cliphist-menu" ''
+    set -euo pipefail
+    picked="$(${pkgs.cliphist}/bin/cliphist list | ${pkgs.fuzzel}/bin/fuzzel --dmenu || true)"
+    [ -n "$picked" ] || exit 0
+    printf '%s' "$picked" | ${pkgs.cliphist}/bin/cliphist decode | ${pkgs.wl-clipboard}/bin/wl-copy
+  '';
 in
 {
   home = {
@@ -292,7 +319,11 @@ in
       pipx
     ]
     ++ hybridPackages
-    ++ [ wlogoutMenu ]
+    ++ [
+      wlogoutMenu
+      riverScreenshot
+      riverCliphistMenu
+    ]
     ++ wpsWrappedBins; # WPS steam-run 包装器（覆盖原始二进制，修复启动问题）
 
     file = {
@@ -390,51 +421,61 @@ in
       riverctl border-color-focused 0x89b4fa
       riverctl border-color-unfocused 0x585b70
       riverctl set-repeat 50 300
-      riverctl set-cursor-warp on-output-change
 
       riverctl map normal Super Return spawn ghostty
       riverctl map normal Super Space spawn '/etc/profiles/per-user/${mainUser}/bin/fuzzel'
       riverctl map normal Super D spawn nautilus
+      riverctl map normal Super+Control C spawn '/etc/profiles/per-user/${mainUser}/bin/river-cliphist-menu'
+      riverctl map normal Super+Control S spawn pavucontrol
       riverctl map normal Super Q close
       riverctl map normal Super+Shift E exit
-      riverctl map normal Control+Alt L spawn 'swaylock -f'
-      riverctl map normal Super E spawn 'sh -c /etc/profiles/per-user/$USER/bin/wlogout-menu'
+      riverctl map normal Super+Shift L spawn 'swaylock -f'
+      riverctl map normal Super+Control E spawn 'sh -c /etc/profiles/per-user/$USER/bin/wlogout-menu'
 
-      riverctl map normal Super J focus-view next
-      riverctl map normal Super K focus-view previous
-      riverctl map normal Super+Shift J swap next
-      riverctl map normal Super+Shift K swap previous
-
-      riverctl map normal Super Period focus-output next
-      riverctl map normal Super Comma focus-output previous
-      riverctl map normal Super+Shift Period send-to-output next
-      riverctl map normal Super+Shift Comma send-to-output previous
+      # 焦点与交换（常用双键）
+      riverctl map normal Super Right focus-view -skip-floating next
+      riverctl map normal Super Left focus-view -skip-floating previous
+      riverctl map normal Super Down swap next
+      riverctl map normal Super Up swap previous
 
       riverctl map normal Super Z zoom
       riverctl map normal Super F toggle-fullscreen
       riverctl map normal Super V toggle-float
 
-      riverctl map normal Super H send-layout-cmd rivertile "main-ratio -0.05"
-      riverctl map normal Super L send-layout-cmd rivertile "main-ratio +0.05"
-      riverctl map normal Super+Shift H send-layout-cmd rivertile "main-count +1"
-      riverctl map normal Super+Shift L send-layout-cmd rivertile "main-count -1"
-      riverctl map normal Super+Control K send-layout-cmd rivertile "main-location top"
-      riverctl map normal Super+Control L send-layout-cmd rivertile "main-location right"
-      riverctl map normal Super+Control J send-layout-cmd rivertile "main-location bottom"
-      riverctl map normal Super+Control H send-layout-cmd rivertile "main-location left"
+      # rivertile 控制（低频三键，不使用标点）
+      riverctl map normal Super+Control Up send-layout-cmd rivertile "main-ratio +0.05"
+      riverctl map normal Super+Control Down send-layout-cmd rivertile "main-ratio -0.05"
+      riverctl map normal Super+Control Right send-layout-cmd rivertile "main-count +1"
+      riverctl map normal Super+Control Left send-layout-cmd rivertile "main-count -1"
+      riverctl map normal Super+Shift Up send-layout-cmd rivertile "main-location top"
+      riverctl map normal Super+Shift Right send-layout-cmd rivertile "main-location right"
+      riverctl map normal Super+Shift Down send-layout-cmd rivertile "main-location bottom"
+      riverctl map normal Super+Shift Left send-layout-cmd rivertile "main-location left"
 
-      riverctl map normal Super+Alt H move left 100
-      riverctl map normal Super+Alt J move down 100
-      riverctl map normal Super+Alt K move up 100
-      riverctl map normal Super+Alt L move right 100
-      riverctl map normal Super+Alt+Control H snap left
-      riverctl map normal Super+Alt+Control J snap down
-      riverctl map normal Super+Alt+Control K snap up
-      riverctl map normal Super+Alt+Control L snap right
-      riverctl map normal Super+Alt+Shift H resize horizontal -100
-      riverctl map normal Super+Alt+Shift J resize vertical 100
-      riverctl map normal Super+Alt+Shift K resize vertical -100
-      riverctl map normal Super+Alt+Shift L resize horizontal 100
+      # 浮动窗口模式：Super+G 进入，模式内方向键处理移动/吸附/缩放
+      riverctl declare-mode float
+      riverctl map normal Super G enter-mode float
+      riverctl map float None Escape enter-mode normal
+      riverctl map float None Return enter-mode normal
+      riverctl map float None Space enter-mode normal
+      riverctl map float None V toggle-float
+      riverctl map float None Left move left 100
+      riverctl map float None Down move down 100
+      riverctl map float None Up move up 100
+      riverctl map float None Right move right 100
+      riverctl map float Shift Left resize horizontal -100
+      riverctl map float Shift Down resize vertical 100
+      riverctl map float Shift Up resize vertical -100
+      riverctl map float Shift Right resize horizontal 100
+      riverctl map float Control Left snap left
+      riverctl map float Control Down snap down
+      riverctl map float Control Up snap up
+      riverctl map float Control Right snap right
+
+      riverctl map normal None Print spawn '/etc/profiles/per-user/${mainUser}/bin/river-screenshot full'
+      riverctl map normal Shift Print spawn '/etc/profiles/per-user/${mainUser}/bin/river-screenshot area'
+      riverctl map normal Super X spawn '/etc/profiles/per-user/${mainUser}/bin/river-screenshot full'
+      riverctl map normal Super+Shift X spawn '/etc/profiles/per-user/${mainUser}/bin/river-screenshot area'
 
       riverctl map-pointer normal Super BTN_LEFT move-view
       riverctl map-pointer normal Super BTN_RIGHT resize-view
@@ -449,13 +490,15 @@ in
           tags=$((1 << ($i - 1)))
           riverctl map normal Super $i set-focused-tags $tags
           riverctl map normal Super+Shift $i set-view-tags $tags
-          riverctl map normal Super+Control $i toggle-focused-tags $tags
-          riverctl map normal Super+Shift+Control $i toggle-view-tags $tags
+          riverctl map normal Super+Alt $i toggle-focused-tags $tags
+          riverctl map normal Super+Control $i toggle-view-tags $tags
       done
 
       all_tags=$(((1 << 32) - 1))
       riverctl map normal Super 0 set-focused-tags $all_tags
       riverctl map normal Super+Shift 0 set-view-tags $all_tags
+      riverctl map normal Super Tab focus-previous-tags
+      riverctl map normal Super+Shift Tab send-to-previous-tags
 
       for mode in normal locked; do
           riverctl map $mode None XF86AudioRaiseVolume spawn 'wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.01+ --limit 1.0'

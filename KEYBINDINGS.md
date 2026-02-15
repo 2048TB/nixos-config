@@ -1,6 +1,6 @@
 # 快捷键说明（river-classic）
 
-本文档基于当前配置：`nix/home/default.nix` 中 `wayland.windowManager.river.extraConfig`。
+本文档对应配置：`nix/home/default.nix` 中 `wayland.windowManager.river.extraConfig`。
 
 说明：`Super` 即 Windows 键。
 
@@ -11,45 +11,52 @@
 | `Super + Return` | 打开终端（Ghostty） |
 | `Super + Space` | 启动器（Fuzzel） |
 | `Super + D` | 文件管理器（Nautilus） |
-| `Super + E` | 电源菜单（wlogout） |
+| `Super + Ctrl + C` | 剪贴板历史（cliphist + fuzzel） |
+| `Super + Ctrl + S` | 打开音频面板（pavucontrol） |
+| `Super + Ctrl + E` | 电源菜单（wlogout） |
 | `Super + Shift + E` | 退出 river 会话 |
-| `Ctrl + Alt + L` | 锁屏（swaylock） |
+| `Super + Shift + L` | 锁屏（swaylock） |
 | `Super + Q` | 关闭当前窗口 |
 
-## 焦点与窗口栈
+## 焦点与窗口交换
 
 | 快捷键 | 功能 |
 |---|---|
-| `Super + J/K` | 焦点切换（next/previous） |
-| `Super + Shift + J/K` | 交换窗口（next/previous） |
+| `Super + Left/Right` | 焦点切换（previous/next，仅平铺窗口） |
+| `Super + Up/Down` | 交换窗口（previous/next） |
 | `Super + Z` | 将当前窗口提升到栈顶（zoom） |
 | `Super + F` | 切换全屏 |
 | `Super + V` | 切换浮动 |
-
-## 多显示器
-
-| 快捷键 | 功能 |
-|---|---|
-| `Super + .` | 聚焦下一个输出 |
-| `Super + ,` | 聚焦上一个输出 |
-| `Super + Shift + .` | 将窗口发送到下一个输出 |
-| `Super + Shift + ,` | 将窗口发送到上一个输出 |
 
 ## rivertile 布局控制
 
 | 快捷键 | 功能 |
 |---|---|
-| `Super + H/L` | 减少/增加主区域比例（main-ratio） |
-| `Super + Shift + H/L` | 增加/减少主区域窗口数（main-count） |
-| `Super + Ctrl + K/L/J/H` | 设置主区域方向（top/right/bottom/left） |
+| `Super + Ctrl + Up/Down` | 增加/减少主区域比例（main-ratio） |
+| `Super + Ctrl + Right/Left` | 增加/减少主区域窗口数（main-count） |
+| `Super + Shift + Up/Right/Down/Left` | 设置主区域方向（top/right/bottom/left） |
 
-## 浮动窗口控制
+## 浮动窗口控制（float 模式）
 
 | 快捷键 | 功能 |
 |---|---|
-| `Super + Alt + H/J/K/L` | 移动浮动窗口 |
-| `Super + Alt + Shift + H/J/K/L` | 调整浮动窗口大小 |
-| `Super + Alt + Ctrl + H/J/K/L` | 将浮动窗口吸附到边缘 |
+| `Super + G` | 进入 `float` 模式 |
+| `Left/Down/Up/Right`（float 模式） | 移动浮动窗口 |
+| `Shift + Left/Down/Up/Right`（float 模式） | 调整浮动窗口大小 |
+| `Ctrl + Left/Down/Up/Right`（float 模式） | 将浮动窗口吸附到边缘 |
+| `V`（float 模式） | 切换浮动状态 |
+| `Esc` / `Enter` / `Space`（float 模式） | 返回 normal 模式 |
+
+## 截图（新增）
+
+| 快捷键 | 功能 |
+|---|---|
+| `Print` | 全屏截图（保存文件并写入剪贴板） |
+| `Shift + Print` | 区域截图（保存文件并写入剪贴板） |
+| `Super + X` | 全屏截图（分体键盘友好别名） |
+| `Super + Shift + X` | 区域截图（分体键盘友好别名） |
+
+默认保存目录：`$XDG_SCREENSHOTS_DIR`，未设置时为 `~/Pictures/Screenshots`。
 
 ## 鼠标（指针）操作
 
@@ -65,10 +72,12 @@
 |---|---|
 | `Super + 1..9` | 查看对应 tag |
 | `Super + Shift + 1..9` | 将当前窗口设置到对应 tag |
-| `Super + Ctrl + 1..9` | 切换对应 tag 显示状态 |
-| `Super + Shift + Ctrl + 1..9` | 切换当前窗口在对应 tag 的状态 |
+| `Super + Alt + 1..9` | 切换对应 tag 显示状态 |
+| `Super + Ctrl + 1..9` | 切换当前窗口在对应 tag 的状态 |
 | `Super + 0` | 显示全部 tags |
 | `Super + Shift + 0` | 当前窗口加入全部 tags |
+| `Super + Tab` | 切换到上一个 tags 组合 |
+| `Super + Shift + Tab` | 将当前窗口发送到上一个 tags 组合 |
 
 ## 媒体与亮度（normal/locked）
 
@@ -91,10 +100,3 @@
 | `Super + P`（normal） | 进入 `passthrough` 模式 |
 | `Super + P`（passthrough） | 返回 `normal` 模式 |
 | `Esc`（passthrough） | 返回 `normal` 模式（兜底） |
-
-## 备注
-
-- river 默认布局：`rivertile`。
-- 已移除 `F1-F12` 相关绑定。
-- 与官方示例差异：保留 `Super + Return` 打开终端，因此将 `zoom` 绑定为 `Super + Z`。
-- 若你后续改了 `nix/home/default.nix`，此文档应同步更新。
