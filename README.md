@@ -176,7 +176,7 @@ GPU 使用 `flake.nix` 的 `myvars.gpuMode` 固定配置。
 │   └── home/
 │       ├── default.nix       # Home Manager 入口
 │       └── configs/          # 应用配置
-│           ├── niri/         # Niri 合成器（KDL）
+│           ├── niri/         # 旧 Niri 配置（已归档，当前主用 river-classic）
 │           ├── waybar/       # Waybar 状态栏
 │           ├── wlogout/      # 电源菜单
 │           ├── fuzzel/       # 应用启动器
