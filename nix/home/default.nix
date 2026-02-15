@@ -528,7 +528,9 @@ in
           Install.WantedBy = [ "graphical-session.target" ];
           Service = {
             Type = "simple";
-            ExecStart = "${pkgs.fcitx5}/bin/fcitx5 --replace";
+            # Use the system wrapper from i18n.inputMethod so selected addons
+            # (e.g. fcitx5-chinese-addons) are available at runtime.
+            ExecStart = "/run/current-system/sw/bin/fcitx5 --replace";
             Restart = "on-failure";
             RestartSec = 1;
           };
