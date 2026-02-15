@@ -472,10 +472,8 @@ in
       riverctl map float Control Up snap up
       riverctl map float Control Right snap right
 
-      riverctl map normal None Print spawn '/etc/profiles/per-user/${mainUser}/bin/river-screenshot full'
-      riverctl map normal Shift Print spawn '/etc/profiles/per-user/${mainUser}/bin/river-screenshot area'
-      riverctl map normal Super X spawn '/etc/profiles/per-user/${mainUser}/bin/river-screenshot full'
-      riverctl map normal Super+Shift X spawn '/etc/profiles/per-user/${mainUser}/bin/river-screenshot area'
+      riverctl map normal None Print spawn '${riverScreenshot}/bin/river-screenshot area'
+      riverctl map normal Super X spawn '${riverScreenshot}/bin/river-screenshot area'
 
       riverctl map-pointer normal Super BTN_LEFT move-view
       riverctl map-pointer normal Super BTN_RIGHT resize-view
