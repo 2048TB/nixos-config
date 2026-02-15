@@ -34,12 +34,8 @@ let
 
     export XDG_CURRENT_DESKTOP=river
     export XDG_SESSION_DESKTOP=river
-    systemctl --user import-environment \
-      XDG_CURRENT_DESKTOP XDG_SESSION_DESKTOP \
-      INPUT_METHOD GTK_IM_MODULE QT_IM_MODULE XMODIFIERS SDL_IM_MODULE || true
-    ${pkgs.dbus}/bin/dbus-update-activation-environment --systemd \
-      XDG_CURRENT_DESKTOP XDG_SESSION_DESKTOP \
-      INPUT_METHOD GTK_IM_MODULE QT_IM_MODULE XMODIFIERS SDL_IM_MODULE || true
+    # 由 Home Manager 的 wayland.windowManager.river.systemd.enable
+    # 统一导入关键环境变量到 systemd user / dbus，避免重复导入。
 
     # 尝试结束旧的 river 会话，避免残留服务状态影响新会话
     if systemctl --user is-active river-session.target >/dev/null 2>&1; then
@@ -279,7 +275,6 @@ in
       # === Wayland 基础设施 ===
       cliphist
       wl-clipboard
-      xwayland
       qt6Packages.qt6ct
       app2unit
       polkit_gnome # Polkit 认证代理（权限提升对话框，virt-manager/Nautilus 等需要）
@@ -430,7 +425,7 @@ in
       riverctl map normal Super Q close
       riverctl map normal Super+Shift E exit
       riverctl map normal Super+Shift L spawn 'swaylock -f'
-      riverctl map normal Super+Control E spawn 'sh -c /etc/profiles/per-user/$USER/bin/wlogout-menu'
+      riverctl map normal Super+Control E spawn '/etc/profiles/per-user/${mainUser}/bin/wlogout-menu'
 
       # 焦点与交换（常用双键）
       riverctl map normal Super Right focus-view -skip-floating next
@@ -593,23 +588,6 @@ in
           };
         };
 
-        fcitx5 = {
-          Unit = {
-            Description = "Fcitx5 input method daemon";
-            After = [ "graphical-session.target" ];
-            PartOf = [ "graphical-session.target" ];
-          };
-          Install.WantedBy = [ "graphical-session.target" ];
-          Service = {
-            Type = "simple";
-            # Use the system wrapper from i18n.inputMethod so selected addons
-            # (e.g. fcitx5-chinese-addons) are available at runtime.
-            ExecStart = "/run/current-system/sw/bin/fcitx5 --replace";
-            Restart = "on-failure";
-            RestartSec = 1;
-          };
-        };
-
         mullvad-vpn-ui = {
           Unit = {
             Description = "Mullvad VPN GUI";
@@ -631,7 +609,12 @@ in
     configFile = {
       "qt6ct/qt6ct.conf".source = ./configs/qt6ct/qt6ct.conf;
       "qt6ct/colors/darker.conf".source = "${pkgs.qt6Packages.qt6ct}/share/qt6ct/colors/darker.conf";
-      "waybar/config".source = ./configs/waybar/config.jsonc;
+      # 固化用户名路径，避免 Waybar 在特殊环境下无法展开 $USER。
+      "waybar/config".text =
+        builtins.replaceStrings
+          [ "$USER" ]
+          [ mainUser ]
+          (builtins.readFile ./configs/waybar/config.jsonc);
       "waybar/style.css".source = ./configs/waybar/style.css;
       "wlogout/layout".source = ./configs/wlogout/layout;
       "wlogout/style.css".source = ./configs/wlogout/style.css;

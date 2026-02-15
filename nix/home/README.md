@@ -6,7 +6,7 @@
 
 - `default.nix` Home Manager 入口
 - `configs/` 配置素材目录
-- `configs/niri/` Niri KDL 配置
+- `configs/niri/` 旧 Niri KDL 配置（已归档，当前未启用）
 - `configs/waybar/` Waybar 状态栏
 - `configs/wlogout/` Wlogout 电源菜单
 - `configs/fuzzel/` Fuzzel 应用启动器
@@ -33,6 +33,6 @@ just switch
 
 ## 重要说明
 
-- Niri 使用手动 KDL 配置（`nix/home/configs/niri/*.kdl`）。
+- `configs/niri/*.kdl` 为历史归档文件，当前会话管理器为 river-classic。
 - Waybar 由 systemd 用户服务管理（`systemd.user.services.waybar`）。
 - 主题采用统一暗色策略：GTK（`dconf.settings`）+ Qt6（`qt6ct`）+ Wayland 组件单独配色文件。
