@@ -17,8 +17,35 @@ let
     "image/tiff"
   ];
   imageApps = [ "org.nomacs.ImageLounge.desktop" "nomacs.desktop" ];
+  riverSessionBootstrap = pkgs.writeShellScript "river-session-bootstrap" ''
+    # 兜底启动 XDG autostart（Mullvad GUI/Fcitx5 等桌面项）
+    systemctl --user start xdg-desktop-autostart.target || true
+    # 显式启动输入法，避免不同 session manager 行为差异
+    ${pkgs.fcitx5}/bin/fcitx5 -d --replace || true
+
+    # 等待输出初始化完成后统一设置缩放，避免字体过小
+    sleep 1
+    for out in $(${pkgs.wlr-randr}/bin/wlr-randr | ${pkgs.gawk}/bin/awk '/^[^[:space:]]/ { print $1 }'); do
+      ${pkgs.wlr-randr}/bin/wlr-randr --output "$out" --scale 1.20 || true
+    done
+  '';
   waylandSession = pkgs.writeScript "wayland-session" ''
     #!/usr/bin/env bash
+    hm_vars="/etc/profiles/per-user/${mainUser}/etc/profile.d/hm-session-vars.sh"
+    if [ -f "$hm_vars" ]; then
+      # shellcheck disable=SC1090
+      . "$hm_vars"
+    fi
+
+    export XDG_CURRENT_DESKTOP=river
+    export XDG_SESSION_DESKTOP=river
+    systemctl --user import-environment \
+      XDG_CURRENT_DESKTOP XDG_SESSION_DESKTOP \
+      INPUT_METHOD GTK_IM_MODULE QT_IM_MODULE XMODIFIERS SDL_IM_MODULE || true
+    ${pkgs.dbus}/bin/dbus-update-activation-environment --systemd \
+      XDG_CURRENT_DESKTOP XDG_SESSION_DESKTOP \
+      INPUT_METHOD GTK_IM_MODULE QT_IM_MODULE XMODIFIERS SDL_IM_MODULE || true
+
     # 尝试结束旧的 river 会话，避免残留服务状态影响新会话
     if systemctl --user is-active river-session.target >/dev/null 2>&1; then
       systemctl --user stop river-session.target
@@ -71,6 +98,12 @@ in
       # Wayland 支持
       # 关闭 NIXOS_OZONE_WL，避免 VSCode 启动时注入已弃用的 Electron 参数告警
       QT_QPA_PLATFORMTHEME = "qt6ct";
+      # 输入法环境变量（river 会话下显式声明，避免 Fcitx5 未接管）
+      INPUT_METHOD = "fcitx";
+      GTK_IM_MODULE = "fcitx";
+      QT_IM_MODULE = "fcitx";
+      XMODIFIERS = "@im=fcitx";
+      SDL_IM_MODULE = "fcitx";
 
       # 工具链路径
       NPM_CONFIG_PREFIX = "${homeDir}/.npm-global";
@@ -194,6 +227,7 @@ in
       grim
       slurp
       wl-screenrec
+      wlr-randr # river 下设置输出缩放（修复字体过小）
 
       # === 基础图形工具 ===
       zathura
@@ -355,6 +389,8 @@ in
       XDG_SESSION_DESKTOP = "river";
     };
     extraConfig = ''
+      riverctl spawn '${riverSessionBootstrap}'
+
       riverctl background-color 0x1e1e2e
       riverctl border-color-focused 0x89b4fa
       riverctl border-color-unfocused 0x585b70
