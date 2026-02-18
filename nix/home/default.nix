@@ -621,7 +621,7 @@ in
       done
 
       riverctl default-layout rivertile
-      rivertile -view-padding 8 -outer-padding 8 &
+      rivertile -view-padding 6 -outer-padding 2 &
     '';
   };
 
