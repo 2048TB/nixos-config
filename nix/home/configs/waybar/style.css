@@ -24,6 +24,7 @@ window#waybar {
 #temperature,
 #network,
 #bluetooth,
+#custom-wifi-manager,
 #pulseaudio,
 #mode,
 #backlight,
@@ -162,6 +163,10 @@ window#waybar {
   color: #5c5b5a;
 }
 
+#custom-wifi-manager {
+  color: #0986d3;
+}
+
 #pulseaudio {
   color: #e7e4e0;
 }
@@ -224,6 +229,7 @@ window#waybar {
 #cpu,
 #memory,
 #network,
+#bluetooth,
 #pulseaudio {
   margin-right: 0;
   border-top-right-radius: 0;
@@ -233,6 +239,7 @@ window#waybar {
 #memory,
 #temperature,
 #bluetooth,
+#custom-wifi-manager,
 #backlight {
   margin-left: 0;
   border-top-left-radius: 0;
@@ -240,7 +247,7 @@ window#waybar {
 }
 
 #temperature,
-#bluetooth,
+#custom-wifi-manager,
 #backlight {
   margin-right: 2px;
 }

@@ -284,9 +284,10 @@ run_root rm -rf "$TARGET_FLAKE_TMP"
 run_root cp -a "${REPO_ROOT}/." "$TARGET_FLAKE_TMP/"
 # 使用目标系统的用户 UID:GID（而非 live ISO 的，避免安装后权限不正确）
 if run_root test -f /mnt/etc/passwd; then
+  # shellcheck disable=SC2016
   TARGET_OWNER="$(run_root awk -F: '$3 >= 1000 && $3 < 60000 {print $3":"$4; exit}' /mnt/etc/passwd)"
 fi
-run_root chown -R "${TARGET_OWNER:-1000:100}" "$TARGET_FLAKE_TMP"
+run_root chown -R "${TARGET_OWNER:-1000:1000}" "$TARGET_FLAKE_TMP"
 # 原子替换：先复制到临时目录，再 mv 替换，避免中途失败导致目标不完整
 run_root rm -rf "$TARGET_FLAKE_DIR"
 run_root mv "$TARGET_FLAKE_TMP" "$TARGET_FLAKE_DIR"

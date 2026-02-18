@@ -21,6 +21,7 @@
     "temperature",
     "network",
     "bluetooth",
+    "custom/wifi-manager",
     "pulseaudio",
     "backlight",
     "battery",
@@ -145,7 +146,7 @@
     "tooltip-format-ethernet": "{ifname} {ipaddr}/{cidr}",
     "tooltip-format-disconnected": "No network connection",
     "tooltip-format-disabled": "RFKILL blocked",
-    "on-click": "ghostty -e nmtui"
+    "on-click": "/etc/profiles/per-user/$USER/bin/ghostty -e /run/current-system/sw/bin/nmtui"
   },
 
   "bluetooth": {
@@ -160,6 +161,12 @@
     "tooltip-format-enumerate-connected": "{device_alias}",
     "tooltip-format-enumerate-connected-battery": "{device_alias} {device_battery_percentage}%",
     "on-click": "/run/current-system/sw/bin/blueman-manager"
+  },
+
+  "custom/wifi-manager": {
+    "format": "󰖩",
+    "tooltip": false,
+    "on-click": "/etc/profiles/per-user/$USER/bin/ghostty -e /run/current-system/sw/bin/nmtui"
   },
 
   "pulseaudio": {
