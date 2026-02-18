@@ -527,7 +527,7 @@ in
       riverctl spawn '${riverSessionBootstrap}'
 
       riverctl background-color 0x1e1e2e
-      riverctl border-width 1
+      riverctl border-width 0
       riverctl border-color-focused 0x4a3f64
       riverctl border-color-unfocused 0x2c2938
       riverctl set-repeat 50 300
