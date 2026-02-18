@@ -8,17 +8,12 @@
 }
 
 window#waybar {
-  background: linear-gradient(
-    180deg,
-    rgba(30, 35, 50, 0.82) 0%,
-    rgba(24, 29, 42, 0.62) 64%,
-    rgba(20, 24, 36, 0.34) 100%
-  );
+  background: rgba(12, 16, 26, 0.22);
   color: #d8deef;
-  margin: 4px 10px 0 10px;
-  border-radius: 14px;
+  margin: 2px 10px 0 10px;
+  border-radius: 12px;
   border: none;
-  box-shadow: 0 4px 10px rgba(7, 10, 18, 0.24);
+  box-shadow: none;
 }
 
 #window,
@@ -56,7 +51,7 @@ window#waybar {
 #workspaces,
 #tags {
   background: transparent;
-  margin: 4px 16px 0 16px;
+  margin: 4px 10px 0 10px;
   padding: 0;
   border: none;
   box-shadow: none;
@@ -66,10 +61,10 @@ window#waybar {
 #tags button {
   color: #c7d0ea;
   background: rgba(40, 46, 67, 0.74);
-  margin: 0 8px;
+  margin: 0 4px;
   padding: 0;
-  min-width: 32px;
-  min-height: 32px;
+  min-width: 30px;
+  min-height: 30px;
   border-radius: 999px;
   border: 1px solid rgba(136, 151, 195, 0.36);
   box-shadow: 0 1px 4px rgba(4, 6, 12, 0.25);
@@ -109,7 +104,7 @@ window#waybar {
 #workspaces button label,
 #tags button label {
   color: #e2e8ff;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 900;
 }
 
