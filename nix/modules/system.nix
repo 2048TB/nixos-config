@@ -492,7 +492,6 @@ in
     # 编辑器（vim 由 home-manager 配置，此处仅保留 neovim 作为 root 用户编辑器）
     neovim
     gnupg # gpg 命令（签名/加密）
-    xwayland # XWayland 运行时工具（Steam/WPS 等 X11 应用依赖）
 
     # 开发语言/工具链（系统级）
     # Rust: 预装 Windows GNU target，支持在 Linux 主机交叉编译 .exe

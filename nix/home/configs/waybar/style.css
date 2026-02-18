@@ -8,9 +8,10 @@
 }
 
 window#waybar {
-  background: transparent;
+  background: rgba(17, 17, 27, 0.25);
   color: #cdd6f4;
   margin: 2px 4px 0 4px;
+  border-radius: 16px;
 }
 
 #workspaces,
@@ -27,6 +28,7 @@ window#waybar {
 #backlight,
 #battery,
 #power-profiles-daemon,
+#custom-notification,
 #tray,
 #custom-launcher,
 #custom-power {
@@ -36,6 +38,8 @@ window#waybar {
   padding: 0 9px;
   border-radius: 14px;
   border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  transition: color 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
 }
 
 #custom-launcher,
@@ -169,6 +173,28 @@ window#waybar {
 
 #power-profiles-daemon.power-saver {
   color: #89b4fa;
+}
+
+#custom-notification {
+  color: #89b4fa;
+  min-width: 20px;
+}
+
+#custom-notification.none,
+#custom-notification.inhibited-none {
+  color: #6c7086;
+}
+
+#custom-notification.notification,
+#custom-notification.inhibited-notification {
+  color: #f9e2af;
+}
+
+#custom-notification.dnd-none,
+#custom-notification.dnd-notification,
+#custom-notification.dnd-inhibited-none,
+#custom-notification.dnd-inhibited-notification {
+  color: #f38ba8;
 }
 
 #custom-power {

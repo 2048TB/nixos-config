@@ -32,8 +32,6 @@ let
       . "$hm_vars"
     fi
 
-    export XDG_CURRENT_DESKTOP=river
-    export XDG_SESSION_DESKTOP=river
     # 由 Home Manager 的 wayland.windowManager.river.systemd.enable
     # 统一导入关键环境变量到 systemd user / dbus，避免重复导入。
 
@@ -103,6 +101,131 @@ let
     picked="$(${pkgs.cliphist}/bin/cliphist list | ${pkgs.fuzzel}/bin/fuzzel --dmenu || true)"
     [ -n "$picked" ] || exit 0
     printf '%s' "$picked" | ${pkgs.cliphist}/bin/cliphist decode | ${pkgs.wl-clipboard}/bin/wl-copy
+  '';
+  swayncSettings = {
+    "$schema" = "/etc/xdg/swaync/configSchema.json";
+    positionX = "right";
+    positionY = "top";
+    layer = "overlay";
+    "control-center-layer" = "top";
+    "layer-shell" = true;
+    "control-center-margin-top" = 10;
+    "control-center-margin-bottom" = 10;
+    "control-center-margin-right" = 10;
+    "control-center-margin-left" = 10;
+    "notification-2fa-action" = true;
+    "notification-inline-replies" = false;
+    "notification-body-image-height" = 100;
+    "notification-body-image-width" = 200;
+    timeout = 10;
+    "timeout-low" = 5;
+    "timeout-critical" = 0;
+    "fit-to-screen" = true;
+    "relative-timestamps" = true;
+    "control-center-width" = 500;
+    "control-center-height" = 900;
+    "notification-window-width" = 450;
+    "keyboard-shortcuts" = true;
+    "notification-grouping" = true;
+    "image-visibility" = "when-available";
+    "transition-time" = 200;
+    "hide-on-clear" = false;
+    "hide-on-action" = true;
+    "text-empty" = "No Notifications";
+    widgets = [
+      "title"
+      "dnd"
+      "notifications"
+      "mpris"
+    ];
+    "widget-config" = {
+      title = {
+        text = "Notification Center";
+        "clear-all-button" = true;
+        "button-text" = "Clear";
+      };
+      dnd = {
+        text = "Do Not Disturb";
+      };
+      label = {
+        "max-lines" = 1;
+        text = "Notification Center";
+      };
+      mpris = {
+        "image-size" = 80;
+        "image-radius" = 8;
+      };
+    };
+  };
+  swayncStyle = ''
+    * {
+      font-family: "Maple Mono NF CN", "Sarasa UI SC", "JetBrainsMono Nerd Font", sans-serif;
+      font-size: 13px;
+    }
+
+    .control-center {
+      background: #1e1e2e;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 14px;
+    }
+
+    .control-center .widget-title,
+    .control-center .widget-dnd,
+    .control-center .widget-mpris {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 10px;
+      margin: 8px 10px 0 10px;
+      padding: 8px 10px;
+    }
+
+    .control-center .widget-title > button {
+      background: #89b4fa;
+      color: #1e1e2e;
+      border-radius: 8px;
+      border: none;
+      padding: 4px 10px;
+    }
+
+    .notification-row:focus,
+    .notification-row:hover {
+      background: transparent;
+    }
+
+    .notification {
+      background: #1e1e2e;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      margin: 6px 10px;
+      padding: 0;
+    }
+
+    .notification-content {
+      padding: 8px 10px;
+    }
+
+    .notification-default-action:hover,
+    .notification-action:hover {
+      background: rgba(137, 180, 250, 0.18);
+    }
+
+    .notification.critical {
+      border-color: rgba(243, 139, 168, 0.45);
+    }
+
+    .widget-dnd > switch {
+      background: #313244;
+      border-radius: 999px;
+    }
+
+    .widget-dnd > switch:checked {
+      background: #89b4fa;
+    }
+
+    .widget-dnd > switch slider {
+      background: #cdd6f4;
+      border-radius: 999px;
+    }
   '';
 in
 {
@@ -178,13 +301,11 @@ in
       fastfetch # 系统信息展示
 
       # === 文本处理 ===
-      nano # 轻量文本编辑器（用于 Yazi 打开 .txt/.md）
       jq # JSON 处理器（查询、格式化）
       sd # 查找替换（替代 `sed`）
       tealdeer # 命令示例（`tldr`，简化版 `man` 页面）
 
       # === 网络工具 ===
-      curl # HTTP 请求工具
       wget # 文件下载工具
 
       # === 基础工具 ===
@@ -206,7 +327,6 @@ in
       delta # git diff 美化（语法高亮、并排对比）
       tokei # 代码统计（行数、语言分布）
       brightnessctl # 屏幕亮度控制
-      xdg-utils # XDG 工具集
       xdg-user-dirs # 用户目录管理
 
       # === Nix 生态工具 ===
@@ -261,14 +381,12 @@ in
       unzip
       lrzip
       lzop
-      zstd
 
-      # === Niri 生态 ===
+      # === River 生态 ===
       fuzzel
       waybar
       swaylock
       wlogout
-      playerctl
       gnome-calculator
       swaybg # 备用壁纸工具（手动/脚本场景可用）
 
@@ -388,10 +506,6 @@ in
         export PKG_CONFIG_PATH="${pkgs.openssl.dev}/lib/pkgconfig''${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
       '';
       initContent = builtins.readFile ./configs/shell/zshrc;
-    };
-
-    bash = {
-      enable = true;
     };
 
     vim = {
@@ -519,6 +633,12 @@ in
       automount = true;
       notify = true;
       tray = "never"; # Wayland 会话使用 Waybar 托盘模块
+    };
+
+    swaync = {
+      enable = true;
+      settings = swayncSettings;
+      style = swayncStyle;
     };
   };
 
@@ -688,4 +808,16 @@ in
       icon-theme = "Papirus";
     };
   };
+
+  # 质量守护：防止 home.packages 出现重复 derivation（同 outPath）
+  assertions = [
+    {
+      assertion =
+        let
+          homePackageOutPaths = map (pkg: pkg.outPath) config.home.packages;
+        in
+        lib.length homePackageOutPaths == lib.length (lib.unique homePackageOutPaths);
+      message = "Duplicate packages detected in home.packages (same outPath).";
+    }
+  ];
 }
