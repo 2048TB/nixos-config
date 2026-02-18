@@ -56,10 +56,10 @@
       "dnd-inhibited-none": ""
     },
     "return-type": "json",
-    "exec-if": "which swaync-client",
-    "exec": "swaync-client -swb",
-    "on-click": "swaync-client -t -sw",
-    "on-click-right": "swaync-client -d -sw",
+    "exec-if": "test -x /etc/profiles/per-user/$USER/bin/swaync-client",
+    "exec": "/etc/profiles/per-user/$USER/bin/swaync-client -swb",
+    "on-click": "/etc/profiles/per-user/$USER/bin/swaync-client -t -sw",
+    "on-click-right": "/etc/profiles/per-user/$USER/bin/swaync-client -d -sw",
     "escape": true
   },
 

@@ -146,7 +146,8 @@ let
     wallpaper="$wallpaperDir/1.png"
 
     randomWallpaper="$(
-      ${pkgs.findutils}/bin/find "$wallpaperDir" -maxdepth 1 -type f \
+      ${pkgs.findutils}/bin/find "$wallpaperDir" -maxdepth 1 \
+        \( -type f -o -type l \) \
         \( -iname '*.png' -o -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.webp' -o -iname '*.bmp' -o -iname '*.gif' \) \
       | ${pkgs.coreutils}/bin/shuf \
       | ${pkgs.coreutils}/bin/head -n 1
@@ -835,7 +836,10 @@ in
       "git/config".source = ./configs/git/config;
       "zellij/config.kdl".source = ./configs/zellij/config.kdl;
       "tmux/tmux.conf".source = ./configs/tmux/tmux.conf;
-      "wallpapers".source = ./configs/wallpapers;
+      "wallpapers" = {
+        source = ./configs/wallpapers;
+        recursive = true;
+      };
 
       "pnpm/rc".text = ''
         global-dir=${localShareDir}/pnpm/global
