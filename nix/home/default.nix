@@ -527,8 +527,9 @@ in
       riverctl spawn '${riverSessionBootstrap}'
 
       riverctl background-color 0x1e1e2e
-      riverctl border-color-focused 0x89b4fa
-      riverctl border-color-unfocused 0x585b70
+      riverctl border-width 1
+      riverctl border-color-focused 0x4a3f64
+      riverctl border-color-unfocused 0x2c2938
       riverctl set-repeat 50 300
 
       riverctl map normal Super Return spawn ghostty
