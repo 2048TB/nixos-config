@@ -80,6 +80,7 @@
 
   "river/mode": {
     "format": "MODE {}",
+    "on-click": "/etc/profiles/per-user/$USER/bin/river-mode-cycle toggle",
     "max-length": 14
   },
 

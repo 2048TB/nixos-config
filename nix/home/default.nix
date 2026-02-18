@@ -102,6 +102,61 @@ let
     [ -n "$picked" ] || exit 0
     printf '%s' "$picked" | ${pkgs.cliphist}/bin/cliphist decode | ${pkgs.wl-clipboard}/bin/wl-copy
   '';
+  riverModeCycle = pkgs.writeShellScriptBin "river-mode-cycle" ''
+    set -euo pipefail
+    stateFile="${homeDir}/.local/state/river/mode"
+    action="''${1:-toggle}"
+    current="normal"
+    next="normal"
+
+    if [ -s "$stateFile" ]; then
+      current="$(${pkgs.coreutils}/bin/head -n 1 "$stateFile")"
+    fi
+
+    case "$action" in
+      toggle)
+        case "$current" in
+          normal) next="float" ;;
+          float) next="passthrough" ;;
+          passthrough) next="normal" ;;
+          *) next="normal" ;;
+        esac
+        ;;
+      set)
+        next="''${2:-normal}"
+        ;;
+      *)
+        echo "Usage: river-mode-cycle [toggle|set <normal|float|passthrough>]" >&2
+        exit 1
+        ;;
+    esac
+
+    case "$next" in
+      normal|float|passthrough) ;;
+      *) next="normal" ;;
+    esac
+
+    ${pkgs.coreutils}/bin/mkdir -p "$(${pkgs.coreutils}/bin/dirname "$stateFile")"
+    printf '%s\n' "$next" > "$stateFile"
+    exec /run/current-system/sw/bin/riverctl enter-mode "$next"
+  '';
+  swaybgLauncher = pkgs.writeShellScript "swaybg-launcher" ''
+    set -euo pipefail
+    wallpaperDir="${homeDir}/.config/wallpapers"
+    wallpaper="$wallpaperDir/1.png"
+
+    randomWallpaper="$(
+      ${pkgs.findutils}/bin/find "$wallpaperDir" -maxdepth 1 -type f \
+        \( -iname '*.png' -o -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.webp' -o -iname '*.bmp' -o -iname '*.gif' \) \
+      | ${pkgs.coreutils}/bin/shuf \
+      | ${pkgs.coreutils}/bin/head -n 1
+    )"
+    if [ -n "$randomWallpaper" ]; then
+      wallpaper="$randomWallpaper"
+    fi
+
+    exec ${pkgs.swaybg}/bin/swaybg -i "$wallpaper" -m fill
+  '';
   swayncSettings = {
     "$schema" = "/etc/xdg/swaync/configSchema.json";
     positionX = "right";
@@ -436,6 +491,7 @@ in
       wlogoutMenu
       riverScreenshot
       riverCliphistMenu
+      riverModeCycle
     ]
     ++ wpsWrappedBins; # WPS steam-run 包装器（覆盖原始二进制，修复启动问题）
 
@@ -531,6 +587,8 @@ in
       riverctl border-color-focused 0x4a3f64
       riverctl border-color-unfocused 0x2c2938
       riverctl set-repeat 50 300
+      mkdir -p '${homeDir}/.local/state/river'
+      printf 'normal\n' > '${homeDir}/.local/state/river/mode'
 
       riverctl map normal Super Return spawn ghostty
       riverctl map normal Super Space spawn '/etc/profiles/per-user/${mainUser}/bin/fuzzel'
@@ -564,10 +622,10 @@ in
 
       # 浮动窗口模式：Super+G 进入，模式内方向键处理移动/吸附/缩放
       riverctl declare-mode float
-      riverctl map normal Super G enter-mode float
-      riverctl map float None Escape enter-mode normal
-      riverctl map float None Return enter-mode normal
-      riverctl map float None Space enter-mode normal
+      riverctl map normal Super G spawn '/etc/profiles/per-user/${mainUser}/bin/river-mode-cycle set float'
+      riverctl map float None Escape spawn '/etc/profiles/per-user/${mainUser}/bin/river-mode-cycle set normal'
+      riverctl map float None Return spawn '/etc/profiles/per-user/${mainUser}/bin/river-mode-cycle set normal'
+      riverctl map float None Space spawn '/etc/profiles/per-user/${mainUser}/bin/river-mode-cycle set normal'
       riverctl map float None V toggle-float
       riverctl map float None Left move left 100
       riverctl map float None Down move down 100
@@ -590,9 +648,9 @@ in
       riverctl map-pointer normal Super BTN_MIDDLE toggle-float
 
       riverctl declare-mode passthrough
-      riverctl map normal Super P enter-mode passthrough
-      riverctl map passthrough Super P enter-mode normal
-      riverctl map passthrough None Escape enter-mode normal
+      riverctl map normal Super P spawn '/etc/profiles/per-user/${mainUser}/bin/river-mode-cycle set passthrough'
+      riverctl map passthrough Super P spawn '/etc/profiles/per-user/${mainUser}/bin/river-mode-cycle set normal'
+      riverctl map passthrough None Escape spawn '/etc/profiles/per-user/${mainUser}/bin/river-mode-cycle set normal'
 
       for i in $(seq 1 9); do
           tags=$((1 << ($i - 1)))
@@ -703,7 +761,7 @@ in
           Install.WantedBy = [ "graphical-session.target" ];
           Service = {
             Type = "simple";
-            ExecStart = "${pkgs.swaybg}/bin/swaybg -i ${homeDir}/.config/wallpapers/default.png -m fill";
+            ExecStart = "${swaybgLauncher}";
             Restart = "on-failure";
             RestartSec = 2;
           };
@@ -777,7 +835,7 @@ in
       "git/config".source = ./configs/git/config;
       "zellij/config.kdl".source = ./configs/zellij/config.kdl;
       "tmux/tmux.conf".source = ./configs/tmux/tmux.conf;
-      "wallpapers/default.png".source = ./configs/wallpapers/1.png;
+      "wallpapers".source = ./configs/wallpapers;
 
       "pnpm/rc".text = ''
         global-dir=${localShareDir}/pnpm/global
