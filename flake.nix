@@ -24,11 +24,6 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # nixpak = {
-    #   url = "github:nixpak/nixpak";
-    #   inputs.nixpkgs.follows = "nixpkgs";
-    # };  # 已移除：nixpak 导致本地编译，直接使用官方包
-
     preservation.url = "github:nix-community/preservation";
 
     disko = {
@@ -40,6 +35,8 @@
 
   outputs = { nixpkgs, rust-overlay, home-manager, lanzaboote, nix-gaming, preservation, disko, ... }:
     let
+      inherit (nixpkgs) lib;
+
       myvars = rec {
         # 用户配置
         username = "z";
@@ -68,45 +65,59 @@
       };
 
       system = "x86_64-linux";
-
       mainUser = myvars.username;
+
+      nixpkgsOverlays = [ rust-overlay.overlays.default ];
+      nixpkgsConfig = {
+        allowUnfree = true;
+      };
 
       pkgs = import nixpkgs {
         inherit system;
-        config.allowUnfree = true;
-        overlays = [ rust-overlay.overlays.default ];
+        config = nixpkgsConfig;
+        overlays = nixpkgsOverlays;
       };
+
       specialArgs = {
-        inherit myvars mainUser preservation;
+        inherit myvars mainUser;
       };
+
+      homeManagerModule = {
+        home-manager = {
+          useGlobalPkgs = true;
+          useUserPackages = true;
+          extraSpecialArgs = specialArgs;
+          users.${mainUser} = {
+            imports = [
+              ./nix/home
+            ];
+          };
+        };
+      };
+
+      hostModules = [
+        {
+          nixpkgs = {
+            config = nixpkgsConfig;
+            overlays = nixpkgsOverlays;
+          };
+        }
+        preservation.nixosModules.default
+        lanzaboote.nixosModules.lanzaboote
+        nix-gaming.nixosModules.pipewireLowLatency
+        nix-gaming.nixosModules.platformOptimizations
+        disko.nixosModules.disko
+        home-manager.nixosModules.home-manager
+        homeManagerModule
+      ];
     in
     rec {
       # NixOS 配置
-      nixosConfigurations.${myvars.hostname} = nixpkgs.lib.nixosSystem {
+      nixosConfigurations.${myvars.hostname} = lib.nixosSystem {
         inherit system specialArgs;
         modules = [
           ./nix/hosts/${myvars.hostname}.nix
-          { nixpkgs.overlays = [ rust-overlay.overlays.default ]; }
-          lanzaboote.nixosModules.lanzaboote
-          nix-gaming.nixosModules.pipewireLowLatency
-          nix-gaming.nixosModules.platformOptimizations
-          disko.nixosModules.disko
-          home-manager.nixosModules.home-manager
-          {
-            home-manager = {
-              useGlobalPkgs = true;
-              useUserPackages = true;
-              extraSpecialArgs = {
-                inherit myvars mainUser;
-              };
-              users.${mainUser} = {
-                imports = [
-                  ./nix/home
-                ];
-              };
-            };
-          }
-        ];
+        ] ++ hostModules;
       };
 
       # 轻量 eval checks
@@ -114,9 +125,9 @@
         let
           cfg = nixosConfigurations.${myvars.hostname}.config;
           expectedHome = "/home/${mainUser}";
-          systemPackageOutPaths = nixpkgs.lib.unique (map (pkg: pkg.outPath) cfg.environment.systemPackages);
-          homePackageOutPaths = nixpkgs.lib.unique (map (pkg: pkg.outPath) cfg.home-manager.users.${mainUser}.home.packages);
-          systemHomePackageOverlapCount = builtins.length (nixpkgs.lib.intersectLists systemPackageOutPaths homePackageOutPaths);
+          systemPackageOutPaths = lib.unique (map (pkg: pkg.outPath) cfg.environment.systemPackages);
+          homePackageOutPaths = lib.unique (map (pkg: pkg.outPath) cfg.home-manager.users.${mainUser}.home.packages);
+          systemHomePackageOverlapCount = builtins.length (lib.intersectLists systemPackageOutPaths homePackageOutPaths);
           # 允许少量基础运行时重叠（例如 shell/手册等隐式包），超出视为回归
           maxAllowedSystemHomeOverlap = 4;
         in

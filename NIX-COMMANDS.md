@@ -95,10 +95,10 @@ nix-tree /run/current-system
 sudo nixos-rebuild switch --flake /etc/nixos#zly
 ```
 
-查看 HM 世代历史：
+查看 HM 世代历史（无需 `home-manager` CLI）：
 
 ```bash
-home-manager generations
+nix-env --list-generations --profile /nix/var/nix/profiles/per-user/$USER/home-manager
 ```
 
 ---

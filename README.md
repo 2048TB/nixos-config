@@ -1,6 +1,6 @@
-# NixOS Desktop (Niri + Home Manager)
+# NixOS Desktop (river-classic + Home Manager)
 
-可复现的 NixOS 桌面配置，基于 Niri Wayland + Home Manager。
+可复现的 NixOS 桌面配置，基于 river-classic Wayland + Home Manager。
 
 相关文档：
 - `KEYBINDINGS.md` 快捷键说明
@@ -10,7 +10,7 @@
 - `CLAUDE.md` 项目维护约定（给 AI/自动化工具）
 
 主要特性：
-- Wayland 桌面：Niri + Waybar + Fuzzel + Wlogout
+- Wayland 桌面：river-classic + Waybar + Fuzzel + Wlogout
 - 开发工具链：Rust / Zig / Go / Node.js / Python
 - 游戏支持：Steam / Proton / Wine / Lutris
 - 中文输入：Fcitx5
@@ -124,7 +124,7 @@ sudo nixos-rebuild switch --flake /etc/nixos#zly
 当前配置使用「全局暗色 + 分层覆盖」：
 - GTK：`dconf.settings` 统一 `prefer-dark` + `Adwaita-dark`
 - Qt6：`qt6ct` 使用 `darker.conf`
-- Wayland 组件（Niri / Waybar / Fuzzel / Wlogout / Foot / Ghostty）：统一到深色调（Catppuccin 风格）
+- Wayland 组件（river-classic / Waybar / Fuzzel / Wlogout / Foot / Ghostty）：统一到深色调（Catppuccin 风格）
 
 说明：
 - 浏览器与 Electron 类应用（如 Chrome、VS Code）通常需要应用内单独选择主题，无法仅靠 GTK/Qt 全局主题强制统一。

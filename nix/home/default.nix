@@ -1,13 +1,30 @@
 { config, pkgs, lib, myvars, mainUser, ... }:
 let
-  # 配置常量
+  # ===== 基础常量 =====
   homeStateVersion = "25.11";
 
-  # 路径常量（减少重复）
+  # 路径常量
   homeDir = config.home.homeDirectory;
   localBinDir = "${homeDir}/.local/bin";
   localShareDir = "${homeDir}/.local/share";
+  userProfileBin = "/etc/profiles/per-user/${mainUser}/bin";
+  profileCmd = cmd: "${userProfileBin}/${cmd}";
 
+  # 资源映射常量
+  wlogoutIconNames = [
+    "lock"
+    "logout"
+    "suspend"
+    "hibernate"
+    "reboot"
+    "shutdown"
+  ];
+  wlogoutIconFiles =
+    lib.genAttrs
+      (map (name: "wlogout/icons/${name}.png") wlogoutIconNames)
+      (path: { source = "${pkgs.wlogout}/share/${path}"; });
+
+  # 应用关联常量
   imageMimeTypes = [
     "image/jpeg"
     "image/png"
@@ -17,6 +34,8 @@ let
     "image/tiff"
   ];
   imageApps = [ "org.nomacs.ImageLounge.desktop" "nomacs.desktop" ];
+
+  # ===== 启动脚本与包装器 =====
   riverSessionBootstrap = pkgs.writeShellScript "river-session-bootstrap" ''
     # 等待输出初始化完成后统一设置缩放，避免字体过小
     sleep 1
@@ -60,7 +79,7 @@ let
   # 修复 NixOS 上 WPS 无法启动的问题（FHS 兼容性）
   # 参考：https://github.com/NixOS/nixpkgs/issues/125951
   wpsRunWrapper = bin: lib.hiPrio (pkgs.writeShellScriptBin bin ''
-    exec ${pkgs.lib.getExe pkgs.steam-run} ${pkgs.wpsoffice}/bin/${bin} "$@"
+    exec ${lib.getExe pkgs.steam-run} ${pkgs.wpsoffice}/bin/${bin} "$@"
   '');
   wpsWrappedBins = map wpsRunWrapper [ "wps" "et" "wpp" "wpspdf" ];
   # 统一 Wlogout 调用入口，避免 Waybar/Niri 参数漂移
@@ -592,14 +611,14 @@ in
       printf 'normal\n' > '${homeDir}/.local/state/river/mode'
 
       riverctl map normal Super Return spawn ghostty
-      riverctl map normal Super Space spawn '/etc/profiles/per-user/${mainUser}/bin/fuzzel'
+      riverctl map normal Super Space spawn '${profileCmd "fuzzel"}'
       riverctl map normal Super D spawn nautilus
-      riverctl map normal Super+Control C spawn '/etc/profiles/per-user/${mainUser}/bin/river-cliphist-menu'
+      riverctl map normal Super+Control C spawn '${profileCmd "river-cliphist-menu"}'
       riverctl map normal Super+Control S spawn pavucontrol
       riverctl map normal Super Q close
       riverctl map normal Super+Shift E exit
       riverctl map normal Super+Shift L spawn 'swaylock -f'
-      riverctl map normal Super+Control E spawn '/etc/profiles/per-user/${mainUser}/bin/wlogout-menu'
+      riverctl map normal Super+Control E spawn '${profileCmd "wlogout-menu"}'
 
       # 焦点与交换（常用双键）
       riverctl map normal Super Right focus-view -skip-floating next
@@ -623,10 +642,10 @@ in
 
       # 浮动窗口模式：Super+G 进入，模式内方向键处理移动/吸附/缩放
       riverctl declare-mode float
-      riverctl map normal Super G spawn '/etc/profiles/per-user/${mainUser}/bin/river-mode-cycle set float'
-      riverctl map float None Escape spawn '/etc/profiles/per-user/${mainUser}/bin/river-mode-cycle set normal'
-      riverctl map float None Return spawn '/etc/profiles/per-user/${mainUser}/bin/river-mode-cycle set normal'
-      riverctl map float None Space spawn '/etc/profiles/per-user/${mainUser}/bin/river-mode-cycle set normal'
+      riverctl map normal Super G spawn '${profileCmd "river-mode-cycle"} set float'
+      riverctl map float None Escape spawn '${profileCmd "river-mode-cycle"} set normal'
+      riverctl map float None Return spawn '${profileCmd "river-mode-cycle"} set normal'
+      riverctl map float None Space spawn '${profileCmd "river-mode-cycle"} set normal'
       riverctl map float None V toggle-float
       riverctl map float None Left move left 100
       riverctl map float None Down move down 100
@@ -649,9 +668,9 @@ in
       riverctl map-pointer normal Super BTN_MIDDLE toggle-float
 
       riverctl declare-mode passthrough
-      riverctl map normal Super P spawn '/etc/profiles/per-user/${mainUser}/bin/river-mode-cycle set passthrough'
-      riverctl map passthrough Super P spawn '/etc/profiles/per-user/${mainUser}/bin/river-mode-cycle set normal'
-      riverctl map passthrough None Escape spawn '/etc/profiles/per-user/${mainUser}/bin/river-mode-cycle set normal'
+      riverctl map normal Super P spawn '${profileCmd "river-mode-cycle"} set passthrough'
+      riverctl map passthrough Super P spawn '${profileCmd "river-mode-cycle"} set normal'
+      riverctl map passthrough None Escape spawn '${profileCmd "river-mode-cycle"} set normal'
 
       for i in $(seq 1 9); do
           tags=$((1 << ($i - 1)))
@@ -804,48 +823,44 @@ in
   };
 
   xdg = {
-    configFile = {
-      "qt6ct/qt6ct.conf".source = ./configs/qt6ct/qt6ct.conf;
-      "qt6ct/colors/darker.conf".source = "${pkgs.qt6Packages.qt6ct}/share/qt6ct/colors/darker.conf";
-      # 固化用户名路径，避免 Waybar 在特殊环境下无法展开 $USER。
-      "waybar/config".text =
-        builtins.replaceStrings
-          [ "$USER" ]
-          [ mainUser ]
-          (builtins.readFile ./configs/waybar/config.jsonc);
-      "waybar/style.css".source = ./configs/waybar/style.css;
-      "wlogout/layout".source = ./configs/wlogout/layout;
-      "wlogout/style.css".source = ./configs/wlogout/style.css;
-      "wlogout/icons/lock.png".source = "${pkgs.wlogout}/share/wlogout/icons/lock.png";
-      "wlogout/icons/logout.png".source = "${pkgs.wlogout}/share/wlogout/icons/logout.png";
-      "wlogout/icons/suspend.png".source = "${pkgs.wlogout}/share/wlogout/icons/suspend.png";
-      "wlogout/icons/hibernate.png".source = "${pkgs.wlogout}/share/wlogout/icons/hibernate.png";
-      "wlogout/icons/reboot.png".source = "${pkgs.wlogout}/share/wlogout/icons/reboot.png";
-      "wlogout/icons/shutdown.png".source = "${pkgs.wlogout}/share/wlogout/icons/shutdown.png";
+    configFile =
+      {
+        "qt6ct/qt6ct.conf".source = ./configs/qt6ct/qt6ct.conf;
+        "qt6ct/colors/darker.conf".source = "${pkgs.qt6Packages.qt6ct}/share/qt6ct/colors/darker.conf";
+        # 固化用户名路径，避免 Waybar 在特殊环境下无法展开 $USER。
+        "waybar/config".text =
+          builtins.replaceStrings
+            [ "$USER" ]
+            [ mainUser ]
+            (builtins.readFile ./configs/waybar/config.jsonc);
+        "waybar/style.css".source = ./configs/waybar/style.css;
+        "wlogout/layout".source = ./configs/wlogout/layout;
+        "wlogout/style.css".source = ./configs/wlogout/style.css;
 
-      "fcitx5/profile" = {
-        source = ./configs/fcitx5/profile;
-        force = true;
-      };
+        "fcitx5/profile" = {
+          source = ./configs/fcitx5/profile;
+          force = true;
+        };
 
-      "fuzzel/fuzzel.ini".source = ./configs/fuzzel/fuzzel.ini;
-      "foot/foot.ini".source = ./configs/foot/foot.ini;
-      "ghostty/config".source = ./configs/ghostty/config;
-      "yazi/yazi.toml".source = ./configs/yazi/yazi.toml;
-      "yazi/keymap.toml".source = ./configs/yazi/keymap.toml;
-      "git/config".source = ./configs/git/config;
-      "zellij/config.kdl".source = ./configs/zellij/config.kdl;
-      "tmux/tmux.conf".source = ./configs/tmux/tmux.conf;
-      "wallpapers" = {
-        source = ./configs/wallpapers;
-        recursive = true;
-      };
+        "fuzzel/fuzzel.ini".source = ./configs/fuzzel/fuzzel.ini;
+        "foot/foot.ini".source = ./configs/foot/foot.ini;
+        "ghostty/config".source = ./configs/ghostty/config;
+        "yazi/yazi.toml".source = ./configs/yazi/yazi.toml;
+        "yazi/keymap.toml".source = ./configs/yazi/keymap.toml;
+        "git/config".source = ./configs/git/config;
+        "zellij/config.kdl".source = ./configs/zellij/config.kdl;
+        "tmux/tmux.conf".source = ./configs/tmux/tmux.conf;
+        "wallpapers" = {
+          source = ./configs/wallpapers;
+          recursive = true;
+        };
 
-      "pnpm/rc".text = ''
-        global-dir=${localShareDir}/pnpm/global
-        global-bin-dir=${localShareDir}/pnpm/bin
-      '';
-    };
+        "pnpm/rc".text = ''
+          global-dir=${localShareDir}/pnpm/global
+          global-bin-dir=${localShareDir}/pnpm/bin
+        '';
+      }
+      // wlogoutIconFiles;
 
     userDirs = {
       enable = true;

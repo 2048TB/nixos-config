@@ -1,4 +1,4 @@
-{ config, pkgs, lib, myvars, mainUser, preservation, ... }:
+{ config, pkgs, lib, myvars, mainUser, ... }:
 let
   # 系统常量
   defaultUid = 1000;
@@ -34,8 +34,6 @@ let
   ];
 in
 {
-  imports = [ preservation.nixosModules.default ];
-
   boot = {
     # 引导加载器
     loader = {
@@ -159,10 +157,6 @@ in
     "vm.page-cluster" = 0;
   };
 
-
-  # flake.nix 的 allowUnfree 仅影响 flake 上下文，模块内仍需显式配置
-  nixpkgs.config.allowUnfree = true;
-
   nix = {
     settings = {
       experimental-features = [ "nix-command" "flakes" ];
@@ -183,7 +177,7 @@ in
       ];
 
       # 仅信任 root（@wheel 可通过恶意 substituter 提权，已移除）
-      trusted-users = [ "root" ];
+      trusted-users = lib.mkForce [ "root" ];
 
       # 自动优化存储（硬链接重复文件）
       auto-optimise-store = true;
@@ -457,8 +451,10 @@ in
       text = ''
         if [ -d ${homeDir} ] && id -u ${mainUser} >/dev/null 2>&1; then
           current_uid=$(stat -c %u ${homeDir} 2>/dev/null || echo "")
+          current_gid=$(stat -c %g ${homeDir} 2>/dev/null || echo "")
           target_uid=$(id -u ${mainUser})
-          if [ -n "$current_uid" ] && [ "$current_uid" != "$target_uid" ]; then
+          target_gid=$(id -g ${mainUser})
+          if [ -n "$current_uid" ] && [ -n "$current_gid" ] && { [ "$current_uid" != "$target_uid" ] || [ "$current_gid" != "$target_gid" ]; }; then
             find ${homeDir} -xdev \( -not -user ${mainUser} -o -not -group ${mainUser} \) \
               -exec chown ${mainUser}:${mainUser} {} + || true
           fi
@@ -473,8 +469,10 @@ in
         repo_dir="/persistent/nixos-config"
         if [ -d "$repo_dir" ] && id -u ${mainUser} >/dev/null 2>&1; then
           current_uid=$(stat -c %u "$repo_dir" 2>/dev/null || echo "")
+          current_gid=$(stat -c %g "$repo_dir" 2>/dev/null || echo "")
           target_uid=$(id -u ${mainUser})
-          if [ -n "$current_uid" ] && [ "$current_uid" != "$target_uid" ]; then
+          target_gid=$(id -g ${mainUser})
+          if [ -n "$current_uid" ] && [ -n "$current_gid" ] && { [ "$current_uid" != "$target_uid" ] || [ "$current_gid" != "$target_gid" ]; }; then
             find "$repo_dir" -xdev \( -not -user ${mainUser} -o -not -group ${mainUser} \) \
               -exec chown ${mainUser}:${mainUser} {} + || true
           fi
