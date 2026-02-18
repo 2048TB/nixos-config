@@ -115,6 +115,11 @@
         let
           cfg = nixosConfigurations.${myvars.hostname}.config;
           expectedHome = "/home/${mainUser}";
+          systemPackageOutPaths = nixpkgs.lib.unique (map (pkg: pkg.outPath) cfg.environment.systemPackages);
+          homePackageOutPaths = nixpkgs.lib.unique (map (pkg: pkg.outPath) cfg.home-manager.users.${mainUser}.home.packages);
+          systemHomePackageOverlapCount = builtins.length (nixpkgs.lib.intersectLists systemPackageOutPaths homePackageOutPaths);
+          # 允许少量基础运行时重叠（例如 shell/手册等隐式包），超出视为回归
+          maxAllowedSystemHomeOverlap = 4;
         in
         {
           eval-hostname = pkgs.runCommand "eval-hostname" { } ''
@@ -124,6 +129,11 @@
 
           eval-home-directory = pkgs.runCommand "eval-home-directory" { } ''
             test "${cfg.home-manager.users.${mainUser}.home.homeDirectory}" = "${expectedHome}"
+            touch "$out"
+          '';
+
+          eval-system-home-package-overlap = pkgs.runCommand "eval-system-home-package-overlap" { } ''
+            test ${toString systemHomePackageOverlapCount} -le ${toString maxAllowedSystemHomeOverlap}
             touch "$out"
           '';
         };
