@@ -45,7 +45,7 @@ window#waybar {
   border-radius: 14px;
   border: none;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
-  transition: color 0.2s ease, background-color 0.2s ease, transform 0.2s ease;
+  transition: color 0.2s ease, background-color 0.2s ease;
 }
 
 #custom-launcher,
@@ -82,7 +82,6 @@ window#waybar {
   background: linear-gradient(120deg, #d8b4fe, #a5b4fc);
   color: #15131f;
   box-shadow: 0 0 0 1px rgba(216, 180, 254, 0.45), 0 6px 18px rgba(150, 111, 230, 0.32);
-  transform: translateY(-1px) scale(1.03);
 }
 
 #workspaces button.occupied,
