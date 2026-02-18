@@ -60,7 +60,7 @@ let
   # 修复 NixOS 上 WPS 无法启动的问题（FHS 兼容性）
   # 参考：https://github.com/NixOS/nixpkgs/issues/125951
   wpsRunWrapper = bin: lib.hiPrio (pkgs.writeShellScriptBin bin ''
-    exec steam-run ${pkgs.wpsoffice}/bin/${bin} "$@"
+    exec ${pkgs.lib.getExe pkgs.steam-run} ${pkgs.wpsoffice}/bin/${bin} "$@"
   '');
   wpsWrappedBins = map wpsRunWrapper [ "wps" "et" "wpp" "wpspdf" ];
   # 统一 Wlogout 调用入口，避免 Waybar/Niri 参数漂移

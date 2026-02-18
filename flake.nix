@@ -3,7 +3,6 @@
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-25.11";
-    nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
 
     rust-overlay = {
       url = "github:oxalica/rust-overlay";
@@ -110,7 +109,7 @@
         ];
       };
 
-      # 检查项（6）+ 轻量 eval tests（7）
+      # 轻量 eval checks
       checks.${system} =
         let
           cfg = nixosConfigurations.${myvars.hostname}.config;
