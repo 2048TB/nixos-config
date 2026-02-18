@@ -158,7 +158,7 @@
     "tooltip-format-connected": "{controller_alias}\n{num_connections} connected\n\n{device_enumerate}",
     "tooltip-format-enumerate-connected": "{device_alias}",
     "tooltip-format-enumerate-connected-battery": "{device_alias} {device_battery_percentage}%",
-    "on-click": "blueman-manager"
+    "on-click": "/run/current-system/sw/bin/blueman-manager"
   },
 
   "pulseaudio": {
