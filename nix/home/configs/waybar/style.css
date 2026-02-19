@@ -155,16 +155,42 @@ window#waybar {
 }
 
 #bluetooth {
-  color: #12608a;
+  color: #b6deff;
+  background: linear-gradient(180deg, rgba(20, 78, 117, 0.58), rgba(16, 58, 92, 0.58));
+  border: 1px solid rgba(112, 175, 222, 0.42);
+  min-width: 24px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+#bluetooth.connected {
+  color: #f4fbff;
+  box-shadow: inset 0 0 0 1px rgba(171, 217, 250, 0.32), 0 0 10px rgba(18, 96, 138, 0.24);
 }
 
 #bluetooth.off,
 #bluetooth.disabled {
-  color: #5c5b5a;
+  color: #82878a;
+  background: rgba(58, 62, 66, 0.45);
+  border-color: rgba(109, 113, 119, 0.36);
 }
 
 #custom-wifi-manager {
-  color: #0986d3;
+  color: #b6f3ff;
+  background: linear-gradient(180deg, rgba(17, 112, 135, 0.58), rgba(15, 84, 106, 0.58));
+  border: 1px solid rgba(120, 214, 227, 0.4);
+  min-width: 24px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+#bluetooth:hover,
+#custom-wifi-manager:hover {
+  color: #ffffff;
+  border-color: rgba(160, 220, 255, 0.65);
+  box-shadow: 0 0 10px rgba(60, 156, 208, 0.22);
 }
 
 #pulseaudio {

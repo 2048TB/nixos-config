@@ -159,6 +159,172 @@ let
     printf '%s\n' "$next" > "$stateFile"
     exec /run/current-system/sw/bin/riverctl enter-mode "$next"
   '';
+  wifiQuickMenu = pkgs.writeShellScriptBin "wifi-quick-menu" ''
+    set -euo pipefail
+    nmcli="/run/current-system/sw/bin/nmcli"
+    fuzzel="${pkgs.fuzzel}/bin/fuzzel"
+    tr="/run/current-system/sw/bin/tr"
+    grep="/run/current-system/sw/bin/grep"
+    sed="/run/current-system/sw/bin/sed"
+    head="/run/current-system/sw/bin/head"
+    cut="/run/current-system/sw/bin/cut"
+
+    wifiState="$($nmcli -t -f WIFI general status 2>/dev/null | "$tr" '[:upper:]' '[:lower:]' | "$head" -n 1 || true)"
+    [ -n "$wifiState" ] || wifiState="unknown"
+
+    currentLine="$($nmcli -t -f ACTIVE,SSID,SIGNAL dev wifi 2>/dev/null | "$grep" '^yes:' | "$head" -n 1 || true)"
+    if [ -n "$currentLine" ]; then
+      currentSsid="$(printf '%s' "$currentLine" | "$cut" -d: -f2 | "$sed" 's/\\:/:/g')"
+      currentSignal="$(printf '%s' "$currentLine" | "$cut" -d: -f3)"
+      [ -n "$currentSsid" ] || currentSsid="<hidden>"
+      [ -n "$currentSignal" ] || currentSignal="?"
+      currentSsidDisplay="$currentSsid"
+      currentSignalDisplay="''${currentSignal}%"
+    else
+      currentSsidDisplay="Not connected"
+      currentSignalDisplay="-"
+    fi
+
+    if [ "$wifiState" = "enabled" ]; then
+      toggleLabel="󰖪 Disable WiFi"
+    else
+      toggleLabel="󰖩 Enable WiFi"
+    fi
+
+    selected="$(
+      {
+        printf '%s\n' "$toggleLabel"
+        printf '%s\n' "󰖩 WiFi Details"
+        printf '%s\n' "󰖩 Open WiFi Connections (GUI)"
+        printf '%s\n' " Open nmtui (fallback)"
+      } | "$fuzzel" --dmenu --prompt 'WiFi > ' || true
+    )"
+    [ -n "$selected" ] || exit 0
+
+    case "$selected" in
+      "󰖩 Enable WiFi")
+        exec "$nmcli" radio wifi on
+        ;;
+      "󰖪 Disable WiFi")
+        exec "$nmcli" radio wifi off
+        ;;
+      "󰖩 WiFi Details")
+        detailsSelected="$(
+          {
+            printf '%s\n' "Status: $wifiState"
+            printf '%s\n' "Current SSID: $currentSsidDisplay"
+            printf '%s\n' "Signal: $currentSignalDisplay"
+            printf '%s\n' "---------------------------"
+            printf '%s\n' "󰖩 Open WiFi Connections (GUI)"
+            printf '%s\n' " Open nmtui (fallback)"
+          } | "$fuzzel" --dmenu --prompt 'WiFi details > ' || true
+        )"
+        case "$detailsSelected" in
+          "󰖩 Open WiFi Connections (GUI)")
+            exec ${pkgs.networkmanagerapplet}/bin/nm-connection-editor
+            ;;
+          " Open nmtui (fallback)")
+            exec ${profileCmd "ghostty"} -e /run/current-system/sw/bin/nmtui
+            ;;
+          *)
+            exit 0
+            ;;
+        esac
+        ;;
+      "󰖩 Open WiFi Connections (GUI)")
+        exec ${pkgs.networkmanagerapplet}/bin/nm-connection-editor
+        ;;
+      " Open nmtui (fallback)")
+        exec ${profileCmd "ghostty"} -e /run/current-system/sw/bin/nmtui
+        ;;
+      *)
+        exit 0
+        ;;
+    esac
+  '';
+  bluetoothQuickMenu = pkgs.writeShellScriptBin "bluetooth-quick-menu" ''
+    set -euo pipefail
+    btctl="/run/current-system/sw/bin/bluetoothctl"
+    fuzzel="${pkgs.fuzzel}/bin/fuzzel"
+    grep="/run/current-system/sw/bin/grep"
+    sed="/run/current-system/sw/bin/sed"
+    head="/run/current-system/sw/bin/head"
+    powered="no"
+
+    if "$btctl" show 2>/dev/null | "$grep" -q "Powered: yes"; then
+      powered="yes"
+    fi
+
+    connectedRaw="$($btctl devices Connected 2>/dev/null || true)"
+    connectedCount="$(printf '%s\n' "$connectedRaw" | "$grep" -c '^Device ' || true)"
+    if [ "${connectedCount:-0}" -gt 0 ]; then
+      firstConnected="$(printf '%s\n' "$connectedRaw" | "$sed" -n 's/^Device [^ ]* //p' | "$head" -n 1)"
+    else
+      firstConnected="None"
+      connectedCount=0
+    fi
+
+    if [ "$powered" = "yes" ]; then
+      toggleLabel="󰂲 Disable Bluetooth"
+    else
+      toggleLabel="󰂯 Enable Bluetooth"
+    fi
+
+    selected="$(
+      {
+        printf '%s\n' "$toggleLabel"
+        printf '%s\n' "󰂯 Bluetooth Details"
+        printf '%s\n' "󰂯 Open Bluetooth Devices (GUI)"
+        printf '%s\n' " Open bluetoothctl (fallback)"
+      } | "$fuzzel" --dmenu --prompt 'Bluetooth > ' || true
+    )"
+    [ -n "$selected" ] || exit 0
+
+    case "$selected" in
+      "󰂯 Enable Bluetooth")
+        exec "$btctl" power on
+        ;;
+      "󰂲 Disable Bluetooth")
+        exec "$btctl" power off
+        ;;
+      "󰂯 Bluetooth Details")
+        detailsSelected="$(
+          {
+            printf '%s\n' "Power: $powered"
+            printf '%s\n' "Connected count: $connectedCount"
+            printf '%s\n' "Current device: $firstConnected"
+            if [ "${connectedCount:-0}" -gt 0 ]; then
+              printf '%s\n' "---------------------------"
+              printf '%s\n' "$connectedRaw" | "$sed" -n 's/^Device [^ ]* /• /p'
+            fi
+            printf '%s\n' "---------------------------"
+            printf '%s\n' "󰂯 Open Bluetooth Devices (GUI)"
+            printf '%s\n' " Open bluetoothctl (fallback)"
+          } | "$fuzzel" --dmenu --prompt 'Bluetooth details > ' || true
+        )"
+        case "$detailsSelected" in
+          "󰂯 Open Bluetooth Devices (GUI)")
+            exec /run/current-system/sw/bin/blueman-manager
+            ;;
+          " Open bluetoothctl (fallback)")
+            exec ${profileCmd "ghostty"} -e /run/current-system/sw/bin/bluetoothctl
+            ;;
+          *)
+            exit 0
+            ;;
+        esac
+        ;;
+      "󰂯 Open Bluetooth Devices (GUI)")
+        exec /run/current-system/sw/bin/blueman-manager
+        ;;
+      " Open bluetoothctl (fallback)")
+        exec ${profileCmd "ghostty"} -e /run/current-system/sw/bin/bluetoothctl
+        ;;
+      *)
+        exit 0
+        ;;
+    esac
+  '';
   swaybgLauncher = pkgs.writeShellScript "swaybg-launcher" ''
     set -euo pipefail
     wallpaperDir="${homeDir}/.config/wallpapers"
@@ -471,6 +637,7 @@ in
       qt6Packages.qt6ct
       app2unit
       polkit_gnome # Polkit 认证代理（权限提升对话框，virt-manager/Nautilus 等需要）
+      networkmanagerapplet # nm-connection-editor（WiFi GUI 管理入口）
 
       # === 游戏工具 ===
       mangohud
@@ -512,6 +679,8 @@ in
       riverScreenshot
       riverCliphistMenu
       riverModeCycle
+      wifiQuickMenu
+      bluetoothQuickMenu
     ]
     ++ wpsWrappedBins; # WPS steam-run 包装器（覆盖原始二进制，修复启动问题）
 
