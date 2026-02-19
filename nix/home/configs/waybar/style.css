@@ -160,7 +160,6 @@ window#waybar {
   border: 1px solid rgba(112, 175, 222, 0.42);
   min-width: 24px;
   font-weight: 800;
-  cursor: pointer;
   transition: all 0.2s ease;
 }
 
@@ -182,7 +181,6 @@ window#waybar {
   border: 1px solid rgba(120, 214, 227, 0.4);
   min-width: 24px;
   font-weight: 800;
-  cursor: pointer;
   transition: all 0.2s ease;
 }
 
