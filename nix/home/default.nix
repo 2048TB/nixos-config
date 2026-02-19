@@ -325,6 +325,24 @@ let
         ;;
     esac
   '';
+  publicIpStatus = pkgs.writeShellScriptBin "public-ip-status" ''
+    set -euo pipefail
+    wgetBin="${profileCmd "wget"}"
+    ip=""
+
+    for url in "https://api.ipify.org" "https://ifconfig.me/ip"; do
+      ip="$("$wgetBin" -q -T 3 -O- "$url" 2>/dev/null || true)"
+      if [ -n "$ip" ]; then
+        break
+      fi
+    done
+
+    if [ -n "$ip" ]; then
+      printf '{"text":"󰩠 %s","tooltip":"Public IP: %s\\nLeft: Quick menu\\nRight: nmtui","class":"online"}\n' "$ip" "$ip"
+    else
+      printf '{"text":"󰪎 offline","tooltip":"Public IP unavailable\\nLeft: Quick menu\\nRight: nmtui","class":"offline"}\n'
+    fi
+  '';
   swaybgLauncher = pkgs.writeShellScript "swaybg-launcher" ''
     set -euo pipefail
     wallpaperDir="${homeDir}/.config/wallpapers"
@@ -681,6 +699,7 @@ in
       riverModeCycle
       wifiQuickMenu
       bluetoothQuickMenu
+      publicIpStatus
     ]
     ++ wpsWrappedBins; # WPS steam-run 包装器（覆盖原始二进制，修复启动问题）
 
