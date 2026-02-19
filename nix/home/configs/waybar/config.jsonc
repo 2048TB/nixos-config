@@ -146,27 +146,35 @@
     "tooltip-format-ethernet": "{ifname} {ipaddr}/{cidr}",
     "tooltip-format-disconnected": "No network connection",
     "tooltip-format-disabled": "RFKILL blocked",
-    "on-click": "/etc/profiles/per-user/$USER/bin/ghostty -e /run/current-system/sw/bin/nmtui"
+    "on-click": "/etc/profiles/per-user/$USER/bin/wifi-quick-menu",
+    "on-click-right": "/etc/profiles/per-user/$USER/bin/ghostty -e /run/current-system/sw/bin/nmtui"
   },
 
   "bluetooth": {
-    "format": " {status}",
-    "format-disabled": " off",
-    "format-off": " off",
-    "format-no-controller": " no ctrl",
-    "format-connected": " {device_alias}",
-    "format-connected-battery": " {device_alias} {device_battery_percentage}%",
-    "tooltip-format": "{controller_alias}\n{controller_address}",
+    "format": "󰂯 {status}",
+    "format-disabled": "󰂲",
+    "format-off": "󰂲",
+    "format-on": "󰂯",
+    "format-no-controller": "󰂲",
+    "format-connected": "󰂱 {device_alias}",
+    "format-connected-battery": "󰂱 {device_alias} {device_battery_percentage}%",
+    "tooltip-format": "Bluetooth: {status}\n{controller_alias}\n{controller_address}\n\nLeft: Quick menu | Right: Devices GUI",
     "tooltip-format-connected": "{controller_alias}\n{num_connections} connected\n\n{device_enumerate}",
     "tooltip-format-enumerate-connected": "{device_alias}",
     "tooltip-format-enumerate-connected-battery": "{device_alias} {device_battery_percentage}%",
-    "on-click": "/run/current-system/sw/bin/blueman-manager"
+    "max-length": 24,
+    "on-click": "/etc/profiles/per-user/$USER/bin/bluetooth-quick-menu",
+    "on-click-right": "/run/current-system/sw/bin/blueman-manager"
   },
 
   "custom/wifi-manager": {
-    "format": "󰖩",
-    "tooltip": false,
-    "on-click": "/etc/profiles/per-user/$USER/bin/ghostty -e /run/current-system/sw/bin/nmtui"
+    "format": "{}",
+    "exec": "/run/current-system/sw/bin/sh -c 'if /run/current-system/sw/bin/nmcli -t -f WIFI general status | /run/current-system/sw/bin/grep -qi enabled; then echo \"󰖩\"; else echo \"󰖪\"; fi'",
+    "interval": 5,
+    "tooltip": true,
+    "tooltip-format": "Left: Quick menu\\nRight: Toggle WiFi radio",
+    "on-click": "/etc/profiles/per-user/$USER/bin/wifi-quick-menu",
+    "on-click-right": "/run/current-system/sw/bin/sh -c 'if /run/current-system/sw/bin/nmcli -t -f WIFI general status | /run/current-system/sw/bin/grep -qi enabled; then /run/current-system/sw/bin/nmcli radio wifi off; else /run/current-system/sw/bin/nmcli radio wifi on; fi'"
   },
 
   "pulseaudio": {
