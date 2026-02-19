@@ -23,6 +23,7 @@ window#waybar {
 #memory,
 #temperature,
 #network,
+#custom-public-ip,
 #bluetooth,
 #custom-wifi-manager,
 #pulseaudio,
@@ -149,8 +150,16 @@ window#waybar {
   color: #0986d3;
 }
 
+#custom-public-ip {
+  color: #0986d3;
+}
+
 #network.disconnected,
 #network.disabled {
+  color: #a70b06;
+}
+
+#custom-public-ip.offline {
   color: #a70b06;
 }
 
@@ -253,6 +262,7 @@ window#waybar {
 #cpu,
 #memory,
 #network,
+#custom-public-ip,
 #bluetooth,
 #pulseaudio {
   margin-right: 0;

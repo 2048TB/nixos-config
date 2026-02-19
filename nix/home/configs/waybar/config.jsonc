@@ -19,7 +19,7 @@
     "cpu",
     "memory",
     "temperature",
-    "network",
+    "custom/public-ip",
     "bluetooth",
     "custom/wifi-manager",
     "pulseaudio",
@@ -136,16 +136,11 @@
     "format-critical": " {temperatureC}°C"
   },
 
-  "network": {
-    "format-wifi": " {essid}",
-    "format-ethernet": "󰈀 {ifname}",
-    "format-linked": "󰈀 {ifname} (no ip)",
-    "format-disconnected": "󰖪 Disconnected",
-    "format-disabled": "󰖪 Disabled",
-    "tooltip-format-wifi": "{ipaddr}/{cidr} {signalStrength}%",
-    "tooltip-format-ethernet": "{ifname} {ipaddr}/{cidr}",
-    "tooltip-format-disconnected": "No network connection",
-    "tooltip-format-disabled": "RFKILL blocked",
+  "custom/public-ip": {
+    "format": "{}",
+    "return-type": "json",
+    "exec": "/etc/profiles/per-user/$USER/bin/public-ip-status",
+    "interval": 120,
     "on-click": "/etc/profiles/per-user/$USER/bin/wifi-quick-menu",
     "on-click-right": "/etc/profiles/per-user/$USER/bin/ghostty -e /run/current-system/sw/bin/nmtui"
   },
