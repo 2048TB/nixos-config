@@ -892,6 +892,7 @@ in
       file-roller # GNOME 压缩管理器（Nautilus 集成必需）
       ghostty
       foot # 轻量 Wayland 终端（备用）
+      papirus-icon-theme # dconf/qt6ct 使用 Papirus 图标主题
       cherry-studio # 多 LLM 提供商桌面客户端
 
       # === Wayland 工具 ===
