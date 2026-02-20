@@ -113,7 +113,8 @@
   },
 
   "clock": {
-    "format": " {:%Y-%m-%d %a %H:%M:%S}",
+    "format": " {:%Y-%m-%d %A %H:%M:%S}",
+    "locale": "zh_CN.UTF-8",
     "interval": 1,
     "tooltip-format": "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>",
     "calendar": {
