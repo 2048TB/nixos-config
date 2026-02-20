@@ -151,8 +151,8 @@ commit MESSAGE:
 push MESSAGE:
     git add .
     git commit -m "{{MESSAGE}}" -m "Co-Authored-By: Claude Sonnet 4.5 (1M context) <noreply@anthropic.com>"
-    git push origin main
-    @echo "✓ 已推送到 GitHub"
+    git push origin HEAD
+    @echo "✓ 已推送到 GitHub（当前分支）"
 
 # 拉取最新配置
 pull:

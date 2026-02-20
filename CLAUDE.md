@@ -25,7 +25,7 @@
 ## 关键约定
 
 - GPU 驱动配置固定来自 `flake.nix` 的 `myvars.gpuMode`。
-- GPU 启动菜单切换默认关闭，需 `ENABLE_GPU_SPECIALISATION=1` 才启用。
+- GPU 启动菜单切换默认关闭，需在 `flake.nix` 中设置 `myvars.enableGpuSpecialisation = true` 才启用。
 - 会话管理器为 `river-classic`（`programs.river-classic` + `wayland.windowManager.river`）。
 - `wayland.windowManager.river.package = null`，避免与系统级 `programs.river-classic` 重复安装。
 - 安装流程若依赖 `NIXOS_DISK_DEVICE` 覆盖目标盘，`nixos-install` 需使用 `--impure`。

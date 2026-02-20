@@ -6,7 +6,7 @@ This repository is a flake-based NixOS desktop configuration.
 - `nix/hosts/`: host-specific machine definitions (for example `zly.nix`).
 - `nix/modules/`: shared system modules (`system.nix`, `hardware.nix`).
 - `nix/home/default.nix`: Home Manager entrypoint for user-level packages and settings.
-- `nix/home/configs/`: app configs (Niri, Waybar, Fuzzel, Ghostty, Foot, Yazi, etc.).
+- `nix/home/configs/`: app configs (river-classic stack: Waybar/Fuzzel/Wlogout/Ghostty/Foot/Yazi, etc.; `niri/` is archived history).
 - `scripts/`: install/bootstrap helpers (for Live ISO and setup workflows).
 - Docs: `README.md`, `KEYBINDINGS.md`, `NIX-COMMANDS.md`.
 
@@ -36,8 +36,8 @@ There is no unit-test suite; verification is configuration-driven:
 ## Commit & Pull Request Guidelines
 - Commit history follows Conventional Commit style (`fix:`, `feat:`, `refactor:`, `style:`) with optional scopes (for example `fix(foot): ...`).
 - Write focused commits per concern (UI, module logic, docs).
-- PRs should include: purpose, changed paths, verification commands run, rollback notes, and screenshots for visible UI changes (Waybar/Wlogout/Niri).
+- PRs should include: purpose, changed paths, verification commands run, rollback notes, and screenshots for visible UI changes (river-classic/Waybar/Wlogout).
 
 ## Security & Configuration Tips
-- Do not commit secrets (password hashes, tokens, private keys) in new changes.
+- Do not commit new secrets (tokens, private keys, plaintext credentials). If rotating password hashes in `flake.nix`, treat them as sensitive changes and review carefully.
 - Treat disk/install scripts as destructive unless verified (`scripts/`, disko-related flows).

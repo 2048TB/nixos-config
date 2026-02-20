@@ -390,7 +390,6 @@ in
     config.river.default = [ "wlr" "gtk" ];
     # 去重并固定 portal backend 组合，避免模块合并导致重复项。
     extraPortals = lib.mkForce (with pkgs; [
-      gnome-keyring
       xdg-desktop-portal-wlr
       xdg-desktop-portal-gtk
     ]);
