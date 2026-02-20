@@ -18,14 +18,14 @@
   "modules-right": [
     "cpu",
     "memory",
-    "temperature",
+    "custom/temperature",
     "network",
     "custom/public-ip",
     "bluetooth",
     "custom/wifi-manager",
     "pulseaudio",
-    "backlight",
-    "battery",
+    "custom/backlight",
+    "custom/battery",
     "power-profiles-daemon",
     "custom/notification",
     "tray",
@@ -148,11 +148,12 @@
     }
   },
 
-  "temperature": {
-    "format": "󰔄 {temperatureC}°C",
-    "warning-threshold": 75,
-    "critical-threshold": 85,
-    "format-critical": " {temperatureC}°C"
+  "custom/temperature": {
+    "format": "{}",
+    "return-type": "json",
+    "exec-if": "sh -c 'ls /sys/class/hwmon/hwmon*/temp*_input >/dev/null 2>&1'",
+    "exec": "/etc/profiles/per-user/$USER/bin/waybar-temperature-status",
+    "interval": 5
   },
 
   "network": {
@@ -238,34 +239,23 @@
     "on-scroll-down": "wpctl set-volume @DEFAULT_AUDIO_SINK@ 1%-"
   },
 
-  "backlight": {
-    "format": "{icon} {percent}%",
-    "format-icons": [
-      "󰃞",
-      "󰃟",
-      "󰃠"
-    ],
+  "custom/backlight": {
+    "format": "{}",
+    "return-type": "json",
+    "exec-if": "sh -c 'ls /sys/class/backlight/*/brightness >/dev/null 2>&1'",
+    "exec": "/etc/profiles/per-user/$USER/bin/waybar-backlight-status",
+    "interval": 5,
     "on-scroll-up": "brightnessctl --class=backlight set 1%+",
     "on-scroll-down": "brightnessctl --class=backlight set 1%-",
     "tooltip": false
   },
 
-  "battery": {
-    "states": {
-      "warning": 20,
-      "critical": 10
-    },
-    "format": "{icon} {capacity}%",
-    "format-charging": " {capacity}%",
-    "format-plugged": " {capacity}%",
-    "tooltip-format": "{capacity}% {time}",
-    "format-icons": [
-      "",
-      "",
-      "",
-      "",
-      ""
-    ]
+  "custom/battery": {
+    "format": "{}",
+    "return-type": "json",
+    "exec-if": "sh -c 'ls /sys/class/power_supply/BAT*/capacity >/dev/null 2>&1'",
+    "exec": "/etc/profiles/per-user/$USER/bin/waybar-battery-status",
+    "interval": 15
   },
 
   "power-profiles-daemon": {
