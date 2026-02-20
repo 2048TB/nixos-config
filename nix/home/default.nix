@@ -159,23 +159,87 @@ let
     printf '%s\n' "$next" > "$stateFile"
     exec /run/current-system/sw/bin/riverctl enter-mode "$next"
   '';
+  waybarClockCalendar = pkgs.writeShellScriptBin "waybar-clock-calendar" ''
+    set -euo pipefail
+    calBin="/run/current-system/sw/bin/cal"
+    fuzzel="${pkgs.fuzzel}/bin/fuzzel"
+    dateBin="/run/current-system/sw/bin/date"
+
+    monthTitle="$("$dateBin" '+%Y-%m')"
+    {
+      printf '%s\n' "Calendar $monthTitle"
+      "$calBin"
+    } | "$fuzzel" --dmenu --prompt 'Date > ' --lines 10 >/dev/null || true
+  '';
+  wifiRadioStatus = pkgs.writeShellScriptBin "wifi-radio-status" ''
+    set -euo pipefail
+    nmcli="/run/current-system/sw/bin/nmcli"
+    wifiState="$("$nmcli" -g WIFI general status 2>/dev/null || true)"
+    wifiState="''${wifiState%%$'\n'*}"
+    wifiState="''${wifiState,,}"
+
+    case "$wifiState" in
+      enabled) printf '󰖩\n' ;;
+      disabled) printf '󰖪\n' ;;
+      *) printf '󰖭\n' ;;
+    esac
+  '';
+  wifiToggleRadio = pkgs.writeShellScriptBin "wifi-toggle-radio" ''
+    set -euo pipefail
+    nmcli="/run/current-system/sw/bin/nmcli"
+    wifiState="$("$nmcli" -g WIFI general status 2>/dev/null || true)"
+    wifiState="''${wifiState%%$'\n'*}"
+    wifiState="''${wifiState,,}"
+
+    case "$wifiState" in
+      enabled) exec "$nmcli" radio wifi off ;;
+      *) exec "$nmcli" radio wifi on ;;
+    esac
+  '';
   wifiQuickMenu = pkgs.writeShellScriptBin "wifi-quick-menu" ''
     set -euo pipefail
     nmcli="/run/current-system/sw/bin/nmcli"
     fuzzel="${pkgs.fuzzel}/bin/fuzzel"
-    tr="/run/current-system/sw/bin/tr"
-    grep="/run/current-system/sw/bin/grep"
-    sed="/run/current-system/sw/bin/sed"
-    head="/run/current-system/sw/bin/head"
-    cut="/run/current-system/sw/bin/cut"
 
-    wifiState="$($nmcli -t -f WIFI general status 2>/dev/null | "$tr" '[:upper:]' '[:lower:]' | "$head" -n 1 || true)"
+    open_wifi_gui() {
+      exec ${pkgs.networkmanagerapplet}/bin/nm-connection-editor
+    }
+
+    open_nmtui_fallback() {
+      exec ${profileCmd "ghostty"} -e /run/current-system/sw/bin/nmtui
+    }
+
+    handle_wifi_open_action() {
+      case "$1" in
+        "󰖩 Open WiFi Connections (GUI)") open_wifi_gui ;;
+        " Open nmtui (fallback)") open_nmtui_fallback ;;
+        *) return 1 ;;
+      esac
+    }
+
+    wifiState="$("$nmcli" -g WIFI general status 2>/dev/null || true)"
+    wifiState="''${wifiState%%$'\n'*}"
+    wifiState="''${wifiState,,}"
     [ -n "$wifiState" ] || wifiState="unknown"
 
-    currentLine="$($nmcli -t -f ACTIVE,SSID,SIGNAL dev wifi 2>/dev/null | "$grep" '^yes:' | "$head" -n 1 || true)"
-    if [ -n "$currentLine" ]; then
-      currentSsid="$(printf '%s' "$currentLine" | "$cut" -d: -f2 | "$sed" 's/\\:/:/g')"
-      currentSignal="$(printf '%s' "$currentLine" | "$cut" -d: -f3)"
+    currentPayload=""
+    while IFS= read -r line; do
+      case "$line" in
+        yes:*)
+          currentPayload="''${line#yes:}"
+          break
+          ;;
+      esac
+    done < <("$nmcli" -t -f ACTIVE,SSID,SIGNAL dev wifi 2>/dev/null || true)
+
+    if [ -n "$currentPayload" ]; then
+      currentSignal="''${currentPayload##*:}"
+      currentSsidEscaped="''${currentPayload%:*}"
+      if [ "$currentSignal" = "$currentPayload" ]; then
+        currentSignal="?"
+        currentSsidEscaped="$currentPayload"
+      fi
+      currentSsid="''${currentSsidEscaped//\\:/:}"
       [ -n "$currentSsid" ] || currentSsid="<hidden>"
       [ -n "$currentSignal" ] || currentSignal="?"
       currentSsidDisplay="$currentSsid"
@@ -219,26 +283,10 @@ let
             printf '%s\n' " Open nmtui (fallback)"
           } | "$fuzzel" --dmenu --prompt 'WiFi details > ' || true
         )"
-        case "$detailsSelected" in
-          "󰖩 Open WiFi Connections (GUI)")
-            exec ${pkgs.networkmanagerapplet}/bin/nm-connection-editor
-            ;;
-          " Open nmtui (fallback)")
-            exec ${profileCmd "ghostty"} -e /run/current-system/sw/bin/nmtui
-            ;;
-          *)
-            exit 0
-            ;;
-        esac
-        ;;
-      "󰖩 Open WiFi Connections (GUI)")
-        exec ${pkgs.networkmanagerapplet}/bin/nm-connection-editor
-        ;;
-      " Open nmtui (fallback)")
-        exec ${profileCmd "ghostty"} -e /run/current-system/sw/bin/nmtui
+        handle_wifi_open_action "$detailsSelected" || exit 0
         ;;
       *)
-        exit 0
+        handle_wifi_open_action "$selected" || exit 0
         ;;
     esac
   '';
@@ -246,23 +294,47 @@ let
     set -euo pipefail
     btctl="/run/current-system/sw/bin/bluetoothctl"
     fuzzel="${pkgs.fuzzel}/bin/fuzzel"
-    grep="/run/current-system/sw/bin/grep"
-    sed="/run/current-system/sw/bin/sed"
-    head="/run/current-system/sw/bin/head"
+
+    open_bluetooth_gui() {
+      exec /run/current-system/sw/bin/blueman-manager
+    }
+
+    open_bluetooth_cli() {
+      exec ${profileCmd "ghostty"} -e /run/current-system/sw/bin/bluetoothctl
+    }
+
+    handle_bluetooth_open_action() {
+      case "$1" in
+        "󰂯 Open Bluetooth Devices (GUI)") open_bluetooth_gui ;;
+        " Open bluetoothctl (fallback)") open_bluetooth_cli ;;
+        *) return 1 ;;
+      esac
+    }
+
     powered="no"
+    showOutput="$("$btctl" show 2>/dev/null || true)"
+    case "$showOutput" in
+      *"Powered: yes"*) powered="yes" ;;
+    esac
 
-    if "$btctl" show 2>/dev/null | "$grep" -q "Powered: yes"; then
-      powered="yes"
-    fi
-
-    connectedRaw="$($btctl devices Connected 2>/dev/null || true)"
-    connectedCount="$(printf '%s\n' "$connectedRaw" | "$grep" -c '^Device ' || true)"
-    if [ "''${connectedCount:-0}" -gt 0 ]; then
-      firstConnected="$(printf '%s\n' "$connectedRaw" | "$sed" -n 's/^Device [^ ]* //p' | "$head" -n 1)"
-    else
-      firstConnected="None"
-      connectedCount=0
-    fi
+    connectedRaw="$("$btctl" devices Connected 2>/dev/null || true)"
+    connectedCount=0
+    firstConnected="None"
+    connectedDetails=""
+    while IFS= read -r line; do
+      case "$line" in
+        Device\ *)
+          deviceName="''${line#Device }"
+          deviceName="''${deviceName#* }"
+          [ -n "$deviceName" ] || deviceName="<unknown>"
+          connectedCount=$((connectedCount + 1))
+          if [ "$connectedCount" -eq 1 ]; then
+            firstConnected="$deviceName"
+          fi
+          connectedDetails="''${connectedDetails}• $deviceName"$'\n'
+          ;;
+      esac
+    done <<<"$connectedRaw"
 
     if [ "$powered" = "yes" ]; then
       toggleLabel="󰂲 Disable Bluetooth"
@@ -293,55 +365,130 @@ let
             printf '%s\n' "Power: $powered"
             printf '%s\n' "Connected count: $connectedCount"
             printf '%s\n' "Current device: $firstConnected"
-            if [ "''${connectedCount:-0}" -gt 0 ]; then
+            if [ "$connectedCount" -gt 0 ]; then
               printf '%s\n' "---------------------------"
-              printf '%s\n' "$connectedRaw" | "$sed" -n 's/^Device [^ ]* /• /p'
+              printf '%b' "$connectedDetails"
             fi
             printf '%s\n' "---------------------------"
             printf '%s\n' "󰂯 Open Bluetooth Devices (GUI)"
             printf '%s\n' " Open bluetoothctl (fallback)"
           } | "$fuzzel" --dmenu --prompt 'Bluetooth details > ' || true
         )"
-        case "$detailsSelected" in
-          "󰂯 Open Bluetooth Devices (GUI)")
-            exec /run/current-system/sw/bin/blueman-manager
-            ;;
-          " Open bluetoothctl (fallback)")
-            exec ${profileCmd "ghostty"} -e /run/current-system/sw/bin/bluetoothctl
-            ;;
-          *)
-            exit 0
-            ;;
-        esac
-        ;;
-      "󰂯 Open Bluetooth Devices (GUI)")
-        exec /run/current-system/sw/bin/blueman-manager
-        ;;
-      " Open bluetoothctl (fallback)")
-        exec ${profileCmd "ghostty"} -e /run/current-system/sw/bin/bluetoothctl
+        handle_bluetooth_open_action "$detailsSelected" || exit 0
         ;;
       *)
-        exit 0
+        handle_bluetooth_open_action "$selected" || exit 0
         ;;
     esac
   '';
   publicIpStatus = pkgs.writeShellScriptBin "public-ip-status" ''
     set -euo pipefail
     wgetBin="${profileCmd "wget"}"
+    grepBin="/run/current-system/sw/bin/grep"
+    trBin="/run/current-system/sw/bin/tr"
+    mkdirBin="${pkgs.coreutils}/bin/mkdir"
+    headBin="${pkgs.coreutils}/bin/head"
+    dateBin="${pkgs.coreutils}/bin/date"
+    cacheDir="${homeDir}/.cache/waybar"
+    cacheFile="$cacheDir/public-ip"
+    now="$("$dateBin" +%s)"
     ip=""
+    sourceLabel=""
 
-    for url in "https://api.ipify.org" "https://ifconfig.me/ip"; do
-      ip="$("$wgetBin" -q -T 3 -O- "$url" 2>/dev/null || true)"
-      if [ -n "$ip" ]; then
+    fetch_ip() {
+      local url="$1"
+      "$wgetBin" -q --tries=1 -T 3 -O- "$url" 2>/dev/null | "$trBin" -d '\r\n[:space:]' || true
+    }
+
+    is_valid_ipv4() {
+      local ip="$1"
+      local o1="" o2="" o3="" o4="" extra="" octet=""
+
+      IFS='.' read -r o1 o2 o3 o4 extra <<< "$ip"
+      [ -z "$extra" ] || return 1
+
+      for octet in "$o1" "$o2" "$o3" "$o4"; do
+        [[ "$octet" =~ ^[0-9]{1,3}$ ]] || return 1
+        [ "$octet" -le 255 ] || return 1
+      done
+    }
+
+    is_valid_ipv6() {
+      local ip="$1"
+      local part=""
+      local nonEmpty=0
+      local compressed=0
+      local suffix=""
+
+      [[ "$ip" == *:* ]] || return 1
+      [[ "$ip" =~ ^[0-9A-Fa-f:]+$ ]] || return 1
+      [[ "$ip" != *:::* ]] || return 1
+
+      if [[ "$ip" == *"::"* ]]; then
+        compressed=1
+        suffix="''${ip#*::}"
+        [[ "$suffix" != *"::"* ]] || return 1
+      fi
+
+      IFS=':' read -r -a parts <<< "$ip"
+      for part in "''${parts[@]}"; do
+        [ -z "$part" ] && continue
+        [[ "$part" =~ ^[0-9A-Fa-f]{1,4}$ ]] || return 1
+        nonEmpty=$((nonEmpty + 1))
+      done
+
+      if [ "$compressed" -eq 1 ]; then
+        [ "$nonEmpty" -lt 8 ] || return 1
+      else
+        [ "$nonEmpty" -eq 8 ] || return 1
+      fi
+    }
+
+    is_valid_ip() {
+      local ip="$1"
+      is_valid_ipv4 "$ip" || is_valid_ipv6 "$ip"
+    }
+
+    for entry in "https://api.ipify.org|ipify" "https://ifconfig.me/ip|ifconfig.me" "https://icanhazip.com|icanhazip"; do
+      url="''${entry%%|*}"
+      label="''${entry#*|}"
+      candidate="$(fetch_ip "$url")"
+      if [ -n "$candidate" ] && is_valid_ip "$candidate"; then
+        ip="$candidate"
+        sourceLabel="$label"
         break
       fi
     done
 
     if [ -n "$ip" ]; then
-      printf '{"text":"󰩠 %s","tooltip":"Public IP: %s\\nLeft: Quick menu\\nRight: nmtui","class":"online"}\n' "$ip" "$ip"
-    else
-      printf '{"text":"󰪎 offline","tooltip":"Public IP unavailable\\nLeft: Quick menu\\nRight: nmtui","class":"offline"}\n'
+      "$mkdirBin" -p "$cacheDir"
+      printf '%s|%s|%s\n' "$now" "$ip" "$sourceLabel" > "$cacheFile"
+      printf '{"text":"󰩠 %s","tooltip":"Public IP: %s\\nSource: %s\\nLeft: Quick menu\\nRight: nmtui","class":"online"}\n' "$ip" "$ip" "$sourceLabel"
+      exit 0
     fi
+
+    if [ -r "$cacheFile" ]; then
+      cachedLine="$("$headBin" -n 1 "$cacheFile" || true)"
+      cachedTs="''${cachedLine%%|*}"
+      cachedRest="''${cachedLine#*|}"
+      cachedIp="''${cachedRest%%|*}"
+      cachedSrc="''${cachedRest#*|}"
+
+      if ! printf '%s' "$cachedTs" | "$grepBin" -Eq '^[0-9]+$'; then
+        cachedTs=0
+      fi
+
+      if [ "$cachedTs" -gt 0 ] && [ -n "$cachedIp" ] && is_valid_ip "$cachedIp"; then
+        age=$((now - cachedTs))
+        if [ "$age" -ge 0 ] && [ "$age" -le 1800 ]; then
+          ageMin=$((age / 60))
+          printf '{"text":"󰩠 %s","tooltip":"Public IP (cached %sm): %s\\nSource: %s\\nLeft: Quick menu\\nRight: nmtui","class":"online"}\n' "$cachedIp" "$ageMin" "$cachedIp" "''${cachedSrc:-cache}"
+          exit 0
+        fi
+      fi
+    fi
+
+    printf '{"text":"󰪎 offline","tooltip":"Public IP unavailable\\nLeft: Quick menu\\nRight: nmtui","class":"offline"}\n'
   '';
   swaybgLauncher = pkgs.writeShellScript "swaybg-launcher" ''
     set -euo pipefail
@@ -697,6 +844,9 @@ in
       riverScreenshot
       riverCliphistMenu
       riverModeCycle
+      waybarClockCalendar
+      wifiRadioStatus
+      wifiToggleRadio
       wifiQuickMenu
       bluetoothQuickMenu
       publicIpStatus

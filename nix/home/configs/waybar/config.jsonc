@@ -19,6 +19,7 @@
     "cpu",
     "memory",
     "temperature",
+    "network",
     "custom/public-ip",
     "bluetooth",
     "custom/wifi-manager",
@@ -91,8 +92,13 @@
   },
 
   "mpris": {
-    "format": "{player_icon} {title} - {artist}",
-    "format-paused": "{status_icon} {title} - {artist}",
+    "format": "{player_icon} {dynamic}",
+    "format-paused": "{status_icon} {dynamic}",
+    "dynamic-len": 40,
+    "dynamic-order": [
+      "title",
+      "artist"
+    ],
     "max-length": 40,
     "player-icons": {
       "default": "󰎈",
@@ -107,8 +113,20 @@
   },
 
   "clock": {
-    "format": " {:%Y-%m-%d %H:%M}",
-    "tooltip-format": "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>"
+    "format": " {:%Y-%m-%d %H:%M:%S}",
+    "interval": 1,
+    "tooltip-format": "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>",
+    "calendar": {
+      "mode": "month",
+      "on-scroll": 1
+    },
+    "actions": {
+      "on-click-right": "mode",
+      "on-scroll-up": "shift_up",
+      "on-scroll-down": "shift_down",
+      "on-click-middle": "shift_reset"
+    },
+    "on-click": "/etc/profiles/per-user/$USER/bin/waybar-clock-calendar"
   },
 
   "cpu": {
@@ -136,45 +154,78 @@
     "format-critical": " {temperatureC}°C"
   },
 
+  "network": {
+    "interval": 5,
+    "family": "ipv4_6",
+    "format-wifi": "{icon} {signalStrength}%",
+    "format-ethernet": "󰈀 wired",
+    "format-linked": "󰈀 link",
+    "format-disconnected": "󰖪 off",
+    "format-disabled": "󰖪 off",
+    "format-icons": [
+      "󰤯",
+      "󰤟",
+      "󰤢",
+      "󰤥",
+      "󰤨"
+    ],
+    "tooltip-format-wifi": "{essid}\nIP: {ipaddr}/{cidr}\nSignal: {signalStrength}%\nFrequency: {frequency} GHz\nGateway: {gwaddr}",
+    "tooltip-format-ethernet": "{ifname}\nIP: {ipaddr}/{cidr}\nGateway: {gwaddr}",
+    "tooltip-format-disconnected": "Network disconnected"
+  },
+
   "custom/public-ip": {
     "format": "{}",
     "return-type": "json",
+    "exec-if": "test -x /etc/profiles/per-user/$USER/bin/public-ip-status",
     "exec": "/etc/profiles/per-user/$USER/bin/public-ip-status",
-    "interval": 120,
+    "exec-on-event": false,
+    "interval": 600,
     "on-click": "/etc/profiles/per-user/$USER/bin/wifi-quick-menu",
     "on-click-right": "/etc/profiles/per-user/$USER/bin/ghostty -e /run/current-system/sw/bin/nmtui"
   },
 
   "bluetooth": {
-    "format": "󰂯 {status}",
-    "format-disabled": "󰂲",
-    "format-off": "󰂲",
-    "format-on": "󰂯",
+    "format": "{icon}",
+    "format-icons": {
+      "disabled": "󰂲",
+      "off": "󰂲",
+      "on": "󰂯",
+      "connected": "󰂱"
+    },
+    "format-disabled": "{icon}",
+    "format-off": "{icon}",
+    "format-on": "{icon}",
     "format-no-controller": "󰂲",
-    "format-connected": "󰂱 {device_alias}",
-    "format-connected-battery": "󰂱 {device_alias} {device_battery_percentage}%",
+    "format-connected": "{icon} {device_alias}",
+    "format-connected-battery": "{icon} {device_alias} {device_battery_percentage}%",
     "tooltip-format": "Bluetooth: {status}\n{controller_alias}\n{controller_address}\n\nLeft: Quick menu | Right: Devices GUI",
     "tooltip-format-connected": "{controller_alias}\n{num_connections} connected\n\n{device_enumerate}",
     "tooltip-format-enumerate-connected": "{device_alias}",
     "tooltip-format-enumerate-connected-battery": "{device_alias} {device_battery_percentage}%",
-    "max-length": 24,
+    "min-length": 2,
+    "max-length": 22,
     "on-click": "/etc/profiles/per-user/$USER/bin/bluetooth-quick-menu",
     "on-click-right": "/run/current-system/sw/bin/blueman-manager"
   },
 
   "custom/wifi-manager": {
     "format": "{}",
-    "exec": "/run/current-system/sw/bin/sh -c 'if /run/current-system/sw/bin/nmcli -t -f WIFI general status | /run/current-system/sw/bin/grep -qi enabled; then echo \"󰖩\"; else echo \"󰖪\"; fi'",
+    "exec-if": "test -x /etc/profiles/per-user/$USER/bin/wifi-radio-status",
+    "exec": "/etc/profiles/per-user/$USER/bin/wifi-radio-status",
+    "exec-on-event": false,
     "interval": 5,
     "tooltip": true,
     "tooltip-format": "Left: Quick menu\\nRight: Toggle WiFi radio",
     "on-click": "/etc/profiles/per-user/$USER/bin/wifi-quick-menu",
-    "on-click-right": "/run/current-system/sw/bin/sh -c 'if /run/current-system/sw/bin/nmcli -t -f WIFI general status | /run/current-system/sw/bin/grep -qi enabled; then /run/current-system/sw/bin/nmcli radio wifi off; else /run/current-system/sw/bin/nmcli radio wifi on; fi'"
+    "on-click-right": "/etc/profiles/per-user/$USER/bin/wifi-toggle-radio"
   },
 
   "pulseaudio": {
     "format": "{icon} {volume}%",
+    "format-bluetooth": "{icon} {volume}%",
     "format-muted": "",
+    "scroll-step": 1,
     "format-icons": {
       "default": [
         "",
