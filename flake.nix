@@ -95,13 +95,15 @@
         };
       };
 
+      nixpkgsModule = {
+        nixpkgs = {
+          config = nixpkgsConfig;
+          overlays = nixpkgsOverlays;
+        };
+      };
+
       hostModules = [
-        {
-          nixpkgs = {
-            config = nixpkgsConfig;
-            overlays = nixpkgsOverlays;
-          };
-        }
+        nixpkgsModule
         preservation.nixosModules.default
         lanzaboote.nixosModules.lanzaboote
         nix-gaming.nixosModules.pipewireLowLatency
@@ -127,9 +129,20 @@
           expectedHome = "/home/${mainUser}";
           systemPackageOutPaths = lib.unique (map (pkg: pkg.outPath) cfg.environment.systemPackages);
           homePackageOutPaths = lib.unique (map (pkg: pkg.outPath) cfg.home-manager.users.${mainUser}.home.packages);
-          systemHomePackageOverlapCount = builtins.length (lib.intersectLists systemPackageOutPaths homePackageOutPaths);
-          # 允许少量基础运行时重叠（例如 shell/手册等隐式包），超出视为回归
-          maxAllowedSystemHomeOverlap = 4;
+          systemHomeOverlapOutPaths = lib.intersectLists systemPackageOutPaths homePackageOutPaths;
+          systemHomeOverlapPkgs = lib.filter (pkg: builtins.elem pkg.outPath systemHomeOverlapOutPaths) cfg.environment.systemPackages;
+          systemHomeOverlapNames = lib.unique (map (pkg: lib.getName pkg) systemHomeOverlapPkgs);
+          # 仅允许基础运行时重叠（由模块隐式引入），其余视为回归。
+          allowedSystemHomeOverlapNames = [
+            "zsh"
+            "nix-zsh-completions"
+            "man-db"
+            "shared-mime-info"
+          ];
+          unexpectedSystemHomeOverlapNames =
+            builtins.filter
+              (name: !(builtins.elem name allowedSystemHomeOverlapNames))
+              systemHomeOverlapNames;
         in
         {
           eval-hostname = pkgs.runCommand "eval-hostname" { } ''
@@ -143,7 +156,10 @@
           '';
 
           eval-system-home-package-overlap = pkgs.runCommand "eval-system-home-package-overlap" { } ''
-            test ${toString systemHomePackageOverlapCount} -le ${toString maxAllowedSystemHomeOverlap}
+            if [ ${toString (builtins.length unexpectedSystemHomeOverlapNames)} -ne 0 ]; then
+              echo "Unexpected system/home package overlaps: ${lib.concatStringsSep ", " unexpectedSystemHomeOverlapNames}" >&2
+              exit 1
+            fi
             touch "$out"
           '';
         };

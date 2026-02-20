@@ -163,7 +163,6 @@ in
 
       # 配置二进制缓存以加速包下载
       substituters = [
-        "https://cache.nixos.org"
         "https://nix-community.cachix.org"
         "https://nixpkgs-wayland.cachix.org"
         "https://cache.garnix.io"
@@ -203,7 +202,6 @@ in
   networking = {
     hostName = myvars.hostname;
     networkmanager.enable = true;
-    useDHCP = lib.mkDefault true;
 
     # 使 libvirt NAT 在 VPN 场景下更稳
     firewall.checkReversePath = "loose";
@@ -388,10 +386,12 @@ in
     config.common.default = portalDefaults;
     # river 专用 portal 配置：屏幕共享与截图走 wlr backend
     config.river.default = [ "wlr" "gtk" ];
-    extraPortals = with pkgs; [
+    # 去重并固定 portal backend 组合，避免模块合并导致重复项。
+    extraPortals = lib.mkForce (with pkgs; [
+      gnome-keyring
       xdg-desktop-portal-wlr
       xdg-desktop-portal-gtk
-    ];
+    ]);
   };
 
   fonts.packages = with pkgs; [
