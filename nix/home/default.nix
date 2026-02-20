@@ -383,7 +383,7 @@ let
   '';
   publicIpStatus = pkgs.writeShellScriptBin "public-ip-status" ''
     set -euo pipefail
-    wgetBin="${profileCmd "wget"}"
+    wgetBin="${pkgs.wget}/bin/wget"
     grepBin="/run/current-system/sw/bin/grep"
     trBin="/run/current-system/sw/bin/tr"
     mkdirBin="${pkgs.coreutils}/bin/mkdir"
@@ -397,7 +397,7 @@ let
 
     fetch_ip() {
       local url="$1"
-      "$wgetBin" -q --tries=1 -T 3 -O- "$url" 2>/dev/null | "$trBin" -d '\r\n[:space:]' || true
+      "$wgetBin" -4 -q --tries=1 -T 3 -O- "$url" 2>/dev/null | "$trBin" -d '\r\n[:space:]' || true
     }
 
     is_valid_ipv4() {
@@ -413,53 +413,11 @@ let
       done
     }
 
-    is_valid_ipv6() {
-      local ip="$1"
-      local part=""
-      local nonEmpty=0
-      local compressed=0
-      local suffix=""
-      local ipv4Tail=""
-
-      [[ "$ip" == *:* ]] || return 1
-      [[ "$ip" != *:::* ]] || return 1
-
-      # Accept IPv4-embedded IPv6 (e.g. ::ffff:203.0.113.4) by validating
-      # the IPv4 tail and normalizing it to two hextets for counting.
-      if [[ "$ip" == *.* ]]; then
-        ipv4Tail="''${ip##*:}"
-        is_valid_ipv4 "$ipv4Tail" || return 1
-        ip="''${ip%:*}:0:0"
-      fi
-
-      [[ "$ip" =~ ^[0-9A-Fa-f:]+$ ]] || return 1
-
-      if [[ "$ip" == *"::"* ]]; then
-        compressed=1
-        suffix="''${ip#*::}"
-        [[ "$suffix" != *"::"* ]] || return 1
-      fi
-
-      IFS=':' read -r -a parts <<< "$ip"
-      for part in "''${parts[@]}"; do
-        [ -z "$part" ] && continue
-        [[ "$part" =~ ^[0-9A-Fa-f]{1,4}$ ]] || return 1
-        nonEmpty=$((nonEmpty + 1))
-      done
-
-      if [ "$compressed" -eq 1 ]; then
-        [ "$nonEmpty" -lt 8 ] || return 1
-      else
-        [ "$nonEmpty" -eq 8 ] || return 1
-      fi
-    }
-
     is_valid_ip() {
-      local ip="$1"
-      is_valid_ipv4 "$ip" || is_valid_ipv6 "$ip"
+      is_valid_ipv4 "$1"
     }
 
-    for entry in "https://api.ipify.org|ipify" "https://ifconfig.me/ip|ifconfig.me" "https://icanhazip.com|icanhazip"; do
+    for entry in "https://api4.ipify.org|ipify4" "https://ifconfig.me/ip|ifconfig.me" "https://ipv4.icanhazip.com|icanhazip4"; do
       url="''${entry%%|*}"
       label="''${entry#*|}"
       candidate="$(fetch_ip "$url")"
