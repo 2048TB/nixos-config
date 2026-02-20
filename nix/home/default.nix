@@ -257,7 +257,7 @@ let
 
     connectedRaw="$($btctl devices Connected 2>/dev/null || true)"
     connectedCount="$(printf '%s\n' "$connectedRaw" | "$grep" -c '^Device ' || true)"
-    if [ "${connectedCount:-0}" -gt 0 ]; then
+    if [ "''${connectedCount:-0}" -gt 0 ]; then
       firstConnected="$(printf '%s\n' "$connectedRaw" | "$sed" -n 's/^Device [^ ]* //p' | "$head" -n 1)"
     else
       firstConnected="None"
@@ -293,7 +293,7 @@ let
             printf '%s\n' "Power: $powered"
             printf '%s\n' "Connected count: $connectedCount"
             printf '%s\n' "Current device: $firstConnected"
-            if [ "${connectedCount:-0}" -gt 0 ]; then
+            if [ "''${connectedCount:-0}" -gt 0 ]; then
               printf '%s\n' "---------------------------"
               printf '%s\n' "$connectedRaw" | "$sed" -n 's/^Device [^ ]* /• /p'
             fi
