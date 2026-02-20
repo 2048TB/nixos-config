@@ -383,8 +383,7 @@ let
   '';
   publicIpStatus = pkgs.writeShellScriptBin "public-ip-status" ''
     set -euo pipefail
-    wgetBin="${pkgs.wget}/bin/wget"
-    grepBin="/run/current-system/sw/bin/grep"
+    wgetBin="${profileCmd "wget"}"
     trBin="/run/current-system/sw/bin/tr"
     mkdirBin="${pkgs.coreutils}/bin/mkdir"
     headBin="${pkgs.coreutils}/bin/head"
@@ -400,28 +399,11 @@ let
       "$wgetBin" -4 -q --tries=1 -T 3 -O- "$url" 2>/dev/null | "$trBin" -d '\r\n[:space:]' || true
     }
 
-    is_valid_ipv4() {
-      local ip="$1"
-      local o1="" o2="" o3="" o4="" extra="" octet=""
-
-      IFS='.' read -r o1 o2 o3 o4 extra <<< "$ip"
-      [ -z "$extra" ] || return 1
-
-      for octet in "$o1" "$o2" "$o3" "$o4"; do
-        [[ "$octet" =~ ^[0-9]{1,3}$ ]] || return 1
-        [ "$octet" -le 255 ] || return 1
-      done
-    }
-
-    is_valid_ip() {
-      is_valid_ipv4 "$1"
-    }
-
-    for entry in "https://api4.ipify.org|ipify4" "https://ifconfig.me/ip|ifconfig.me" "https://ipv4.icanhazip.com|icanhazip4"; do
+    for entry in "https://api.ipify.org|ipify" "https://ifconfig.me/ip|ifconfig.me"; do
       url="''${entry%%|*}"
       label="''${entry#*|}"
       candidate="$(fetch_ip "$url")"
-      if [ -n "$candidate" ] && is_valid_ip "$candidate"; then
+      if [ -n "$candidate" ]; then
         ip="$candidate"
         sourceLabel="$label"
         break
@@ -442,11 +424,11 @@ let
       cachedIp="''${cachedRest%%|*}"
       cachedSrc="''${cachedRest#*|}"
 
-      if ! printf '%s' "$cachedTs" | "$grepBin" -Eq '^[0-9]+$'; then
+      if ! [[ "$cachedTs" =~ ^[0-9]+$ ]]; then
         cachedTs=0
       fi
 
-      if [ "$cachedTs" -gt 0 ] && [ -n "$cachedIp" ] && is_valid_ip "$cachedIp"; then
+      if [ "$cachedTs" -gt 0 ] && [ -n "$cachedIp" ]; then
         age=$((now - cachedTs))
         if [ "$age" -ge 0 ] && [ "$age" -le 1800 ]; then
           ageMin=$((age / 60))

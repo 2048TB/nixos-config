@@ -113,7 +113,7 @@
   },
 
   "clock": {
-    "format": " {:%Y-%m-%d %H:%M:%S}",
+    "format": " {:%Y-%m-%d %a %H:%M:%S}",
     "interval": 1,
     "tooltip-format": "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>",
     "calendar": {
@@ -179,7 +179,6 @@
     "return-type": "json",
     "exec-if": "test -x /etc/profiles/per-user/$USER/bin/public-ip-status",
     "exec": "/etc/profiles/per-user/$USER/bin/public-ip-status",
-    "exec-on-event": false,
     "interval": 600,
     "on-click": "/etc/profiles/per-user/$USER/bin/wifi-quick-menu",
     "on-click-right": "/etc/profiles/per-user/$USER/bin/ghostty -e /run/current-system/sw/bin/nmtui"
