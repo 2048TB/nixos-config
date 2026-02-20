@@ -37,6 +37,7 @@ just fmt
 just lint
 just dead
 just flake-check
+just check
 
 # 可选：完整系统构建验证（不切换）
 nix build .#nixosConfigurations.zly.config.system.build.toplevel --no-link

@@ -27,10 +27,12 @@ Usage:
 
 This script is fully automated:
   1) auto-detect and pick the largest non-USB disk
-  2) run disko
-  3) check EFI mountpoint
-  4) interactively change LUKS password
-  5) run nixos-install
+  2) pre-clean mounts / open LUKS devices
+  3) run disko and validate expected mountpoints
+  4) check EFI mountpoint
+  5) interactively change LUKS password
+  6) run nixos-install
+  7) sync flake into /mnt/persistent/nixos-config and dry-build verify
   (can be run from any current working directory)
 
 Environment variables:
@@ -53,6 +55,20 @@ die_with_usage() {
 die() {
   echo "ERROR: $*" >&2
   exit 1
+}
+
+require_commands() {
+  local missing=()
+  local cmd
+  for cmd in "$@"; do
+    if ! command -v "$cmd" >/dev/null 2>&1; then
+      missing+=("$cmd")
+    fi
+  done
+
+  if [[ "${#missing[@]}" -gt 0 ]]; then
+    die "Missing required commands: ${missing[*]}"
+  fi
 }
 
 run_root() {
@@ -197,6 +213,12 @@ if [[ "$CONFIRM" != "0" && "$CONFIRM" != "1" ]]; then
   die "CONFIRM must be 0 or 1."
 fi
 
+if [[ "$DRY_RUN" -eq 1 ]]; then
+  require_commands lsblk awk jq
+else
+  require_commands lsblk awk findmnt cryptsetup partprobe udevadm jq nix nixos-install nixos-rebuild
+fi
+
 FLAKE_REF="${FLAKE}#${HOST}"
 select_disk_device
 
@@ -237,6 +259,9 @@ STEP=$((STEP + 1))
 echo
 echo "[${STEP}/${TOTAL_STEPS}] Running disko..."
 DISKO_REV="$(jq -r '.nodes.disko.locked.rev' "${FLAKE}/flake.lock")"
+if [[ -z "$DISKO_REV" || "$DISKO_REV" == "null" ]]; then
+  die "Unable to resolve disko revision from ${FLAKE}/flake.lock."
+fi
 run_root env NIXOS_DISK_DEVICE="$DISK_DEVICE" \
   nix --extra-experimental-features nix-command --extra-experimental-features flakes \
   run --impure "github:nix-community/disko/${DISKO_REV}" -- --mode "$DISKO_MODE" --flake "$FLAKE_REF"
@@ -283,7 +308,9 @@ TARGET_FLAKE_TMP="${TARGET_FLAKE_DIR}.tmp.$$"
 run_root rm -rf "$TARGET_FLAKE_TMP"
 run_root cp -a "${REPO_ROOT}/." "$TARGET_FLAKE_TMP/"
 # 使用目标系统的用户 UID:GID（而非 live ISO 的，避免安装后权限不正确）
-if run_root test -f /mnt/etc/passwd; then
+if [[ "$DRY_RUN" -eq 1 ]]; then
+  TARGET_OWNER="1000:1000"
+elif run_root test -f /mnt/etc/passwd; then
   # shellcheck disable=SC2016
   TARGET_OWNER="$(run_root awk -F: '$3 >= 1000 && $3 < 60000 {print $3":"$4; exit}' /mnt/etc/passwd)"
 fi
