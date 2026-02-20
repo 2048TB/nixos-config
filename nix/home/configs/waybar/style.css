@@ -21,15 +21,15 @@ window#waybar {
 #clock,
 #cpu,
 #memory,
-#temperature,
+#custom-temperature,
 #network,
 #custom-public-ip,
 #bluetooth,
 #custom-wifi-manager,
 #pulseaudio,
 #mode,
-#backlight,
-#battery,
+#custom-backlight,
+#custom-battery,
 #power-profiles-daemon,
 #custom-notification,
 #tray,
@@ -50,7 +50,6 @@ window#waybar {
   padding: 0 12px;
 }
 
-#workspaces,
 #tags {
   background: transparent;
   margin: 4px 10px 0 10px;
@@ -59,7 +58,6 @@ window#waybar {
   box-shadow: none;
 }
 
-#workspaces button,
 #tags button {
   color: #e7e4e0;
   background: rgba(66, 66, 69, 0.8);
@@ -73,8 +71,6 @@ window#waybar {
   transition: all 0.2s ease;
 }
 
-#workspaces button.active,
-#workspaces button.focused,
 #tags button.active,
 #tags button.focused {
   background: linear-gradient(120deg, #12608a, #0986d3);
@@ -83,35 +79,29 @@ window#waybar {
   box-shadow: 0 0 0 1px rgba(18, 96, 138, 0.5), 0 3px 8px rgba(9, 134, 211, 0.24);
 }
 
-#workspaces button.occupied,
 #tags button.occupied {
   color: #e7e4e0;
   border-color: rgba(151, 151, 151, 0.52);
 }
 
-#workspaces button.urgent,
 #tags button.urgent {
   background: rgba(167, 11, 6, 0.34);
   color: #f9f9f9;
   box-shadow: 0 0 0 1px rgba(167, 11, 6, 0.48);
 }
 
-#workspaces button:hover,
 #tags button:hover {
   background-color: rgba(18, 96, 138, 0.62);
   color: #f9f9f9;
   border-color: rgba(9, 134, 211, 0.78);
 }
 
-#workspaces button label,
 #tags button label {
   color: #e7e4e0;
   font-size: 11px;
   font-weight: 900;
 }
 
-#workspaces button.active label,
-#workspaces button.focused label,
 #tags button.active label,
 #tags button.focused label {
   color: #f9f9f9;
@@ -209,31 +199,31 @@ window#waybar {
   color: #979797;
 }
 
-#backlight {
+#custom-backlight {
   color: #e7e4e0;
 }
 
 #cpu.warning,
 #memory.warning,
-#temperature.warning {
+#custom-temperature.warning {
   color: #12608a;
 }
 
 #cpu.critical,
 #memory.critical,
-#temperature.critical {
+#custom-temperature.critical {
   color: #a70b06;
 }
 
-#battery.charging {
+#custom-battery.charging {
   color: #0986d3;
 }
 
-#battery.warning:not(.charging) {
+#custom-battery.warning:not(.charging) {
   color: #12608a;
 }
 
-#battery.critical:not(.charging) {
+#custom-battery.critical:not(.charging) {
   color: #a70b06;
 }
 
@@ -262,7 +252,7 @@ window#waybar {
 /* visually group right-side modules for denser layout */
 #cpu,
 #memory,
-#temperature,
+#custom-temperature,
 #network,
 #custom-public-ip,
 #bluetooth,
@@ -274,21 +264,21 @@ window#waybar {
 }
 
 #memory,
-#temperature,
+#custom-temperature,
 #network,
 #custom-public-ip,
 #bluetooth,
 #custom-wifi-manager,
 #pulseaudio,
-#backlight {
+#custom-backlight {
   margin-left: 0;
   border-top-left-radius: 0;
   border-bottom-left-radius: 0;
 }
 
-#temperature,
+#custom-temperature,
 #custom-wifi-manager,
-#backlight {
+#custom-backlight {
   margin-right: 2px;
 }
 

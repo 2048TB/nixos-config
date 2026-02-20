@@ -171,6 +171,140 @@ let
       "$calBin"
     } | "$fuzzel" --dmenu --prompt 'Date > ' --lines 10 >/dev/null || true
   '';
+  waybarTemperatureStatus = pkgs.writeShellScriptBin "waybar-temperature-status" ''
+    set -euo pipefail
+    headBin="${pkgs.coreutils}/bin/head"
+
+    pick_temp_input() {
+      local preferred="" hwmon="" input="" name=""
+      for preferred in k10temp coretemp cpu_thermal x86_pkg_temp zenpower; do
+        for hwmon in /sys/class/hwmon/hwmon*; do
+          [ -d "$hwmon" ] || continue
+          [ -r "$hwmon/name" ] || continue
+          name="$("$headBin" -n 1 "$hwmon/name" 2>/dev/null || true)"
+          [ "$name" = "$preferred" ] || continue
+          for input in "$hwmon"/temp*_input; do
+            [ -r "$input" ] || continue
+            printf '%s\n' "$input"
+            return 0
+          done
+        done
+      done
+
+      for input in /sys/class/hwmon/hwmon*/temp*_input; do
+        [ -r "$input" ] || continue
+        printf '%s\n' "$input"
+        return 0
+      done
+      return 1
+    }
+
+    inputFile="$(pick_temp_input || true)"
+    [ -n "$inputFile" ] || exit 1
+
+    raw="$("$headBin" -n 1 "$inputFile" 2>/dev/null || true)"
+    [[ "$raw" =~ ^[0-9]+$ ]] || exit 1
+
+    tempC=$((raw / 1000))
+    class="normal"
+    icon="󰔄"
+    if [ "$tempC" -ge 85 ]; then
+      class="critical"
+      icon=""
+    elif [ "$tempC" -ge 75 ]; then
+      class="warning"
+      icon=""
+    fi
+
+    printf '{"text":"%s %s°C","class":"%s","tooltip":"Temperature: %s°C\\nSensor: %s"}\n' \
+      "$icon" "$tempC" "$class" "$tempC" "''${inputFile%/*}"
+  '';
+  waybarBacklightStatus = pkgs.writeShellScriptBin "waybar-backlight-status" ''
+    set -euo pipefail
+    headBin="${pkgs.coreutils}/bin/head"
+
+    pick_backlight_dir() {
+      local dir=""
+      for dir in /sys/class/backlight/*; do
+        [ -d "$dir" ] || continue
+        [ -r "$dir/brightness" ] || continue
+        [ -r "$dir/max_brightness" ] || continue
+        printf '%s\n' "$dir"
+        return 0
+      done
+      return 1
+    }
+
+    backlightDir="$(pick_backlight_dir || true)"
+    [ -n "$backlightDir" ] || exit 1
+
+    current="$("$headBin" -n 1 "$backlightDir/brightness" 2>/dev/null || true)"
+    maximum="$("$headBin" -n 1 "$backlightDir/max_brightness" 2>/dev/null || true)"
+    [[ "$current" =~ ^[0-9]+$ ]] || exit 1
+    [[ "$maximum" =~ ^[0-9]+$ ]] || exit 1
+    [ "$maximum" -gt 0 ] || exit 1
+
+    percent=$((current * 100 / maximum))
+    icon="󰃟"
+    if [ "$percent" -lt 34 ]; then
+      icon="󰃞"
+    elif [ "$percent" -ge 67 ]; then
+      icon="󰃠"
+    fi
+
+    printf '{"text":"%s %s%%","class":"normal","tooltip":"Backlight: %s%%"}\n' "$icon" "$percent" "$percent"
+  '';
+  waybarBatteryStatus = pkgs.writeShellScriptBin "waybar-battery-status" ''
+    set -euo pipefail
+    headBin="${pkgs.coreutils}/bin/head"
+
+    pick_battery_dir() {
+      local dir=""
+      for dir in /sys/class/power_supply/BAT*; do
+        [ -d "$dir" ] || continue
+        [ -r "$dir/capacity" ] || continue
+        printf '%s\n' "$dir"
+        return 0
+      done
+      return 1
+    }
+
+    batteryDir="$(pick_battery_dir || true)"
+    [ -n "$batteryDir" ] || exit 1
+
+    capacity="$("$headBin" -n 1 "$batteryDir/capacity" 2>/dev/null || true)"
+    status="$("$headBin" -n 1 "$batteryDir/status" 2>/dev/null || true)"
+    [[ "$capacity" =~ ^[0-9]+$ ]] || exit 1
+    [ -n "$status" ] || status="Unknown"
+
+    class="normal"
+    icon=""
+    if [ "$status" = "Charging" ] || [ "$status" = "Full" ]; then
+      class="charging"
+      icon=""
+    else
+      if [ "$capacity" -le 10 ]; then
+        class="critical"
+      elif [ "$capacity" -le 20 ]; then
+        class="warning"
+      fi
+
+      if [ "$capacity" -lt 25 ]; then
+        icon=""
+      elif [ "$capacity" -lt 50 ]; then
+        icon=""
+      elif [ "$capacity" -lt 75 ]; then
+        icon=""
+      elif [ "$capacity" -lt 95 ]; then
+        icon=""
+      else
+        icon=""
+      fi
+    fi
+
+    printf '{"text":"%s %s%%","class":"%s","tooltip":"Battery: %s%%\\nStatus: %s"}\n' \
+      "$icon" "$capacity" "$class" "$capacity" "$status"
+  '';
   wifiRadioStatus = pkgs.writeShellScriptBin "wifi-radio-status" ''
     set -euo pipefail
     nmcli="/run/current-system/sw/bin/nmcli"
@@ -840,6 +974,9 @@ in
       riverCliphistMenu
       riverModeCycle
       waybarClockCalendar
+      waybarTemperatureStatus
+      waybarBacklightStatus
+      waybarBatteryStatus
       wifiRadioStatus
       wifiToggleRadio
       wifiQuickMenu
