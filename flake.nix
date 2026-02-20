@@ -132,8 +132,13 @@
           systemHomeOverlapOutPaths = lib.intersectLists systemPackageOutPaths homePackageOutPaths;
           systemHomeOverlapPkgs = lib.filter (pkg: builtins.elem pkg.outPath systemHomeOverlapOutPaths) cfg.environment.systemPackages;
           systemHomeOverlapNames = lib.unique (map (pkg: lib.getName pkg) systemHomeOverlapPkgs);
+          systemPackageNames = lib.unique (map (pkg: lib.getName pkg) cfg.environment.systemPackages);
+          homePackageNames = lib.unique (map (pkg: lib.getName pkg) cfg.home-manager.users.${mainUser}.home.packages);
+          systemHomeOverlapNamesByName = lib.intersectLists systemPackageNames homePackageNames;
           # 仅允许基础运行时重叠（由模块隐式引入），其余视为回归。
           allowedSystemHomeOverlapNames = [
+            "xwayland"
+            "python3"
             "zsh"
             "nix-zsh-completions"
             "man-db"
@@ -143,6 +148,10 @@
             builtins.filter
               (name: !(builtins.elem name allowedSystemHomeOverlapNames))
               systemHomeOverlapNames;
+          unexpectedSystemHomeOverlapNamesByName =
+            builtins.filter
+              (name: !(builtins.elem name allowedSystemHomeOverlapNames))
+              systemHomeOverlapNamesByName;
         in
         {
           eval-hostname = pkgs.runCommand "eval-hostname" { } ''
@@ -158,6 +167,14 @@
           eval-system-home-package-overlap = pkgs.runCommand "eval-system-home-package-overlap" { } ''
             if [ ${toString (builtins.length unexpectedSystemHomeOverlapNames)} -ne 0 ]; then
               echo "Unexpected system/home package overlaps: ${lib.concatStringsSep ", " unexpectedSystemHomeOverlapNames}" >&2
+              exit 1
+            fi
+            touch "$out"
+          '';
+
+          eval-system-home-package-overlap-by-name = pkgs.runCommand "eval-system-home-package-overlap-by-name" { } ''
+            if [ ${toString (builtins.length unexpectedSystemHomeOverlapNamesByName)} -ne 0 ]; then
+              echo "Unexpected system/home package overlaps by name: ${lib.concatStringsSep ", " unexpectedSystemHomeOverlapNamesByName}" >&2
               exit 1
             fi
             touch "$out"

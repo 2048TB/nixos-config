@@ -28,10 +28,12 @@ let
     (lib.optional hasAmd "options kvm_amd nested=1")
     (lib.optional hasIntel "options kvm_intel nested=1")
   ]);
-  portalDefaults = [
-    "gnome"
-    "gtk"
-  ];
+  # common default 必须与已安装 backend 对齐，避免指向未安装 portal。
+  portalDefaults = [ "gtk" ];
+  # 仅在 VPN/libvirt NAT 场景使用 loose rpfilter，其余默认严格模式。
+  requiresLooseReversePath =
+    (config.services.mullvad-vpn.enable or false)
+    || (config.virtualisation.libvirtd.enable or false);
 in
 {
   boot = {
@@ -203,8 +205,8 @@ in
     hostName = myvars.hostname;
     networkmanager.enable = true;
 
-    # 使 libvirt NAT 在 VPN 场景下更稳
-    firewall.checkReversePath = "loose";
+    # 仅在 VPN 或 libvirt NAT 场景放宽 rpfilter，减少误判同时保留默认安全性。
+    firewall.checkReversePath = if requiresLooseReversePath then "loose" else "strict";
   };
 
   security = {
