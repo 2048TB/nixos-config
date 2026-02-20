@@ -182,7 +182,7 @@
         ""
       ]
     },
-    "on-click": "pavucontrol",
+    "on-click": "/etc/profiles/per-user/$USER/bin/pavucontrol",
     "on-scroll-up": "wpctl set-volume @DEFAULT_AUDIO_SINK@ 1%+ --limit 1.0",
     "on-scroll-down": "wpctl set-volume @DEFAULT_AUDIO_SINK@ 1%-"
   },
