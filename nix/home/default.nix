@@ -385,6 +385,7 @@ let
     set -euo pipefail
     wgetBin="${profileCmd "wget"}"
     trBin="/run/current-system/sw/bin/tr"
+    sedBin="/run/current-system/sw/bin/sed"
     mkdirBin="${pkgs.coreutils}/bin/mkdir"
     headBin="${pkgs.coreutils}/bin/head"
     dateBin="${pkgs.coreutils}/bin/date"
@@ -394,16 +395,48 @@ let
     ip=""
     sourceLabel=""
 
-    fetch_ip() {
+    fetch_plain_ip() {
       local url="$1"
-      "$wgetBin" -4 -q --tries=1 -T 3 -O- "$url" 2>/dev/null | "$trBin" -d '\r\n[:space:]' || true
+      "$wgetBin" -4 -q --tries=1 -T 3 -O- "$url" 2>/dev/null | "$headBin" -n 1 | "$trBin" -d '\r\n[:space:]' || true
     }
 
-    for entry in "https://api.ipify.org|ipify" "https://ifconfig.me/ip|ifconfig.me"; do
+    fetch_trace_ip() {
+      local url="$1"
+      "$wgetBin" -4 -q --tries=1 -T 3 -O- "$url" 2>/dev/null \
+        | "$sedBin" -n 's/^ip=//p' \
+        | "$headBin" -n 1 \
+        | "$trBin" -d '\r\n[:space:]' || true
+    }
+
+    is_valid_ipv4() {
+      local ip="$1"
+      local o1="" o2="" o3="" o4="" extra="" octet=""
+
+      IFS='.' read -r o1 o2 o3 o4 extra <<< "$ip"
+      [ -z "$extra" ] || return 1
+
+      for octet in "$o1" "$o2" "$o3" "$o4"; do
+        [[ "$octet" =~ ^[0-9]{1,3}$ ]] || return 1
+        [ "$octet" -le 255 ] || return 1
+      done
+    }
+
+    for entry in \
+      "https://api.ipify.org|ipify|plain" \
+      "https://ifconfig.me/ip|ifconfig.me|plain" \
+      "http://1.1.1.1/cdn-cgi/trace|cloudflare-trace|trace"; do
       url="''${entry%%|*}"
-      label="''${entry#*|}"
-      candidate="$(fetch_ip "$url")"
-      if [ -n "$candidate" ]; then
+      rest="''${entry#*|}"
+      label="''${rest%%|*}"
+      parser="''${rest#*|}"
+
+      case "$parser" in
+        plain) candidate="$(fetch_plain_ip "$url")" ;;
+        trace) candidate="$(fetch_trace_ip "$url")" ;;
+        *) candidate="" ;;
+      esac
+
+      if [ -n "$candidate" ] && is_valid_ipv4 "$candidate"; then
         ip="$candidate"
         sourceLabel="$label"
         break
@@ -428,7 +461,7 @@ let
         cachedTs=0
       fi
 
-      if [ "$cachedTs" -gt 0 ] && [ -n "$cachedIp" ]; then
+      if [ "$cachedTs" -gt 0 ] && [ -n "$cachedIp" ] && is_valid_ipv4 "$cachedIp"; then
         age=$((now - cachedTs))
         if [ "$age" -ge 0 ] && [ "$age" -le 1800 ]; then
           ageMin=$((age / 60))
