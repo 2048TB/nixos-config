@@ -80,8 +80,9 @@ cd ~/nixos
 
 默认等价于：
 - 自动探测并选择最大非 USB 磁盘
-- 固定流程：`disko -> EFI 挂载检查 -> 交互式修改 LUKS 密码 -> nixos-install`（高危，会重建分区）
+- 固定流程：`预清理挂载/LUKS -> disko -> EFI 挂载检查 -> 交互式修改 LUKS 密码 -> nixos-install -> 同步 flake 到 /mnt/persistent/nixos-config -> dry-build 校验`（高危，会重建分区）
 - 无需命令参数
+- 可选环境变量：`NIXOS_DISK_DEVICE=/dev/<disk>`（覆盖目标盘）、`DRY_RUN=1`、`CONFIRM=0`
 
 ---
 
