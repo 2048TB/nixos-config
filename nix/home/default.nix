@@ -419,10 +419,20 @@ let
       local nonEmpty=0
       local compressed=0
       local suffix=""
+      local ipv4Tail=""
 
       [[ "$ip" == *:* ]] || return 1
-      [[ "$ip" =~ ^[0-9A-Fa-f:]+$ ]] || return 1
       [[ "$ip" != *:::* ]] || return 1
+
+      # Accept IPv4-embedded IPv6 (e.g. ::ffff:203.0.113.4) by validating
+      # the IPv4 tail and normalizing it to two hextets for counting.
+      if [[ "$ip" == *.* ]]; then
+        ipv4Tail="''${ip##*:}"
+        is_valid_ipv4 "$ipv4Tail" || return 1
+        ip="''${ip%:*}:0:0"
+      fi
+
+      [[ "$ip" =~ ^[0-9A-Fa-f:]+$ ]] || return 1
 
       if [[ "$ip" == *"::"* ]]; then
         compressed=1
