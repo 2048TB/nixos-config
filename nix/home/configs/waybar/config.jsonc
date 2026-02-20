@@ -180,7 +180,7 @@
     "return-type": "json",
     "exec-if": "test -x /etc/profiles/per-user/$USER/bin/public-ip-status",
     "exec": "/etc/profiles/per-user/$USER/bin/public-ip-status",
-    "interval": 600,
+    "interval": 180,
     "on-click": "/etc/profiles/per-user/$USER/bin/wifi-quick-menu",
     "on-click-right": "/etc/profiles/per-user/$USER/bin/ghostty -e /run/current-system/sw/bin/nmtui"
   },
