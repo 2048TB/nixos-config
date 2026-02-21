@@ -690,6 +690,7 @@ let
         "image-size" = 80;
         "image-radius" = 8;
       };
+      notifications = { };
     };
   };
   swayncStyle = ''
@@ -1290,6 +1291,13 @@ in
           Install.WantedBy = [ "graphical-session.target" ];
           Service = {
             Type = "simple";
+            Environment = [
+              # Provider app wrapper 仅注入 coreutils/grep PATH；补齐 gsettings 与图形库搜索路径
+              "PATH=${pkgs.glib}/bin:/run/current-system/sw/bin:${userProfileBin}"
+              "LD_LIBRARY_PATH=${pkgs.libglvnd}/lib:/run/opengl-driver/lib:/run/opengl-driver-32/lib:/run/current-system/sw/lib"
+              "LIBGL_DRIVERS_PATH=/run/opengl-driver/lib/dri"
+              "GSETTINGS_SCHEMA_DIR=${pkgs.gsettings-desktop-schemas}/share/gsettings-schemas/${pkgs.gsettings-desktop-schemas.name}/glib-2.0/schemas"
+            ];
             ExecStart = "${pkgs.provider-app-vpn}/bin/provider-app-vpn";
             Restart = "on-failure";
             RestartSec = 2;

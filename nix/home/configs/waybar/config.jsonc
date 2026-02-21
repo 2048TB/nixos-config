@@ -151,7 +151,7 @@
   "custom/temperature": {
     "format": "{}",
     "return-type": "json",
-    "exec-if": "sh -c 'ls /sys/class/hwmon/hwmon*/temp*_input >/dev/null 2>&1'",
+    "exec-if": "/run/current-system/sw/bin/ls /sys/class/hwmon/hwmon*/temp*_input >/dev/null 2>&1",
     "exec": "/etc/profiles/per-user/$USER/bin/waybar-temperature-status",
     "interval": 5
   },
@@ -235,25 +235,25 @@
       ]
     },
     "on-click": "/etc/profiles/per-user/$USER/bin/pavucontrol",
-    "on-scroll-up": "wpctl set-volume @DEFAULT_AUDIO_SINK@ 1%+ --limit 1.0",
-    "on-scroll-down": "wpctl set-volume @DEFAULT_AUDIO_SINK@ 1%-"
+    "on-scroll-up": "/run/current-system/sw/bin/wpctl set-volume @DEFAULT_AUDIO_SINK@ 1%+ --limit 1.0",
+    "on-scroll-down": "/run/current-system/sw/bin/wpctl set-volume @DEFAULT_AUDIO_SINK@ 1%-"
   },
 
   "custom/backlight": {
     "format": "{}",
     "return-type": "json",
-    "exec-if": "sh -c 'ls /sys/class/backlight/*/brightness >/dev/null 2>&1'",
+    "exec-if": "/run/current-system/sw/bin/ls /sys/class/backlight/*/brightness >/dev/null 2>&1",
     "exec": "/etc/profiles/per-user/$USER/bin/waybar-backlight-status",
     "interval": 5,
-    "on-scroll-up": "brightnessctl --class=backlight set 1%+",
-    "on-scroll-down": "brightnessctl --class=backlight set 1%-",
+    "on-scroll-up": "/etc/profiles/per-user/$USER/bin/brightnessctl --class=backlight set 1%+",
+    "on-scroll-down": "/etc/profiles/per-user/$USER/bin/brightnessctl --class=backlight set 1%-",
     "tooltip": false
   },
 
   "custom/battery": {
     "format": "{}",
     "return-type": "json",
-    "exec-if": "sh -c 'ls /sys/class/power_supply/BAT*/capacity >/dev/null 2>&1'",
+    "exec-if": "/run/current-system/sw/bin/ls /sys/class/power_supply/BAT*/capacity >/dev/null 2>&1",
     "exec": "/etc/profiles/per-user/$USER/bin/waybar-battery-status",
     "interval": 15
   },
