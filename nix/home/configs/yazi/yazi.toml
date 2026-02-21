@@ -16,45 +16,58 @@ image_delay = 30
 
 [opener]
 text = [
-  { run = "gnome-text-editor %s", orphan = true },
+  { run = "gnome-text-editor \"$@\"", orphan = true },
 ]
 edit = [
-  { run = "nvim %s", block = true },
+  { run = "nvim \"$@\"", block = true },
 ]
 image = [
-  { run = "imv %s", orphan = true },
+  { run = "imv \"$@\"", orphan = true },
 ]
 video = [
-  { run = "mpv %s", orphan = true },
+  { run = "mpv \"$@\"", orphan = true },
 ]
 pdf = [
-  { run = "zathura %s", orphan = true },
+  { run = "zathura \"$@\"", orphan = true },
 ]
 archive = [
-  { run = "file-roller %s", orphan = true },
+  { run = "file-roller \"$@\"", orphan = true },
 ]
 directory = [
-  { run = "nautilus %s", orphan = true },
+  { run = "nautilus \"$@\"", orphan = true },
 ]
 fallback = [
-  { run = "xdg-open %s", orphan = true },
+  { run = "xdg-open \"$@\"", orphan = true },
 ]
 
 [open]
 rules = [
-  { mime = "text/*", use = "edit" },
+  { mime = "text/*", use = [ "edit", "text" ] },
+  { mime = "application/json", use = [ "edit", "text" ] },
+  { mime = "application/xml", use = [ "edit", "text" ] },
+  { mime = "application/yaml", use = [ "edit", "text" ] },
+  { mime = "application/x-yaml", use = [ "edit", "text" ] },
+  { mime = "application/toml", use = [ "edit", "text" ] },
+  { mime = "application/x-toml", use = [ "edit", "text" ] },
   { mime = "image/*", use = "image" },
   { mime = "video/*", use = "video" },
   { mime = "audio/*", use = "video" },
   { mime = "application/pdf", use = "pdf" },
   { mime = "application/zip", use = "archive" },
+  { mime = "application/x-zip-compressed", use = "archive" },
   { mime = "application/gzip", use = "archive" },
   { mime = "application/x-tar", use = "archive" },
   { mime = "application/x-bzip2", use = "archive" },
   { mime = "application/x-7z-compressed", use = "archive" },
   { mime = "application/x-rar", use = "archive" },
+  { mime = "application/vnd.rar", use = "archive" },
+  { mime = "application/x-rar-compressed", use = "archive" },
+  { name = "*.7z", use = "archive" },
+  { name = "*.rar", use = "archive" },
+  { mime = "application/x-xz", use = "archive" },
   { mime = "application/xz", use = "archive" },
+  { mime = "application/x-zstd", use = "archive" },
   { mime = "application/zstd", use = "archive" },
   { mime = "inode/directory", use = "directory" },
-  { url = "*", use = "fallback" },
+  { name = "*", use = "fallback" },
 ]
