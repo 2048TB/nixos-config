@@ -127,7 +127,8 @@
         let
           cfg = nixosConfigurations.${myvars.hostname}.config;
           expectedHome = "/home/${mainUser}";
-          systemPackageOutPaths = lib.unique (map (pkg: pkg.outPath) cfg.environment.systemPackages);
+          allSystemPackageOutPaths = map (pkg: pkg.outPath) cfg.environment.systemPackages;
+          systemPackageOutPaths = lib.unique allSystemPackageOutPaths;
           homePackageOutPaths = lib.unique (map (pkg: pkg.outPath) cfg.home-manager.users.${mainUser}.home.packages);
           systemHomeOverlapOutPaths = lib.intersectLists systemPackageOutPaths homePackageOutPaths;
           systemHomeOverlapPkgs = lib.filter (pkg: builtins.elem pkg.outPath systemHomeOverlapOutPaths) cfg.environment.systemPackages;
@@ -135,6 +136,30 @@
           systemPackageNames = lib.unique (map (pkg: lib.getName pkg) cfg.environment.systemPackages);
           homePackageNames = lib.unique (map (pkg: lib.getName pkg) cfg.home-manager.users.${mainUser}.home.packages);
           systemHomeOverlapNamesByName = lib.intersectLists systemPackageNames homePackageNames;
+          systemDuplicateOutPaths =
+            lib.unique (
+              builtins.filter
+                (outPath: (builtins.length (builtins.filter (p: p == outPath) allSystemPackageOutPaths)) > 1)
+                allSystemPackageOutPaths
+            );
+          systemDuplicatePkgs =
+            lib.filter
+              (pkg: builtins.elem pkg.outPath systemDuplicateOutPaths)
+              cfg.environment.systemPackages;
+          systemDuplicateNames = lib.unique (map (pkg: lib.getName pkg) systemDuplicatePkgs);
+          # 允许由上游模块隐式重复注入的基础包；其余重复视为回归。
+          allowedSystemDuplicateNames = [
+            "dosfstools"
+            "fuse"
+            "iptables"
+            "less"
+            "shadow"
+            "zsh"
+          ];
+          unexpectedSystemDuplicateNames =
+            builtins.filter
+              (name: !(builtins.elem name allowedSystemDuplicateNames))
+              systemDuplicateNames;
           # 仅允许基础运行时重叠（由模块隐式引入），其余视为回归。
           allowedSystemHomeOverlapNames = [
             "xwayland"
@@ -175,6 +200,14 @@
           eval-system-home-package-overlap-by-name = pkgs.runCommand "eval-system-home-package-overlap-by-name" { } ''
             if [ ${toString (builtins.length unexpectedSystemHomeOverlapNamesByName)} -ne 0 ]; then
               echo "Unexpected system/home package overlaps by name: ${lib.concatStringsSep ", " unexpectedSystemHomeOverlapNamesByName}" >&2
+              exit 1
+            fi
+            touch "$out"
+          '';
+
+          eval-system-package-duplicates = pkgs.runCommand "eval-system-package-duplicates" { } ''
+            if [ ${toString (builtins.length unexpectedSystemDuplicateNames)} -ne 0 ]; then
+              echo "Unexpected duplicate packages in environment.systemPackages: ${lib.concatStringsSep ", " unexpectedSystemDuplicateNames}" >&2
               exit 1
             fi
             touch "$out"
