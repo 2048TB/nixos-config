@@ -24,8 +24,8 @@
     "bluetooth",
     "custom/wifi-manager",
     "pulseaudio",
-    "custom/backlight",
-    "custom/battery",
+    "backlight",
+    "battery",
     "power-profiles-daemon",
     "custom/notification",
     "tray",
@@ -246,23 +246,25 @@
     "on-scroll-down": "/run/current-system/sw/bin/wpctl set-volume @DEFAULT_AUDIO_SINK@ 1%-"
   },
 
-  "custom/backlight": {
-    "format": "{}",
-    "tooltip": false,
-    "return-type": "json",
-    "exec-if": "/run/current-system/sw/bin/ls /sys/class/backlight/*/brightness >/dev/null 2>&1",
-    "exec": "/etc/profiles/per-user/$USER/bin/waybar-backlight-status",
-    "interval": 5,
+  "backlight": {
+    "format": "{icon} {percent}%",
+    "format-icons": ["󰃞", "󰃟", "󰃠"],
+    "scroll-step": 1,
     "on-scroll-up": "/etc/profiles/per-user/$USER/bin/brightnessctl --class=backlight set 1%+",
     "on-scroll-down": "/etc/profiles/per-user/$USER/bin/brightnessctl --class=backlight set 1%-"
   },
 
-  "custom/battery": {
-    "format": "{}",
-    "return-type": "json",
-    "exec-if": "/run/current-system/sw/bin/ls /sys/class/power_supply/BAT*/capacity >/dev/null 2>&1",
-    "exec": "/etc/profiles/per-user/$USER/bin/waybar-battery-status",
-    "interval": 15
+  "battery": {
+    "interval": 15,
+    "states": {
+      "warning": 20,
+      "critical": 10
+    },
+    "format": "{icon} {capacity}%",
+    "format-charging": " {capacity}%",
+    "format-full": " {capacity}%",
+    "format-icons": ["", "", "", "", ""],
+    "tooltip-format": "Battery: {capacity}%\nStatus: {timeTo}\nPower: {power:.1f}W"
   },
 
   // ===== 电源与通知 =====

@@ -41,8 +41,8 @@ window#waybar {
 #custom-wifi-manager,
 #pulseaudio,
 #mode,
-#custom-backlight,
-#custom-battery,
+#backlight,
+#battery,
 #power-profiles-daemon,
 #custom-notification,
 #tray,
@@ -214,7 +214,7 @@ window#waybar {
   color: @text_muted;
 }
 
-#custom-backlight {
+#backlight {
   color: @text_normal;
 }
 
@@ -230,15 +230,16 @@ window#waybar {
   color: @critical_red;
 }
 
-#custom-battery.charging {
+#battery.charging,
+#battery.full {
   color: @accent_blue;
 }
 
-#custom-battery.warning:not(.charging) {
+#battery.warning:not(.charging) {
   color: @accent_dark_blue;
 }
 
-#custom-battery.critical:not(.charging) {
+#battery.critical:not(.charging) {
   color: @critical_red;
 }
 
@@ -286,7 +287,7 @@ window#waybar {
 #bluetooth,
 #custom-wifi-manager,
 #pulseaudio,
-#custom-backlight {
+#backlight {
   margin-left: 0;
   border-top-left-radius: 0;
   border-bottom-left-radius: 0;
@@ -294,7 +295,7 @@ window#waybar {
 
 #custom-temperature,
 #custom-wifi-manager,
-#custom-backlight {
+#backlight {
   margin-right: 2px;
 }
 
