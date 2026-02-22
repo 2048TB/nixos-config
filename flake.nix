@@ -112,20 +112,21 @@
         home-manager.nixosModules.home-manager
         homeManagerModule
       ];
-    in
-    rec {
-      # NixOS 配置
-      nixosConfigurations.${myvars.hostname} = lib.nixosSystem {
+
+      nixosSystem = lib.nixosSystem {
         inherit system specialArgs;
         modules = [
           ./nix/hosts/${myvars.hostname}.nix
         ] ++ hostModules;
       };
+    in
+    {
+      nixosConfigurations.${myvars.hostname} = nixosSystem;
 
       # 轻量 eval checks
       checks.${system} =
         let
-          cfg = nixosConfigurations.${myvars.hostname}.config;
+          cfg = nixosSystem.config;
           expectedHome = "/home/${mainUser}";
           allSystemPackageOutPaths = map (pkg: pkg.outPath) cfg.environment.systemPackages;
           systemPackageOutPaths = lib.unique allSystemPackageOutPaths;
@@ -177,6 +178,16 @@
             builtins.filter
               (name: !(builtins.elem name allowedSystemHomeOverlapNames))
               systemHomeOverlapNamesByName;
+
+          # 通用检查生成器：列表非空则报错
+          mkNonEmptyCheck = name: items: msg:
+            pkgs.runCommand name { } ''
+              if [ ${toString (builtins.length items)} -ne 0 ]; then
+                echo "${msg}: ${lib.concatStringsSep ", " items}" >&2
+                exit 1
+              fi
+              touch "$out"
+            '';
         in
         {
           eval-hostname = pkgs.runCommand "eval-hostname" { } ''
@@ -189,29 +200,20 @@
             touch "$out"
           '';
 
-          eval-system-home-package-overlap = pkgs.runCommand "eval-system-home-package-overlap" { } ''
-            if [ ${toString (builtins.length unexpectedSystemHomeOverlapNames)} -ne 0 ]; then
-              echo "Unexpected system/home package overlaps: ${lib.concatStringsSep ", " unexpectedSystemHomeOverlapNames}" >&2
-              exit 1
-            fi
-            touch "$out"
-          '';
+          eval-system-home-package-overlap = mkNonEmptyCheck
+            "eval-system-home-package-overlap"
+            unexpectedSystemHomeOverlapNames
+            "Unexpected system/home package overlaps";
 
-          eval-system-home-package-overlap-by-name = pkgs.runCommand "eval-system-home-package-overlap-by-name" { } ''
-            if [ ${toString (builtins.length unexpectedSystemHomeOverlapNamesByName)} -ne 0 ]; then
-              echo "Unexpected system/home package overlaps by name: ${lib.concatStringsSep ", " unexpectedSystemHomeOverlapNamesByName}" >&2
-              exit 1
-            fi
-            touch "$out"
-          '';
+          eval-system-home-package-overlap-by-name = mkNonEmptyCheck
+            "eval-system-home-package-overlap-by-name"
+            unexpectedSystemHomeOverlapNamesByName
+            "Unexpected system/home package overlaps by name";
 
-          eval-system-package-duplicates = pkgs.runCommand "eval-system-package-duplicates" { } ''
-            if [ ${toString (builtins.length unexpectedSystemDuplicateNames)} -ne 0 ]; then
-              echo "Unexpected duplicate packages in environment.systemPackages: ${lib.concatStringsSep ", " unexpectedSystemDuplicateNames}" >&2
-              exit 1
-            fi
-            touch "$out"
-          '';
+          eval-system-package-duplicates = mkNonEmptyCheck
+            "eval-system-package-duplicates"
+            unexpectedSystemDuplicateNames
+            "Unexpected duplicate packages in environment.systemPackages";
         };
 
       # 开发环境
