@@ -32,6 +32,7 @@
     "custom/power"
   ],
 
+  // ===== 启动器与电源 =====
   "custom/launcher": {
     "format": "󱄅",
     "tooltip": false,
@@ -45,7 +46,6 @@
   },
 
   "custom/notification": {
-    "tooltip": true,
     "format": "{icon}",
     "format-icons": {
       "notification": "",
@@ -57,6 +57,7 @@
       "dnd-inhibited-notification": "",
       "dnd-inhibited-none": ""
     },
+    "tooltip": true,
     "return-type": "json",
     "exec-if": "test -x /etc/profiles/per-user/$USER/bin/swaync-client",
     "exec": "/etc/profiles/per-user/$USER/bin/swaync-client -swb",
@@ -65,6 +66,7 @@
     "escape": true
   },
 
+  // ===== River 窗口管理 =====
   "river/tags": {
     "num-tags": 9,
     "tag-labels": [
@@ -82,8 +84,8 @@
 
   "river/mode": {
     "format": "MODE {}",
-    "on-click": "/etc/profiles/per-user/$USER/bin/river-mode-cycle toggle",
-    "max-length": 14
+    "max-length": 14,
+    "on-click": "/etc/profiles/per-user/$USER/bin/river-mode-cycle toggle"
   },
 
   "river/window": {
@@ -91,6 +93,7 @@
     "max-length": 36
   },
 
+  // ===== 媒体 =====
   "mpris": {
     "format": "{player_icon} {dynamic}",
     "format-paused": "{status_icon} {dynamic}",
@@ -112,6 +115,7 @@
     }
   },
 
+  // ===== 时钟 =====
   "clock": {
     "format": " {:L%Y-%m-%d %A %H:%M:%S}",
     "locale": "zh_CN.UTF-8",
@@ -130,6 +134,7 @@
     "on-click": "/etc/profiles/per-user/$USER/bin/waybar-clock-calendar"
   },
 
+  // ===== 系统监控 =====
   "cpu": {
     "format": "󰻠 {usage}%",
     "interval": 3,
@@ -156,9 +161,8 @@
     "interval": 5
   },
 
+  // ===== 网络 =====
   "network": {
-    "interval": 5,
-    "family": "ipv4_6",
     "format-wifi": "{icon} {signalStrength}%",
     "format-ethernet": "󰈀 wired",
     "format-linked": "󰈀 link",
@@ -173,7 +177,9 @@
     ],
     "tooltip-format-wifi": "{essid}\nIP: {ipaddr}/{cidr}\nSignal: {signalStrength}%\nFrequency: {frequency} GHz\nGateway: {gwaddr}",
     "tooltip-format-ethernet": "{ifname}\nIP: {ipaddr}/{cidr}\nGateway: {gwaddr}",
-    "tooltip-format-disconnected": "Network disconnected"
+    "tooltip-format-disconnected": "Network disconnected",
+    "interval": 5,
+    "family": "ipv4_6"
   },
 
   "custom/public-ip": {
@@ -212,21 +218,21 @@
 
   "custom/wifi-manager": {
     "format": "{}",
+    "tooltip": true,
+    "tooltip-format": "Left: Quick menu\\nRight: Toggle WiFi radio",
     "exec-if": "test -x /etc/profiles/per-user/$USER/bin/wifi-radio-status",
     "exec": "/etc/profiles/per-user/$USER/bin/wifi-radio-status",
     "exec-on-event": false,
     "interval": 5,
-    "tooltip": true,
-    "tooltip-format": "Left: Quick menu\\nRight: Toggle WiFi radio",
     "on-click": "/etc/profiles/per-user/$USER/bin/wifi-quick-menu",
     "on-click-right": "/etc/profiles/per-user/$USER/bin/wifi-toggle-radio"
   },
 
+  // ===== 音频与亮度 =====
   "pulseaudio": {
     "format": "{icon} {volume}%",
     "format-bluetooth": "{icon} {volume}%",
     "format-muted": "",
-    "scroll-step": 1,
     "format-icons": {
       "default": [
         "",
@@ -234,6 +240,7 @@
         ""
       ]
     },
+    "scroll-step": 1,
     "on-click": "/etc/profiles/per-user/$USER/bin/pavucontrol",
     "on-scroll-up": "/run/current-system/sw/bin/wpctl set-volume @DEFAULT_AUDIO_SINK@ 1%+ --limit 1.0",
     "on-scroll-down": "/run/current-system/sw/bin/wpctl set-volume @DEFAULT_AUDIO_SINK@ 1%-"
@@ -241,13 +248,13 @@
 
   "custom/backlight": {
     "format": "{}",
+    "tooltip": false,
     "return-type": "json",
     "exec-if": "/run/current-system/sw/bin/ls /sys/class/backlight/*/brightness >/dev/null 2>&1",
     "exec": "/etc/profiles/per-user/$USER/bin/waybar-backlight-status",
     "interval": 5,
     "on-scroll-up": "/etc/profiles/per-user/$USER/bin/brightnessctl --class=backlight set 1%+",
-    "on-scroll-down": "/etc/profiles/per-user/$USER/bin/brightnessctl --class=backlight set 1%-",
-    "tooltip": false
+    "on-scroll-down": "/etc/profiles/per-user/$USER/bin/brightnessctl --class=backlight set 1%-"
   },
 
   "custom/battery": {
@@ -258,17 +265,19 @@
     "interval": 15
   },
 
+  // ===== 电源与通知 =====
   "power-profiles-daemon": {
     "format": "{icon}",
-    "tooltip-format": "电源模式: {profile}\n驱动: {driver}",
     "format-icons": {
       "default": "B",
       "performance": "P",
       "balanced": "B",
       "power-saver": "S"
-    }
+    },
+    "tooltip-format": "电源模式: {profile}\n驱动: {driver}"
   },
 
+  // ===== 系统托盘 =====
   "tray": {
     "icon-size": 14,
     "show-passive-items": true,

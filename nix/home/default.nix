@@ -10,6 +10,11 @@ let
   userProfileBin = "/etc/profiles/per-user/${mainUser}/bin";
   profileCmd = cmd: "${userProfileBin}/${cmd}";
 
+  # 共享 shell 工具路径（多个脚本复用）
+  headBin = "${pkgs.coreutils}/bin/head";
+  mkdirBin = "${pkgs.coreutils}/bin/mkdir";
+  dateBin = "${pkgs.coreutils}/bin/date";
+
   # 资源映射常量
   wlogoutIconNames = [
     "lock"
@@ -23,6 +28,52 @@ let
     lib.genAttrs
       (map (name: "wlogout/icons/${name}.png") wlogoutIconNames)
       (path: { source = "${pkgs.wlogout}/share/${path}"; });
+
+  # River 配置常量
+  modeCycleCmd = profileCmd "river-mode-cycle";
+  volumeCmd = "wpctl set-volume @DEFAULT_AUDIO_SINK@";
+  playerCmd = "playerctl";
+  brightnessCmd = "brightnessctl --class=backlight set";
+
+  # 浮动模式方向绑定（move/resize/snap）
+  floatDirections = [
+    { key = "Left"; move = "left 100"; resize = "horizontal -100"; snap = "left"; }
+    { key = "Down"; move = "down 100"; resize = "vertical 100"; snap = "down"; }
+    { key = "Up"; move = "up 100"; resize = "vertical -100"; snap = "up"; }
+    { key = "Right"; move = "right 100"; resize = "horizontal 100"; snap = "right"; }
+  ];
+  floatDirBinds = lib.concatMapStringsSep "\n"
+    (d:
+      "      riverctl map float None ${d.key} move ${d.move}\n"
+      + "      riverctl map float Shift ${d.key} resize ${d.resize}\n"
+      + "      riverctl map float Control ${d.key} snap ${d.snap}"
+    )
+    floatDirections;
+
+  # 浮动模式退出键
+  floatExitKeys = [ "Escape" "Return" "Space" ];
+  floatExitBinds = lib.concatMapStringsSep "\n"
+    (key:
+      "      riverctl map float None ${key} spawn '${modeCycleCmd} set normal'"
+    )
+    floatExitKeys;
+
+  # 窗口规则：自动浮动的应用 app-id
+  floatAppIds = [
+    "pavucontrol"
+    "gnome-calculator"
+    "blueman-manager"
+    "nm-connection-editor"
+    "imv"
+    "nomacs"
+    "wlogout"
+    "org.gnome.Nautilus"
+    "org.gnome.FileRoller"
+    "swaylock"
+  ];
+  floatRules = lib.concatMapStringsSep "\n"
+    (app: "      riverctl rule-add -app-id '${app}' float")
+    floatAppIds;
 
   # 应用关联常量
   imageMimeTypes = [
@@ -173,7 +224,6 @@ let
   '';
   waybarTemperatureStatus = pkgs.writeShellScriptBin "waybar-temperature-status" ''
     set -euo pipefail
-    headBin="${pkgs.coreutils}/bin/head"
 
     pick_temp_input() {
       local preferred="" hwmon="" input="" name=""
@@ -181,7 +231,7 @@ let
         for hwmon in /sys/class/hwmon/hwmon*; do
           [ -d "$hwmon" ] || continue
           [ -r "$hwmon/name" ] || continue
-          name="$("$headBin" -n 1 "$hwmon/name" 2>/dev/null || true)"
+          name="$("${headBin}" -n 1 "$hwmon/name" 2>/dev/null || true)"
           [ "$name" = "$preferred" ] || continue
           for input in "$hwmon"/temp*_input; do
             [ -r "$input" ] || continue
@@ -202,7 +252,7 @@ let
     inputFile="$(pick_temp_input || true)"
     [ -n "$inputFile" ] || exit 1
 
-    raw="$("$headBin" -n 1 "$inputFile" 2>/dev/null || true)"
+    raw="$("${headBin}" -n 1 "$inputFile" 2>/dev/null || true)"
     [[ "$raw" =~ ^[0-9]+$ ]] || exit 1
 
     tempC=$((raw / 1000))
@@ -221,7 +271,6 @@ let
   '';
   waybarBacklightStatus = pkgs.writeShellScriptBin "waybar-backlight-status" ''
     set -euo pipefail
-    headBin="${pkgs.coreutils}/bin/head"
 
     pick_backlight_dir() {
       local dir=""
@@ -238,8 +287,8 @@ let
     backlightDir="$(pick_backlight_dir || true)"
     [ -n "$backlightDir" ] || exit 1
 
-    current="$("$headBin" -n 1 "$backlightDir/brightness" 2>/dev/null || true)"
-    maximum="$("$headBin" -n 1 "$backlightDir/max_brightness" 2>/dev/null || true)"
+    current="$("${headBin}" -n 1 "$backlightDir/brightness" 2>/dev/null || true)"
+    maximum="$("${headBin}" -n 1 "$backlightDir/max_brightness" 2>/dev/null || true)"
     [[ "$current" =~ ^[0-9]+$ ]] || exit 1
     [[ "$maximum" =~ ^[0-9]+$ ]] || exit 1
     [ "$maximum" -gt 0 ] || exit 1
@@ -256,7 +305,6 @@ let
   '';
   waybarBatteryStatus = pkgs.writeShellScriptBin "waybar-battery-status" ''
     set -euo pipefail
-    headBin="${pkgs.coreutils}/bin/head"
 
     pick_battery_dir() {
       local dir=""
@@ -272,8 +320,8 @@ let
     batteryDir="$(pick_battery_dir || true)"
     [ -n "$batteryDir" ] || exit 1
 
-    capacity="$("$headBin" -n 1 "$batteryDir/capacity" 2>/dev/null || true)"
-    status="$("$headBin" -n 1 "$batteryDir/status" 2>/dev/null || true)"
+    capacity="$("${headBin}" -n 1 "$batteryDir/capacity" 2>/dev/null || true)"
+    status="$("${headBin}" -n 1 "$batteryDir/status" 2>/dev/null || true)"
     [[ "$capacity" =~ ^[0-9]+$ ]] || exit 1
     [ -n "$status" ] || status="Unknown"
 
@@ -520,25 +568,22 @@ let
     wgetBin="${pkgs.wget}/bin/wget"
     trBin="/run/current-system/sw/bin/tr"
     sedBin="/run/current-system/sw/bin/sed"
-    mkdirBin="${pkgs.coreutils}/bin/mkdir"
-    headBin="${pkgs.coreutils}/bin/head"
-    dateBin="${pkgs.coreutils}/bin/date"
     cacheDir="${homeDir}/.cache/waybar"
     cacheFile="$cacheDir/public-ip"
-    now="$("$dateBin" +%s)"
+    now="$("${dateBin}" +%s)"
     ip=""
     sourceLabel=""
 
     fetch_plain_ip() {
       local url="$1"
-      "$wgetBin" -q --tries=1 -T 3 -O- "$url" 2>/dev/null | "$headBin" -n 1 | "$trBin" -d '\r\n[:space:]' || true
+      "$wgetBin" -q --tries=1 -T 3 -O- "$url" 2>/dev/null | "${headBin}" -n 1 | "$trBin" -d '\r\n[:space:]' || true
     }
 
     fetch_trace_ip() {
       local url="$1"
       "$wgetBin" -q --tries=1 -T 3 -O- "$url" 2>/dev/null \
         | "$sedBin" -n 's/^ip=//p' \
-        | "$headBin" -n 1 \
+        | "${headBin}" -n 1 \
         | "$trBin" -d '\r\n[:space:]' || true
     }
 
@@ -590,14 +635,14 @@ let
     done
 
     if [ -n "$ip" ]; then
-      "$mkdirBin" -p "$cacheDir"
+      "${mkdirBin}" -p "$cacheDir"
       printf '%s|%s|%s\n' "$now" "$ip" "$sourceLabel" > "$cacheFile"
       printf '{"text":"󰩠 %s","tooltip":"Public IP: %s\\nSource: %s\\nLeft: Quick menu\\nRight: nmtui","class":"online"}\n' "$ip" "$ip" "$sourceLabel"
       exit 0
     fi
 
     if [ -r "$cacheFile" ]; then
-      cachedLine="$("$headBin" -n 1 "$cacheFile" || true)"
+      cachedLine="$("${headBin}" -n 1 "$cacheFile" || true)"
       cachedTs="''${cachedLine%%|*}"
       cachedRest="''${cachedLine#*|}"
       cachedIp="''${cachedRest%%|*}"
@@ -1072,106 +1117,100 @@ in
       XDG_SESSION_DESKTOP = "river";
     };
     extraConfig = ''
-      riverctl spawn '${riverSessionBootstrap}'
+            # ── 外观与输入 ──
+            riverctl spawn '${riverSessionBootstrap}'
+            riverctl background-color 0x1e1e2e
+            riverctl border-width 0
+            riverctl border-color-focused 0x4a3f64
+            riverctl border-color-unfocused 0x2c2938
+            riverctl set-repeat 50 300
+            riverctl focus-follows-cursor normal
+            mkdir -p '${homeDir}/.local/state/river'
+            printf 'normal\n' > '${homeDir}/.local/state/river/mode'
 
-      riverctl background-color 0x1e1e2e
-      riverctl border-width 0
-      riverctl border-color-focused 0x4a3f64
-      riverctl border-color-unfocused 0x2c2938
-      riverctl set-repeat 50 300
-      mkdir -p '${homeDir}/.local/state/river'
-      printf 'normal\n' > '${homeDir}/.local/state/river/mode'
+            # ── 窗口规则 ──
+      ${floatRules}
 
-      riverctl map normal Super Return spawn ghostty
-      riverctl map normal Super Space spawn '${profileCmd "fuzzel"}'
-      riverctl map normal Super D spawn nautilus
-      riverctl map normal Super+Control C spawn '${profileCmd "river-cliphist-menu"}'
-      riverctl map normal Super+Control S spawn pavucontrol
-      riverctl map normal Super Q close
-      riverctl map normal Super+Shift E exit
-      riverctl map normal Super+Shift L spawn 'swaylock -f'
-      riverctl map normal Super+Control E spawn '${profileCmd "wlogout-menu"}'
+            # ── 应用启动 ──
+            riverctl map normal Super Return spawn ghostty
+            riverctl map normal Super Space spawn '${profileCmd "fuzzel"}'
+            riverctl map normal Super D spawn nautilus
+            riverctl map normal Super+Control C spawn '${profileCmd "river-cliphist-menu"}'
+            riverctl map normal Super+Control S spawn pavucontrol
+            riverctl map normal Super Q close
+            riverctl map normal Super+Shift E exit
+            riverctl map normal Super+Shift L spawn 'swaylock -f'
+            riverctl map normal Super+Control E spawn '${profileCmd "wlogout-menu"}'
 
-      # 焦点与交换（常用双键）
-      riverctl map normal Super Right focus-view -skip-floating next
-      riverctl map normal Super Left focus-view -skip-floating previous
-      riverctl map normal Super Down swap next
-      riverctl map normal Super Up swap previous
+            # ── 焦点与窗口管理 ──
+            riverctl map normal Super Right focus-view -skip-floating next
+            riverctl map normal Super Left focus-view -skip-floating previous
+            riverctl map normal Super Down swap next
+            riverctl map normal Super Up swap previous
+            riverctl map normal Super Z zoom
+            riverctl map normal Super F toggle-fullscreen
+            riverctl map normal Super V toggle-float
 
-      riverctl map normal Super Z zoom
-      riverctl map normal Super F toggle-fullscreen
-      riverctl map normal Super V toggle-float
+            # ── rivertile 布局控制 ──
+            riverctl map normal Super+Control Up send-layout-cmd rivertile "main-ratio +0.05"
+            riverctl map normal Super+Control Down send-layout-cmd rivertile "main-ratio -0.05"
+            riverctl map normal Super+Control Right send-layout-cmd rivertile "main-count +1"
+            riverctl map normal Super+Control Left send-layout-cmd rivertile "main-count -1"
+            riverctl map normal Super+Shift Up send-layout-cmd rivertile "main-location top"
+            riverctl map normal Super+Shift Right send-layout-cmd rivertile "main-location right"
+            riverctl map normal Super+Shift Down send-layout-cmd rivertile "main-location bottom"
+            riverctl map normal Super+Shift Left send-layout-cmd rivertile "main-location left"
 
-      # rivertile 控制（低频三键，不使用标点）
-      riverctl map normal Super+Control Up send-layout-cmd rivertile "main-ratio +0.05"
-      riverctl map normal Super+Control Down send-layout-cmd rivertile "main-ratio -0.05"
-      riverctl map normal Super+Control Right send-layout-cmd rivertile "main-count +1"
-      riverctl map normal Super+Control Left send-layout-cmd rivertile "main-count -1"
-      riverctl map normal Super+Shift Up send-layout-cmd rivertile "main-location top"
-      riverctl map normal Super+Shift Right send-layout-cmd rivertile "main-location right"
-      riverctl map normal Super+Shift Down send-layout-cmd rivertile "main-location bottom"
-      riverctl map normal Super+Shift Left send-layout-cmd rivertile "main-location left"
+            # ── 浮动模式 ──
+            riverctl declare-mode float
+            riverctl map normal Super G spawn '${modeCycleCmd} set float'
+      ${floatExitBinds}
+            riverctl map float None V toggle-float
+      ${floatDirBinds}
 
-      # 浮动窗口模式：Super+G 进入，模式内方向键处理移动/吸附/缩放
-      riverctl declare-mode float
-      riverctl map normal Super G spawn '${profileCmd "river-mode-cycle"} set float'
-      riverctl map float None Escape spawn '${profileCmd "river-mode-cycle"} set normal'
-      riverctl map float None Return spawn '${profileCmd "river-mode-cycle"} set normal'
-      riverctl map float None Space spawn '${profileCmd "river-mode-cycle"} set normal'
-      riverctl map float None V toggle-float
-      riverctl map float None Left move left 100
-      riverctl map float None Down move down 100
-      riverctl map float None Up move up 100
-      riverctl map float None Right move right 100
-      riverctl map float Shift Left resize horizontal -100
-      riverctl map float Shift Down resize vertical 100
-      riverctl map float Shift Up resize vertical -100
-      riverctl map float Shift Right resize horizontal 100
-      riverctl map float Control Left snap left
-      riverctl map float Control Down snap down
-      riverctl map float Control Up snap up
-      riverctl map float Control Right snap right
+            # ── 截图与鼠标 ──
+            riverctl map normal None Print spawn '${riverScreenshot}/bin/river-screenshot area'
+            riverctl map normal Super X spawn '${riverScreenshot}/bin/river-screenshot area'
+            riverctl map-pointer normal Super BTN_LEFT move-view
+            riverctl map-pointer normal Super BTN_RIGHT resize-view
+            riverctl map-pointer normal Super BTN_MIDDLE toggle-float
 
-      riverctl map normal None Print spawn '${riverScreenshot}/bin/river-screenshot area'
-      riverctl map normal Super X spawn '${riverScreenshot}/bin/river-screenshot area'
+            # ── 透传模式 ──
+            riverctl declare-mode passthrough
+            riverctl map normal Super P spawn '${modeCycleCmd} set passthrough'
+            riverctl map passthrough Super P spawn '${modeCycleCmd} set normal'
+            riverctl map passthrough None Escape spawn '${modeCycleCmd} set normal'
 
-      riverctl map-pointer normal Super BTN_LEFT move-view
-      riverctl map-pointer normal Super BTN_RIGHT resize-view
-      riverctl map-pointer normal Super BTN_MIDDLE toggle-float
+            # ── 标签 (Tags) ──
+            for i in $(seq 1 9); do
+                tags=$((1 << ($i - 1)))
+                riverctl map normal Super $i set-focused-tags $tags
+                riverctl map normal Super+Shift $i set-view-tags $tags
+                riverctl map normal Super+Alt $i toggle-focused-tags $tags
+                riverctl map normal Super+Control $i toggle-view-tags $tags
+            done
+            all_tags=$(((1 << 32) - 1))
+            riverctl map normal Super 0 set-focused-tags $all_tags
+            riverctl map normal Super+Shift 0 set-view-tags $all_tags
+            riverctl map normal Super Tab focus-previous-tags
+            riverctl map normal Super+Shift Tab send-to-previous-tags
 
-      riverctl declare-mode passthrough
-      riverctl map normal Super P spawn '${profileCmd "river-mode-cycle"} set passthrough'
-      riverctl map passthrough Super P spawn '${profileCmd "river-mode-cycle"} set normal'
-      riverctl map passthrough None Escape spawn '${profileCmd "river-mode-cycle"} set normal'
+            # ── 媒体与亮度（normal + locked 共享） ──
+            for mode in normal locked; do
+                riverctl map $mode None XF86AudioRaiseVolume spawn '${volumeCmd} 0.01+ --limit 1.0'
+                riverctl map $mode None XF86AudioLowerVolume spawn '${volumeCmd} 0.01-'
+                riverctl map $mode None XF86AudioMute spawn 'wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle'
+                riverctl map $mode None XF86AudioMicMute spawn 'wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle'
+                riverctl map $mode None XF86AudioPlay spawn '${playerCmd} play-pause'
+                riverctl map $mode None XF86AudioPrev spawn '${playerCmd} previous'
+                riverctl map $mode None XF86AudioNext spawn '${playerCmd} next'
+                riverctl map $mode None XF86MonBrightnessUp spawn '${brightnessCmd} 1%+'
+                riverctl map $mode None XF86MonBrightnessDown spawn '${brightnessCmd} 1%-'
+            done
 
-      for i in $(seq 1 9); do
-          tags=$((1 << ($i - 1)))
-          riverctl map normal Super $i set-focused-tags $tags
-          riverctl map normal Super+Shift $i set-view-tags $tags
-          riverctl map normal Super+Alt $i toggle-focused-tags $tags
-          riverctl map normal Super+Control $i toggle-view-tags $tags
-      done
-
-      all_tags=$(((1 << 32) - 1))
-      riverctl map normal Super 0 set-focused-tags $all_tags
-      riverctl map normal Super+Shift 0 set-view-tags $all_tags
-      riverctl map normal Super Tab focus-previous-tags
-      riverctl map normal Super+Shift Tab send-to-previous-tags
-
-      for mode in normal locked; do
-          riverctl map $mode None XF86AudioRaiseVolume spawn 'wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.01+ --limit 1.0'
-          riverctl map $mode None XF86AudioLowerVolume spawn 'wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.01-'
-          riverctl map $mode None XF86AudioMute spawn 'wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle'
-          riverctl map $mode None XF86AudioMicMute spawn 'wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle'
-          riverctl map $mode None XF86AudioPlay spawn 'playerctl play-pause'
-          riverctl map $mode None XF86AudioPrev spawn 'playerctl previous'
-          riverctl map $mode None XF86AudioNext spawn 'playerctl next'
-          riverctl map $mode None XF86MonBrightnessUp spawn 'brightnessctl --class=backlight set 1%+'
-          riverctl map $mode None XF86MonBrightnessDown spawn 'brightnessctl --class=backlight set 1%-'
-      done
-
-      riverctl default-layout rivertile
-      rivertile -view-padding 6 -outer-padding 2 &
+            # ── 布局引擎 ──
+            riverctl default-layout rivertile
+            rivertile -view-padding 6 -outer-padding 2 &
     '';
   };
 
