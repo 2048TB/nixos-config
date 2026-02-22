@@ -127,16 +127,21 @@
       checks.${system} =
         let
           cfg = nixosSystem.config;
+          hmCfg = cfg.home-manager.users.${mainUser};
           expectedHome = "/home/${mainUser}";
+
+          getNames = pkgList: lib.unique (map lib.getName pkgList);
+          excludeAllowed = allowed: names: builtins.filter (n: !(builtins.elem n allowed)) names;
+
           allSystemPackageOutPaths = map (pkg: pkg.outPath) cfg.environment.systemPackages;
           systemPackageOutPaths = lib.unique allSystemPackageOutPaths;
-          homePackageOutPaths = lib.unique (map (pkg: pkg.outPath) cfg.home-manager.users.${mainUser}.home.packages);
+          homePackageOutPaths = lib.unique (map (pkg: pkg.outPath) hmCfg.home.packages);
           systemHomeOverlapOutPaths = lib.intersectLists systemPackageOutPaths homePackageOutPaths;
           systemHomeOverlapPkgs = lib.filter (pkg: builtins.elem pkg.outPath systemHomeOverlapOutPaths) cfg.environment.systemPackages;
-          systemHomeOverlapNames = lib.unique (map (pkg: lib.getName pkg) systemHomeOverlapPkgs);
-          systemPackageNames = lib.unique (map (pkg: lib.getName pkg) cfg.environment.systemPackages);
-          homePackageNames = lib.unique (map (pkg: lib.getName pkg) cfg.home-manager.users.${mainUser}.home.packages);
-          systemHomeOverlapNamesByName = lib.intersectLists systemPackageNames homePackageNames;
+          systemHomeOverlapNames = getNames systemHomeOverlapPkgs;
+          systemPackageNames = getNames cfg.environment.systemPackages;
+          homePackageNames = getNames hmCfg.home.packages;
+          unexpectedOverlapByName = lib.intersectLists systemPackageNames homePackageNames;
           systemDuplicateOutPaths =
             lib.unique (
               builtins.filter
@@ -147,7 +152,7 @@
             lib.filter
               (pkg: builtins.elem pkg.outPath systemDuplicateOutPaths)
               cfg.environment.systemPackages;
-          systemDuplicateNames = lib.unique (map (pkg: lib.getName pkg) systemDuplicatePkgs);
+          systemDuplicateNames = getNames systemDuplicatePkgs;
           # 允许由上游模块隐式重复注入的基础包；其余重复视为回归。
           allowedSystemDuplicateNames = [
             "dosfstools"
@@ -157,10 +162,7 @@
             "shadow"
             "zsh"
           ];
-          unexpectedSystemDuplicateNames =
-            builtins.filter
-              (name: !(builtins.elem name allowedSystemDuplicateNames))
-              systemDuplicateNames;
+          unexpectedSystemDuplicateNames = excludeAllowed allowedSystemDuplicateNames systemDuplicateNames;
           # 仅允许基础运行时重叠（由模块隐式引入），其余视为回归。
           allowedSystemHomeOverlapNames = [
             "xwayland"
@@ -170,14 +172,8 @@
             "man-db"
             "shared-mime-info"
           ];
-          unexpectedSystemHomeOverlapNames =
-            builtins.filter
-              (name: !(builtins.elem name allowedSystemHomeOverlapNames))
-              systemHomeOverlapNames;
-          unexpectedSystemHomeOverlapNamesByName =
-            builtins.filter
-              (name: !(builtins.elem name allowedSystemHomeOverlapNames))
-              systemHomeOverlapNamesByName;
+          unexpectedSystemHomeOverlapNames = excludeAllowed allowedSystemHomeOverlapNames systemHomeOverlapNames;
+          unexpectedOverlapByNameFiltered = excludeAllowed allowedSystemHomeOverlapNames unexpectedOverlapByName;
 
           # 通用检查生成器：列表非空则报错
           mkNonEmptyCheck = name: items: msg:
@@ -196,7 +192,7 @@
           '';
 
           eval-home-directory = pkgs.runCommand "eval-home-directory" { } ''
-            test "${cfg.home-manager.users.${mainUser}.home.homeDirectory}" = "${expectedHome}"
+            test "${hmCfg.home.homeDirectory}" = "${expectedHome}"
             touch "$out"
           '';
 
@@ -207,7 +203,7 @@
 
           eval-system-home-package-overlap-by-name = mkNonEmptyCheck
             "eval-system-home-package-overlap-by-name"
-            unexpectedSystemHomeOverlapNamesByName
+            unexpectedOverlapByNameFiltered
             "Unexpected system/home package overlaps by name";
 
           eval-system-package-duplicates = mkNonEmptyCheck

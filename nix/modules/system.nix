@@ -6,6 +6,22 @@ let
   gcRetentionDays = "7d";
   gnupgCacheTtlSeconds = 4 * 60 * 60; # 4 小时
   homeDir = "/home/${mainUser}";
+  # 修复目录所有权的通用 activation script 生成器
+  mkFixOwnershipScript = targetDir: {
+    text = ''
+      if [ -d ${targetDir} ] && id -u ${mainUser} >/dev/null 2>&1; then
+        current_uid=$(stat -c %u ${targetDir} 2>/dev/null || echo "")
+        current_gid=$(stat -c %g ${targetDir} 2>/dev/null || echo "")
+        target_uid=$(id -u ${mainUser})
+        target_gid=$(id -g ${mainUser})
+        if [ -n "$current_uid" ] && [ -n "$current_gid" ] && { [ "$current_uid" != "$target_uid" ] || [ "$current_gid" != "$target_gid" ]; }; then
+          find ${targetDir} -xdev \( -not -user ${mainUser} -o -not -group ${mainUser} \) \
+            -exec chown ${mainUser}:${mainUser} {} + || true
+        fi
+      fi
+    '';
+    deps = [ "users" ];
+  };
   # 仅将 MinGW 交叉编译器的可执行文件加入 system path，避免与本机 gcc 的文档路径冲突告警。
   mingwToolchainBinOnly = pkgs.buildEnv {
     name = "mingw-w64-toolchain-bin-only";
@@ -76,6 +92,14 @@ in
 
     # preservation 需要 initrd 的 systemd
     initrd.systemd.enable = true;
+
+    # zram 场景下的内核内存回收参数
+    kernel.sysctl = {
+      "vm.swappiness" = 180;
+      "vm.watermark_boost_factor" = 0;
+      "vm.watermark_scale_factor" = 125;
+      "vm.page-cluster" = 0;
+    };
   };
 
   preservation.enable = true;
@@ -155,14 +179,6 @@ in
     algorithm = "zstd";
     priority = 100;
     memoryPercent = 50;
-  };
-
-  # zram 场景下的内核内存回收参数
-  boot.kernel.sysctl = {
-    "vm.swappiness" = 180;
-    "vm.watermark_boost_factor" = 0;
-    "vm.watermark_scale_factor" = 125;
-    "vm.page-cluster" = 0;
   };
 
   nix = {
@@ -454,39 +470,10 @@ in
       deps = [ "specialfs" ];
     };
 
-    fixUserHomePerms = {
-      text = ''
-        if [ -d ${homeDir} ] && id -u ${mainUser} >/dev/null 2>&1; then
-          current_uid=$(stat -c %u ${homeDir} 2>/dev/null || echo "")
-          current_gid=$(stat -c %g ${homeDir} 2>/dev/null || echo "")
-          target_uid=$(id -u ${mainUser})
-          target_gid=$(id -g ${mainUser})
-          if [ -n "$current_uid" ] && [ -n "$current_gid" ] && { [ "$current_uid" != "$target_uid" ] || [ "$current_gid" != "$target_gid" ]; }; then
-            find ${homeDir} -xdev \( -not -user ${mainUser} -o -not -group ${mainUser} \) \
-              -exec chown ${mainUser}:${mainUser} {} + || true
-          fi
-        fi
-      '';
-      deps = [ "users" ];
-    };
+    fixUserHomePerms = mkFixOwnershipScript homeDir;
 
     # 确保持久化配置仓库归属普通用户，避免 Git safe.directory/写权限问题
-    fixPersistentConfigRepoPerms = {
-      text = ''
-        repo_dir="/persistent/nixos-config"
-        if [ -d "$repo_dir" ] && id -u ${mainUser} >/dev/null 2>&1; then
-          current_uid=$(stat -c %u "$repo_dir" 2>/dev/null || echo "")
-          current_gid=$(stat -c %g "$repo_dir" 2>/dev/null || echo "")
-          target_uid=$(id -u ${mainUser})
-          target_gid=$(id -g ${mainUser})
-          if [ -n "$current_uid" ] && [ -n "$current_gid" ] && { [ "$current_uid" != "$target_uid" ] || [ "$current_gid" != "$target_gid" ]; }; then
-            find "$repo_dir" -xdev \( -not -user ${mainUser} -o -not -group ${mainUser} \) \
-              -exec chown ${mainUser}:${mainUser} {} + || true
-          fi
-        fi
-      '';
-      deps = [ "users" ];
-    };
+    fixPersistentConfigRepoPerms = mkFixOwnershipScript "/persistent/nixos-config";
   };
 
   # 时区

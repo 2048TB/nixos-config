@@ -14,6 +14,35 @@ let
   headBin = "${pkgs.coreutils}/bin/head";
   mkdirBin = "${pkgs.coreutils}/bin/mkdir";
   dateBin = "${pkgs.coreutils}/bin/date";
+  nmcliBin = "/run/current-system/sw/bin/nmcli";
+  btctlBin = "/run/current-system/sw/bin/bluetoothctl";
+
+  # 图形会话 systemd user service 生成器（7 个服务共享骨架）
+  mkGraphicalService = {
+    description,
+    execStart,
+    partOf ? true,
+    restart ? "on-failure",
+    restartSec ? 2,
+    environment ? [ ],
+    extraService ? { },
+  }: {
+    Unit = {
+      Description = description;
+      After = [ "graphical-session.target" ];
+    } // lib.optionalAttrs partOf {
+      PartOf = [ "graphical-session.target" ];
+    };
+    Install.WantedBy = [ "graphical-session.target" ];
+    Service = {
+      Type = "simple";
+      ExecStart = execStart;
+      Restart = restart;
+      RestartSec = restartSec;
+    } // lib.optionalAttrs (environment != [ ]) {
+      Environment = environment;
+    } // extraService;
+  };
 
   # 资源映射常量
   wlogoutIconNames = [
@@ -271,7 +300,7 @@ let
   '';
   wifiRadioStatus = pkgs.writeShellScriptBin "wifi-radio-status" ''
     set -euo pipefail
-    nmcli="/run/current-system/sw/bin/nmcli"
+    nmcli="${nmcliBin}"
     wifiState="$("$nmcli" -g WIFI general status 2>/dev/null || true)"
     wifiState="''${wifiState%%$'\n'*}"
     wifiState="''${wifiState,,}"
@@ -284,7 +313,7 @@ let
   '';
   wifiToggleRadio = pkgs.writeShellScriptBin "wifi-toggle-radio" ''
     set -euo pipefail
-    nmcli="/run/current-system/sw/bin/nmcli"
+    nmcli="${nmcliBin}"
     wifiState="$("$nmcli" -g WIFI general status 2>/dev/null || true)"
     wifiState="''${wifiState%%$'\n'*}"
     wifiState="''${wifiState,,}"
@@ -296,7 +325,7 @@ let
   '';
   wifiQuickMenu = pkgs.writeShellScriptBin "wifi-quick-menu" ''
     set -euo pipefail
-    nmcli="/run/current-system/sw/bin/nmcli"
+    nmcli="${nmcliBin}"
     fuzzel="${pkgs.fuzzel}/bin/fuzzel"
 
     open_wifi_gui() {
@@ -390,7 +419,7 @@ let
   '';
   bluetoothQuickMenu = pkgs.writeShellScriptBin "bluetooth-quick-menu" ''
     set -euo pipefail
-    btctl="/run/current-system/sw/bin/bluetoothctl"
+    btctl="${btctlBin}"
     fuzzel="${pkgs.fuzzel}/bin/fuzzel"
 
     open_bluetooth_gui() {
@@ -1147,116 +1176,61 @@ in
   };
 
   systemd = {
-    user.services =
-      {
-        # Polkit 认证代理（图形会话自启）
-        # 无此服务时，需要权限提升的操作（virt-manager、Nautilus 挂载等）会静默失败
-        polkit-gnome-authentication-agent-1 = {
-          Unit = {
-            Description = "polkit-gnome-authentication-agent-1";
-            After = [ "graphical-session.target" ];
-          };
-          Install.WantedBy = [ "graphical-session.target" ];
-          Service = {
-            Type = "simple";
-            ExecStart = "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1";
-            Restart = "on-failure";
-            RestartSec = 1;
-            TimeoutStopSec = 10;
-          };
-        };
-
-        # Clipboard history
-        cliphist-daemon = {
-          Unit = {
-            Description = "cliphist clipboard history daemon";
-            After = [ "graphical-session.target" ];
-            PartOf = [ "graphical-session.target" ];
-          };
-          Install.WantedBy = [ "graphical-session.target" ];
-          Service = {
-            Type = "simple";
-            ExecStart = "${pkgs.wl-clipboard}/bin/wl-paste --watch ${pkgs.cliphist}/bin/cliphist store";
-            Restart = "always";
-            RestartSec = 2;
-          };
-        };
-
-        waybar = {
-          Unit = {
-            Description = "Waybar status bar";
-            After = [ "graphical-session.target" ];
-            PartOf = [ "graphical-session.target" ];
-          };
-          Install.WantedBy = [ "graphical-session.target" ];
-          Service = {
-            Type = "simple";
-            Environment = [
-              "LANG=zh_CN.UTF-8"
-              "LC_ALL=zh_CN.UTF-8"
-              "LC_TIME=zh_CN.UTF-8"
-            ];
-            ExecStart = "${pkgs.waybar}/bin/waybar";
-            Restart = "always";
-            RestartSec = 2;
-          };
-        };
-
-        swaybg = {
-          Unit = {
-            Description = "Wallpaper daemon (swaybg)";
-            After = [ "graphical-session.target" ];
-            PartOf = [ "graphical-session.target" ];
-          };
-          Install.WantedBy = [ "graphical-session.target" ];
-          Service = {
-            Type = "simple";
-            ExecStart = "${swaybgLauncher}";
-            Restart = "on-failure";
-            RestartSec = 2;
-          };
-        };
-
-        # 在 greetd + river 会话中显式拉起输入法，避免仅依赖 XDG autostart 导致未启动
-        fcitx5 = {
-          Unit = {
-            Description = "Fcitx5 input method daemon";
-            After = [ "graphical-session.target" ];
-            PartOf = [ "graphical-session.target" ];
-          };
-          Install.WantedBy = [ "graphical-session.target" ];
-          Service = {
-            Type = "simple";
-            # Use the system wrapper from i18n.inputMethod so selected addons
-            # (e.g. fcitx5-chinese-addons) are available at runtime.
-            ExecStart = "/run/current-system/sw/bin/fcitx5 --replace";
-            Restart = "on-failure";
-            RestartSec = 1;
-          };
-        };
-
-        mullvad-vpn-ui = {
-          Unit = {
-            Description = "Mullvad VPN GUI";
-            After = [ "graphical-session.target" ];
-            PartOf = [ "graphical-session.target" ];
-          };
-          Install.WantedBy = [ "graphical-session.target" ];
-          Service = {
-            Type = "simple";
-            Environment = [
-              # Mullvad wrapper 仅注入 coreutils/grep PATH；补齐 gsettings 与图形库搜索路径
-              "PATH=${pkgs.glib}/bin:/run/current-system/sw/bin:${userProfileBin}"
-              "LD_LIBRARY_PATH=${pkgs.libglvnd}/lib:/run/opengl-driver/lib:/run/opengl-driver-32/lib:/run/current-system/sw/lib"
-              "LIBGL_DRIVERS_PATH=/run/opengl-driver/lib/dri"
-              "GSETTINGS_SCHEMA_DIR=${pkgs.gsettings-desktop-schemas}/share/gsettings-schemas/${pkgs.gsettings-desktop-schemas.name}/glib-2.0/schemas"
-            ];
-            ExecStart = "${pkgs.mullvad-vpn}/bin/mullvad-vpn";
-            Restart = "on-failure";
-            RestartSec = 2;
-          };
-        };
+    user.services = {
+      # Polkit 认证代理（图形会话自启）
+      # 无此服务时，需要权限提升的操作（virt-manager、Nautilus 挂载等）会静默失败
+      polkit-gnome-authentication-agent-1 = mkGraphicalService {
+        description = "polkit-gnome-authentication-agent-1";
+        execStart = "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1";
+        partOf = false;
+        restartSec = 1;
+        extraService.TimeoutStopSec = 10;
       };
+
+      # Clipboard history
+      cliphist-daemon = mkGraphicalService {
+        description = "cliphist clipboard history daemon";
+        execStart = "${pkgs.wl-clipboard}/bin/wl-paste --watch ${pkgs.cliphist}/bin/cliphist store";
+        restart = "always";
+      };
+
+      waybar = mkGraphicalService {
+        description = "Waybar status bar";
+        execStart = "${pkgs.waybar}/bin/waybar";
+        restart = "always";
+        environment = [
+          "LANG=zh_CN.UTF-8"
+          "LC_ALL=zh_CN.UTF-8"
+          "LC_TIME=zh_CN.UTF-8"
+        ];
+      };
+
+      swaybg = mkGraphicalService {
+        description = "Wallpaper daemon (swaybg)";
+        execStart = "${swaybgLauncher}";
+      };
+
+      # 在 greetd + river 会话中显式拉起输入法，避免仅依赖 XDG autostart 导致未启动
+      fcitx5 = mkGraphicalService {
+        description = "Fcitx5 input method daemon";
+        # Use the system wrapper from i18n.inputMethod so selected addons
+        # (e.g. fcitx5-chinese-addons) are available at runtime.
+        execStart = "/run/current-system/sw/bin/fcitx5 --replace";
+        restartSec = 1;
+      };
+
+      mullvad-vpn-ui = mkGraphicalService {
+        description = "Mullvad VPN GUI";
+        execStart = "${pkgs.mullvad-vpn}/bin/mullvad-vpn";
+        environment = [
+          # Mullvad wrapper 仅注入 coreutils/grep PATH；补齐 gsettings 与图形库搜索路径
+          "PATH=${pkgs.glib}/bin:/run/current-system/sw/bin:${userProfileBin}"
+          "LD_LIBRARY_PATH=${pkgs.libglvnd}/lib:/run/opengl-driver/lib:/run/opengl-driver-32/lib:/run/current-system/sw/lib"
+          "LIBGL_DRIVERS_PATH=/run/opengl-driver/lib/dri"
+          "GSETTINGS_SCHEMA_DIR=${pkgs.gsettings-desktop-schemas}/share/gsettings-schemas/${pkgs.gsettings-desktop-schemas.name}/glib-2.0/schemas"
+        ];
+      };
+    };
   };
 
   xdg = {
