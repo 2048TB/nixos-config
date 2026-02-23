@@ -2,13 +2,13 @@
 
 ## Project Structure & Module Organization
 This repository is a flake-based NixOS desktop configuration.
-- `flake.nix`: main entrypoint (`inputs`, `outputs`, host wiring).
-- `nix/hosts/`: host-specific machine definitions (for example `zly.nix`).
+- `flake.nix`: main entrypoint (`inputs`, `outputs`, host wiring, `myvars`).
+- `nix/hosts/`: host-specific machine definitions (e.g. `zly.nix`).
 - `nix/modules/`: shared system modules (`system.nix`, `hardware.nix`).
-- `nix/home/default.nix`: Home Manager entrypoint for user-level packages and settings.
-- `nix/home/configs/`: app configs (river-classic stack: Waybar/Fuzzel/Wlogout/Ghostty/Foot/Yazi, etc.; `niri/` is archived history).
+- `nix/home/default.nix`: Home Manager entrypoint (packages, River keybindings).
+- `nix/home/configs/`: app configs — Ghostty, Foot, Tmux, Zellij, Waybar, Fuzzel, Wlogout, Yazi, shell, fcitx5, etc.
 - `scripts/`: install/bootstrap helpers (for Live ISO and setup workflows).
-- Docs: `README.md`, `KEYBINDINGS.md`, `NIX-COMMANDS.md`.
+- Docs: `KEYBINDINGS.md`, `NIX-COMMANDS.md`.
 
 ## Build, Test, and Development Commands
 Use `just` as the primary command runner:
@@ -24,7 +24,7 @@ Use `just` as the primary command runner:
 ## Coding Style & Naming Conventions
 - Format Nix code with `nixpkgs-fmt` before review.
 - Keep module boundaries clear: host-specific logic in `nix/hosts`, reusable logic in `nix/modules`.
-- Follow existing naming patterns: lowercase kebab/camel mix already used in repo (for example `homeStateVersion`, `swapSizeGb`); keep new names consistent within the same file.
+- Follow existing naming patterns: lowercase kebab/camel mix already used in repo (e.g. `homeStateVersion`, `swapSizeGb`); keep new names consistent within the same file.
 - Prefer minimal diffs and reuse existing module patterns instead of refactoring unrelated areas.
 
 ## Testing Guidelines
@@ -34,9 +34,9 @@ There is no unit-test suite; verification is configuration-driven:
 - Include command outputs or a concise result summary in PR descriptions.
 
 ## Commit & Pull Request Guidelines
-- Commit history follows Conventional Commit style (`fix:`, `feat:`, `refactor:`, `style:`) with optional scopes (for example `fix(foot): ...`).
+- Commit history follows Conventional Commit style (`fix:`, `feat:`, `refactor:`, `style:`) with optional scopes (e.g. `fix(foot): ...`).
 - Write focused commits per concern (UI, module logic, docs).
-- PRs should include: purpose, changed paths, verification commands run, rollback notes, and screenshots for visible UI changes (river-classic/Waybar/Wlogout).
+- PRs should include: purpose, changed paths, verification commands run, rollback notes, and screenshots for visible UI changes.
 
 ## Security & Configuration Tips
 - Do not commit new secrets (tokens, private keys, plaintext credentials). If rotating password hashes in `flake.nix`, treat them as sensitive changes and review carefully.
