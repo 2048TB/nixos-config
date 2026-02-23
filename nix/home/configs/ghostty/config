@@ -125,11 +125,11 @@ keybind = alt+j=goto_split:bottom
 keybind = alt+k=goto_split:top
 keybind = alt+l=goto_split:right
 
-# 面板大小调整
-keybind = ctrl+left=resize_split:left,10
-keybind = ctrl+right=resize_split:right,10
-keybind = ctrl+up=resize_split:up,5
-keybind = ctrl+down=resize_split:down,5
+# 面板大小调整（用 Ctrl+Shift+Arrow，释放 Ctrl+Arrow 给 shell 按词导航）
+keybind = ctrl+shift+left=resize_split:left,10
+keybind = ctrl+shift+right=resize_split:right,10
+keybind = ctrl+shift+up=resize_split:up,5
+keybind = ctrl+shift+down=resize_split:down,5
 
 # --- 配置重载 ---
 keybind = ctrl+shift+comma=reload_config

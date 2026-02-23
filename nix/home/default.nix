@@ -70,6 +70,10 @@ let
     { key = "Down"; move = "down 100"; resize = "vertical 100"; snap = "down"; }
     { key = "Up"; move = "up 100"; resize = "vertical -100"; snap = "up"; }
     { key = "Right"; move = "right 100"; resize = "horizontal 100"; snap = "right"; }
+    { key = "H"; move = "left 100"; resize = "horizontal -100"; snap = "left"; }
+    { key = "J"; move = "down 100"; resize = "vertical 100"; snap = "down"; }
+    { key = "K"; move = "up 100"; resize = "vertical -100"; snap = "up"; }
+    { key = "L"; move = "right 100"; resize = "horizontal 100"; snap = "right"; }
   ];
   floatDirBinds = lib.concatMapStringsSep "\n"
     (d:
@@ -1104,6 +1108,10 @@ in
             riverctl map normal Super Left focus-view -skip-floating previous
             riverctl map normal Super Down swap next
             riverctl map normal Super Up swap previous
+            riverctl map normal Super H focus-view -skip-floating previous
+            riverctl map normal Super L focus-view -skip-floating next
+            riverctl map normal Super J swap next
+            riverctl map normal Super K swap previous
             riverctl map normal Super Z zoom
             riverctl map normal Super F toggle-fullscreen
             riverctl map normal Super V toggle-float
@@ -1113,6 +1121,10 @@ in
             riverctl map normal Super+Control Down send-layout-cmd rivertile "main-ratio -0.05"
             riverctl map normal Super+Control Right send-layout-cmd rivertile "main-count +1"
             riverctl map normal Super+Control Left send-layout-cmd rivertile "main-count -1"
+            riverctl map normal Super+Control K send-layout-cmd rivertile "main-ratio +0.05"
+            riverctl map normal Super+Control J send-layout-cmd rivertile "main-ratio -0.05"
+            riverctl map normal Super+Control L send-layout-cmd rivertile "main-count +1"
+            riverctl map normal Super+Control H send-layout-cmd rivertile "main-count -1"
             riverctl map normal Super+Shift Up send-layout-cmd rivertile "main-location top"
             riverctl map normal Super+Shift Right send-layout-cmd rivertile "main-location right"
             riverctl map normal Super+Shift Down send-layout-cmd rivertile "main-location bottom"
