@@ -96,13 +96,26 @@ let
     "imv"
     "nomacs"
     "wlogout"
-    "org.gnome.Nautilus"
-    "org.gnome.FileRoller"
     "swaylock"
   ];
   floatRules = lib.concatMapStringsSep "\n"
     (app: "      riverctl rule-add -app-id '${app}' float")
     floatAppIds;
+
+  # 窗口规则：应用自动分配标签 (tag N 的 bitmask = 1 << (N-1))
+  tagRules = [
+    { appId = "ghostty";            tags = 1;  }  # tag 1: 终端
+    { appId = "foot";               tags = 1;  }  # tag 1: 终端
+    { appId = "google-chrome*";     tags = 2;  }  # tag 2: 浏览器
+    { appId = "org.gnome.Nautilus"; tags = 4;  }  # tag 3: 文件管理
+    { appId = "code";               tags = 8;  }  # tag 4: 编辑器
+    { appId = "org.telegram.*";     tags = 16; }  # tag 5: 通讯
+    { appId = "splayer";            tags = 32; }  # tag 6: 媒体
+    { appId = "mpv";                tags = 32; }  # tag 6: 媒体
+  ];
+  tagRulesStr = lib.concatMapStringsSep "\n"
+    (r: "      riverctl rule-add -app-id '${r.appId}' tags ${toString r.tags}")
+    tagRules;
 
   # 应用关联常量
   imageMimeTypes = [
@@ -1067,12 +1080,13 @@ in
             riverctl border-color-focused 0x4a3f64
             riverctl border-color-unfocused 0x2c2938
             riverctl set-repeat 50 300
-            riverctl focus-follows-cursor normal
+            riverctl focus-follows-cursor disabled
             mkdir -p '${homeDir}/.local/state/river'
             printf 'normal\n' > '${homeDir}/.local/state/river/mode'
 
             # ── 窗口规则 ──
       ${floatRules}
+      ${tagRulesStr}
 
             # ── 应用启动 ──
             riverctl map normal Super Return spawn ghostty
