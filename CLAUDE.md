@@ -14,11 +14,12 @@
 
 ## 项目结构
 
-- `flake.nix` 入口并包含 outputs。
+- `flake.nix` 入口（inputs/outputs/myvars）。
 - `nix/hosts/` 主机配置。
 - `nix/modules/system.nix` 系统配置。
 - `nix/modules/hardware.nix` GPU 选择与驱动配置。
-- `nix/home/default.nix` Home Manager 配置。
+- `nix/home/default.nix` Home Manager 入口（含 River 按键绑定）。
+- `nix/home/configs/` 应用配置（ghostty/foot/tmux/zellij/waybar/fuzzel 等）。
 
 ---
 
