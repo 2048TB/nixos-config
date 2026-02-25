@@ -285,6 +285,20 @@ let
     printf '{"text":"%s %s°C","class":"%s","tooltip":"Temperature: %s°C\\nSensor: %s"}\n' \
       "$icon" "$tempC" "$class" "$tempC" "''${inputFile%/*}"
   '';
+  # 当 nixpkgs 中无 dgop 包时，提供兼容 shim，避免 DMS 启动期反复告警。
+  dgopCompat = pkgs.writeShellScriptBin "dgop" ''
+    set -euo pipefail
+    case "''${1:-}" in
+      --help|help)
+        echo "dgop compatibility shim"
+        exit 0
+        ;;
+      *)
+        # 返回最小合法 JSON，供 DMS 的可选系统监控模块降级使用
+        printf '{}\n'
+        ;;
+    esac
+  '';
   wifiRadioStatus = pkgs.writeShellScriptBin "wifi-radio-status" ''
     set -euo pipefail
     nmcli="${nmcliBin}"
@@ -957,6 +971,7 @@ in
       pipx
     ]
     ++ hybridPackages
+    ++ lib.optionals (!(pkgs ? dgop)) [ dgopCompat ]
     ++ [
       wifiRadioStatus
       wifiToggleRadio
@@ -1045,8 +1060,13 @@ in
   programs.dank-material-shell = {
     enable = true;
     systemd.enable = true;
-    enableSystemMonitoring = false; # nixos-25.11 下暂无 dgop
+    # 若当前 nixpkgs 提供 dgop，则启用 DMS 系统监控；否则保守关闭
+    enableSystemMonitoring = pkgs ? dgop;
     enableVPN = false; # 避免与 system packages 的 networkmanager 重叠
+    # 关闭电源配置 OSD，规避上游 PowerProfileWatcher 单例注册告警
+    settings = {
+      osdPowerProfileEnabled = false;
+    };
   };
 
   wayland.windowManager.hyprland = {
@@ -1056,6 +1076,11 @@ in
     systemd.enable = true;
     extraConfig = ''
       monitor = , preferred, auto, 1.25
+
+      # 分数缩放下让 XWayland 应用走原生 1x 渲染，减少字体发虚
+      xwayland {
+        force_zero_scaling = true
+      }
 
       input {
         kb_layout = us
@@ -1098,6 +1123,8 @@ in
       source = ~/.config/hypr/dms/colors.conf
       source = ~/.config/hypr/dms/outputs.conf
       source = ~/.config/hypr/dms/layout.conf
+      source = ~/.config/hypr/dms/cursor.conf
+      source = ~/.config/hypr/dms/windowrules.conf
       # 固定当前主显示器缩放，避免被旧的 dms/outputs.conf 缩放值覆盖
       monitor = DP-2, preferred, auto, 1.25
 
@@ -1127,6 +1154,7 @@ in
       bind = SUPER SHIFT, E, exit
       bind = SUPER, F, fullscreen, 1
       bind = SUPER SHIFT, F, fullscreen, 0
+      bind = SUPER, Z, fullscreen, 0
       bind = SUPER SHIFT, T, togglefloating
       bind = SUPER, W, togglegroup
       bind = SUPER SHIFT, W, exec, dms ipc call window-rules toggle
@@ -1203,10 +1231,14 @@ in
       bind = SUPER SHIFT, 7, movetoworkspace, 7
       bind = SUPER SHIFT, 8, movetoworkspace, 8
       bind = SUPER SHIFT, 9, movetoworkspace, 9
-      bind = SUPER, mouse_down, workspace, e+1
-      bind = SUPER, mouse_up, workspace, e-1
-      bind = SUPER CTRL, mouse_down, movetoworkspace, e+1
-      bind = SUPER CTRL, mouse_up, movetoworkspace, e-1
+      # MOD + 滚轮缩放活动窗口（Hyprland 官方支持 mouse_up/mouse_down）
+      bind = SUPER, mouse_up, resizeactive, 40 40
+      bind = SUPER, mouse_down, resizeactive, -40 -40
+      # 原 SUPER + 滚轮工作区切换改到 SUPER + ALT，避免与缩放冲突
+      bind = SUPER ALT, mouse_down, workspace, e+1
+      bind = SUPER ALT, mouse_up, workspace, e-1
+      bind = SUPER CTRL ALT, mouse_down, movetoworkspace, e+1
+      bind = SUPER CTRL ALT, mouse_up, movetoworkspace, e-1
 
       # 媒体与亮度（DMS IPC）
       bindel = , XF86AudioRaiseVolume, exec, dms ipc call audio increment 3
@@ -1237,7 +1269,8 @@ in
   };
 
   services = {
-    playerctld.enable = true;
+    # DMS 已可直接使用 MPRIS；关闭 playerctld 避免无活动播放器时的重复告警
+    playerctld.enable = false;
 
     # USB 设备自动挂载服务
     udiskie = {
@@ -1250,6 +1283,11 @@ in
 
   systemd = {
     user.services = {
+      # 压制 Quickshell 非关键噪音日志（不影响功能）
+      dms.Service.Environment = [
+        "QT_LOGGING_RULES=quickshell.I3.ipc.warning=false;qt.core.qfuture.continuations.warning=false;quickshell.service.sni.watcher.warning=false"
+      ];
+
       # 在 greetd + Hyprland 会话中显式拉起输入法，避免仅依赖 XDG autostart 导致未启动
       fcitx5 = mkGraphicalService {
         description = "Fcitx5 input method daemon";
@@ -1292,6 +1330,7 @@ in
           source = ./configs/wallpapers;
           recursive = true;
         };
+        "qt6ct/qt6ct.conf".source = ./configs/qt6ct/qt6ct.conf;
 
         "pnpm/rc".text = ''
           global-dir=${localShareDir}/pnpm/global
@@ -1313,6 +1352,36 @@ in
       # 使用 genAttrs 保持行为一致，减少重复
       defaultApplications = lib.genAttrs imageMimeTypes (_: imageApps);
     };
+  };
+
+  home.activation = {
+    ensureDmsStateFiles = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+      dmsConfigDir="${homeDir}/.config/DankMaterialShell"
+      dmsCacheDir="${homeDir}/.cache/DankMaterialShell"
+      hyprDmsDir="${homeDir}/.config/hypr/dms"
+
+      ${mkdirBin} -p "$dmsConfigDir" "$dmsCacheDir" "$hyprDmsDir"
+
+      if [ ! -e "$dmsConfigDir/settings.json" ]; then
+        printf '{}\n' > "$dmsConfigDir/settings.json"
+      fi
+
+      if [ ! -e "$dmsConfigDir/plugin_settings.json" ]; then
+        printf '{}\n' > "$dmsConfigDir/plugin_settings.json"
+      fi
+
+      if [ ! -e "$dmsCacheDir/cache.json" ]; then
+        printf '{}\n' > "$dmsCacheDir/cache.json"
+      fi
+
+      if [ ! -e "$hyprDmsDir/cursor.conf" ]; then
+        printf '\n' > "$hyprDmsDir/cursor.conf"
+      fi
+
+      if [ ! -e "$hyprDmsDir/windowrules.conf" ]; then
+        printf '\n' > "$hyprDmsDir/windowrules.conf"
+      fi
+    '';
   };
 
   dconf.settings = {
