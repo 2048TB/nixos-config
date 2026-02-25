@@ -388,7 +388,7 @@ in
       lowLatency.enable = true;
     };
     pulseaudio.enable = false;
-    # 为 WirePlumber 提供 UPower DBus 接口，避免反复出现 NameHasNoOwner 日志噪音
+    # 为 WirePlumber 提供 UPower DBus 接口（蓝牙电量读取依赖该 DBus name）
     upower.enable = true;
 
     # 文件管理常用的缩略图/挂载支持
@@ -589,6 +589,10 @@ in
         after = [ "systemd-tmpfiles-setup.service" ];
         wants = [ "systemd-tmpfiles-setup.service" ];
       };
+
+      # 在 greetd 场景下提前拉起 upower，避免用户会话早期 UPower 尚未激活
+      # 导致 wireplumber 打印 "Failed to get percentage from UPower: NameHasNoOwner"
+      upower.wantedBy = [ "multi-user.target" ];
     };
 
     # 定期清理临时文件（模拟部分 tmpfs 优势）
@@ -597,6 +601,9 @@ in
       "L+ /var/run - - - - /run"
       # 兼容硬编码 shebang（#!/bin/bash）的第三方脚本
       "L+ /bin/bash - - - - /run/current-system/sw/bin/bash"
+      # Mullvad GUI 上游在 Linux 中以精简 env 调用 `gsettings`，会退化到 /usr/bin 搜索路径
+      # 补充 /usr/bin/gsettings 兼容入口，避免 "Error while retrieving theme code:127"
+      "L+ /usr/bin/gsettings - - - - /run/current-system/sw/bin/gsettings"
       "d /persistent/nixos-config 0755 ${mainUser} ${mainUser} -"
       # Keep a stable entrypoint; /etc/nixos is a symlink to persistent config.
       # This relies on /persistent being mounted early (neededForBoot=true).
