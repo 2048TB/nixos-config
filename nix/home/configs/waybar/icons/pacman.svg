@@ -1,0 +1,4 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" aria-label="pacman">
+  <path d="M50 8A42 42 0 1 1 21 80L50 50Z" fill="#1c1f2d" />
+  <circle cx="52" cy="30" r="5" fill="#89b4fa" />
+</svg>

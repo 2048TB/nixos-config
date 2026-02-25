@@ -1271,6 +1271,7 @@ in
             [ mainUser ]
             (builtins.readFile ./configs/waybar/config.jsonc);
         "waybar/style.css".source = ./configs/waybar/style.css;
+        "waybar/icons/pacman.svg".source = ./configs/waybar/icons/pacman.svg;
         "wlogout/layout".source = ./configs/wlogout/layout;
         "wlogout/style.css".source = ./configs/wlogout/style.css;
 
