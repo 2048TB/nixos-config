@@ -84,7 +84,6 @@ window#waybar {
   transition: all 0.2s ease;
 }
 
-#tags button.active,
 #tags button.focused {
   background: #89b4fa;
   color: #1c1f2d;
@@ -114,7 +113,6 @@ window#waybar {
   font-weight: 900;
 }
 
-#tags button.active label,
 #tags button.focused label {
   color: transparent;
   font-size: 0;

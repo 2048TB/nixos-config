@@ -61,9 +61,9 @@ let
 
   # River 配置常量
   modeCycleCmd = profileCmd "river-mode-cycle";
-  volumeCmd = "wpctl set-volume @DEFAULT_AUDIO_SINK@";
-  playerCmd = "playerctl";
-  brightnessCmd = "brightnessctl --class=backlight set";
+  volumeCmd = "/run/current-system/sw/bin/wpctl set-volume @DEFAULT_AUDIO_SINK@";
+  playerCmd = profileCmd "playerctl";
+  brightnessCmd = "${profileCmd "brightnessctl"} --class=backlight set";
 
   # 浮动模式方向绑定（move/resize/snap）
   floatDirections = [
@@ -578,7 +578,7 @@ let
     for entry in \
       "https://api.ipify.org|ipify|plain" \
       "https://ifconfig.me/ip|ifconfig.me|plain" \
-      "http://1.1.1.1/cdn-cgi/trace|cloudflare-trace|trace"; do
+      "https://1.1.1.1/cdn-cgi/trace|cloudflare-trace|trace"; do
       url="''${entry%%|*}"
       rest="''${entry#*|}"
       label="''${rest%%|*}"
@@ -697,6 +697,13 @@ let
       mpris = {
         "image-size" = 80;
         "image-radius" = 8;
+        # playerctld 在空元数据时会触发 swaync 0.12.3 的 MPRIS 断言噪音
+        # 保留 mpris 小组件，但忽略聚合器并在无元数据时自动隐藏
+        autohide = true;
+        blacklist = [
+          "org.mpris.MediaPlayer2.playerctld"
+          "playerctld"
+        ];
       };
       notifications = { };
     };
@@ -1099,14 +1106,14 @@ in
       ${tagRulesStr}
 
             # ── 应用启动 ──
-            riverctl map normal Super Return spawn ghostty
+            riverctl map normal Super Return spawn '${profileCmd "ghostty"}'
             riverctl map normal Super Space spawn '${profileCmd "fuzzel"}'
-            riverctl map normal Super D spawn nautilus
+            riverctl map normal Super D spawn '${profileCmd "nautilus"}'
             riverctl map normal Super+Control C spawn '${profileCmd "river-cliphist-menu"}'
-            riverctl map normal Super+Control S spawn pavucontrol
+            riverctl map normal Super+Control S spawn '${profileCmd "pavucontrol"}'
             riverctl map normal Super Q close
             riverctl map normal Super+Shift E exit
-            riverctl map normal Super+Shift L spawn 'gtklock'
+            riverctl map normal Super+Shift L spawn '${profileCmd "gtklock"}'
             riverctl map normal Super+Control E spawn '${profileCmd "wlogout-menu"}'
 
             # ── 焦点与窗口管理 ──
@@ -1185,7 +1192,7 @@ in
 
             # ── 布局引擎 ──
             riverctl default-layout rivertile
-            rivertile -view-padding 6 -outer-padding 2 &
+            /run/current-system/sw/bin/rivertile -view-padding 6 -outer-padding 2 &
     '';
   };
 
