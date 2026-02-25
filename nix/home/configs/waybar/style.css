@@ -112,7 +112,7 @@ window#waybar {
 
 #tags button label {
   color: @text_normal;
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 900;
 }
 
