@@ -929,7 +929,7 @@ in
       # === River 生态 ===
       fuzzel
       waybar
-      swaylock
+      gtklock
       wlogout
       gnome-calculator
       swaybg # 备用壁纸工具（手动/脚本场景可用）
@@ -1100,7 +1100,7 @@ in
             riverctl map normal Super+Control S spawn pavucontrol
             riverctl map normal Super Q close
             riverctl map normal Super+Shift E exit
-            riverctl map normal Super+Shift L spawn 'swaylock -f'
+            riverctl map normal Super+Shift L spawn 'gtklock'
             riverctl map normal Super+Control E spawn '${profileCmd "wlogout-menu"}'
 
             # ── 焦点与窗口管理 ──
