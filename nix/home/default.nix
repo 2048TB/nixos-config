@@ -1,4 +1,4 @@
-{ config, pkgs, lib, myvars, mainUser, dms, ... }:
+{ config, pkgs, lib, myvars, mainUser, dms, dgopFlake, ... }:
 let
   # ===== 基础常量 =====
   homeStateVersion = "25.11";
@@ -153,6 +153,10 @@ let
     lib.optionals (gpuChoice == "amd-nvidia-hybrid" && ollamaVulkan != null) [ ollamaVulkan ]
     ++ lib.optionals (gpuChoice == "amd-nvidia-hybrid" && tensorflowCudaEnv != null) [ tensorflowCudaEnv ]
     ++ lib.optionals (gpuChoice == "amd-nvidia-hybrid" && hashcatPkg != null) [ hashcatPkg ];
+  dgopPackage =
+    if pkgs ? dgop
+    then pkgs.dgop
+    else dgopFlake.packages.${pkgs.stdenv.hostPlatform.system}.default;
 
   # WPS Office steam-run 包装器
   # 修复 NixOS 上 WPS 无法启动的问题（FHS 兼容性）
@@ -284,20 +288,6 @@ let
 
     printf '{"text":"%s %s°C","class":"%s","tooltip":"Temperature: %s°C\\nSensor: %s"}\n' \
       "$icon" "$tempC" "$class" "$tempC" "''${inputFile%/*}"
-  '';
-  # 当 nixpkgs 中无 dgop 包时，提供兼容 shim，避免 DMS 启动期反复告警。
-  dgopCompat = pkgs.writeShellScriptBin "dgop" ''
-    set -euo pipefail
-    case "''${1:-}" in
-      --help|help)
-        echo "dgop compatibility shim"
-        exit 0
-        ;;
-      *)
-        # 返回最小合法 JSON，供 DMS 的可选系统监控模块降级使用
-        printf '{}\n'
-        ;;
-    esac
   '';
   wifiRadioStatus = pkgs.writeShellScriptBin "wifi-radio-status" ''
     set -euo pipefail
@@ -971,7 +961,6 @@ in
       pipx
     ]
     ++ hybridPackages
-    ++ lib.optionals (!(pkgs ? dgop)) [ dgopCompat ]
     ++ [
       wifiRadioStatus
       wifiToggleRadio
@@ -1060,13 +1049,11 @@ in
   programs.dank-material-shell = {
     enable = true;
     systemd.enable = true;
-    # 若当前 nixpkgs 提供 dgop，则启用 DMS 系统监控；否则保守关闭
-    enableSystemMonitoring = pkgs ? dgop;
+    # 显式指定 dgop，确保 CPU/内存等系统监控小组件可用
+    enableSystemMonitoring = true;
+    dgop.package = dgopPackage;
     enableVPN = false; # 避免与 system packages 的 networkmanager 重叠
-    # 关闭电源配置 OSD，规避上游 PowerProfileWatcher 单例注册告警
-    settings = {
-      osdPowerProfileEnabled = false;
-    };
+    # settings.json 由 activation 阶段写入可写文件，避免 HM 只读文件触发 DMS 写入告警
   };
 
   wayland.windowManager.hyprland = {
@@ -1157,7 +1144,6 @@ in
       bind = SUPER, Z, fullscreen, 0
       bind = SUPER SHIFT, T, togglefloating
       bind = SUPER, W, togglegroup
-      bind = SUPER SHIFT, W, exec, dms ipc call window-rules toggle
       bind = SUPER, H, movefocus, l
       bind = SUPER, J, movefocus, d
       bind = SUPER, K, movefocus, u
@@ -1300,6 +1286,10 @@ in
       provider-app-vpn-ui = mkGraphicalService {
         description = "Provider app VPN GUI";
         execStart = "${pkgs.provider-app-vpn}/bin/provider-app-vpn";
+        unitExtra = {
+          Wants = [ "dms.service" ];
+          After = [ "graphical-session.target" "dms.service" ];
+        };
         environment = [
           # Provider app wrapper 仅注入 coreutils/grep PATH；补齐 gsettings 与图形库搜索路径
           "PATH=${pkgs.glib}/bin:/run/current-system/sw/bin:${userProfileBin}"
@@ -1362,8 +1352,36 @@ in
 
       ${mkdirBin} -p "$dmsConfigDir" "$dmsCacheDir" "$hyprDmsDir"
 
+      # 旧代可能遗留 Nix store 的只读 symlink；转换为可写普通文件
+      if [ -L "$dmsConfigDir/settings.json" ]; then
+        settingsLinkTarget="$(${pkgs.coreutils}/bin/readlink "$dmsConfigDir/settings.json" || true)"
+        ${pkgs.coreutils}/bin/rm -f "$dmsConfigDir/settings.json"
+        if [ -n "$settingsLinkTarget" ] && [ -f "$settingsLinkTarget" ]; then
+          ${pkgs.coreutils}/bin/cp "$settingsLinkTarget" "$dmsConfigDir/settings.json"
+        else
+          printf '{}\n' > "$dmsConfigDir/settings.json"
+        fi
+      fi
+
       if [ ! -e "$dmsConfigDir/settings.json" ]; then
         printf '{}\n' > "$dmsConfigDir/settings.json"
+      fi
+
+      if ! ${pkgs.jq}/bin/jq -e '.' "$dmsConfigDir/settings.json" >/dev/null 2>&1; then
+        printf '{}\n' > "$dmsConfigDir/settings.json"
+      fi
+
+      settingsTmp="$dmsConfigDir/settings.json.tmp"
+      if ${pkgs.jq}/bin/jq \
+        '.osdPowerProfileEnabled = false
+         | .showSeconds = true
+         | .weatherEnabled = false
+         | .showCpuUsage = true
+         | .showMemUsage = true' \
+        "$dmsConfigDir/settings.json" > "$settingsTmp"; then
+        ${pkgs.coreutils}/bin/mv "$settingsTmp" "$dmsConfigDir/settings.json"
+      else
+        ${pkgs.coreutils}/bin/rm -f "$settingsTmp"
       fi
 
       if [ ! -e "$dmsConfigDir/plugin_settings.json" ]; then
@@ -1380,6 +1398,12 @@ in
 
       if [ ! -e "$hyprDmsDir/windowrules.conf" ]; then
         printf '\n' > "$hyprDmsDir/windowrules.conf"
+      fi
+
+      # 清理历史兼容 shim（其输出固定为 {}，会导致 DMS CPU/内存小组件无数据）
+      legacyDgop="${homeDir}/.local/bin/dgop"
+      if [ -f "$legacyDgop" ] && ${pkgs.gnugrep}/bin/grep -q "dgop compatibility shim" "$legacyDgop"; then
+        ${pkgs.coreutils}/bin/rm -f "$legacyDgop"
       fi
     '';
   };
