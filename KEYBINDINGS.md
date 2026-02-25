@@ -22,7 +22,7 @@
 | `Super + Ctrl + S` | 音频面板（pavucontrol） |
 | `Super + Ctrl + E` | 电源菜单（wlogout） |
 | `Super + Shift + E` | 退出 river 会话 |
-| `Super + Shift + L` | 锁屏（swaylock） |
+| `Super + Shift + L` | 锁屏（gtklock） |
 
 ### 焦点与窗口交换
 

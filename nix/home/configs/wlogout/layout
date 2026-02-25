@@ -1,6 +1,6 @@
 {
   "label": "lock",
-  "action": "gtklock",
+  "action": "/etc/profiles/per-user/$USER/bin/lock-screen",
   "text": "Lock",
   "keybind": "l"
 }
