@@ -1094,11 +1094,17 @@ in
       windowrulev2 = float,class:^(imv)$
       windowrulev2 = float,class:^(nomacs)$
 
+      # DMS 动态生成的 Hyprland 配置（主题/输出/布局）
+      source = ~/.config/hypr/dms/colors.conf
+      source = ~/.config/hypr/dms/outputs.conf
+      source = ~/.config/hypr/dms/layout.conf
+
       # 应用与 DMS 快捷操作
       bind = SUPER, Return, exec, ${profileCmd "ghostty"}
       bind = SUPER, T, exec, ${profileCmd "ghostty"}
       bind = SUPER, Space, exec, dms ipc call spotlight toggle
       bind = SUPER, D, exec, ${profileCmd "nautilus"}
+      bind = SUPER, V, exec, dms ipc call clipboard toggle
       bind = SUPER CTRL, C, exec, dms ipc call clipboard toggle
       bind = SUPER, M, exec, dms ipc call processlist focusOrToggle
       bind = SUPER, comma, exec, dms ipc call settings focusOrToggle
@@ -1120,7 +1126,6 @@ in
       bind = SUPER, F, fullscreen, 1
       bind = SUPER SHIFT, F, fullscreen, 0
       bind = SUPER SHIFT, T, togglefloating
-      bind = SUPER, V, togglefloating
       bind = SUPER, W, togglegroup
       bind = SUPER SHIFT, W, exec, dms ipc call window-rules toggle
       bind = SUPER, H, movefocus, l
@@ -1169,6 +1174,7 @@ in
       bind = SUPER, Page_Up, workspace, e-1
       bind = SUPER, U, workspace, e+1
       bind = SUPER, I, workspace, e-1
+      bind = CTRL SHIFT, R, exec, dms ipc call workspace-rename open
       bind = SUPER, 1, workspace, 1
       bind = SUPER, 2, workspace, 2
       bind = SUPER, 3, workspace, 3
@@ -1268,9 +1274,6 @@ in
   xdg = {
     configFile =
       {
-        "qt6ct/qt6ct.conf".source = ./configs/qt6ct/qt6ct.conf;
-        "qt6ct/colors/darker.conf".source = "${pkgs.qt6Packages.qt6ct}/share/qt6ct/colors/darker.conf";
-
         "fcitx5/profile" = {
           source = ./configs/fcitx5/profile;
           force = true;
