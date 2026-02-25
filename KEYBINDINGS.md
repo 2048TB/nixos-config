@@ -18,7 +18,7 @@
 | `Super + T` | 打开终端（Ghostty） |
 | `Super + Space` | DMS Spotlight 启动器 |
 | `Super + D` | 打开 Nautilus |
-| `Super + Ctrl + C` | DMS 剪贴板 |
+| `Super + V` / `Super + Ctrl + C` | DMS 剪贴板 |
 | `Super + M` | DMS 进程列表 |
 | `Super + ,` | DMS 设置面板 |
 | `Super + Y` | DMS 壁纸面板 |
@@ -39,9 +39,7 @@
 | `Super + F` | 全屏（占满） |
 | `Super + Shift + F` | 退出全屏 |
 | `Super + Shift + T` | 切换浮动 |
-| `Super + V` | 切换浮动 |
 | `Super + W` | 窗口分组 |
-| `Super + Shift + W` | DMS 窗口规则开关 |
 | `Super + H/J/K/L` 或 `Super + Arrow` | 焦点移动 |
 | `Super + Shift + H/J/K/L` 或 `Super + Shift + Arrow` | 移动窗口 |
 | `Super + Home/End` | 聚焦首/尾窗口 |
@@ -57,8 +55,8 @@
 | `Super + Ctrl + Up/Down` 或 `Super + Ctrl + U/I` | 移动窗口到相邻工作区 |
 | `Super + Shift + PageUp/PageDown` 或 `Super + Shift + U/I` | 移动窗口并跟随到相邻工作区 |
 | `Super + Shift + 1..9` | 将当前窗口移动到工作区 1..9 |
-| `Super + 滚轮` | 在相邻工作区间切换 |
-| `Super + Ctrl + 滚轮` | 移动窗口到相邻工作区 |
+| `Super + Alt + 滚轮` | 在相邻工作区间切换 |
+| `Super + Ctrl + Alt + 滚轮` | 移动窗口到相邻工作区 |
 
 ### 截图与鼠标
 

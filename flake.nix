@@ -35,10 +35,14 @@
       url = "github:AvengeMedia/DankMaterialShell";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    dgop = {
+      url = "github:AvengeMedia/dgop";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
   };
 
-  outputs = { nixpkgs, rust-overlay, home-manager, lanzaboote, nix-gaming, preservation, disko, dms, ... }:
+  outputs = { nixpkgs, rust-overlay, home-manager, lanzaboote, nix-gaming, preservation, disko, dms, dgop, ... }:
     let
       inherit (nixpkgs) lib;
 
@@ -85,6 +89,7 @@
 
       specialArgs = {
         inherit myvars mainUser dms;
+        dgopFlake = dgop;
       };
 
       homeManagerModule = {
