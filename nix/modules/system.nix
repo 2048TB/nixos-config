@@ -386,6 +386,11 @@ in
       alsa.support32Bit = true;
       pulse.enable = true;
       lowLatency.enable = true;
+      wireplumber.extraConfig."10-disable-libcamera-monitor"."wireplumber.profiles" = {
+        # libcamera monitor 在当前 wireplumber 版本会触发已知启动期告警。
+        # 若未来需要 libcamera 管线，可删除该项并升级 wireplumber 后复测。
+        main."monitor.libcamera" = "disabled";
+      };
     };
     pulseaudio.enable = false;
     # 为 WirePlumber 提供 UPower DBus 接口（蓝牙电量读取依赖该 DBus name）
