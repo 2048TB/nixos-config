@@ -50,7 +50,7 @@ window#waybar {
 #custom-power {
   background-color: @bg_module;
   color: @text_normal;
-  margin: 4px 2px 0 2px;
+  margin: 4px 1px 0 1px;
   padding: 0 9px;
   border-radius: 14px;
   border: none;
@@ -67,7 +67,7 @@ window#waybar {
 #tags {
   background: @bg_module;
   margin: 4px 2px 0 2px;
-  padding: 0 2px;
+  padding: 0 1px;
   border-radius: 14px;
   border: 1px solid rgba(94, 92, 91, 0.62);
   box-shadow: none;
@@ -77,8 +77,8 @@ window#waybar {
   color: @text_muted;
   background: transparent;
   margin: 1px 0;
-  padding: 0 6px;
-  min-width: 22px;
+  padding: 0 3px;
+  min-width: 19px;
   min-height: 0;
   border-radius: 10px;
   border: none;
@@ -112,7 +112,7 @@ window#waybar {
 
 #tags button label {
   color: @text_normal;
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 900;
 }
 
@@ -297,7 +297,7 @@ window#waybar {
 #custom-temperature,
 #custom-wifi-manager,
 #backlight {
-  margin-right: 2px;
+  margin-right: 1px;
 }
 
 #custom-notification {
