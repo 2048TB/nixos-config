@@ -388,6 +388,8 @@ in
       lowLatency.enable = true;
     };
     pulseaudio.enable = false;
+    # 为 WirePlumber 提供 UPower DBus 接口，避免反复出现 NameHasNoOwner 日志噪音
+    upower.enable = true;
 
     # 文件管理常用的缩略图/挂载支持
     gvfs.enable = true;

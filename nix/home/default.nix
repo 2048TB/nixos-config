@@ -1234,6 +1234,13 @@ in
           "LANG=zh_CN.UTF-8"
           "LC_ALL=zh_CN.UTF-8"
           "LC_TIME=zh_CN.UTF-8"
+          # 补齐图标/光标查找路径，避免 Waybar 托盘与悬停光标报缺失资源
+          "XDG_DATA_DIRS=${homeDir}/.local/share:/etc/profiles/per-user/${mainUser}/share:/run/current-system/sw/share:/var/lib/flatpak/exports/share:${homeDir}/.local/share/flatpak/exports/share"
+          "XCURSOR_THEME=Adwaita"
+          "XCURSOR_SIZE=24"
+          "XCURSOR_PATH=/etc/profiles/per-user/${mainUser}/share/icons:/run/current-system/sw/share/icons:${pkgs.adwaita-icon-theme}/share/icons"
+          "GTK_THEME=Adwaita-dark"
+          "GTK_ICON_THEME=Papirus"
         ];
       };
 
