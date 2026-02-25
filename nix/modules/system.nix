@@ -268,6 +268,8 @@ in
     };
     rtkit.enable = true;
     pam.services.greetd.enableGnomeKeyring = true;
+    # gtklock 依赖同名 PAM service；缺失时会出现“密码错误”但实际未完成认证
+    pam.services.gtklock = { };
   };
 
   programs = {
@@ -371,8 +373,9 @@ in
     greetd = {
       enable = true;
       settings.default_session = {
-        user = mainUser;
-        command = "${homeDir}/.wayland-session";
+        # 使用 greeter 账户运行 tuigreet；认证后再启动用户会话
+        user = "greeter";
+        command = "${lib.getExe (pkgs.tuigreet or pkgs.greetd.tuigreet)} --time --remember --remember-session --cmd ${homeDir}/.wayland-session";
       };
     };
 
