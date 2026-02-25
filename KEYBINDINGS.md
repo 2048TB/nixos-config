@@ -1,106 +1,84 @@
 # 快捷键说明
 
-本文档覆盖 River、Ghostty、Tmux、Zellij、Foot 的按键配置。
+本文档覆盖 Hyprland + DMS、Ghostty、Tmux、Zellij、Foot 的按键配置。
 
 说明：`Super` 即 Windows/GUI 键；`prefix` 指 Tmux 前缀键 `Ctrl+B`。
 
 ---
 
-## River（窗口管理器）
+## Hyprland + DMS（窗口管理器 + 桌面 Shell）
 
-配置文件：`nix/home/default.nix` → `wayland.windowManager.river.extraConfig`
+配置文件：`nix/home/default.nix` → `wayland.windowManager.hyprland.extraConfig`
 
-### 应用启动与会话
+### 应用启动与 DMS 面板
 
 | 快捷键 | 功能 |
 |---|---|
 | `Super + Return` | 打开终端（Ghostty） |
-| `Super + Space` | 启动器（Fuzzel） |
-| `Super + D` | 文件管理器（Nautilus） |
+| `Super + T` | 打开终端（Ghostty） |
+| `Super + Space` | DMS Spotlight 启动器 |
+| `Super + D` | 打开 Nautilus |
+| `Super + Ctrl + C` | DMS 剪贴板 |
+| `Super + M` | DMS 进程列表 |
+| `Super + ,` | DMS 设置面板 |
+| `Super + Y` | DMS 壁纸面板 |
+| `Super + X` | DMS 电源菜单 |
+| `Super + N` | DMS 通知中心 |
+| `Super + Shift + N` / `Super + P` | DMS Notepad |
+| `Super + Tab` | DMS Hypr Overview |
+| `Super + Shift + /` | DMS Keybind Cheatsheet |
+| `Super + Ctrl + E` | DMS 电源菜单（备用） |
+| `Super + Alt + L` / `Super + Shift + L` | DMS 锁屏 |
+
+### 窗口管理
+
+| 快捷键 | 功能 |
+|---|---|
 | `Super + Q` | 关闭当前窗口 |
-| `Super + Ctrl + C` | 剪贴板历史（cliphist + fuzzel） |
-| `Super + Ctrl + S` | 音频面板（pavucontrol） |
-| `Super + Ctrl + E` | 电源菜单（wlogout） |
-| `Super + Shift + E` | 退出 river 会话 |
-| `Super + Shift + L` | 锁屏（gtklock） |
-
-### 焦点与窗口交换
-
-| 快捷键 | 功能 |
-|---|---|
-| `Super + Left/Right` | 焦点切换（previous/next） |
-| `Super + H/L` | 焦点切换（Vim 风格） |
-| `Super + Down/Up` | 交换窗口位置 |
-| `Super + J/K` | 交换窗口位置（Vim 风格） |
-| `Super + Z` | 当前窗口提升到栈顶（zoom） |
-| `Super + F` | 切换全屏 |
+| `Super + Shift + E` | 退出 Hyprland 会话 |
+| `Super + F` | 全屏（占满） |
+| `Super + Shift + F` | 退出全屏 |
+| `Super + Shift + T` | 切换浮动 |
 | `Super + V` | 切换浮动 |
+| `Super + W` | 窗口分组 |
+| `Super + Shift + W` | DMS 窗口规则开关 |
+| `Super + H/J/K/L` 或 `Super + Arrow` | 焦点移动 |
+| `Super + Shift + H/J/K/L` 或 `Super + Shift + Arrow` | 移动窗口 |
+| `Super + Home/End` | 聚焦首/尾窗口 |
+| `Super + Ctrl + H/J/K/L` | 切换显示器焦点 |
+| `Super + Shift + Ctrl + H/J/K/L` | 窗口移动到其他显示器 |
 
-### rivertile 布局控制
-
-| 快捷键 | 功能 |
-|---|---|
-| `Super + Ctrl + Up/K` | 增加主区域比例（main-ratio） |
-| `Super + Ctrl + Down/J` | 减少主区域比例 |
-| `Super + Ctrl + Right/L` | 增加主区域窗口数（main-count） |
-| `Super + Ctrl + Left/H` | 减少主区域窗口数 |
-| `Super + Shift + Up/Down/Left/Right` | 设置主区域方向 |
-
-### 浮动窗口控制（float 模式）
+### 工作区
 
 | 快捷键 | 功能 |
 |---|---|
-| `Super + G` | 进入 float 模式 |
-| `Arrow / H/J/K/L` | 移动浮动窗口 |
-| `Shift + Arrow / H/J/K/L` | 调整浮动窗口大小 |
-| `Ctrl + Arrow / H/J/K/L` | 吸附到边缘 |
-| `V` | 切换浮动状态 |
-| `Esc / Enter / Space` | 返回 normal 模式 |
+| `Super + PageUp/PageDown` 或 `Super + U/I` | 在相邻工作区间切换 |
+| `Super + 1..9` | 切换到工作区 1..9 |
+| `Super + Ctrl + Up/Down` 或 `Super + Ctrl + U/I` | 移动窗口到相邻工作区 |
+| `Super + Shift + PageUp/PageDown` 或 `Super + Shift + U/I` | 移动窗口并跟随到相邻工作区 |
+| `Super + Shift + 1..9` | 将当前窗口移动到工作区 1..9 |
+| `Super + 滚轮` | 在相邻工作区间切换 |
+| `Super + Ctrl + 滚轮` | 移动窗口到相邻工作区 |
 
-### 截图
-
-| 快捷键 | 功能 |
-|---|---|
-| `Print` | 区域截图（保存文件并写入剪贴板） |
-| `Super + X` | 区域截图（分体键盘友好） |
-
-### 鼠标操作
+### 截图与鼠标
 
 | 快捷键 | 功能 |
 |---|---|
-| `Super + 鼠标左键` | 移动窗口 |
-| `Super + 鼠标右键` | 调整窗口大小 |
-| `Super + 鼠标中键` | 切换浮动 |
+| `Print` | DMS 区域截图 |
+| `Ctrl + Print` | DMS 全屏截图 |
+| `Alt + Print` | DMS 当前窗口截图 |
+| `Super + 鼠标左键拖拽` | 移动窗口 |
+| `Super + 鼠标右键拖拽` | 调整窗口大小 |
 
-### Tags（dwm 风格）
-
-| 快捷键 | 功能 |
-|---|---|
-| `Super + 1..9` | 查看对应 tag |
-| `Super + Shift + 1..9` | 当前窗口移到对应 tag |
-| `Super + Alt + 1..9` | 切换 tag 显示状态 |
-| `Super + Ctrl + 1..9` | 切换窗口在 tag 的状态 |
-| `Super + 0` | 显示全部 tags |
-| `Super + Shift + 0` | 当前窗口加入全部 tags |
-| `Super + Tab` | 切换到上一个 tags 组合 |
-| `Super + Shift + Tab` | 当前窗口发送到上一个 tags |
-
-### 模式切换
-
-| 快捷键 | 功能 |
-|---|---|
-| `Super + P` | 切换 passthrough 模式 |
-| `Esc`（passthrough 中） | 返回 normal 模式 |
-
-### 媒体与亮度（normal + locked）
+### 媒体与亮度（DMS IPC）
 
 | 按键 | 功能 |
 |---|---|
-| `XF86AudioRaiseVolume / LowerVolume` | 音量 ±1% |
-| `XF86AudioMute` | 静音切换 |
-| `XF86AudioMicMute` | 麦克风静音 |
-| `XF86AudioPlay / Prev / Next` | 媒体控制 |
-| `XF86MonBrightnessUp / Down` | 亮度 ±1% |
+| `XF86AudioRaiseVolume / LowerVolume` | 音量 ±3 |
+| `XF86AudioMute` | 扬声器静音切换 |
+| `XF86AudioMicMute` | 麦克风静音切换 |
+| `XF86AudioPlay / Prev / Next` | MPRIS 播放控制 |
+| `XF86MonBrightnessUp / Down` | 亮度 ±5 |
 
 ---
 

@@ -289,8 +289,6 @@ in
     pam.services.greetd.enableGnomeKeyring = true;
     # 通过 passwd 修改登录密码时，同步更新 keyring 密码，避免后续出现二次解锁提示
     pam.services.passwd.enableGnomeKeyring = true;
-    # gtklock 依赖同名 PAM service；缺失时会出现“密码错误”但实际未完成认证
-    pam.services.gtklock = { };
   };
 
   programs = {
@@ -306,12 +304,10 @@ in
 
     zsh.enable = true;
 
-    # river-classic 合成器（dwm 风格 tags）
-    "river-classic" = {
+    # Hyprland 合成器
+    hyprland = {
       enable = true;
-      package = pkgs.river-classic;
       xwayland.enable = true;
-      extraPackages = [ ];
     };
 
     seahorse.enable = true;
@@ -440,11 +436,11 @@ in
     enable = true;
     xdgOpenUsePortal = true;
     config.common.default = portalDefaults;
-    # river 专用 portal 配置：屏幕共享与截图走 wlr backend
-    config.river.default = [ "wlr" "gtk" ];
+    # Hyprland 专用 portal 配置：屏幕共享与截图走 hyprland backend
+    config.hyprland.default = [ "hyprland" "gtk" ];
     # 去重并固定 portal backend 组合，避免模块合并导致重复项。
     extraPortals = lib.mkForce (with pkgs; [
-      xdg-desktop-portal-wlr
+      xdg-desktop-portal-hyprland
       xdg-desktop-portal-gtk
     ]);
   };
