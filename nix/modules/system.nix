@@ -268,6 +268,8 @@ in
     };
     rtkit.enable = true;
     pam.services.greetd.enableGnomeKeyring = true;
+    # 通过 passwd 修改登录密码时，同步更新 keyring 密码，避免后续出现二次解锁提示
+    pam.services.passwd.enableGnomeKeyring = true;
     # gtklock 依赖同名 PAM service；缺失时会出现“密码错误”但实际未完成认证
     pam.services.gtklock = { };
   };
