@@ -18,31 +18,32 @@ let
   btctlBin = "/run/current-system/sw/bin/bluetoothctl";
 
   # 图形会话 systemd user service 生成器（7 个服务共享骨架）
-  mkGraphicalService = {
-    description,
-    execStart,
-    partOf ? true,
-    restart ? "on-failure",
-    restartSec ? 2,
-    environment ? [ ],
-    extraService ? { },
-  }: {
-    Unit = {
-      Description = description;
-      After = [ "graphical-session.target" ];
-    } // lib.optionalAttrs partOf {
-      PartOf = [ "graphical-session.target" ];
+  mkGraphicalService =
+    { description
+    , execStart
+    , partOf ? true
+    , restart ? "on-failure"
+    , restartSec ? 2
+    , environment ? [ ]
+    , extraService ? { }
+    ,
+    }: {
+      Unit = {
+        Description = description;
+        After = [ "graphical-session.target" ];
+      } // lib.optionalAttrs partOf {
+        PartOf = [ "graphical-session.target" ];
+      };
+      Install.WantedBy = [ "graphical-session.target" ];
+      Service = {
+        Type = "simple";
+        ExecStart = execStart;
+        Restart = restart;
+        RestartSec = restartSec;
+      } // lib.optionalAttrs (environment != [ ]) {
+        Environment = environment;
+      } // extraService;
     };
-    Install.WantedBy = [ "graphical-session.target" ];
-    Service = {
-      Type = "simple";
-      ExecStart = execStart;
-      Restart = restart;
-      RestartSec = restartSec;
-    } // lib.optionalAttrs (environment != [ ]) {
-      Environment = environment;
-    } // extraService;
-  };
 
   # 资源映射常量
   wlogoutIconNames = [
@@ -108,14 +109,14 @@ let
 
   # 窗口规则：应用自动分配标签 (tag N 的 bitmask = 1 << (N-1))
   tagRules = [
-    { appId = "ghostty";            tags = 1;  }  # tag 1: 终端
-    { appId = "foot";               tags = 1;  }  # tag 1: 终端
-    { appId = "google-chrome*";     tags = 2;  }  # tag 2: 浏览器
-    { appId = "org.gnome.Nautilus"; tags = 4;  }  # tag 3: 文件管理
-    { appId = "code";               tags = 8;  }  # tag 4: 编辑器
-    { appId = "org.telegram.*";     tags = 16; }  # tag 5: 通讯
-    { appId = "splayer";            tags = 32; }  # tag 6: 媒体
-    { appId = "mpv";                tags = 32; }  # tag 6: 媒体
+    { appId = "ghostty"; tags = 1; } # tag 1: 终端
+    { appId = "foot"; tags = 1; } # tag 1: 终端
+    { appId = "google-chrome*"; tags = 2; } # tag 2: 浏览器
+    { appId = "org.gnome.Nautilus"; tags = 4; } # tag 3: 文件管理
+    { appId = "code"; tags = 8; } # tag 4: 编辑器
+    { appId = "org.telegram.*"; tags = 16; } # tag 5: 通讯
+    { appId = "splayer"; tags = 32; } # tag 6: 媒体
+    { appId = "mpv"; tags = 32; } # tag 6: 媒体
   ];
   tagRulesStr = lib.concatMapStringsSep "\n"
     (r: "      riverctl rule-add -app-id '${r.appId}' tags ${toString r.tags}")
@@ -782,6 +783,9 @@ in
       # Wayland 支持
       # 关闭 NIXOS_OZONE_WL，避免 VSCode 启动时注入已弃用的 Electron 参数告警
       QT_QPA_PLATFORMTHEME = "qt6ct";
+      # 明确指定 cursor theme，修复 Waybar/GTK 在 river 会话下找不到 arrow/hand2
+      XCURSOR_THEME = "Adwaita";
+      XCURSOR_SIZE = "24";
       # 输入法环境变量（river 会话下显式声明，避免 Fcitx5 未接管）
       INPUT_METHOD = "fcitx";
       GTK_IM_MODULE = "fcitx";
@@ -900,6 +904,7 @@ in
       file-roller # GNOME 压缩管理器（Nautilus 集成必需）
       ghostty
       foot # 轻量 Wayland 终端（备用）
+      adwaita-icon-theme # 提供 Adwaita cursor 资源（Waybar/GTK 共用）
       papirus-icon-theme # dconf/qt6ct 使用 Papirus 图标主题
       cherry-studio # 多 LLM 提供商桌面客户端
 
@@ -1085,6 +1090,7 @@ in
             riverctl border-color-unfocused 0x2c2938
             riverctl set-repeat 50 300
             riverctl focus-follows-cursor disabled
+            riverctl xcursor-theme Adwaita 24
             mkdir -p '${homeDir}/.local/state/river'
             printf 'normal\n' > '${homeDir}/.local/state/river/mode'
 
