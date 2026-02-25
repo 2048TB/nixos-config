@@ -1055,7 +1055,7 @@ in
     portalPackage = null;
     systemd.enable = true;
     extraConfig = ''
-      monitor = , preferred, auto, auto
+      monitor = , preferred, auto, 1.25
 
       input {
         kb_layout = us
@@ -1098,6 +1098,8 @@ in
       source = ~/.config/hypr/dms/colors.conf
       source = ~/.config/hypr/dms/outputs.conf
       source = ~/.config/hypr/dms/layout.conf
+      # 固定当前主显示器缩放，避免被旧的 dms/outputs.conf 缩放值覆盖
+      monitor = DP-2, preferred, auto, 1.25
 
       # 应用与 DMS 快捷操作
       bind = SUPER, Return, exec, ${profileCmd "ghostty"}
