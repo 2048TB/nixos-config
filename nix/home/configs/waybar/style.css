@@ -61,6 +61,15 @@ window#waybar {
   padding: 0 12px;
 }
 
+#custom-launcher {
+  font-size: 15px;
+}
+
+#custom-launcher label,
+#custom-power label {
+  margin-left: -1px;
+}
+
 /* ===== 标签 (Tags) ===== */
 #tags {
   background: @bg_module;
