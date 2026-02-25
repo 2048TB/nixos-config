@@ -56,6 +56,25 @@ let
   requiresLooseReversePath =
     (config.services.provider-app-vpn.enable or false)
     || (config.virtualisation.libvirtd.enable or false);
+  tuigreetPackage = pkgs.tuigreet or pkgs.greetd.tuigreet;
+  tuigreetTheme = "border=blue;text=white;prompt=cyan;time=green;action=lightblue;button=yellow;container=black;input=white;greet=cyan;title=lightblue";
+  tuigreetCommand = pkgs.writeShellScript "greetd-tuigreet-session" ''
+    exec ${lib.getExe tuigreetPackage} \
+      --time \
+      --time-format '%Y-%m-%d %H:%M' \
+      --remember \
+      --remember-session \
+      --asterisks \
+      --greeting 'Welcome to ${myvars.hostname}' \
+      --window-padding 2 \
+      --container-padding 2 \
+      --prompt-padding 1 \
+      --greet-align center \
+      --theme '${tuigreetTheme}' \
+      --power-shutdown '${pkgs.systemd}/bin/systemctl poweroff' \
+      --power-reboot '${pkgs.systemd}/bin/systemctl reboot' \
+      --cmd ${homeDir}/.wayland-session
+  '';
 in
 {
   boot = {
@@ -374,10 +393,11 @@ in
 
     greetd = {
       enable = true;
+      useTextGreeter = true;
       settings.default_session = {
         # 使用 greeter 账户运行 tuigreet；认证后再启动用户会话
         user = "greeter";
-        command = "${lib.getExe (pkgs.tuigreet or pkgs.greetd.tuigreet)} --time --remember --remember-session --cmd ${homeDir}/.wayland-session";
+        command = "${tuigreetCommand}";
       };
     };
 

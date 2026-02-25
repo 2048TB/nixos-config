@@ -102,7 +102,7 @@ let
     "imv"
     "nomacs"
     "wlogout"
-    "swaylock"
+    "gtklock"
   ];
   floatRules = lib.concatMapStringsSep "\n"
     (app: "      riverctl rule-add -app-id '${app}' float")
@@ -192,6 +192,10 @@ let
       -l "${homeDir}/.config/wlogout/layout" \
       -C "${homeDir}/.config/wlogout/style.css" \
       "$@"
+  '';
+  lockScreen = pkgs.writeShellScriptBin "lock-screen" ''
+    # gtklock 官方建议：由自动入口触发时使用 -d 以避免阻塞调用者
+    exec ${pkgs.gtklock}/bin/gtklock -d "$@"
   '';
   riverScreenshot = pkgs.writeShellScriptBin "river-screenshot" ''
     set -euo pipefail
@@ -949,6 +953,8 @@ in
       fuzzel
       waybar
       gtklock
+      gtklock-userinfo-module
+      gtklock-powerbar-module
       wlogout
       gnome-calculator
       swaybg # 备用壁纸工具（手动/脚本场景可用）
@@ -998,6 +1004,7 @@ in
     ++ hybridPackages
     ++ [
       wlogoutMenu
+      lockScreen
       riverScreenshot
       riverCliphistMenu
       riverModeCycle
@@ -1120,7 +1127,7 @@ in
             riverctl map normal Super+Control S spawn '${profileCmd "pavucontrol"}'
             riverctl map normal Super Q close
             riverctl map normal Super+Shift E exit
-            riverctl map normal Super+Shift L spawn '${profileCmd "gtklock"}'
+            riverctl map normal Super+Shift L spawn '${profileCmd "lock-screen"}'
             riverctl map normal Super+Control E spawn '${profileCmd "wlogout-menu"}'
 
             # ── 焦点与窗口管理 ──
@@ -1309,6 +1316,17 @@ in
         "waybar/icons/pacman.svg".source = ./configs/waybar/icons/pacman.svg;
         "wlogout/layout".source = ./configs/wlogout/layout;
         "wlogout/style.css".source = ./configs/wlogout/style.css;
+        "gtklock/config.ini".text = ''
+          [main]
+          gtk-theme=Adwaita-dark
+          style=${homeDir}/.config/gtklock/style.css
+          background=${homeDir}/.config/wallpapers/4.png
+          time-format=%H:%M
+          date-format=%A, %Y-%m-%d
+          follow-focus=true
+          modules=${pkgs.gtklock-userinfo-module}/lib/gtklock/userinfo-module.so;${pkgs.gtklock-powerbar-module}/lib/gtklock/powerbar-module.so
+        '';
+        "gtklock/style.css".source = ./configs/gtklock/style.css;
 
         "fcitx5/profile" = {
           source = ./configs/fcitx5/profile;
