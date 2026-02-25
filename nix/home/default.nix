@@ -25,6 +25,7 @@ let
     , restart ? "on-failure"
     , restartSec ? 2
     , environment ? [ ]
+    , unitExtra ? { }
     , extraService ? { }
     ,
     }: {
@@ -33,7 +34,7 @@ let
         After = [ "graphical-session.target" ];
       } // lib.optionalAttrs partOf {
         PartOf = [ "graphical-session.target" ];
-      };
+      } // unitExtra;
       Install.WantedBy = [ "graphical-session.target" ];
       Service = {
         Type = "simple";
@@ -630,20 +631,25 @@ let
   swaybgLauncher = pkgs.writeShellScript "swaybg-launcher" ''
     set -euo pipefail
     wallpaperDir="${homeDir}/.config/wallpapers"
-    wallpaper="$wallpaperDir/1.png"
+    fallbackColor="#1e1e2e"
 
-    randomWallpaper="$(
-      ${pkgs.findutils}/bin/find "$wallpaperDir" -maxdepth 1 \
-        \( -type f -o -type l \) \
-        \( -iname '*.png' -o -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.webp' -o -iname '*.bmp' -o -iname '*.gif' \) \
-      | ${pkgs.coreutils}/bin/shuf \
-      | ${pkgs.coreutils}/bin/head -n 1
-    )"
-    if [ -n "$randomWallpaper" ]; then
-      wallpaper="$randomWallpaper"
+    randomWallpaper=""
+    if [ -d "$wallpaperDir" ]; then
+      randomWallpaper="$(
+        ${pkgs.findutils}/bin/find "$wallpaperDir" -maxdepth 1 \
+          \( -type f -o -type l \) \
+          \( -iname '*.png' -o -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.webp' -o -iname '*.bmp' -o -iname '*.gif' \) \
+        | ${pkgs.coreutils}/bin/shuf \
+        | ${pkgs.coreutils}/bin/head -n 1
+      )"
     fi
 
-    exec ${pkgs.swaybg}/bin/swaybg -i "$wallpaper" -m fill
+    if [ -n "$randomWallpaper" ] && [ -r "$randomWallpaper" ]; then
+      exec ${pkgs.swaybg}/bin/swaybg -i "$randomWallpaper" -m fill
+    fi
+
+    printf '%s\n' "swaybg-launcher: no readable wallpapers in $wallpaperDir, using solid color fallback" >&2
+    exec ${pkgs.swaybg}/bin/swaybg -c "$fallbackColor" -m solid_color
   '';
   swayncSettings = {
     "$schema" = "/etc/xdg/swaync/configSchema.json";
@@ -1236,7 +1242,11 @@ in
       waybar = mkGraphicalService {
         description = "Waybar status bar";
         execStart = "${pkgs.waybar}/bin/waybar";
-        restart = "always";
+        restart = "on-failure";
+        unitExtra = {
+          StartLimitIntervalSec = 30;
+          StartLimitBurst = 8;
+        };
         environment = [
           "LANG=zh_CN.UTF-8"
           "LC_ALL=zh_CN.UTF-8"
@@ -1254,6 +1264,10 @@ in
       swaybg = mkGraphicalService {
         description = "Wallpaper daemon (swaybg)";
         execStart = "${swaybgLauncher}";
+        unitExtra = {
+          StartLimitIntervalSec = 30;
+          StartLimitBurst = 8;
+        };
       };
 
       # 在 greetd + river 会话中显式拉起输入法，避免仅依赖 XDG autostart 导致未启动
