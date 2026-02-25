@@ -906,7 +906,8 @@ in
       git-lfs # Git 大文件支持
 
       # === 图形界面应用 ===
-      google-chrome
+      # 在 river 会话中显式使用 libsecret 后端，避免凭据存储后端选择不稳定导致重复口令提示
+      (google-chrome.override { commandLineArgs = "--password-store=gnome-libsecret"; })
       vscode
       remmina
       virt-viewer
