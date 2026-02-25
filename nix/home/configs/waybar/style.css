@@ -67,7 +67,7 @@ window#waybar {
 #tags {
   background: @bg_module;
   margin: 4px 2px 0 2px;
-  padding: 0 4px;
+  padding: 0 2px;
   border-radius: 14px;
   border: 1px solid rgba(94, 92, 91, 0.62);
   box-shadow: none;
@@ -76,9 +76,9 @@ window#waybar {
 #tags button {
   color: @text_muted;
   background: transparent;
-  margin: 2px 1px;
-  padding: 0 7px;
-  min-width: 24px;
+  margin: 1px 0;
+  padding: 0 6px;
+  min-width: 22px;
   min-height: 0;
   border-radius: 10px;
   border: none;
@@ -93,7 +93,7 @@ window#waybar {
   background-image: url("icons/pacman.svg");
   background-repeat: no-repeat;
   background-position: center;
-  background-size: 15px 15px;
+  background-size: 16px 16px;
 }
 
 #tags button.occupied {
@@ -112,7 +112,7 @@ window#waybar {
 
 #tags button label {
   color: @text_normal;
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 900;
 }
 
