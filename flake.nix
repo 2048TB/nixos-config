@@ -86,6 +86,7 @@
         home-manager = {
           useGlobalPkgs = true;
           useUserPackages = true;
+          backupFileExtension = "bak";
           extraSpecialArgs = specialArgs;
           users.${mainUser} = {
             imports = [
