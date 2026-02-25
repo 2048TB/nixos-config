@@ -602,8 +602,8 @@ in
       # 兼容硬编码 shebang（#!/bin/bash）的第三方脚本
       "L+ /bin/bash - - - - /run/current-system/sw/bin/bash"
       # Mullvad GUI 上游在 Linux 中以精简 env 调用 `gsettings`，会退化到 /usr/bin 搜索路径
-      # 补充 /usr/bin/gsettings 兼容入口，避免 "Error while retrieving theme code:127"
-      "L+ /usr/bin/gsettings - - - - /run/current-system/sw/bin/gsettings"
+      # 直接链接到 glib 包内二进制，避免 /run/current-system/sw/bin 下缺失 gsettings 导致 code:127
+      "L+ /usr/bin/gsettings - - - - ${pkgs.glib}/bin/gsettings"
       "d /persistent/nixos-config 0755 ${mainUser} ${mainUser} -"
       # Keep a stable entrypoint; /etc/nixos is a symlink to persistent config.
       # This relies on /persistent being mounted early (neededForBoot=true).
