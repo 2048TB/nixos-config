@@ -31,9 +31,14 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    dms = {
+      url = "github:AvengeMedia/DankMaterialShell";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
   };
 
-  outputs = { nixpkgs, rust-overlay, home-manager, lanzaboote, nix-gaming, preservation, disko, ... }:
+  outputs = { nixpkgs, rust-overlay, home-manager, lanzaboote, nix-gaming, preservation, disko, dms, ... }:
     let
       inherit (nixpkgs) lib;
 
@@ -79,7 +84,7 @@
       };
 
       specialArgs = {
-        inherit myvars mainUser;
+        inherit myvars mainUser dms;
       };
 
       homeManagerModule = {
@@ -158,6 +163,7 @@
           allowedSystemDuplicateNames = [
             "dosfstools"
             "fuse"
+            "hyprland"
             "iptables"
             "less"
             "shadow"

@@ -1,4 +1,4 @@
-{ config, pkgs, lib, myvars, mainUser, ... }:
+{ config, pkgs, lib, myvars, mainUser, dms, ... }:
 let
   # ===== 基础常量 =====
   homeStateVersion = "25.11";
@@ -46,20 +46,6 @@ let
       } // extraService;
     };
 
-  # 资源映射常量
-  wlogoutIconNames = [
-    "lock"
-    "logout"
-    "suspend"
-    "hibernate"
-    "reboot"
-    "shutdown"
-  ];
-  wlogoutIconFiles =
-    lib.genAttrs
-      (map (name: "wlogout/icons/${name}.png") wlogoutIconNames)
-      (path: { source = "${pkgs.wlogout}/share/${path}"; });
-
   # River 配置常量
   modeCycleCmd = profileCmd "river-mode-cycle";
   volumeCmd = "/run/current-system/sw/bin/wpctl set-volume @DEFAULT_AUDIO_SINK@";
@@ -95,14 +81,11 @@ let
 
   # 窗口规则：自动浮动的应用 app-id
   floatAppIds = [
-    "pavucontrol"
     "gnome-calculator"
     "blueman-manager"
     "nm-connection-editor"
     "imv"
     "nomacs"
-    "wlogout"
-    "gtklock"
   ];
   floatRules = lib.concatMapStringsSep "\n"
     (app: "      riverctl rule-add -app-id '${app}' float")
@@ -150,14 +133,11 @@ let
       . "$hm_vars"
     fi
 
-    # 由 Home Manager 的 wayland.windowManager.river.systemd.enable
+    # 由 Home Manager 的 wayland.windowManager.hyprland.systemd.enable
     # 统一导入关键环境变量到 systemd user / dbus，避免重复导入。
-
-    # 尝试结束旧的 river 会话，避免残留服务状态影响新会话
-    if systemctl --user is-active river-session.target >/dev/null 2>&1; then
-      systemctl --user stop river-session.target
-    fi
-    exec /run/current-system/sw/bin/river
+    export XDG_CURRENT_DESKTOP=Hyprland
+    export XDG_SESSION_DESKTOP=Hyprland
+    exec /run/current-system/sw/bin/Hyprland
   '';
 
   # 仅在混合显卡（amd-nvidia-hybrid）时安装 GPU 加速相关软件
@@ -181,22 +161,6 @@ let
     exec ${lib.getExe pkgs.steam-run} ${pkgs.wpsoffice}/bin/${bin} "$@"
   '');
   wpsWrappedBins = map wpsRunWrapper [ "wps" "et" "wpp" "wpspdf" ];
-  # 统一 Wlogout 调用入口，避免 Waybar/Niri 参数漂移
-  wlogoutMenu = pkgs.writeShellScriptBin "wlogout-menu" ''
-    exec ${pkgs.wlogout}/bin/wlogout \
-      --protocol layer-shell \
-      --no-span \
-      --buttons-per-row 3 \
-      --column-spacing 18 \
-      --row-spacing 18 \
-      -l "${homeDir}/.config/wlogout/layout" \
-      -C "${homeDir}/.config/wlogout/style.css" \
-      "$@"
-  '';
-  lockScreen = pkgs.writeShellScriptBin "lock-screen" ''
-    # gtklock 官方建议：由自动入口触发时使用 -d 以避免阻塞调用者
-    exec ${pkgs.gtklock}/bin/gtklock -d "$@"
-  '';
   riverScreenshot = pkgs.writeShellScriptBin "river-screenshot" ''
     set -euo pipefail
     mode="''${1:-full}"
@@ -790,6 +754,10 @@ let
   '';
 in
 {
+  imports = [
+    dms.homeModules.dank-material-shell
+  ];
+
   home = {
     username = mainUser;
     homeDirectory = "/home/${mainUser}";
@@ -800,10 +768,10 @@ in
       # Wayland 支持
       # 关闭 NIXOS_OZONE_WL，避免 VSCode 启动时注入已弃用的 Electron 参数告警
       QT_QPA_PLATFORMTHEME = "qt6ct";
-      # 明确指定 cursor theme，修复 Waybar/GTK 在 river 会话下找不到 arrow/hand2
+      # 明确指定 cursor theme，修复 GTK 组件在 Wayland 会话下找不到 arrow/hand2
       XCURSOR_THEME = "Adwaita";
       XCURSOR_SIZE = "24";
-      # 输入法环境变量（river 会话下显式声明，避免 Fcitx5 未接管）
+      # 输入法环境变量（Wayland 会话下显式声明，避免 Fcitx5 未接管）
       INPUT_METHOD = "fcitx";
       GTK_IM_MODULE = "fcitx";
       QT_IM_MODULE = "fcitx";
@@ -910,7 +878,7 @@ in
       git-lfs # Git 大文件支持
 
       # === 图形界面应用 ===
-      # 在 river 会话中显式使用 libsecret 后端，避免凭据存储后端选择不稳定导致重复口令提示
+      # 在 Hyprland 会话中显式使用 libsecret 后端，避免凭据存储后端选择不稳定导致重复口令提示
       (google-chrome.override { commandLineArgs = "--password-store=gnome-libsecret"; })
       vscode
       remmina
@@ -922,17 +890,16 @@ in
       file-roller # GNOME 压缩管理器（Nautilus 集成必需）
       ghostty
       foot # 轻量 Wayland 终端（备用）
-      adwaita-icon-theme # 提供 Adwaita cursor 资源（Waybar/GTK 共用）
+      adwaita-icon-theme # 提供 Adwaita cursor 资源（GTK/Quickshell 共用）
       papirus-icon-theme # dconf/qt6ct 使用 Papirus 图标主题
       cherry-studio # 多 LLM 提供商桌面客户端
 
       # === Wayland 工具 ===
       satty
-      swayidle # 空闲管理（熄屏、休眠），用户自行配置
       grim
       slurp
       wl-screenrec
-      wlr-randr # river 下设置输出缩放（修复字体过小）
+      wlr-randr # Wayland 输出设置（备用）
 
       # === 基础图形工具 ===
       zathura
@@ -949,23 +916,12 @@ in
       lrzip
       lzop
 
-      # === River 生态 ===
-      fuzzel
-      waybar
-      gtklock
-      gtklock-userinfo-module
-      gtklock-powerbar-module
-      wlogout
+      # === Hyprland / DMS 生态 ===
       gnome-calculator
-      swaybg # 备用壁纸工具（手动/脚本场景可用）
 
       # === Wayland 基础设施 ===
-      cliphist
-      wl-clipboard
       qt6Packages.qt6ct
       app2unit
-      polkit_gnome # Polkit 认证代理（权限提升对话框，virt-manager/Nautilus 等需要）
-      networkmanagerapplet # nm-connection-editor（WiFi GUI 管理入口）
 
       # === 游戏工具 ===
       mangohud
@@ -976,7 +932,6 @@ in
       protonplus
 
       # 媒体 / 图形
-      pavucontrol
       pulsemixer
       splayer # 网易云音乐播放器（支持本地音乐、流媒体、逐字歌词）
       imv
@@ -1003,13 +958,6 @@ in
     ]
     ++ hybridPackages
     ++ [
-      wlogoutMenu
-      lockScreen
-      riverScreenshot
-      riverCliphistMenu
-      riverModeCycle
-      waybarClockCalendar
-      waybarTemperatureStatus
       wifiRadioStatus
       wifiToggleRadio
       wifiQuickMenu
@@ -1094,119 +1042,189 @@ in
 
   };
 
-  wayland.windowManager.river = {
+  programs.dank-material-shell = {
     enable = true;
-    package = null; # 由 NixOS 的 programs.river-classic 安装
     systemd.enable = true;
-    extraSessionVariables = {
-      XDG_CURRENT_DESKTOP = "river";
-      XDG_SESSION_DESKTOP = "river";
-    };
+    enableSystemMonitoring = false; # nixos-25.11 下暂无 dgop
+    enableVPN = false; # 避免与 system packages 的 networkmanager 重叠
+  };
+
+  wayland.windowManager.hyprland = {
+    enable = true;
+    package = null; # 由 NixOS 的 programs.hyprland 安装
+    portalPackage = null;
+    systemd.enable = true;
     extraConfig = ''
-            # ── 外观与输入 ──
-            riverctl spawn '${riverSessionBootstrap}'
-            riverctl background-color 0x1e1e2e
-            riverctl border-width 0
-            riverctl border-color-focused 0x4a3f64
-            riverctl border-color-unfocused 0x2c2938
-            riverctl set-repeat 50 300
-            riverctl focus-follows-cursor disabled
-            riverctl xcursor-theme Adwaita 24
-            mkdir -p '${homeDir}/.local/state/river'
-            printf 'normal\n' > '${homeDir}/.local/state/river/mode'
+      monitor = , preferred, auto, auto
 
-            # ── 窗口规则 ──
-      ${floatRules}
-      ${tagRulesStr}
+      input {
+        kb_layout = us
+        repeat_rate = 50
+        repeat_delay = 300
+        follow_mouse = 0
+      }
 
-            # ── 应用启动 ──
-            riverctl map normal Super Return spawn '${profileCmd "ghostty"}'
-            riverctl map normal Super Space spawn '${profileCmd "fuzzel"}'
-            riverctl map normal Super D spawn '${profileCmd "nautilus"}'
-            riverctl map normal Super+Control C spawn '${profileCmd "river-cliphist-menu"}'
-            riverctl map normal Super+Control S spawn '${profileCmd "pavucontrol"}'
-            riverctl map normal Super Q close
-            riverctl map normal Super+Shift E exit
-            riverctl map normal Super+Shift L spawn '${profileCmd "lock-screen"}'
-            riverctl map normal Super+Control E spawn '${profileCmd "wlogout-menu"}'
+      general {
+        gaps_in = 6
+        gaps_out = 2
+        border_size = 2
+        layout = dwindle
+        col.active_border = rgba(89b4faff)
+        col.inactive_border = rgba(313244ff)
+      }
 
-            # ── 焦点与窗口管理 ──
-            riverctl map normal Super Right focus-view -skip-floating next
-            riverctl map normal Super Left focus-view -skip-floating previous
-            riverctl map normal Super Down swap next
-            riverctl map normal Super Up swap previous
-            riverctl map normal Super H focus-view -skip-floating previous
-            riverctl map normal Super L focus-view -skip-floating next
-            riverctl map normal Super J swap next
-            riverctl map normal Super K swap previous
-            riverctl map normal Super Z zoom
-            riverctl map normal Super F toggle-fullscreen
-            riverctl map normal Super V toggle-float
+      decoration {
+        rounding = 8
+      }
 
-            # ── rivertile 布局控制 ──
-            riverctl map normal Super+Control Up send-layout-cmd rivertile "main-ratio +0.05"
-            riverctl map normal Super+Control Down send-layout-cmd rivertile "main-ratio -0.05"
-            riverctl map normal Super+Control Right send-layout-cmd rivertile "main-count +1"
-            riverctl map normal Super+Control Left send-layout-cmd rivertile "main-count -1"
-            riverctl map normal Super+Control K send-layout-cmd rivertile "main-ratio +0.05"
-            riverctl map normal Super+Control J send-layout-cmd rivertile "main-ratio -0.05"
-            riverctl map normal Super+Control L send-layout-cmd rivertile "main-count +1"
-            riverctl map normal Super+Control H send-layout-cmd rivertile "main-count -1"
-            riverctl map normal Super+Shift Up send-layout-cmd rivertile "main-location top"
-            riverctl map normal Super+Shift Right send-layout-cmd rivertile "main-location right"
-            riverctl map normal Super+Shift Down send-layout-cmd rivertile "main-location bottom"
-            riverctl map normal Super+Shift Left send-layout-cmd rivertile "main-location left"
+      animations {
+        enabled = true
+        animation = windows, 1, 3, default
+        animation = workspaces, 1, 4, default
+      }
 
-            # ── 浮动模式 ──
-            riverctl declare-mode float
-            riverctl map normal Super G spawn '${modeCycleCmd} set float'
-      ${floatExitBinds}
-            riverctl map float None V toggle-float
-      ${floatDirBinds}
+      misc {
+        disable_hyprland_logo = true
+        disable_splash_rendering = true
+      }
 
-            # ── 截图与鼠标 ──
-            riverctl map normal None Print spawn '${riverScreenshot}/bin/river-screenshot area'
-            riverctl map normal Super X spawn '${riverScreenshot}/bin/river-screenshot area'
-            riverctl map-pointer normal Super BTN_LEFT move-view
-            riverctl map-pointer normal Super BTN_RIGHT resize-view
-            riverctl map-pointer normal Super BTN_MIDDLE toggle-float
+      windowrulev2 = float,class:^(gnome-calculator)$
+      windowrulev2 = float,class:^(blueman-manager)$
+      windowrulev2 = float,class:^(nm-connection-editor)$
+      windowrulev2 = float,class:^(imv)$
+      windowrulev2 = float,class:^(nomacs)$
 
-            # ── 透传模式 ──
-            riverctl declare-mode passthrough
-            riverctl map normal Super P spawn '${modeCycleCmd} set passthrough'
-            riverctl map passthrough Super P spawn '${modeCycleCmd} set normal'
-            riverctl map passthrough None Escape spawn '${modeCycleCmd} set normal'
+      # 应用与 DMS 快捷操作
+      bind = SUPER, Return, exec, ${profileCmd "ghostty"}
+      bind = SUPER, T, exec, ${profileCmd "ghostty"}
+      bind = SUPER, Space, exec, dms ipc call spotlight toggle
+      bind = SUPER, D, exec, ${profileCmd "nautilus"}
+      bind = SUPER CTRL, C, exec, dms ipc call clipboard toggle
+      bind = SUPER, M, exec, dms ipc call processlist focusOrToggle
+      bind = SUPER, comma, exec, dms ipc call settings focusOrToggle
+      bind = SUPER, Y, exec, dms ipc call dankdash wallpaper
+      bind = SUPER, X, exec, dms ipc call powermenu toggle
+      bind = SUPER CTRL, E, exec, dms ipc call powermenu toggle
+      bind = SUPER ALT, L, exec, dms ipc call lock lock
+      bind = SUPER SHIFT, L, exec, dms ipc call lock lock
+      bind = SUPER, N, exec, dms ipc call notifications toggle
+      bind = SUPER SHIFT, N, exec, dms ipc call notepad toggle
+      bind = SUPER, P, exec, dms ipc call notepad toggle
+      bind = SUPER, TAB, exec, dms ipc call hypr toggleOverview
+      bind = SUPER SHIFT, Slash, exec, dms ipc call keybinds toggle hyprland
+      bind = CTRL ALT, Delete, exec, dms ipc call processlist focusOrToggle
 
-            # ── 标签 (Tags) ──
-            for i in $(seq 1 9); do
-                tags=$((1 << ($i - 1)))
-                riverctl map normal Super $i set-focused-tags $tags
-                riverctl map normal Super+Shift $i set-view-tags $tags
-                riverctl map normal Super+Alt $i toggle-focused-tags $tags
-                riverctl map normal Super+Control $i toggle-view-tags $tags
-            done
-            all_tags=$(((1 << 32) - 1))
-            riverctl map normal Super 0 set-focused-tags $all_tags
-            riverctl map normal Super+Shift 0 set-view-tags $all_tags
-            riverctl map normal Super Tab focus-previous-tags
-            riverctl map normal Super+Shift Tab send-to-previous-tags
+      # 窗口管理
+      bind = SUPER, Q, killactive
+      bind = SUPER SHIFT, E, exit
+      bind = SUPER, F, fullscreen, 1
+      bind = SUPER SHIFT, F, fullscreen, 0
+      bind = SUPER SHIFT, T, togglefloating
+      bind = SUPER, V, togglefloating
+      bind = SUPER, W, togglegroup
+      bind = SUPER SHIFT, W, exec, dms ipc call window-rules toggle
+      bind = SUPER, H, movefocus, l
+      bind = SUPER, J, movefocus, d
+      bind = SUPER, K, movefocus, u
+      bind = SUPER, L, movefocus, r
+      bind = SUPER, Left, movefocus, l
+      bind = SUPER, Down, movefocus, d
+      bind = SUPER, Up, movefocus, u
+      bind = SUPER, Right, movefocus, r
+      bind = SUPER, Home, focuswindow, first
+      bind = SUPER, End, focuswindow, last
+      bind = SUPER SHIFT, H, movewindow, l
+      bind = SUPER SHIFT, J, movewindow, d
+      bind = SUPER SHIFT, K, movewindow, u
+      bind = SUPER SHIFT, L, movewindow, r
+      bind = SUPER SHIFT, Left, movewindow, l
+      bind = SUPER SHIFT, Down, movewindow, d
+      bind = SUPER SHIFT, Up, movewindow, u
+      bind = SUPER SHIFT, Right, movewindow, r
+      bind = SUPER CTRL, left, focusmonitor, l
+      bind = SUPER CTRL, right, focusmonitor, r
+      bind = SUPER CTRL, H, focusmonitor, l
+      bind = SUPER CTRL, J, focusmonitor, d
+      bind = SUPER CTRL, K, focusmonitor, u
+      bind = SUPER CTRL, L, focusmonitor, r
+      bind = SUPER SHIFT CTRL, left, movewindow, mon:l
+      bind = SUPER SHIFT CTRL, down, movewindow, mon:d
+      bind = SUPER SHIFT CTRL, up, movewindow, mon:u
+      bind = SUPER SHIFT CTRL, right, movewindow, mon:r
+      bind = SUPER SHIFT CTRL, H, movewindow, mon:l
+      bind = SUPER SHIFT CTRL, J, movewindow, mon:d
+      bind = SUPER SHIFT CTRL, K, movewindow, mon:u
+      bind = SUPER SHIFT CTRL, L, movewindow, mon:r
+      bind = SUPER, bracketleft, layoutmsg, preselect l
+      bind = SUPER, bracketright, layoutmsg, preselect r
+      bind = SUPER, R, layoutmsg, togglesplit
+      bind = SUPER CTRL, F, resizeactive, exact 100%
+      binde = SUPER, minus, resizeactive, -10% 0
+      binde = SUPER, equal, resizeactive, 10% 0
+      binde = SUPER SHIFT, minus, resizeactive, 0 -10%
+      binde = SUPER SHIFT, equal, resizeactive, 0 10%
 
-            # ── 媒体与亮度（normal + locked 共享） ──
-            for mode in normal locked; do
-                riverctl map $mode None XF86AudioRaiseVolume spawn '${volumeCmd} 0.01+ --limit 1.0'
-                riverctl map $mode None XF86AudioLowerVolume spawn '${volumeCmd} 0.01-'
-                riverctl map $mode None XF86AudioMute spawn 'wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle'
-                riverctl map $mode None XF86AudioMicMute spawn 'wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle'
-                riverctl map $mode None XF86AudioPlay spawn '${playerCmd} play-pause'
-                riverctl map $mode None XF86AudioPrev spawn '${playerCmd} previous'
-                riverctl map $mode None XF86AudioNext spawn '${playerCmd} next'
-                riverctl map $mode None XF86MonBrightnessUp spawn '${brightnessCmd} 1%+'
-                riverctl map $mode None XF86MonBrightnessDown spawn '${brightnessCmd} 1%-'
-            done
+      # 工作区
+      bind = SUPER, Page_Down, workspace, e+1
+      bind = SUPER, Page_Up, workspace, e-1
+      bind = SUPER, U, workspace, e+1
+      bind = SUPER, I, workspace, e-1
+      bind = SUPER, 1, workspace, 1
+      bind = SUPER, 2, workspace, 2
+      bind = SUPER, 3, workspace, 3
+      bind = SUPER, 4, workspace, 4
+      bind = SUPER, 5, workspace, 5
+      bind = SUPER, 6, workspace, 6
+      bind = SUPER, 7, workspace, 7
+      bind = SUPER, 8, workspace, 8
+      bind = SUPER, 9, workspace, 9
+      bind = SUPER CTRL, down, movetoworkspace, e+1
+      bind = SUPER CTRL, up, movetoworkspace, e-1
+      bind = SUPER CTRL, U, movetoworkspace, e+1
+      bind = SUPER CTRL, I, movetoworkspace, e-1
+      bind = SUPER SHIFT, Page_Down, movetoworkspace, e+1
+      bind = SUPER SHIFT, Page_Up, movetoworkspace, e-1
+      bind = SUPER SHIFT, U, movetoworkspace, e+1
+      bind = SUPER SHIFT, I, movetoworkspace, e-1
+      bind = SUPER SHIFT, 1, movetoworkspace, 1
+      bind = SUPER SHIFT, 2, movetoworkspace, 2
+      bind = SUPER SHIFT, 3, movetoworkspace, 3
+      bind = SUPER SHIFT, 4, movetoworkspace, 4
+      bind = SUPER SHIFT, 5, movetoworkspace, 5
+      bind = SUPER SHIFT, 6, movetoworkspace, 6
+      bind = SUPER SHIFT, 7, movetoworkspace, 7
+      bind = SUPER SHIFT, 8, movetoworkspace, 8
+      bind = SUPER SHIFT, 9, movetoworkspace, 9
+      bind = SUPER, mouse_down, workspace, e+1
+      bind = SUPER, mouse_up, workspace, e-1
+      bind = SUPER CTRL, mouse_down, movetoworkspace, e+1
+      bind = SUPER CTRL, mouse_up, movetoworkspace, e-1
 
-            # ── 布局引擎 ──
-            riverctl default-layout rivertile
-            /run/current-system/sw/bin/rivertile -view-padding 6 -outer-padding 2 &
+      # 媒体与亮度（DMS IPC）
+      bindel = , XF86AudioRaiseVolume, exec, dms ipc call audio increment 3
+      bindel = , XF86AudioLowerVolume, exec, dms ipc call audio decrement 3
+      bindl = , XF86AudioMute, exec, dms ipc call audio mute
+      bindl = , XF86AudioMicMute, exec, dms ipc call audio micmute
+      bindl = , XF86AudioPause, exec, dms ipc call mpris playPause
+      bindl = , XF86AudioPlay, exec, dms ipc call mpris playPause
+      bindl = , XF86AudioPrev, exec, dms ipc call mpris previous
+      bindl = , XF86AudioNext, exec, dms ipc call mpris next
+      bindel = CTRL, XF86AudioRaiseVolume, exec, dms ipc call mpris increment 3
+      bindel = CTRL, XF86AudioLowerVolume, exec, dms ipc call mpris decrement 3
+      bindel = , XF86MonBrightnessUp, exec, dms ipc call brightness increment 5
+      bindel = , XF86MonBrightnessDown, exec, dms ipc call brightness decrement 5
+
+      # 截图
+      bind = , Print, exec, dms screenshot
+      bind = CTRL, Print, exec, dms screenshot full
+      bind = ALT, Print, exec, dms screenshot window
+
+      # 系统
+      bind = SUPER SHIFT, P, dpms, toggle
+
+      # 鼠标拖拽
+      bindm = SUPER, mouse:272, movewindow
+      bindm = SUPER, mouse:273, resizewindow
     '';
   };
 
@@ -1218,67 +1236,13 @@ in
       enable = true;
       automount = true;
       notify = true;
-      tray = "never"; # Wayland 会话使用 Waybar 托盘模块
-    };
-
-    swaync = {
-      enable = true;
-      settings = swayncSettings;
-      style = swayncStyle;
+      tray = "never"; # Wayland 会话使用 DMS 托盘
     };
   };
 
   systemd = {
     user.services = {
-      # Polkit 认证代理（图形会话自启）
-      # 无此服务时，需要权限提升的操作（virt-manager、Nautilus 挂载等）会静默失败
-      polkit-gnome-authentication-agent-1 = mkGraphicalService {
-        description = "polkit-gnome-authentication-agent-1";
-        execStart = "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1";
-        partOf = false;
-        restartSec = 1;
-        extraService.TimeoutStopSec = 10;
-      };
-
-      # Clipboard history
-      cliphist-daemon = mkGraphicalService {
-        description = "cliphist clipboard history daemon";
-        execStart = "${pkgs.wl-clipboard}/bin/wl-paste --watch ${pkgs.cliphist}/bin/cliphist store";
-        restart = "always";
-      };
-
-      waybar = mkGraphicalService {
-        description = "Waybar status bar";
-        execStart = "${pkgs.waybar}/bin/waybar";
-        restart = "on-failure";
-        unitExtra = {
-          StartLimitIntervalSec = 30;
-          StartLimitBurst = 8;
-        };
-        environment = [
-          "LANG=zh_CN.UTF-8"
-          "LC_ALL=zh_CN.UTF-8"
-          "LC_TIME=zh_CN.UTF-8"
-          # 补齐图标/光标查找路径，避免 Waybar 托盘与悬停光标报缺失资源
-          "XDG_DATA_DIRS=${homeDir}/.local/share:/etc/profiles/per-user/${mainUser}/share:/run/current-system/sw/share:/var/lib/flatpak/exports/share:${homeDir}/.local/share/flatpak/exports/share"
-          "XCURSOR_THEME=Adwaita"
-          "XCURSOR_SIZE=24"
-          "XCURSOR_PATH=/etc/profiles/per-user/${mainUser}/share/icons:/run/current-system/sw/share/icons:${pkgs.adwaita-icon-theme}/share/icons"
-          "GTK_THEME=Adwaita-dark"
-          "GTK_ICON_THEME=Papirus"
-        ];
-      };
-
-      swaybg = mkGraphicalService {
-        description = "Wallpaper daemon (swaybg)";
-        execStart = "${swaybgLauncher}";
-        unitExtra = {
-          StartLimitIntervalSec = 30;
-          StartLimitBurst = 8;
-        };
-      };
-
-      # 在 greetd + river 会话中显式拉起输入法，避免仅依赖 XDG autostart 导致未启动
+      # 在 greetd + Hyprland 会话中显式拉起输入法，避免仅依赖 XDG autostart 导致未启动
       fcitx5 = mkGraphicalService {
         description = "Fcitx5 input method daemon";
         # Use the system wrapper from i18n.inputMethod so selected addons
@@ -1306,34 +1270,12 @@ in
       {
         "qt6ct/qt6ct.conf".source = ./configs/qt6ct/qt6ct.conf;
         "qt6ct/colors/darker.conf".source = "${pkgs.qt6Packages.qt6ct}/share/qt6ct/colors/darker.conf";
-        # 固化用户名路径，避免 Waybar 在特殊环境下无法展开 $USER。
-        "waybar/config".text =
-          builtins.replaceStrings
-            [ "$USER" ]
-            [ mainUser ]
-            (builtins.readFile ./configs/waybar/config.jsonc);
-        "waybar/style.css".source = ./configs/waybar/style.css;
-        "waybar/icons/pacman.svg".source = ./configs/waybar/icons/pacman.svg;
-        "wlogout/layout".source = ./configs/wlogout/layout;
-        "wlogout/style.css".source = ./configs/wlogout/style.css;
-        "gtklock/config.ini".text = ''
-          [main]
-          gtk-theme=Adwaita-dark
-          style=${homeDir}/.config/gtklock/style.css
-          background=${homeDir}/.config/wallpapers/4.png
-          time-format=%H:%M
-          date-format=%A, %Y-%m-%d
-          follow-focus=true
-          modules=${pkgs.gtklock-userinfo-module}/lib/gtklock/userinfo-module.so;${pkgs.gtklock-powerbar-module}/lib/gtklock/powerbar-module.so
-        '';
-        "gtklock/style.css".source = ./configs/gtklock/style.css;
 
         "fcitx5/profile" = {
           source = ./configs/fcitx5/profile;
           force = true;
         };
 
-        "fuzzel/fuzzel.ini".source = ./configs/fuzzel/fuzzel.ini;
         "foot/foot.ini".source = ./configs/foot/foot.ini;
         "ghostty/config".source = ./configs/ghostty/config;
         "yazi/yazi.toml".source = ./configs/yazi/yazi.toml;
@@ -1350,8 +1292,7 @@ in
           global-dir=${localShareDir}/pnpm/global
           global-bin-dir=${localShareDir}/pnpm/bin
         '';
-      }
-      // wlogoutIconFiles;
+      };
 
     userDirs = {
       enable = true;
