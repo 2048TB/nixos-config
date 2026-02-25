@@ -62,10 +62,13 @@ window#waybar {
 }
 
 #custom-launcher {
-  font-size: 15px;
+  font-size: 16px;
 }
 
-#custom-launcher label,
+#custom-launcher label {
+  margin-left: -2px;
+}
+
 #custom-power label {
   margin-left: -1px;
 }
