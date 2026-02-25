@@ -65,60 +65,61 @@ window#waybar {
 
 /* ===== 标签 (Tags) ===== */
 #tags {
-  background: transparent;
-  margin: 4px 10px 0 10px;
-  padding: 0;
-  border: none;
+  background: @bg_module;
+  margin: 4px 2px 0 2px;
+  padding: 0 6px;
+  border-radius: 14px;
+  border: 1px solid rgba(94, 92, 91, 0.62);
   box-shadow: none;
 }
 
 #tags button {
-  color: @text_normal;
-  background: rgba(66, 66, 69, 0.8);
-  margin: 0 2px;
-  padding: 0;
-  min-width: 27px;
-  min-height: 27px;
-  border-radius: 999px;
-  border: 1px solid rgba(94, 92, 91, 0.82);
-  box-shadow: 0 1px 4px rgba(4, 6, 12, 0.25);
+  color: @text_muted;
+  background: transparent;
+  margin: 3px 2px;
+  padding: 0 8px;
+  min-width: 26px;
+  min-height: 0;
+  border-radius: 10px;
+  border: none;
+  font-feature-settings: "tnum";
   transition: all 0.2s ease;
 }
 
 #tags button.active,
 #tags button.focused {
-  background: linear-gradient(120deg, #12608a, #0986d3);
-  color: @text_bright;
-  border-color: rgba(9, 134, 211, 0.9);
-  box-shadow: 0 0 0 1px rgba(18, 96, 138, 0.5), 0 3px 8px rgba(9, 134, 211, 0.24);
+  background: #89b4fa;
+  color: #1c1f2d;
+  background-image: url("icons/pacman.svg");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 13px 13px;
 }
 
 #tags button.occupied {
   color: @text_normal;
-  border-color: rgba(151, 151, 151, 0.52);
 }
 
 #tags button.urgent {
   background: rgba(167, 11, 6, 0.34);
   color: @text_bright;
-  box-shadow: 0 0 0 1px rgba(167, 11, 6, 0.48);
 }
 
 #tags button:hover {
-  background-color: rgba(18, 96, 138, 0.62);
+  background-color: rgba(137, 180, 250, 0.24);
   color: @text_bright;
-  border-color: rgba(9, 134, 211, 0.78);
 }
 
 #tags button label {
   color: @text_normal;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 900;
 }
 
 #tags button.active label,
 #tags button.focused label {
-  color: @text_bright;
+  color: transparent;
+  font-size: 0;
 }
 
 /* ===== 各模块特化样式 ===== */
