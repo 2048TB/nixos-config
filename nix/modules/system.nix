@@ -444,9 +444,20 @@ in
   xdg.portal = {
     enable = true;
     xdgOpenUsePortal = true;
-    config.common.default = portalDefaults;
-    # Hyprland 专用 portal 配置：屏幕共享与截图走 hyprland backend
-    config.hyprland.default = [ "hyprland" "gtk" ];
+    config = {
+      common = {
+        default = portalDefaults;
+        # 显式固定常见接口到 gtk，避免 Hyprland backend 缺失时报错。
+        "org.freedesktop.impl.portal.Settings" = [ "gtk" ];
+        "org.freedesktop.impl.portal.FileChooser" = [ "gtk" ];
+      };
+      # Hyprland 专用 portal 配置：屏幕共享与截图走 hyprland backend
+      hyprland = {
+        default = [ "hyprland" "gtk" ];
+        "org.freedesktop.impl.portal.Settings" = [ "gtk" ];
+        "org.freedesktop.impl.portal.FileChooser" = [ "gtk" ];
+      };
+    };
     # 去重并固定 portal backend 组合，避免模块合并导致重复项。
     extraPortals = lib.mkForce (with pkgs; [
       xdg-desktop-portal-hyprland
