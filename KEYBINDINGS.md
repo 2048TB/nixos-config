@@ -17,12 +17,12 @@
 | `Super + Return` | 打开终端（Ghostty） |
 | `Super + Space` | DMS Spotlight 启动器 |
 | `Super + B` | 打开 Nautilus |
-| `Super + V` | DMS 剪贴板 |
-| `Super + M` | DMS 进程列表 |
+| `Super + C` | DMS 剪贴板 |
+| `Super + Ctrl + M` | DMS 进程列表 |
 | `Super + Shift + ,` | DMS 设置面板 |
 | `Super + Shift + Y` | DMS 壁纸面板 |
 | `Super + Shift + X` | DMS 电源菜单 |
-| `Super + N` | DMS 通知中心 |
+| `Super + Ctrl + N` | DMS 通知中心 |
 | `Super + Shift + N` | DMS Notepad |
 | `Super + Tab` | DMS Hypr Overview |
 | `Super + Shift + /` | DMS Keybind Cheatsheet |
@@ -34,12 +34,15 @@
 |---|---|
 | `Super + Q` | 关闭当前窗口 |
 | `Super + Shift + E` | 退出 Hyprland 会话 |
-| `Super + F` | 全屏（占满） |
-| `Super + Shift + F` | 退出全屏 |
-| `Super + T` | 切换浮动 |
+| `Super + Z` | 全屏（占满） |
+| `Super + Shift + Z` | 退出全屏 |
+| `Super + V` | 切换浮动 |
 | `Super + G` | 窗口分组 |
-| `Super + H/J/K/L` | 焦点移动 |
-| `Super + Shift + H/J/K/L` 或 `Super + W/A/S/D` 或 `Super + Arrow` | 移动窗口 |
+| `Super + H/J/K/L` | 移动窗口 |
+| `Super + Arrow` | 焦点移动 |
+| `Super + A` | 区域截图（DMS） |
+| `Super + M/N` | 窗口移动到左/右显示器（快速替代三修饰组合） |
+| `Super + Shift + H/J/K/L` | 移动窗口（备选） |
 | `Super + Alt + H/J/K/L` 或 `Super + Alt + Arrow` | 与方向窗口交换位置 |
 | `Super + [ / ]` | 与上一/下一窗口交换位置（顺序交换） |
 | `Super + - / =`、`Super + ; / '` | 按方向缩放活动窗口 |
@@ -52,18 +55,19 @@
 
 | 快捷键 | 功能 |
 |---|---|
-| `Super + U/I` | 在相邻工作区间切换 |
+| `Super + , / .` | 在相邻工作区间切换 |
 | `Super + 1..9` | 切换到工作区 1..9 |
 | `Super + Alt + Grave` | 切换 special workspace（scratchpad） |
 | `Super + Shift + Grave` | 发送窗口到 special workspace（不跟随） |
 | `Super + O/P` | 移动窗口到相邻工作区（并跟随） |
-| `Super + , / .` | 静默发送窗口到相邻工作区（不切换） |
-| `Super + F1..F9` | 将当前窗口移动到工作区 1..9（并跟随） |
+| `Super + U/I` | 静默发送窗口到相邻工作区（不切换） |
+| `Super + Shift + 1..9` | 将当前窗口移动到工作区 1..9（并跟随） |
 
 ### 截图与鼠标
 
 | 快捷键 | 功能 |
 |---|---|
+| `Super + A` | DMS 区域截图 |
 | `Print` | DMS 区域截图 |
 | `Ctrl + Print` | DMS 全屏截图 |
 | `Alt + Print` | DMS 当前窗口截图 |
@@ -145,18 +149,17 @@
 
 ## 分体键盘 Layer1（`2/1.vil`）
 
-目标：`Layer0` 保持不变，`Layer1` 字母区按“左手结构、右手空间”分工，并优先按键复用与按键组合（宏仅保留兜底）。
+目标：`Layer0` 保持不变，`Layer1` 字母区全部使用“组合键/宏输出”，避免直接单字母造成记忆干扰；同时补齐空键位。
 
 | Layer1 键位语义 | 输出 |
 |---|---|
-| 左手 `F` | 专用 leader，发送 `Ctrl + A` |
-| 左手 `Q/W/E/R/T` | leader 后第二击：`c/s/v/x/z`（新建/分屏/关闭/放大） |
-| 左手 `A/S/D` | leader 后第二击：`r/d/n`（reload/detach/next） |
-| 右手 `P` | leader 后第二击：`p`（prev） |
+| 左手 `Q/W/E/R/T` | `M12/M8/M9/M10/M11`（`Ctrl+A` 后 `c/s/v/x/z`） |
+| 左手 `A/S/D/F` | `M15 / leader / M13 / M14`（`r / Ctrl+A / n / p`） |
+| 右手 `P` | `M14`（`Ctrl+A` 后 `p`） |
 | 右手 `H/J/K/L` | leader 后第二击：`h/j/k/l`（pane 焦点） |
 | 右手 `Y/U/I/O` | leader 后第二击：`y/u/i/o`（pane resize） |
-| 左手 `Z/X/C/V` | `F13/F14/F15/F16`（映射到 Hyprland 跨显示器移动） |
-| 直达补充 | `G=Super+N`，`B=Super+Q`，`M=Super+B`，`N=Super+M` |
+| 左手 `Z/X/C/V` | `Super+Ctrl+H/J/K/L`（Hyprland 显示器焦点方向） |
+| 直达补充 | `G=Super+N(窗口到右显示器)`，`B=Super+Q`，`M=Super+B`，`N=Super+M(窗口到左显示器)`，`.=Super+Tab`，`,=Super+X` |
 
 ## Tmux（终端复用器）
 
