@@ -1091,6 +1091,8 @@ in
       xwayland {
         force_zero_scaling = true
       }
+      # XWayland 启用 1x 渲染后，通过 Xft.dpi 补回 UI 缩放，兼顾清晰度与可读性。
+      exec-once = ${pkgs.bash}/bin/bash -lc 'for i in $(seq 1 20); do ${pkgs.xorg.xrdb}/bin/xrdb -merge "${homeDir}/.Xresources" && break; sleep 0.2; done'
 
       input {
         kb_layout = us
@@ -1368,6 +1370,10 @@ in
       defaultApplications = lib.genAttrs imageMimeTypes (_: imageApps);
     };
   };
+
+  home.file.".Xresources".text = ''
+    Xft.dpi: 120
+  '';
 
   home.activation = {
     ensureDmsStateFiles = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
