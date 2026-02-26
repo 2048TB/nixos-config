@@ -5,7 +5,7 @@ This repository is a flake-based NixOS desktop configuration.
 - `flake.nix`: main entrypoint (`inputs`, `outputs`, host wiring, `myvars`).
 - `nix/hosts/`: host-specific machine definitions (e.g. `zly.nix`).
 - `nix/modules/`: shared system modules (`system.nix`, `hardware.nix`).
-- `nix/home/default.nix`: Home Manager entrypoint (packages, River keybindings).
+- `nix/home/default.nix`: Home Manager entrypoint (packages, Hyprland keybindings).
 - `nix/home/configs/`: app configs — Ghostty, Foot, Tmux, Zellij, Waybar, Fuzzel, Wlogout, Yazi, shell, fcitx5, etc.
 - `scripts/`: install/bootstrap helpers (for Live ISO and setup workflows).
 - Docs: `KEYBINDINGS.md`, `NIX-COMMANDS.md`.

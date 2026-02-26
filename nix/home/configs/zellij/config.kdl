@@ -1,3 +1,36 @@
+keybinds {
+    // Shared leader: Ctrl+a (same as tmux prefix)
+    shared_except "tmux" "locked" {
+        bind "Ctrl a" { SwitchToMode "Tmux"; }
+    }
+    tmux clear-defaults=true {
+        bind "Ctrl a" { Write 1; SwitchToMode "Normal"; }
+
+        // Pane focus
+        bind "h" "Left" { MoveFocus "Left"; SwitchToMode "Normal"; }
+        bind "j" "Down" { MoveFocus "Down"; SwitchToMode "Normal"; }
+        bind "k" "Up" { MoveFocus "Up"; SwitchToMode "Normal"; }
+        bind "l" "Right" { MoveFocus "Right"; SwitchToMode "Normal"; }
+
+        // Pane resize
+        bind "y" { Resize "Increase Left"; SwitchToMode "Normal"; }
+        bind "u" { Resize "Increase Down"; SwitchToMode "Normal"; }
+        bind "i" { Resize "Increase Up"; SwitchToMode "Normal"; }
+        bind "o" { Resize "Increase Right"; SwitchToMode "Normal"; }
+
+        // Pane and tab management
+        bind "s" { NewPane "Down"; SwitchToMode "Normal"; }
+        bind "v" { NewPane "Right"; SwitchToMode "Normal"; }
+        bind "x" { CloseFocus; SwitchToMode "Normal"; }
+        bind "z" { ToggleFocusFullscreen; SwitchToMode "Normal"; }
+        bind "c" { NewTab; SwitchToMode "Normal"; }
+        bind "n" { GoToNextTab; SwitchToMode "Normal"; }
+        bind "p" { GoToPreviousTab; SwitchToMode "Normal"; }
+        bind "d" { Detach; SwitchToMode "Normal"; }
+        bind "r" { NextSwapLayout; SwitchToMode "Normal"; }
+    }
+}
+
 default_shell "zsh"
 pane_frames true
 theme "default"
