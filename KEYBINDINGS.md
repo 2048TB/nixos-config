@@ -1,22 +1,22 @@
 # 快捷键说明
 
-本文档覆盖 Hyprland + DMS、Ghostty、Tmux、Zellij、Foot 的按键配置。
+本文档覆盖 niri + DMS、Ghostty、Tmux、Zellij、Foot 的按键配置。
 
 说明：`Super` 即 Windows/GUI 键；`prefix` 指统一前缀 `Ctrl+A`（Tmux + Zellij 共用）。
 
 ---
 
-## Hyprland + DMS（窗口管理器 + 桌面 Shell）
+## niri + DMS（窗口管理器 + 桌面 Shell）
 
-配置文件：`nix/home/default.nix` → `wayland.windowManager.hyprland.extraConfig`
+配置文件：`nix/home/configs/niri/keybindings.kdl`
 
 ### 应用启动与 DMS 面板
 
-| 快捷键 | 功能 |
+| 按键 | 功能 |
 |---|---|
 | `Super + Return` | 打开终端（Ghostty） |
-| `Super + Space` | DMS Spotlight 启动器 |
-| `Super + B` | 打开 Nautilus |
+| `Super + Space` | DMS Spotlight |
+| `Super + B` / `Super + D` | 打开 Nautilus |
 | `Super + C` | DMS 剪贴板 |
 | `Super + Ctrl + M` | DMS 进程列表 |
 | `Super + Shift + ,` | DMS 设置面板 |
@@ -24,65 +24,43 @@
 | `Super + Shift + X` | DMS 电源菜单 |
 | `Super + Ctrl + N` | DMS 通知中心 |
 | `Super + Shift + N` | DMS Notepad |
-| `Super + Tab` | DMS Hypr Overview |
-| `Super + Shift + /` | DMS Keybind Cheatsheet |
+| `Super + Tab` | 切回上一个工作区 |
+| `Super + Shift + /` | DMS Keybind Cheatsheet（niri） |
 | `Super + X` | DMS 锁屏 |
 
-### 窗口管理
-
-| 快捷键 | 功能 |
-|---|---|
-| `Super + Q` | 关闭当前窗口 |
-| `Super + Shift + E` | 退出 Hyprland 会话 |
-| `Super + Z` | 全屏（占满） |
-| `Super + Shift + Z` | 退出全屏 |
-| `Super + V` | 切换浮动 |
-| `Super + G` | 窗口分组 |
-| `Super + H/J/K/L` | 移动窗口 |
-| `Super + Arrow` | 焦点移动 |
-| `Super + A` | 区域截图（DMS） |
-| `Super + M/N` | 窗口移动到左/右显示器（快速替代三修饰组合） |
-| `Super + Shift + H/J/K/L` | 移动窗口（备选） |
-| `Super + Alt + H/J/K/L` 或 `Super + Alt + Arrow` | 与方向窗口交换位置 |
-| `Super + [ / ]` | 与上一/下一窗口交换位置（顺序交换） |
-| `Super + - / =`、`Super + ; / '` | 按方向缩放活动窗口 |
-| `Super + Ctrl + F` | 重置活动窗口为 100% 尺寸 |
-| `Super + Home/End` | 聚焦首/尾窗口 |
-| `Super + Ctrl + H/J/K/L` | 切换显示器焦点 |
-| `Super + Shift + Ctrl + H/J/K/L` | 窗口移动到其他显示器 |
-
-### 工作区
-
-| 快捷键 | 功能 |
-|---|---|
-| `Super + , / .` | 在相邻工作区间切换 |
-| `Super + 1..9` | 切换到工作区 1..9 |
-| `Super + Alt + Grave` | 切换 special workspace（scratchpad） |
-| `Super + Shift + Grave` | 发送窗口到 special workspace（不跟随） |
-| `Super + O/P` | 移动窗口到相邻工作区（并跟随） |
-| `Super + U/I` | 静默发送窗口到相邻工作区（不切换） |
-| `Super + Shift + 1..9` | 将当前窗口移动到工作区 1..9（并跟随） |
-
-### 截图与鼠标
-
-| 快捷键 | 功能 |
-|---|---|
-| `Super + A` | DMS 区域截图 |
-| `Print` | DMS 区域截图 |
-| `Ctrl + Print` | DMS 全屏截图 |
-| `Alt + Print` | DMS 当前窗口截图 |
-| `Super + 鼠标左键拖拽` | 移动窗口 |
-| `Super + 鼠标右键拖拽` | 调整窗口大小 |
-
-### 媒体与亮度（DMS IPC）
+### niri 窗口与工作区
 
 | 按键 | 功能 |
 |---|---|
-| `XF86AudioRaiseVolume / LowerVolume` | 音量 ±3 |
+| `Super + Q` | 关闭当前窗口 |
+| `Ctrl + Alt + Delete` | 退出 niri 会话（带确认） |
+| `Super + H/J/K/L` 或 `Super + Arrow` | 焦点移动 |
+| `Super + Ctrl + H/J/K/L` 或 `Super + Ctrl + Arrow` | 移动窗口/列 |
+| `Super + Shift + H/J/K/L` | 聚焦其他显示器 |
+| `Super + Shift + Ctrl + H/J/K/L` | 移动列到其他显示器 |
+| `Super + V` | 切换窗口浮动 |
+| `Super + G` | 在浮动/平铺间切换焦点 |
+| `Super + F` | 最大化列 |
+| `Super + Shift + F` | 窗口全屏 |
+| `Super + 1..9` | 切换到工作区 1..9 |
+| `Super + Ctrl + 1..9` | 移动列到工作区 1..9 |
+| `Super + N` | 跳转到最底部空工作区 |
+| `Super + U / I` | 切换到相邻工作区 |
+| `Super + Ctrl + U / I` | 移动列到相邻工作区 |
+
+### 截图与媒体
+
+| 按键 | 功能 |
+|---|---|
+| `Super + A` | DMS 截图 |
+| `Print` | niri 截图 |
+| `Ctrl + Print` | niri 当前屏幕截图 |
+| `Alt + Print` | niri 当前窗口截图 |
+| `XF86AudioRaiseVolume / LowerVolume` | 音量 ±1% |
 | `XF86AudioMute` | 扬声器静音切换 |
 | `XF86AudioMicMute` | 麦克风静音切换 |
 | `XF86AudioPlay / Prev / Next` | MPRIS 播放控制 |
-| `XF86MonBrightnessUp / Down` | 亮度 ±5 |
+| `XF86MonBrightnessUp / Down` | 亮度 ±1% |
 
 ---
 

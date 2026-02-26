@@ -6,7 +6,7 @@
 
 - `default.nix` Home Manager 入口
 - `configs/` 配置素材目录
-- `configs/niri/` 旧 Niri KDL 配置（已归档，当前未启用）
+- `configs/niri/` Niri KDL 配置（当前启用）
 - `configs/waybar/` Waybar 历史配置（当前未启用）
 - `configs/wlogout/` Wlogout 电源菜单
 - `configs/fuzzel/` Fuzzel 应用启动器
@@ -33,6 +33,6 @@ just switch
 
 ## 重要说明
 
-- `configs/niri/*.kdl` 为历史归档文件，当前会话管理器为 Hyprland。
+- 当前会话管理器为 Niri，配置由 `configs/niri/*.kdl` 管理。
 - 当前桌面 Shell 为 DankMaterialShell（DMS），由 Home Manager module 管理。
 - 主题采用统一暗色策略：GTK（`dconf.settings`）+ Qt6（`qt6ct`）+ Wayland 组件单独配色文件。

@@ -204,3 +204,13 @@ output "DP-1" {
 output "DP-2" {
 	scale 1.20
 }
+
+// DMS 动态生成配置（放在末尾，覆盖上方默认值）
+include "./dms/colors.kdl"
+include "./dms/layout.kdl"
+include "./dms/alttab.kdl"
+include "./dms/binds.kdl"
+include "./dms/outputs.kdl"
+include "./dms/cursor.kdl"
+include "./dms/wpblur.kdl"
+include "./dms/windowrules.kdl"
