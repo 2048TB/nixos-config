@@ -137,6 +137,14 @@ let
     # 统一导入关键环境变量到 systemd user / dbus，避免重复导入。
     export XDG_CURRENT_DESKTOP=Hyprland
     export XDG_SESSION_DESKTOP=Hyprland
+    # greetd 启动链路下，systemd user 可能不会自动继承 HM session vars；
+    # 显式导入 IM 变量，保证由 user service 启动的应用可用中文输入法。
+    /run/current-system/sw/bin/systemctl --user import-environment \
+      INPUT_METHOD GTK_IM_MODULE QT_IM_MODULE XMODIFIERS SDL_IM_MODULE \
+      XDG_CURRENT_DESKTOP XDG_SESSION_DESKTOP || true
+    /run/current-system/sw/bin/dbus-update-activation-environment --systemd \
+      INPUT_METHOD GTK_IM_MODULE QT_IM_MODULE XMODIFIERS SDL_IM_MODULE \
+      XDG_CURRENT_DESKTOP XDG_SESSION_DESKTOP || true
     exec /run/current-system/sw/bin/Hyprland
   '';
   dmsSessionBootstrap = pkgs.writeShellScript "dms-session-bootstrap" ''
