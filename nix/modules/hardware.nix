@@ -65,7 +65,6 @@ in
     xserver.videoDrivers = videoDrivers;
     blueman.enable = true;
     power-profiles-daemon.enable = true;
-    upower.enable = true;
   };
 
   # 兜底解除 rfkill soft block：避免蓝牙控制器在桌面会话中无法正常启用
