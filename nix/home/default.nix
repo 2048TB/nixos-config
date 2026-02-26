@@ -825,6 +825,12 @@ let
       mpris = {
         "image-size" = 80;
         "image-radius" = 8;
+        # 在空元数据播放器场景下，自动隐藏并忽略聚合器，避免断言噪音
+        autohide = true;
+        blacklist = [
+          "org.mpris.MediaPlayer2.playerctld"
+          "playerctld"
+        ];
       };
       notifications = { };
     };
@@ -1301,11 +1307,32 @@ in
               "LC_ALL=zh_CN.UTF-8"
               "LC_TIME=zh_CN.UTF-8"
             ];
+            # 某些第三方托盘项（例如 chrome status icon）不提供 icon/pixmap，
+            # Waybar 会持续打印固定错误；先做定向降噪。
+            LogFilterPatterns = [
+              "~Item 'chrome_status_icon_1': No icon name or pixmap given."
+            ];
             ExecStart = "${waybarLauncher}";
             Restart = "always";
             RestartSec = 2;
           };
         };
+
+        # udiskie 在中文 locale 下会触发 Python logging format KeyError（'信息'）
+        # 将其 locale 固定为 C.UTF-8，避免格式化字段被翻译。
+        udiskie.Service.Environment = [
+          "LANG=C.UTF-8"
+          "LC_ALL=C.UTF-8"
+        ];
+
+        # swaync 0.12.x 在空 MPRIS metadata 时会产生已知断言噪音。
+        swaync.Service.LogFilterPatterns = [
+          "~sway_notification_center_widgets_mpris_mpris_player_update_album_art: assertion 'metadata != NULL' failed"
+          "~sway_notification_center_widgets_mpris_mpris_player_update_title: assertion 'metadata != NULL' failed"
+          "~sway_notification_center_widgets_mpris_mpris_player_update_sub_title: assertion 'metadata != NULL' failed"
+          "~sway_notification_center_widgets_mpris_mpris_player_update_buttons: assertion 'metadata != NULL' failed"
+          "~gtk_native_get_surface: assertion 'GTK_IS_NATIVE (self)' failed"
+        ];
 
         swaybg = {
           Unit = {
