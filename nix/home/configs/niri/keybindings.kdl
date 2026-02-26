@@ -97,11 +97,17 @@ binds {
     // Mod+Ctrl+J     { move-window-down-or-to-workspace-down; }
     // Mod+Ctrl+K     { move-window-up-or-to-workspace-up; }
 
-    // 列首/列尾聚焦与移动：统一在主层 N/M。
-    Mod+N { focus-column-first; }
-    Mod+M { focus-column-last; }
-    Mod+Shift+N { move-column-to-first; }
-    Mod+Shift+M { move-column-to-last; }
+    // 人体工学快捷：保留 Hyprland 习惯，2 键将窗口跨显示器移动。
+    Mod+M { move-window-to-monitor-left; }
+    Mod+N { move-window-to-monitor-right; }
+    // Shift 版本移动整列，便于 niri 列式工作流。
+    Mod+Shift+M { move-column-to-monitor-left; }
+    Mod+Shift+N { move-column-to-monitor-right; }
+    // 列首/列尾聚焦与移动改到 Home/End 系列。
+    Mod+Home { focus-column-first; }
+    Mod+End { focus-column-last; }
+    Mod+Ctrl+Home { move-column-to-first; }
+    Mod+Ctrl+End { move-column-to-last; }
 
     Mod+Shift+Left  { focus-monitor-left; }
     Mod+Shift+Down  { focus-monitor-down; }
