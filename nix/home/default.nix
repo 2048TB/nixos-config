@@ -1408,10 +1408,12 @@ in
         common = {
           default = [ "gtk" ];
           "org.freedesktop.impl.portal.Settings" = [ "gtk" ];
+          "org.freedesktop.impl.portal.FileChooser" = [ "gtk" ];
         };
         hyprland = {
           default = [ "hyprland" "gtk" ];
           "org.freedesktop.impl.portal.Settings" = [ "gtk" ];
+          "org.freedesktop.impl.portal.FileChooser" = [ "gtk" ];
         };
       };
     };
