@@ -639,12 +639,6 @@ in
     };
 
     user.services = {
-      # 上游 xdg-desktop-portal-gtk 对空 app_id 会记录固定告警：
-      # "application name required"。该问题位于调用方/上游实现，先做定向降噪。
-      xdg-desktop-portal-gtk.serviceConfig.LogFilterPatterns = [
-        "~application name required"
-      ];
-
       # wireplumber 0.5.12 启动期稳定出现同一条 GLib assertion 噪音，保留其他日志。
       wireplumber.serviceConfig.LogFilterPatterns = [
         "~wp_event_dispatcher_unregister_hook: assertion 'already_registered_dispatcher == self' failed"
