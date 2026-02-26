@@ -1,6 +1,7 @@
 # 快捷键说明（Hyprland）
 
 本文档对应配置：`nix/home/default.nix` 中 `wayland.windowManager.hyprland.extraConfig`。
+若文档与实际行为冲突，以 `nix/home/configs/hypr/hyprland.conf` 为准。
 
 说明：`Super` 即 Windows 键。
 
