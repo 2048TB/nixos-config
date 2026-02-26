@@ -204,6 +204,15 @@ let
         "/run/current-system/sw/bin"
       ]
       (builtins.readFile ./configs/waybar/config.jsonc);
+  waybarStyle =
+    builtins.replaceStrings
+      [
+        "@WAYBAR_PACMAN_ICON@"
+      ]
+      [
+        "${./configs/waybar/icons/pacman.svg}"
+      ]
+      (builtins.readFile ./configs/waybar/style.css);
   waybarClockCalendar = pkgs.writeShellScriptBin "waybar-clock-calendar" ''
     set -euo pipefail
     calBin="/run/current-system/sw/bin/cal"
@@ -1311,6 +1320,8 @@ in
             # Waybar 会持续打印固定错误；先做定向降噪。
             LogFilterPatterns = [
               "~Item 'chrome_status_icon_1': No icon name or pixmap given."
+              "~Unable to load hand2 from the cursor theme"
+              "~Unable to load arrow from the cursor theme"
             ];
             ExecStart = "${waybarLauncher}";
             Restart = "always";
@@ -1397,7 +1408,7 @@ in
         "qt6ct/qt6ct.conf".source = ./configs/qt6ct/qt6ct.conf;
         "qt6ct/colors/darker.conf".source = "${pkgs.qt6Packages.qt6ct}/share/qt6ct/colors/darker.conf";
         "waybar/config".text = waybarConfig;
-        "waybar/style.css".source = ./configs/waybar/style.css;
+        "waybar/style.css".text = waybarStyle;
         "waybar/icons" = {
           source = ./configs/waybar/icons;
           recursive = true;
