@@ -1,14 +1,3 @@
-/* ===== 颜色变量 ===== */
-@define-color text_normal #e7e4e0;
-@define-color text_bright #f9f9f9;
-@define-color text_muted #979797;
-@define-color accent_blue #0986d3;
-@define-color accent_dark_blue #12608a;
-@define-color critical_red #a70b06;
-@define-color bg_module rgba(61, 61, 61, 0.62);
-@define-color bg_bar rgba(34, 32, 32, 0.18);
-
-/* ===== 全局重置 ===== */
 * {
   border: none;
   border-radius: 0;
@@ -18,17 +7,15 @@
   font-weight: 700;
 }
 
-/* ===== Waybar 窗口 ===== */
 window#waybar {
-  background: @bg_bar;
-  color: @text_normal;
+  background: rgba(34, 32, 32, 0.18);
+  color: #e7e4e0;
   margin: 2px 10px 0 10px;
   border-radius: 12px;
   border: none;
   box-shadow: none;
 }
 
-/* ===== 通用模块样式 ===== */
 #window,
 #mpris,
 #clock,
@@ -40,14 +27,17 @@ window#waybar {
 #bluetooth,
 #custom-wifi-manager,
 #pulseaudio,
-#mode,
+#submap,
+#custom-backlight,
+#custom-battery,
 #power-profiles-daemon,
 #custom-notification,
+#idle_inhibitor,
 #tray,
 #custom-launcher,
 #custom-power {
-  background-color: @bg_module;
-  color: @text_normal;
+  background-color: rgba(61, 61, 61, 0.62);
+  color: #e7e4e0;
   margin: 4px 1px 0 1px;
   padding: 0 9px;
   border-radius: 14px;
@@ -61,121 +51,108 @@ window#waybar {
   padding: 0 12px;
 }
 
-#custom-launcher {
-  font-size: 16px;
-}
-
-#custom-launcher label {
-  margin-left: -2px;
-}
-
-#custom-power label {
-  margin-left: -1px;
-}
-
-/* ===== 标签 (Tags) ===== */
-#tags {
-  background: @bg_module;
-  margin: 4px 2px 0 2px;
-  padding: 0 1px;
-  border-radius: 14px;
-  border: 1px solid rgba(94, 92, 91, 0.62);
+#workspaces {
+  background: transparent;
+  margin: 4px 10px 0 10px;
+  padding: 0;
+  border: none;
   box-shadow: none;
 }
 
-#tags button {
-  color: @text_muted;
-  background: transparent;
-  margin: 1px 0;
-  padding: 0 3px;
-  min-width: 19px;
-  min-height: 0;
-  border-radius: 10px;
-  border: none;
-  font-feature-settings: "tnum";
+#workspaces button {
+  color: #e7e4e0;
+  background: rgba(66, 66, 69, 0.8);
+  margin: 0 1px;
+  padding: 0;
+  min-width: 27px;
+  min-height: 27px;
+  border-radius: 999px;
+  border: 1px solid rgba(94, 92, 91, 0.82);
+  box-shadow: 0 1px 4px rgba(4, 6, 12, 0.25);
   transition: all 0.2s ease;
 }
 
-#tags button.focused {
-  background: #89b4fa;
-  color: #1c1f2d;
-  background-image: url("icons/pacman.svg");
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: 16px 16px;
+#workspaces button.active,
+#workspaces button.visible {
+  background: linear-gradient(120deg, #12608a, #0986d3);
+  color: #f9f9f9;
+  border-color: rgba(9, 134, 211, 0.9);
+  box-shadow: 0 0 0 1px rgba(18, 96, 138, 0.5), 0 3px 8px rgba(9, 134, 211, 0.24);
 }
 
-#tags button.occupied {
-  color: @text_normal;
-}
-
-#tags button.urgent {
+#workspaces button.urgent {
   background: rgba(167, 11, 6, 0.34);
-  color: @text_bright;
+  color: #f9f9f9;
+  box-shadow: 0 0 0 1px rgba(167, 11, 6, 0.48);
 }
 
-#tags button:hover {
-  background-color: rgba(137, 180, 250, 0.24);
-  color: @text_bright;
+#workspaces button.special {
+  background: rgba(18, 96, 138, 0.34);
+  border-color: rgba(18, 96, 138, 0.72);
 }
 
-#tags button label {
-  color: @text_normal;
-  font-size: 17px;
+#workspaces button:hover {
+  background-color: rgba(18, 96, 138, 0.62);
+  color: #f9f9f9;
+  border-color: rgba(9, 134, 211, 0.78);
+}
+
+#workspaces button label {
+  color: #e7e4e0;
+  font-size: 11px;
   font-weight: 900;
 }
 
-#tags button.focused label {
-  color: transparent;
-  font-size: 0;
+#workspaces button.active label,
+#workspaces button.visible label {
+  color: #f9f9f9;
 }
 
-/* ===== 各模块特化样式 ===== */
 #window {
-  color: @text_normal;
+  color: #e7e4e0;
   font-weight: 600;
 }
 
 #mpris {
-  color: @text_muted;
+  color: #979797;
   font-style: italic;
 }
 
 #clock {
-  color: @text_bright;
+  color: #f9f9f9;
   letter-spacing: 0.7px;
   font-feature-settings: "tnum";
   padding: 0 13px;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 0 16px rgba(9, 134, 211, 0.14);
 }
 
-#mode {
-  color: @text_normal;
+#submap {
+  color: #e7e4e0;
 }
 
-#mode.normal {
-  color: @text_muted;
+#submap.normal {
+  color: #979797;
 }
 
-#mode.passthrough {
-  color: @critical_red;
+#submap.passthrough {
+  color: #a70b06;
 }
 
 #custom-public-ip {
-  color: @accent_blue;
+  color: #0986d3;
 }
 
 #network {
-  color: @accent_blue;
+  color: #0986d3;
 }
 
 #network.disconnected,
 #network.disabled {
-  color: @critical_red;
+  color: #a70b06;
 }
 
 #custom-public-ip.offline {
-  color: @critical_red;
+  color: #a70b06;
 }
 
 #bluetooth {
@@ -215,29 +192,69 @@ window#waybar {
   transition: all 0.2s ease;
 }
 
+#custom-wifi-manager.connected {
+  color: #f4fbff;
+  box-shadow: inset 0 0 0 1px rgba(169, 240, 250, 0.32), 0 0 10px rgba(17, 112, 135, 0.24);
+}
+
+#custom-wifi-manager.disabled,
+#custom-wifi-manager.disabling,
+#custom-wifi-manager.enabling,
+#custom-wifi-manager.unavailable,
+#custom-wifi-manager.unknown {
+  color: #82878a;
+  background: rgba(58, 62, 66, 0.45);
+  border-color: rgba(109, 113, 119, 0.36);
+}
+
 #pulseaudio {
-  color: @text_normal;
+  color: #e7e4e0;
 }
 
 #pulseaudio.muted {
-  color: @text_muted;
+  color: #979797;
+}
+
+#custom-backlight {
+  color: #e7e4e0;
 }
 
 #cpu.warning,
 #memory.warning,
 #custom-temperature.warning {
-  color: @accent_dark_blue;
+  color: #12608a;
 }
 
 #cpu.critical,
 #memory.critical,
 #custom-temperature.critical {
-  color: @critical_red;
+  color: #a70b06;
+}
+
+#custom-battery.charging {
+  color: #0986d3;
+}
+
+#custom-battery.warning:not(.charging) {
+  color: #12608a;
+}
+
+#custom-battery.critical:not(.charging) {
+  color: #a70b06;
 }
 
 #power-profiles-daemon {
-  color: @text_normal;
+  color: #e7e4e0;
   min-width: 26px;
+}
+
+#idle_inhibitor {
+  color: #979797;
+  min-width: 24px;
+}
+
+#idle_inhibitor.activated {
+  color: #0986d3;
 }
 
 #power-profiles-daemon label {
@@ -246,18 +263,17 @@ window#waybar {
 }
 
 #power-profiles-daemon.performance {
-  color: @critical_red;
+  color: #a70b06;
 }
 
 #power-profiles-daemon.balanced {
-  color: @accent_dark_blue;
+  color: #12608a;
 }
 
 #power-profiles-daemon.power-saver {
-  color: @text_muted;
+  color: #979797;
 }
 
-/* ===== 模块分组布局 ===== */
 /* visually group right-side modules for denser layout */
 #cpu,
 #memory,
@@ -278,30 +294,32 @@ window#waybar {
 #custom-public-ip,
 #bluetooth,
 #custom-wifi-manager,
-#pulseaudio {
+#pulseaudio,
+#custom-backlight {
   margin-left: 0;
   border-top-left-radius: 0;
   border-bottom-left-radius: 0;
 }
 
 #custom-temperature,
-#custom-wifi-manager {
+#custom-wifi-manager,
+#custom-backlight {
   margin-right: 1px;
 }
 
 #custom-notification {
-  color: @accent_blue;
+  color: #0986d3;
   min-width: 20px;
 }
 
 #custom-notification.none,
 #custom-notification.inhibited-none {
-  color: @text_muted;
+  color: #979797;
 }
 
 #custom-notification.notification,
 #custom-notification.inhibited-notification {
-  color: @text_bright;
+  color: #f9f9f9;
   animation: notify-pulse 1.2s ease-in-out infinite alternate;
 }
 
@@ -309,14 +327,13 @@ window#waybar {
 #custom-notification.dnd-notification,
 #custom-notification.dnd-inhibited-none,
 #custom-notification.dnd-inhibited-notification {
-  color: @critical_red;
+  color: #a70b06;
 }
 
 #custom-power {
-  color: @critical_red;
+  color: #a70b06;
 }
 
-/* ===== 提示框 ===== */
 tooltip {
   background: linear-gradient(180deg, rgba(66, 66, 69, 0.97), rgba(48, 47, 46, 0.97));
   border: 1px solid rgba(94, 92, 91, 0.66);
@@ -325,11 +342,10 @@ tooltip {
 }
 
 tooltip label {
-  color: @text_normal;
+  color: #e7e4e0;
   padding: 8px 10px;
 }
 
-/* ===== 动画 ===== */
 @keyframes notify-pulse {
   from {
     text-shadow: 0 0 0 rgba(9, 134, 211, 0);

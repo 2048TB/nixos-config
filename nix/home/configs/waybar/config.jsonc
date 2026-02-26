@@ -1,20 +1,19 @@
 {
+  // global
   "layer": "top",
   "position": "top",
   "height": 34,
-  "spacing": 4,
+  "spacing": 2,
   "reload_style_on_change": true,
 
   "modules-left": [
     "custom/launcher",
     "clock",
-    "river/mode",
-    "river/window",
+    "hyprland/submap",
+    "hyprland/window",
     "mpris"
   ],
-  "modules-center": [
-    "river/tags"
-  ],
+  "modules-center": [ "hyprland/workspaces" ],
   "modules-right": [
     "cpu",
     "memory",
@@ -24,26 +23,31 @@
     "bluetooth",
     "custom/wifi-manager",
     "pulseaudio",
+    "custom/backlight",
+    "custom/battery",
     "power-profiles-daemon",
+    "idle_inhibitor",
     "custom/notification",
     "tray",
     "custom/power"
   ],
 
-  // ===== 启动器与电源 =====
+  // launcher & session
   "custom/launcher": {
     "format": "󱄅",
     "tooltip": false,
-    "on-click": "/etc/profiles/per-user/$USER/bin/fuzzel"
+    "on-click": "@USER_BIN@/fuzzel"
   },
 
   "custom/power": {
     "format": "",
     "tooltip": false,
-    "on-click": "/etc/profiles/per-user/$USER/bin/wlogout-menu"
+    "on-click": "@USER_BIN@/wlogout-menu"
   },
 
+  // notifications
   "custom/notification": {
+    "tooltip": true,
     "format": "{icon}",
     "format-icons": {
       "notification": "",
@@ -55,43 +59,43 @@
       "dnd-inhibited-notification": "",
       "dnd-inhibited-none": ""
     },
-    "tooltip": true,
     "return-type": "json",
-    "exec-if": "test -x /etc/profiles/per-user/$USER/bin/swaync-client",
-    "exec": "/etc/profiles/per-user/$USER/bin/swaync-client -swb",
-    "on-click": "/etc/profiles/per-user/$USER/bin/swaync-client -t -sw",
-    "on-click-right": "/etc/profiles/per-user/$USER/bin/swaync-client -d -sw",
+    "exec-if": "test -x @USER_BIN@/swaync-client",
+    "exec": "@USER_BIN@/swaync-client -swb",
+    "on-click": "@USER_BIN@/swaync-client -t -sw",
+    "on-click-right": "@USER_BIN@/swaync-client -d -sw",
     "escape": true
   },
 
-  // ===== River 窗口管理 =====
-  "river/tags": {
-    "num-tags": 9,
-    "tag-labels": [
-      "①",
-      "②",
-      "③",
-      "④",
-      "⑤",
-      "⑥",
-      "⑦",
-      "⑧",
-      "⑨"
-    ]
+  // hyprland state
+  "hyprland/workspaces": {
+    "format": "{name}",
+    "sort-by": "number",
+    "all-outputs": false,
+    "move-to-monitor": true,
+    "show-special": true,
+    "special-visible-only": true,
+    "disable-scroll": true,
+    "swap-icon-label": false
   },
 
-  "river/mode": {
+  "hyprland/submap": {
     "format": "MODE {}",
+    "default-submap": "normal",
+    "always-on": true,
+    "on-click": "@USER_BIN@/hyprland-submap-cycle toggle",
     "max-length": 14,
-    "on-click": "/etc/profiles/per-user/$USER/bin/river-mode-cycle toggle"
+    "swap-icon-label": false
   },
 
-  "river/window": {
-    "format": "{}",
-    "max-length": 36
+  "hyprland/window": {
+    "format": "{class} {title}",
+    "max-length": 36,
+    "separate-outputs": true,
+    "swap-icon-label": false
   },
 
-  // ===== 媒体 =====
+  // media & clock
   "mpris": {
     "format": "{player_icon} {dynamic}",
     "format-paused": "{status_icon} {dynamic}",
@@ -113,7 +117,6 @@
     }
   },
 
-  // ===== 时钟 =====
   "clock": {
     "format": " {:L%Y-%m-%d %A %H:%M:%S}",
     "locale": "zh_CN.UTF-8",
@@ -129,10 +132,10 @@
       "on-scroll-down": "shift_down",
       "on-click-middle": "shift_reset"
     },
-    "on-click": "/etc/profiles/per-user/$USER/bin/waybar-clock-calendar"
+    "on-click": "@USER_BIN@/waybar-clock-calendar"
   },
 
-  // ===== 系统监控 =====
+  // system metrics
   "cpu": {
     "format": "󰻠 {usage}%",
     "interval": 3,
@@ -155,12 +158,14 @@
     "format": "{}",
     "return-type": "json",
     "exec-if": "/run/current-system/sw/bin/ls /sys/class/hwmon/hwmon*/temp*_input >/dev/null 2>&1",
-    "exec": "/etc/profiles/per-user/$USER/bin/waybar-temperature-status",
+    "exec": "@USER_BIN@/waybar-temperature-status",
     "interval": 5
   },
 
-  // ===== 网络 =====
+  // network
   "network": {
+    "interval": 5,
+    "family": "ipv4_6",
     "format-wifi": "{icon} {signalStrength}%",
     "format-ethernet": "󰈀 wired",
     "format-linked": "󰈀 link",
@@ -175,22 +180,20 @@
     ],
     "tooltip-format-wifi": "{essid}\nIP: {ipaddr}/{cidr}\nSignal: {signalStrength}%\nFrequency: {frequency} GHz\nGateway: {gwaddr}",
     "tooltip-format-ethernet": "{ifname}\nIP: {ipaddr}/{cidr}\nGateway: {gwaddr}",
-    "tooltip-format-disconnected": "Network disconnected",
-    "interval": 5,
-    "family": "ipv4_6"
+    "tooltip-format-disconnected": "Network disconnected"
   },
 
   "custom/public-ip": {
     "format": "{}",
     "return-type": "json",
-    "exec-if": "test -x /etc/profiles/per-user/$USER/bin/public-ip-status",
-    "exec": "/etc/profiles/per-user/$USER/bin/public-ip-status",
-    "exec-on-event": false,
+    "exec-if": "test -x @USER_BIN@/public-ip-status",
+    "exec": "@USER_BIN@/public-ip-status",
     "interval": 180,
-    "on-click": "/etc/profiles/per-user/$USER/bin/wifi-quick-menu",
-    "on-click-right": "/etc/profiles/per-user/$USER/bin/ghostty -e /run/current-system/sw/bin/nmtui"
+    "on-click": "@USER_BIN@/wifi-quick-menu",
+    "on-click-right": "@USER_BIN@/ghostty -e @SYSTEM_BIN@/nmtui"
   },
 
+  // bluetooth & audio
   "bluetooth": {
     "format": "{icon}",
     "format-icons": {
@@ -211,27 +214,26 @@
     "tooltip-format-enumerate-connected-battery": "{device_alias} {device_battery_percentage}%",
     "min-length": 2,
     "max-length": 22,
-    "on-click": "/etc/profiles/per-user/$USER/bin/bluetooth-quick-menu",
-    "on-click-right": "/run/current-system/sw/bin/blueman-manager"
+    "on-click": "@USER_BIN@/bluetooth-quick-menu",
+    "on-click-right": "@SYSTEM_BIN@/blueman-manager"
   },
 
   "custom/wifi-manager": {
     "format": "{}",
-    "tooltip": true,
-    "tooltip-format": "Left: Quick menu\\nRight: Toggle WiFi radio",
-    "exec-if": "test -x /etc/profiles/per-user/$USER/bin/wifi-radio-status",
-    "exec": "/etc/profiles/per-user/$USER/bin/wifi-radio-status",
-    "exec-on-event": false,
+    "return-type": "json",
+    "exec-if": "test -x @USER_BIN@/waybar-wifi-manager-status",
+    "exec": "@USER_BIN@/waybar-wifi-manager-status",
     "interval": 5,
-    "on-click": "/etc/profiles/per-user/$USER/bin/wifi-quick-menu",
-    "on-click-right": "/etc/profiles/per-user/$USER/bin/wifi-toggle-radio"
+    "on-click": "@USER_BIN@/wifi-quick-menu",
+    "on-click-middle": "@USER_BIN@/wifi-toggle-radio",
+    "on-click-right": "@USER_BIN@/nm-connection-editor"
   },
 
-  // ===== 音频 =====
   "pulseaudio": {
     "format": "{icon} {volume}%",
     "format-bluetooth": "{icon} {volume}%",
     "format-muted": "",
+    "scroll-step": 1,
     "format-icons": {
       "default": [
         "",
@@ -239,25 +241,52 @@
         ""
       ]
     },
-    "scroll-step": 1,
-    "on-click": "/etc/profiles/per-user/$USER/bin/pavucontrol",
-    "on-scroll-up": "/run/current-system/sw/bin/wpctl set-volume @DEFAULT_AUDIO_SINK@ 1%+ --limit 1.0",
-    "on-scroll-down": "/run/current-system/sw/bin/wpctl set-volume @DEFAULT_AUDIO_SINK@ 1%-"
+    "on-click": "@USER_BIN@/pavucontrol",
+    "on-scroll-up": "@SYSTEM_BIN@/wpctl set-volume @DEFAULT_AUDIO_SINK@ 1%+ --limit 1.0",
+    "on-scroll-down": "@SYSTEM_BIN@/wpctl set-volume @DEFAULT_AUDIO_SINK@ 1%-"
   },
 
-  // ===== 电源与通知 =====
+  // device power
+  "custom/backlight": {
+    "format": "{}",
+    "return-type": "json",
+    "exec-if": "/run/current-system/sw/bin/ls /sys/class/backlight/*/brightness >/dev/null 2>&1",
+    "exec": "@USER_BIN@/waybar-backlight-status",
+    "interval": 5,
+    "on-scroll-up": "@USER_BIN@/brightnessctl --class=backlight set 1%+",
+    "on-scroll-down": "@USER_BIN@/brightnessctl --class=backlight set 1%-",
+    "tooltip": false
+  },
+
+  "custom/battery": {
+    "format": "{}",
+    "return-type": "json",
+    "exec-if": "/run/current-system/sw/bin/ls /sys/class/power_supply/BAT*/capacity >/dev/null 2>&1",
+    "exec": "@USER_BIN@/waybar-battery-status",
+    "interval": 15
+  },
+
   "power-profiles-daemon": {
     "format": "{icon}",
+    "tooltip-format": "电源模式: {profile}\n驱动: {driver}",
     "format-icons": {
       "default": "B",
       "performance": "P",
       "balanced": "B",
       "power-saver": "S"
-    },
-    "tooltip-format": "电源模式: {profile}\n驱动: {driver}"
+    }
   },
 
-  // ===== 系统托盘 =====
+  // misc
+  "idle_inhibitor": {
+    "format": "{icon}",
+    "format-icons": {
+      "activated": "",
+      "deactivated": ""
+    },
+    "tooltip": true
+  },
+
   "tray": {
     "icon-size": 14,
     "show-passive-items": true,

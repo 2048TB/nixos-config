@@ -31,18 +31,9 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    dms = {
-      url = "github:AvengeMedia/DankMaterialShell";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-    dgop = {
-      url = "github:AvengeMedia/dgop";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
   };
 
-  outputs = { nixpkgs, rust-overlay, home-manager, lanzaboote, nix-gaming, preservation, disko, dms, dgop, ... }:
+  outputs = { nixpkgs, rust-overlay, home-manager, lanzaboote, nix-gaming, preservation, disko, ... }:
     let
       inherit (nixpkgs) lib;
 
@@ -88,8 +79,7 @@
       };
 
       specialArgs = {
-        inherit myvars mainUser dms;
-        dgopFlake = dgop;
+        inherit myvars mainUser;
       };
 
       homeManagerModule = {
@@ -178,6 +168,8 @@
           # 仅允许基础运行时重叠（由模块隐式引入），其余视为回归。
           allowedSystemHomeOverlapNames = [
             "xwayland"
+            "xdg-desktop-portal"
+            "xdg-desktop-portal-hyprland"
             "python3"
             "zsh"
             "nix-zsh-completions"

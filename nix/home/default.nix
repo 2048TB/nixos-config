@@ -1,4 +1,4 @@
-{ config, pkgs, lib, myvars, mainUser, dms, dgopFlake, ... }:
+{ config, pkgs, lib, myvars, mainUser, ... }:
 let
   # ===== 基础常量 =====
   homeStateVersion = "25.11";
@@ -9,102 +9,21 @@ let
   localShareDir = "${homeDir}/.local/share";
   userProfileBin = "/etc/profiles/per-user/${mainUser}/bin";
   profileCmd = cmd: "${userProfileBin}/${cmd}";
+  fractionalScale = "1.25";
 
-  # 共享 shell 工具路径（多个脚本复用）
-  headBin = "${pkgs.coreutils}/bin/head";
-  mkdirBin = "${pkgs.coreutils}/bin/mkdir";
-  dateBin = "${pkgs.coreutils}/bin/date";
-  nmcliBin = "/run/current-system/sw/bin/nmcli";
-  btctlBin = "/run/current-system/sw/bin/bluetoothctl";
-
-  # 图形会话 systemd user service 生成器（7 个服务共享骨架）
-  mkGraphicalService =
-    { description
-    , execStart
-    , partOf ? true
-    , restart ? "on-failure"
-    , restartSec ? 2
-    , environment ? [ ]
-    , unitExtra ? { }
-    , extraService ? { }
-    ,
-    }: {
-      Unit = {
-        Description = description;
-        After = [ "graphical-session.target" ];
-      } // lib.optionalAttrs partOf {
-        PartOf = [ "graphical-session.target" ];
-      } // unitExtra;
-      Install.WantedBy = [ "graphical-session.target" ];
-      Service = {
-        Type = "simple";
-        ExecStart = execStart;
-        Restart = restart;
-        RestartSec = restartSec;
-      } // lib.optionalAttrs (environment != [ ]) {
-        Environment = environment;
-      } // extraService;
-    };
-
-  # River 配置常量
-  modeCycleCmd = profileCmd "river-mode-cycle";
-  volumeCmd = "/run/current-system/sw/bin/wpctl set-volume @DEFAULT_AUDIO_SINK@";
-  playerCmd = profileCmd "playerctl";
-  brightnessCmd = "${profileCmd "brightnessctl"} --class=backlight set";
-
-  # 浮动模式方向绑定（move/resize/snap）
-  floatDirections = [
-    { key = "Left"; move = "left 100"; resize = "horizontal -100"; snap = "left"; }
-    { key = "Down"; move = "down 100"; resize = "vertical 100"; snap = "down"; }
-    { key = "Up"; move = "up 100"; resize = "vertical -100"; snap = "up"; }
-    { key = "Right"; move = "right 100"; resize = "horizontal 100"; snap = "right"; }
-    { key = "H"; move = "left 100"; resize = "horizontal -100"; snap = "left"; }
-    { key = "J"; move = "down 100"; resize = "vertical 100"; snap = "down"; }
-    { key = "K"; move = "up 100"; resize = "vertical -100"; snap = "up"; }
-    { key = "L"; move = "right 100"; resize = "horizontal 100"; snap = "right"; }
+  # 资源映射常量
+  wlogoutIconNames = [
+    "lock"
+    "logout"
+    "suspend"
+    "hibernate"
+    "reboot"
+    "shutdown"
   ];
-  floatDirBinds = lib.concatMapStringsSep "\n"
-    (d:
-      "      riverctl map float None ${d.key} move ${d.move}\n"
-      + "      riverctl map float Shift ${d.key} resize ${d.resize}\n"
-      + "      riverctl map float Control ${d.key} snap ${d.snap}"
-    )
-    floatDirections;
-
-  # 浮动模式退出键
-  floatExitKeys = [ "Escape" "Return" "Space" ];
-  floatExitBinds = lib.concatMapStringsSep "\n"
-    (key:
-      "      riverctl map float None ${key} spawn '${modeCycleCmd} set normal'"
-    )
-    floatExitKeys;
-
-  # 窗口规则：自动浮动的应用 app-id
-  floatAppIds = [
-    "gnome-calculator"
-    "blueman-manager"
-    "nm-connection-editor"
-    "imv"
-    "nomacs"
-  ];
-  floatRules = lib.concatMapStringsSep "\n"
-    (app: "      riverctl rule-add -app-id '${app}' float")
-    floatAppIds;
-
-  # 窗口规则：应用自动分配标签 (tag N 的 bitmask = 1 << (N-1))
-  tagRules = [
-    { appId = "ghostty"; tags = 1; } # tag 1: 终端
-    { appId = "foot"; tags = 1; } # tag 1: 终端
-    { appId = "google-chrome*"; tags = 2; } # tag 2: 浏览器
-    { appId = "org.gnome.Nautilus"; tags = 4; } # tag 3: 文件管理
-    { appId = "code"; tags = 8; } # tag 4: 编辑器
-    { appId = "org.telegram.*"; tags = 16; } # tag 5: 通讯
-    { appId = "splayer"; tags = 32; } # tag 6: 媒体
-    { appId = "mpv"; tags = 32; } # tag 6: 媒体
-  ];
-  tagRulesStr = lib.concatMapStringsSep "\n"
-    (r: "      riverctl rule-add -app-id '${r.appId}' tags ${toString r.tags}")
-    tagRules;
+  wlogoutIconFiles =
+    lib.genAttrs
+      (map (name: "wlogout/icons/${name}.png") wlogoutIconNames)
+      (path: { source = "${pkgs.wlogout}/share/${path}"; });
 
   # 应用关联常量
   imageMimeTypes = [
@@ -118,13 +37,6 @@ let
   imageApps = [ "org.nomacs.ImageLounge.desktop" "nomacs.desktop" ];
 
   # ===== 启动脚本与包装器 =====
-  riverSessionBootstrap = pkgs.writeShellScript "river-session-bootstrap" ''
-    # 等待输出初始化完成后统一设置缩放，避免字体过小
-    sleep 1
-    for out in $(${pkgs.wlr-randr}/bin/wlr-randr | ${pkgs.gawk}/bin/awk '/^[^[:space:]]/ { print $1 }'); do
-      ${pkgs.wlr-randr}/bin/wlr-randr --output "$out" --scale 1.20 || true
-    done
-  '';
   waylandSession = pkgs.writeScript "wayland-session" ''
     #!/usr/bin/env bash
     hm_vars="/etc/profiles/per-user/${mainUser}/etc/profile.d/hm-session-vars.sh"
@@ -135,32 +47,12 @@ let
 
     # 由 Home Manager 的 wayland.windowManager.hyprland.systemd.enable
     # 统一导入关键环境变量到 systemd user / dbus，避免重复导入。
-    export XDG_CURRENT_DESKTOP=Hyprland
-    export XDG_SESSION_DESKTOP=Hyprland
-    # greetd 启动链路下，systemd user 可能不会自动继承 HM session vars；
-    # 显式导入 IM 变量，保证由 user service 启动的应用可用中文输入法。
-    /run/current-system/sw/bin/systemctl --user import-environment \
-      INPUT_METHOD GTK_IM_MODULE QT_IM_MODULE XMODIFIERS SDL_IM_MODULE \
-      XDG_CURRENT_DESKTOP XDG_SESSION_DESKTOP || true
-    /run/current-system/sw/bin/dbus-update-activation-environment --systemd \
-      INPUT_METHOD GTK_IM_MODULE QT_IM_MODULE XMODIFIERS SDL_IM_MODULE \
-      XDG_CURRENT_DESKTOP XDG_SESSION_DESKTOP || true
-    exec /run/current-system/sw/bin/Hyprland
-  '';
-  dmsSessionBootstrap = pkgs.writeShellScript "dms-session-bootstrap" ''
-    set -eu
 
-    # greetd + user systemd 场景下 XDG_SESSION_ID 可能未注入到 dms.service 环境，
-    # 会导致 logind GetSession("self") 失败并退化禁用 loginctl 集成。
-    if [ -z "''${XDG_SESSION_ID:-}" ]; then
-      uid="$(${pkgs.coreutils}/bin/id -u)"
-      sid="$(${pkgs.systemd}/bin/loginctl show-user "$uid" -p Display --value 2>/dev/null || true)"
-      if [ -n "$sid" ] && [ "$sid" != "n/a" ] && [ "$sid" != "-" ]; then
-        export XDG_SESSION_ID="$sid"
-      fi
+    # 尝试结束旧会话，避免残留服务状态影响新会话
+    if systemctl --user is-active hyprland-session.target >/dev/null 2>&1; then
+      systemctl --user stop hyprland-session.target
     fi
-
-    exec ${profileCmd "dms"} run --session
+    exec /run/current-system/sw/bin/Hyprland
   '';
 
   # 仅在混合显卡（amd-nvidia-hybrid）时安装 GPU 加速相关软件
@@ -176,18 +68,39 @@ let
     lib.optionals (gpuChoice == "amd-nvidia-hybrid" && ollamaVulkan != null) [ ollamaVulkan ]
     ++ lib.optionals (gpuChoice == "amd-nvidia-hybrid" && tensorflowCudaEnv != null) [ tensorflowCudaEnv ]
     ++ lib.optionals (gpuChoice == "amd-nvidia-hybrid" && hashcatPkg != null) [ hashcatPkg ];
-  dgopPackage =
-    if pkgs ? dgop
-    then pkgs.dgop
-    else dgopFlake.packages.${pkgs.stdenv.hostPlatform.system}.default;
 
   # WPS Office steam-run 包装器
   # 修复 NixOS 上 WPS 无法启动的问题（FHS 兼容性）
   # 参考：https://github.com/NixOS/nixpkgs/issues/125951
+  # 额外注入 Qt 缩放变量，配合 Hyprland xwayland.force_zero_scaling 避免“清晰但过小”。
   wpsRunWrapper = bin: lib.hiPrio (pkgs.writeShellScriptBin bin ''
-    exec ${lib.getExe pkgs.steam-run} ${pkgs.wpsoffice}/bin/${bin} "$@"
+    exec env \
+      QT_AUTO_SCREEN_SCALE_FACTOR=0 \
+      QT_ENABLE_HIGHDPI_SCALING=1 \
+      QT_SCALE_FACTOR=${fractionalScale} \
+      QT_SCALE_FACTOR_ROUNDING_POLICY=PassThrough \
+      ${lib.getExe pkgs.steam-run} ${pkgs.wpsoffice}/bin/${bin} "$@"
   '');
   wpsWrappedBins = map wpsRunWrapper [ "wps" "et" "wpp" "wpspdf" ];
+  # WPS 上游 desktop 使用绝对 /nix/store 路径，需改写为命令名以命中包装器。
+  wpsDesktopOverride =
+    desktopFile: bin:
+    pkgs.runCommand "wps-desktop-override-${bin}" { } ''
+      cp ${pkgs.wpsoffice}/share/applications/${desktopFile} "$out"
+      sed -E -i 's|^Exec=.*/bin/${bin}(.*)$|Exec=${bin}\1|' "$out"
+    '';
+  # 统一 Wlogout 调用入口，避免 Waybar/Niri 参数漂移
+  wlogoutMenu = pkgs.writeShellScriptBin "wlogout-menu" ''
+    exec ${pkgs.wlogout}/bin/wlogout \
+      --protocol layer-shell \
+      --no-span \
+      --buttons-per-row 3 \
+      --column-spacing 18 \
+      --row-spacing 18 \
+      -l "${homeDir}/.config/wlogout/layout" \
+      -C "${homeDir}/.config/wlogout/style.css" \
+      "$@"
+  '';
   riverScreenshot = pkgs.writeShellScriptBin "river-screenshot" ''
     set -euo pipefail
     mode="''${1:-full}"
@@ -215,9 +128,9 @@ let
     [ -n "$picked" ] || exit 0
     printf '%s' "$picked" | ${pkgs.cliphist}/bin/cliphist decode | ${pkgs.wl-clipboard}/bin/wl-copy
   '';
-  riverModeCycle = pkgs.writeShellScriptBin "river-mode-cycle" ''
+  hyprlandSubmapCycle = pkgs.writeShellScriptBin "hyprland-submap-cycle" ''
     set -euo pipefail
-    stateFile="${homeDir}/.local/state/river/mode"
+    stateFile="${homeDir}/.local/state/hyprland/submap"
     action="''${1:-toggle}"
     current="normal"
     next="normal"
@@ -239,7 +152,7 @@ let
         next="''${2:-normal}"
         ;;
       *)
-        echo "Usage: river-mode-cycle [toggle|set <normal|float|passthrough>]" >&2
+        echo "Usage: hyprland-submap-cycle [toggle|set <normal|float|passthrough>]" >&2
         exit 1
         ;;
     esac
@@ -251,8 +164,46 @@ let
 
     ${pkgs.coreutils}/bin/mkdir -p "$(${pkgs.coreutils}/bin/dirname "$stateFile")"
     printf '%s\n' "$next" > "$stateFile"
-    exec /run/current-system/sw/bin/riverctl enter-mode "$next"
+    if [ "$next" = "normal" ]; then
+      exec /run/current-system/sw/bin/hyprctl dispatch submap reset
+    fi
+    exec /run/current-system/sw/bin/hyprctl dispatch submap "$next"
   '';
+  hyprlandConfig =
+    builtins.replaceStrings
+      [
+        "@HOME_DIR@"
+        "@PROFILE_BIN@"
+        "@PLAYERCTL_BIN@"
+        "@RIVER_SCREENSHOT_BIN@"
+      ]
+      [
+        homeDir
+        userProfileBin
+        "${pkgs.playerctl}/bin/playerctl"
+        "${riverScreenshot}/bin/river-screenshot"
+      ]
+      (builtins.readFile ./configs/hypr/hyprland.conf);
+  hypridleConfig =
+    builtins.replaceStrings
+      [
+        "@PROFILE_BIN@"
+      ]
+      [
+        userProfileBin
+      ]
+      (builtins.readFile ./configs/hypr/hypridle.conf);
+  waybarConfig =
+    builtins.replaceStrings
+      [
+        "@USER_BIN@"
+        "@SYSTEM_BIN@"
+      ]
+      [
+        userProfileBin
+        "/run/current-system/sw/bin"
+      ]
+      (builtins.readFile ./configs/waybar/config.jsonc);
   waybarClockCalendar = pkgs.writeShellScriptBin "waybar-clock-calendar" ''
     set -euo pipefail
     calBin="/run/current-system/sw/bin/cal"
@@ -267,6 +218,7 @@ let
   '';
   waybarTemperatureStatus = pkgs.writeShellScriptBin "waybar-temperature-status" ''
     set -euo pipefail
+    headBin="${pkgs.coreutils}/bin/head"
 
     pick_temp_input() {
       local preferred="" hwmon="" input="" name=""
@@ -274,7 +226,7 @@ let
         for hwmon in /sys/class/hwmon/hwmon*; do
           [ -d "$hwmon" ] || continue
           [ -r "$hwmon/name" ] || continue
-          name="$("${headBin}" -n 1 "$hwmon/name" 2>/dev/null || true)"
+          name="$("$headBin" -n 1 "$hwmon/name" 2>/dev/null || true)"
           [ "$name" = "$preferred" ] || continue
           for input in "$hwmon"/temp*_input; do
             [ -r "$input" ] || continue
@@ -295,7 +247,7 @@ let
     inputFile="$(pick_temp_input || true)"
     [ -n "$inputFile" ] || exit 1
 
-    raw="$("${headBin}" -n 1 "$inputFile" 2>/dev/null || true)"
+    raw="$("$headBin" -n 1 "$inputFile" 2>/dev/null || true)"
     [[ "$raw" =~ ^[0-9]+$ ]] || exit 1
 
     tempC=$((raw / 1000))
@@ -312,22 +264,125 @@ let
     printf '{"text":"%s %s°C","class":"%s","tooltip":"Temperature: %s°C\\nSensor: %s"}\n' \
       "$icon" "$tempC" "$class" "$tempC" "''${inputFile%/*}"
   '';
-  wifiRadioStatus = pkgs.writeShellScriptBin "wifi-radio-status" ''
+  waybarBacklightStatus = pkgs.writeShellScriptBin "waybar-backlight-status" ''
     set -euo pipefail
-    nmcli="${nmcliBin}"
-    wifiState="$("$nmcli" -g WIFI general status 2>/dev/null || true)"
-    wifiState="''${wifiState%%$'\n'*}"
-    wifiState="''${wifiState,,}"
+    headBin="${pkgs.coreutils}/bin/head"
 
-    case "$wifiState" in
-      enabled) printf '󰖩\n' ;;
-      disabled) printf '󰖪\n' ;;
-      *) printf '󰖭\n' ;;
-    esac
+    pick_backlight_dir() {
+      local dir=""
+      for dir in /sys/class/backlight/*; do
+        [ -d "$dir" ] || continue
+        [ -r "$dir/brightness" ] || continue
+        [ -r "$dir/max_brightness" ] || continue
+        printf '%s\n' "$dir"
+        return 0
+      done
+      return 1
+    }
+
+    backlightDir="$(pick_backlight_dir || true)"
+    [ -n "$backlightDir" ] || exit 1
+
+    current="$("$headBin" -n 1 "$backlightDir/brightness" 2>/dev/null || true)"
+    maximum="$("$headBin" -n 1 "$backlightDir/max_brightness" 2>/dev/null || true)"
+    [[ "$current" =~ ^[0-9]+$ ]] || exit 1
+    [[ "$maximum" =~ ^[0-9]+$ ]] || exit 1
+    [ "$maximum" -gt 0 ] || exit 1
+
+    percent=$((current * 100 / maximum))
+    icon="󰃟"
+    if [ "$percent" -lt 34 ]; then
+      icon="󰃞"
+    elif [ "$percent" -ge 67 ]; then
+      icon="󰃠"
+    fi
+
+    printf '{"text":"%s %s%%","class":"normal","tooltip":"Backlight: %s%%"}\n' "$icon" "$percent" "$percent"
+  '';
+  waybarBatteryStatus = pkgs.writeShellScriptBin "waybar-battery-status" ''
+    set -euo pipefail
+    headBin="${pkgs.coreutils}/bin/head"
+
+    pick_battery_dir() {
+      local dir=""
+      for dir in /sys/class/power_supply/BAT*; do
+        [ -d "$dir" ] || continue
+        [ -r "$dir/capacity" ] || continue
+        printf '%s\n' "$dir"
+        return 0
+      done
+      return 1
+    }
+
+    batteryDir="$(pick_battery_dir || true)"
+    [ -n "$batteryDir" ] || exit 1
+
+    capacity="$("$headBin" -n 1 "$batteryDir/capacity" 2>/dev/null || true)"
+    status="$("$headBin" -n 1 "$batteryDir/status" 2>/dev/null || true)"
+    [[ "$capacity" =~ ^[0-9]+$ ]] || exit 1
+    [ -n "$status" ] || status="Unknown"
+
+    class="normal"
+    icon=""
+    if [ "$status" = "Charging" ] || [ "$status" = "Full" ]; then
+      class="charging"
+      icon=""
+    else
+      if [ "$capacity" -le 10 ]; then
+        class="critical"
+      elif [ "$capacity" -le 20 ]; then
+        class="warning"
+      fi
+
+      if [ "$capacity" -lt 25 ]; then
+        icon=""
+      elif [ "$capacity" -lt 50 ]; then
+        icon=""
+      elif [ "$capacity" -lt 75 ]; then
+        icon=""
+      elif [ "$capacity" -lt 95 ]; then
+        icon=""
+      else
+        icon=""
+      fi
+    fi
+
+    printf '{"text":"%s %s%%","class":"%s","tooltip":"Battery: %s%%\\nStatus: %s"}\n' \
+      "$icon" "$capacity" "$class" "$capacity" "$status"
+  '';
+  waybarLauncher = pkgs.writeShellScript "waybar-launcher" ''
+    set -euo pipefail
+    runtimeDir="''${XDG_RUNTIME_DIR:-/run/user/$(${pkgs.coreutils}/bin/id -u)}"
+    waybarBin="${pkgs.waybar}/bin/waybar"
+    basenameBin="${pkgs.coreutils}/bin/basename"
+    dirnameBin="${pkgs.coreutils}/bin/dirname"
+    sleepBin="${pkgs.coreutils}/bin/sleep"
+    seqBin="${pkgs.coreutils}/bin/seq"
+
+    launch_if_ready() {
+      if [ -n "''${HYPRLAND_INSTANCE_SIGNATURE:-}" ] && [ -S "$runtimeDir/hypr/$HYPRLAND_INSTANCE_SIGNATURE/.socket2.sock" ]; then
+        exec "$waybarBin"
+      fi
+
+      for socket in "$runtimeDir"/hypr/*/.socket2.sock; do
+        [ -S "$socket" ] || continue
+        export HYPRLAND_INSTANCE_SIGNATURE="$("$basenameBin" "$("$dirnameBin" "$socket")")"
+        exec "$waybarBin"
+      done
+
+      return 1
+    }
+
+    for _ in $("$seqBin" 1 100); do
+      launch_if_ready || true
+      "$sleepBin" 0.1
+    done
+
+    exit 1
   '';
   wifiToggleRadio = pkgs.writeShellScriptBin "wifi-toggle-radio" ''
     set -euo pipefail
-    nmcli="${nmcliBin}"
+    nmcli="/run/current-system/sw/bin/nmcli"
     wifiState="$("$nmcli" -g WIFI general status 2>/dev/null || true)"
     wifiState="''${wifiState%%$'\n'*}"
     wifiState="''${wifiState,,}"
@@ -337,9 +392,83 @@ let
       *) exec "$nmcli" radio wifi on ;;
     esac
   '';
+  waybarWifiManagerStatus = pkgs.writeShellScriptBin "waybar-wifi-manager-status" ''
+        set -euo pipefail
+        nmcli="/run/current-system/sw/bin/nmcli"
+        sedBin="/run/current-system/sw/bin/sed"
+
+        escape_json() {
+          "$sedBin" -e 's/\\/\\\\/g' -e 's/"/\\"/g' -e ':a;N;$!ba;s/\n/\\n/g'
+        }
+
+        wifiState="$("$nmcli" -g WIFI general status 2>/dev/null || true)"
+        wifiState="''${wifiState%%$'\n'*}"
+        wifiState="''${wifiState,,}"
+        [ -n "$wifiState" ] || wifiState="unknown"
+
+        currentPayload=""
+        while IFS= read -r line; do
+          case "$line" in
+            yes:*)
+              currentPayload="''${line#yes:}"
+              break
+              ;;
+          esac
+        done < <("$nmcli" -t -f ACTIVE,SSID,SIGNAL dev wifi 2>/dev/null || true)
+
+        connected="false"
+        currentSsid="Not connected"
+        currentSignal="-"
+        if [ -n "$currentPayload" ]; then
+          currentSignal="''${currentPayload##*:}"
+          currentSsidEscaped="''${currentPayload%:*}"
+          if [ "$currentSignal" = "$currentPayload" ]; then
+            currentSignal="?"
+            currentSsidEscaped="$currentPayload"
+          fi
+          currentSsid="''${currentSsidEscaped//\\:/:}"
+          [ -n "$currentSsid" ] || currentSsid="<hidden>"
+          [ -n "$currentSignal" ] || currentSignal="?"
+          currentSignal="''${currentSignal}%"
+          connected="true"
+        fi
+
+        icon="󰖪"
+        cssClass="disabled"
+        statusLabel="disabled"
+        case "$wifiState" in
+          enabled)
+            icon="󰖩"
+            cssClass="enabled"
+            statusLabel="enabled"
+            if [ "$connected" = "true" ]; then
+              cssClass="connected"
+              statusLabel="connected"
+            fi
+            ;;
+          enabling|disabling|disabled|unavailable)
+            cssClass="$wifiState"
+            statusLabel="$wifiState"
+            ;;
+          *)
+            cssClass="unknown"
+            statusLabel="$wifiState"
+            ;;
+        esac
+
+        tooltip="WiFi: $statusLabel
+    Current SSID: $currentSsid
+    Signal: $currentSignal
+
+    Left: Quick menu | Middle: Toggle radio | Right: Connections GUI"
+        tooltipEscaped="$(printf '%s' "$tooltip" | escape_json)"
+        textEscaped="$(printf '%s' "$icon" | escape_json)"
+
+        printf '{"text":"%s","tooltip":"%s","class":"%s"}\n' "$textEscaped" "$tooltipEscaped" "$cssClass"
+  '';
   wifiQuickMenu = pkgs.writeShellScriptBin "wifi-quick-menu" ''
     set -euo pipefail
-    nmcli="${nmcliBin}"
+    nmcli="/run/current-system/sw/bin/nmcli"
     fuzzel="${pkgs.fuzzel}/bin/fuzzel"
 
     open_wifi_gui() {
@@ -433,7 +562,7 @@ let
   '';
   bluetoothQuickMenu = pkgs.writeShellScriptBin "bluetooth-quick-menu" ''
     set -euo pipefail
-    btctl="${btctlBin}"
+    btctl="/run/current-system/sw/bin/bluetoothctl"
     fuzzel="${pkgs.fuzzel}/bin/fuzzel"
 
     open_bluetooth_gui() {
@@ -527,22 +656,25 @@ let
     wgetBin="${pkgs.wget}/bin/wget"
     trBin="/run/current-system/sw/bin/tr"
     sedBin="/run/current-system/sw/bin/sed"
+    mkdirBin="${pkgs.coreutils}/bin/mkdir"
+    headBin="${pkgs.coreutils}/bin/head"
+    dateBin="${pkgs.coreutils}/bin/date"
     cacheDir="${homeDir}/.cache/waybar"
     cacheFile="$cacheDir/public-ip"
-    now="$("${dateBin}" +%s)"
+    now="$("$dateBin" +%s)"
     ip=""
     sourceLabel=""
 
     fetch_plain_ip() {
       local url="$1"
-      "$wgetBin" -q --tries=1 -T 3 -O- "$url" 2>/dev/null | "${headBin}" -n 1 | "$trBin" -d '\r\n[:space:]' || true
+      "$wgetBin" -q --tries=1 -T 3 -O- "$url" 2>/dev/null | "$headBin" -n 1 | "$trBin" -d '\r\n[:space:]' || true
     }
 
     fetch_trace_ip() {
       local url="$1"
       "$wgetBin" -q --tries=1 -T 3 -O- "$url" 2>/dev/null \
         | "$sedBin" -n 's/^ip=//p' \
-        | "${headBin}" -n 1 \
+        | "$headBin" -n 1 \
         | "$trBin" -d '\r\n[:space:]' || true
     }
 
@@ -574,7 +706,7 @@ let
     for entry in \
       "https://api.ipify.org|ipify|plain" \
       "https://ifconfig.me/ip|ifconfig.me|plain" \
-      "https://1.1.1.1/cdn-cgi/trace|cloudflare-trace|trace"; do
+      "http://1.1.1.1/cdn-cgi/trace|cloudflare-trace|trace"; do
       url="''${entry%%|*}"
       rest="''${entry#*|}"
       label="''${rest%%|*}"
@@ -594,14 +726,14 @@ let
     done
 
     if [ -n "$ip" ]; then
-      "${mkdirBin}" -p "$cacheDir"
+      "$mkdirBin" -p "$cacheDir"
       printf '%s|%s|%s\n' "$now" "$ip" "$sourceLabel" > "$cacheFile"
       printf '{"text":"󰩠 %s","tooltip":"Public IP: %s\\nSource: %s\\nLeft: Quick menu\\nRight: nmtui","class":"online"}\n' "$ip" "$ip" "$sourceLabel"
       exit 0
     fi
 
     if [ -r "$cacheFile" ]; then
-      cachedLine="$("${headBin}" -n 1 "$cacheFile" || true)"
+      cachedLine="$("$headBin" -n 1 "$cacheFile" || true)"
       cachedTs="''${cachedLine%%|*}"
       cachedRest="''${cachedLine#*|}"
       cachedIp="''${cachedRest%%|*}"
@@ -621,30 +753,25 @@ let
       fi
     fi
 
-    printf '{"text":"󰪎 offline","tooltip":"Public IP unavailable\\nLeft: Quick menu\\nRight: nmtui","class":"offline"}\n'
+    printf '{"text":"IP N/A","tooltip":"Public IP unavailable\\nLeft: Quick menu\\nRight: nmtui","class":"offline"}\n'
   '';
   swaybgLauncher = pkgs.writeShellScript "swaybg-launcher" ''
     set -euo pipefail
     wallpaperDir="${homeDir}/.config/wallpapers"
-    fallbackColor="#1e1e2e"
+    wallpaper="$wallpaperDir/1.png"
 
-    randomWallpaper=""
-    if [ -d "$wallpaperDir" ]; then
-      randomWallpaper="$(
-        ${pkgs.findutils}/bin/find "$wallpaperDir" -maxdepth 1 \
-          \( -type f -o -type l \) \
-          \( -iname '*.png' -o -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.webp' -o -iname '*.bmp' -o -iname '*.gif' \) \
-        | ${pkgs.coreutils}/bin/shuf \
-        | ${pkgs.coreutils}/bin/head -n 1
-      )"
+    randomWallpaper="$(
+      ${pkgs.findutils}/bin/find "$wallpaperDir" -maxdepth 1 \
+        \( -type f -o -type l \) \
+        \( -iname '*.png' -o -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.webp' -o -iname '*.bmp' -o -iname '*.gif' \) \
+      | ${pkgs.coreutils}/bin/shuf \
+      | ${pkgs.coreutils}/bin/head -n 1
+    )"
+    if [ -n "$randomWallpaper" ]; then
+      wallpaper="$randomWallpaper"
     fi
 
-    if [ -n "$randomWallpaper" ] && [ -r "$randomWallpaper" ]; then
-      exec ${pkgs.swaybg}/bin/swaybg -i "$randomWallpaper" -m fill
-    fi
-
-    printf '%s\n' "swaybg-launcher: no readable wallpapers in $wallpaperDir, using solid color fallback" >&2
-    exec ${pkgs.swaybg}/bin/swaybg -c "$fallbackColor" -m solid_color
+    exec ${pkgs.swaybg}/bin/swaybg -i "$wallpaper" -m fill
   '';
   swayncSettings = {
     "$schema" = "/etc/xdg/swaync/configSchema.json";
@@ -698,13 +825,6 @@ let
       mpris = {
         "image-size" = 80;
         "image-radius" = 8;
-        # playerctld 在空元数据时会触发 swaync 0.12.3 的 MPRIS 断言噪音
-        # 保留 mpris 小组件，但忽略聚合器并在无元数据时自动隐藏
-        autohide = true;
-        blacklist = [
-          "org.mpris.MediaPlayer2.playerctld"
-          "playerctld"
-        ];
       };
       notifications = { };
     };
@@ -781,10 +901,6 @@ let
   '';
 in
 {
-  imports = [
-    dms.homeModules.dank-material-shell
-  ];
-
   home = {
     username = mainUser;
     homeDirectory = "/home/${mainUser}";
@@ -793,11 +909,10 @@ in
     # 会话变量（普通 Linux 方案：用户级全局安装目录）
     sessionVariables = {
       # Wayland 支持
-      # 关闭 NIXOS_OZONE_WL，避免 VSCode 启动时注入已弃用的 Electron 参数告警
+      # 在分数缩放（如 1.25）下，优先让 Chromium/Electron 应用走原生 Wayland，
+      # 避免落到 XWayland 后出现字体发虚。
+      NIXOS_OZONE_WL = "1";
       QT_QPA_PLATFORMTHEME = "qt6ct";
-      # 明确指定 cursor theme，修复 GTK 组件在 Wayland 会话下找不到 arrow/hand2
-      XCURSOR_THEME = "Adwaita";
-      XCURSOR_SIZE = "24";
       # 输入法环境变量（Wayland 会话下显式声明，避免 Fcitx5 未接管）
       INPUT_METHOD = "fcitx";
       GTK_IM_MODULE = "fcitx";
@@ -905,8 +1020,7 @@ in
       git-lfs # Git 大文件支持
 
       # === 图形界面应用 ===
-      # 在 Hyprland 会话中显式使用 libsecret 后端，避免凭据存储后端选择不稳定导致重复口令提示
-      (google-chrome.override { commandLineArgs = "--password-store=gnome-libsecret"; })
+      google-chrome
       vscode
       remmina
       virt-viewer
@@ -917,16 +1031,16 @@ in
       file-roller # GNOME 压缩管理器（Nautilus 集成必需）
       ghostty
       foot # 轻量 Wayland 终端（备用）
-      adwaita-icon-theme # 提供 Adwaita cursor 资源（GTK/Quickshell 共用）
       papirus-icon-theme # dconf/qt6ct 使用 Papirus 图标主题
       cherry-studio # 多 LLM 提供商桌面客户端
 
       # === Wayland 工具 ===
       satty
+      hypridle # Hyprland 空闲管理（锁屏/熄屏/休眠）
+      hyprlock # Hyprland 锁屏
       grim
       slurp
       wl-screenrec
-      wlr-randr # Wayland 输出设置（备用）
 
       # === 基础图形工具 ===
       zathura
@@ -943,12 +1057,20 @@ in
       lrzip
       lzop
 
-      # === Hyprland / DMS 生态 ===
+      # === 桌面工作流 ===
+      fuzzel
+      waybar
+      wlogout
       gnome-calculator
+      swaybg # 备用壁纸工具（手动/脚本场景可用）
 
       # === Wayland 基础设施 ===
+      cliphist
+      wl-clipboard
       qt6Packages.qt6ct
       app2unit
+      polkit_gnome # Polkit 认证代理（权限提升对话框，virt-manager/Nautilus 等需要）
+      networkmanagerapplet # nm-connection-editor（WiFi GUI 管理入口）
 
       # === 游戏工具 ===
       mangohud
@@ -959,6 +1081,7 @@ in
       protonplus
 
       # 媒体 / 图形
+      pavucontrol
       pulsemixer
       splayer # 网易云音乐播放器（支持本地音乐、流媒体、逐字歌词）
       imv
@@ -985,7 +1108,15 @@ in
     ]
     ++ hybridPackages
     ++ [
-      wifiRadioStatus
+      wlogoutMenu
+      riverScreenshot
+      riverCliphistMenu
+      hyprlandSubmapCycle
+      waybarClockCalendar
+      waybarTemperatureStatus
+      waybarBacklightStatus
+      waybarBatteryStatus
+      waybarWifiManagerStatus
       wifiToggleRadio
       wifiQuickMenu
       bluetoothQuickMenu
@@ -1011,6 +1142,16 @@ in
       ".yarnrc".text = ''
         prefix "${homeDir}/.local"
       '';
+      ".local/share/applications/wps-office-wps.desktop".source =
+        wpsDesktopOverride "wps-office-wps.desktop" "wps";
+      ".local/share/applications/wps-office-et.desktop".source =
+        wpsDesktopOverride "wps-office-et.desktop" "et";
+      ".local/share/applications/wps-office-wpp.desktop".source =
+        wpsDesktopOverride "wps-office-wpp.desktop" "wpp";
+      ".local/share/applications/wps-office-pdf.desktop".source =
+        wpsDesktopOverride "wps-office-pdf.desktop" "wpspdf";
+      ".local/share/applications/wps-office-prometheus.desktop".source =
+        wpsDesktopOverride "wps-office-prometheus.desktop" "wps";
     };
   };
 
@@ -1069,273 +1210,177 @@ in
 
   };
 
-  programs.dank-material-shell = {
-    enable = true;
-    systemd.enable = true;
-    # 显式指定 dgop，确保 CPU/内存等系统监控小组件可用
-    enableSystemMonitoring = true;
-    dgop.package = dgopPackage;
-    enableVPN = false; # 避免与 system packages 的 networkmanager 重叠
-    # settings.json 由 activation 阶段写入可写文件，避免 HM 只读文件触发 DMS 写入告警
-  };
-
   wayland.windowManager.hyprland = {
     enable = true;
     package = null; # 由 NixOS 的 programs.hyprland 安装
-    portalPackage = null;
+    xwayland.enable = true;
     systemd.enable = true;
-    extraConfig = ''
-      monitor = , preferred, auto, 1.25
-
-      # 分数缩放下让 XWayland 应用走原生 1x 渲染，减少字体发虚
-      xwayland {
-        force_zero_scaling = true
-      }
-      # XWayland 启用 1x 渲染后，通过 Xft.dpi 补回 UI 缩放，兼顾清晰度与可读性。
-      exec-once = ${pkgs.bash}/bin/bash -lc 'for i in $(seq 1 20); do ${pkgs.xorg.xrdb}/bin/xrdb -merge "${homeDir}/.Xresources" && break; sleep 0.2; done'
-
-      input {
-        kb_layout = us
-        repeat_rate = 50
-        repeat_delay = 300
-        follow_mouse = 0
-      }
-
-      general {
-        gaps_in = 6
-        gaps_out = 2
-        border_size = 2
-        layout = dwindle
-        col.active_border = rgba(89b4faff)
-        col.inactive_border = rgba(313244ff)
-      }
-
-      decoration {
-        rounding = 8
-      }
-
-      animations {
-        enabled = true
-        animation = windows, 1, 3, default
-        animation = workspaces, 1, 4, default
-      }
-
-      misc {
-        disable_hyprland_logo = true
-        disable_splash_rendering = true
-      }
-
-      windowrulev2 = float,class:^(gnome-calculator)$
-      windowrulev2 = float,class:^(blueman-manager)$
-      windowrulev2 = float,class:^(nm-connection-editor)$
-      windowrulev2 = float,class:^(imv)$
-      windowrulev2 = float,class:^(nomacs)$
-
-      # DMS 动态生成的 Hyprland 配置（主题/输出/布局）
-      source = ~/.config/hypr/dms/colors.conf
-      source = ~/.config/hypr/dms/outputs.conf
-      source = ~/.config/hypr/dms/layout.conf
-      source = ~/.config/hypr/dms/cursor.conf
-      source = ~/.config/hypr/dms/windowrules.conf
-      # 固定当前主显示器缩放，避免被旧的 dms/outputs.conf 缩放值覆盖
-      monitor = DP-2, preferred, auto, 1.25
-
-      # 应用与 DMS 快捷操作
-      bind = SUPER, Return, exec, ${profileCmd "ghostty"}
-      bind = SUPER, Space, exec, dms ipc call spotlight toggle
-      bind = SUPER, B, exec, ${profileCmd "nautilus"}
-      bind = SUPER, C, exec, dms ipc call clipboard toggle
-      bind = SUPER CTRL, M, exec, dms ipc call processlist focusOrToggle
-      bind = SUPER SHIFT, comma, exec, dms ipc call settings focusOrToggle
-      bind = SUPER SHIFT, Y, exec, dms ipc call dankdash wallpaper
-      bind = SUPER, X, exec, dms ipc call lock lock
-      bind = SUPER SHIFT, X, exec, dms ipc call powermenu toggle
-      bind = SUPER CTRL, N, exec, dms ipc call notifications toggle
-      bind = SUPER SHIFT, N, exec, dms ipc call notepad toggle
-      bind = SUPER, TAB, exec, dms ipc call hypr toggleOverview
-      bind = SUPER SHIFT, Slash, exec, dms ipc call keybinds toggle hyprland
-
-      # 窗口管理
-      bind = SUPER, Q, killactive
-      bind = SUPER SHIFT, E, exit
-      bind = SUPER, Z, fullscreen, 1
-      bind = SUPER SHIFT, Z, fullscreen, 0
-      bind = SUPER, V, togglefloating
-      bind = SUPER, G, togglegroup
-      bind = SUPER, H, movewindow, l
-      bind = SUPER, J, movewindow, d
-      bind = SUPER, K, movewindow, u
-      bind = SUPER, L, movewindow, r
-      bind = SUPER, Home, focuswindow, first
-      bind = SUPER, End, focuswindow, last
-      bind = SUPER, A, exec, dms screenshot
-      bind = SUPER, M, movewindow, mon:l
-      bind = SUPER, N, movewindow, mon:r
-      bind = SUPER SHIFT, H, movewindow, l
-      bind = SUPER SHIFT, J, movewindow, d
-      bind = SUPER SHIFT, K, movewindow, u
-      bind = SUPER SHIFT, L, movewindow, r
-      bind = SUPER, Left, movefocus, l
-      bind = SUPER, Down, movefocus, d
-      bind = SUPER, Up, movefocus, u
-      bind = SUPER, Right, movefocus, r
-      bind = SUPER ALT, H, swapwindow, l
-      bind = SUPER ALT, J, swapwindow, d
-      bind = SUPER ALT, K, swapwindow, u
-      bind = SUPER ALT, L, swapwindow, r
-      bind = SUPER ALT, Left, swapwindow, l
-      bind = SUPER ALT, Down, swapwindow, d
-      bind = SUPER ALT, Up, swapwindow, u
-      bind = SUPER ALT, Right, swapwindow, r
-      bind = SUPER, bracketleft, swapnext, prev
-      bind = SUPER, bracketright, swapnext
-      bind = SUPER CTRL, left, focusmonitor, l
-      bind = SUPER CTRL, right, focusmonitor, r
-      bind = SUPER CTRL, H, focusmonitor, l
-      bind = SUPER CTRL, J, focusmonitor, d
-      bind = SUPER CTRL, K, focusmonitor, u
-      bind = SUPER CTRL, L, focusmonitor, r
-      bind = SUPER SHIFT CTRL, left, movewindow, mon:l
-      bind = SUPER SHIFT CTRL, down, movewindow, mon:d
-      bind = SUPER SHIFT CTRL, up, movewindow, mon:u
-      bind = SUPER SHIFT CTRL, right, movewindow, mon:r
-      bind = SUPER SHIFT CTRL, H, movewindow, mon:l
-      bind = SUPER SHIFT CTRL, J, movewindow, mon:d
-      bind = SUPER SHIFT CTRL, K, movewindow, mon:u
-      bind = SUPER SHIFT CTRL, L, movewindow, mon:r
-      bind = SUPER SHIFT, bracketleft, layoutmsg, preselect l
-      bind = SUPER SHIFT, bracketright, layoutmsg, preselect r
-      bind = SUPER, R, layoutmsg, togglesplit
-      bind = SUPER CTRL, F, resizeactive, exact 100%
-      binde = SUPER, minus, resizeactive, -10% 0
-      binde = SUPER, equal, resizeactive, 10% 0
-      binde = SUPER, semicolon, resizeactive, 0 -10%
-      binde = SUPER, apostrophe, resizeactive, 0 10%
-
-      # 工作区
-      bind = SUPER, comma, workspace, e+1
-      bind = SUPER, period, workspace, e-1
-      bind = CTRL SHIFT, R, exec, dms ipc call workspace-rename open
-      bind = SUPER, 1, workspace, 1
-      bind = SUPER, 2, workspace, 2
-      bind = SUPER, 3, workspace, 3
-      bind = SUPER, 4, workspace, 4
-      bind = SUPER, 5, workspace, 5
-      bind = SUPER, 6, workspace, 6
-      bind = SUPER, 7, workspace, 7
-      bind = SUPER, 8, workspace, 8
-      bind = SUPER, 9, workspace, 9
-      bind = SUPER ALT, grave, togglespecialworkspace, magic
-      bind = SUPER SHIFT, grave, movetoworkspacesilent, special:magic
-      bind = SUPER, O, movetoworkspace, e+1
-      bind = SUPER, P, movetoworkspace, e-1
-      bind = SUPER, U, movetoworkspacesilent, e+1
-      bind = SUPER, I, movetoworkspacesilent, e-1
-      bind = SUPER SHIFT, 1, movetoworkspace, 1
-      bind = SUPER SHIFT, 2, movetoworkspace, 2
-      bind = SUPER SHIFT, 3, movetoworkspace, 3
-      bind = SUPER SHIFT, 4, movetoworkspace, 4
-      bind = SUPER SHIFT, 5, movetoworkspace, 5
-      bind = SUPER SHIFT, 6, movetoworkspace, 6
-      bind = SUPER SHIFT, 7, movetoworkspace, 7
-      bind = SUPER SHIFT, 8, movetoworkspace, 8
-      bind = SUPER SHIFT, 9, movetoworkspace, 9
-      # MOD + 滚轮缩放活动窗口（Hyprland 官方支持 mouse_up/mouse_down）
-      bind = SUPER, mouse_up, resizeactive, 40 40
-      bind = SUPER, mouse_down, resizeactive, -40 -40
-
-      # 媒体与亮度（DMS IPC）
-      bindel = , XF86AudioRaiseVolume, exec, dms ipc call audio increment 3
-      bindel = , XF86AudioLowerVolume, exec, dms ipc call audio decrement 3
-      bindl = , XF86AudioMute, exec, dms ipc call audio mute
-      bindl = , XF86AudioMicMute, exec, dms ipc call audio micmute
-      bindl = , XF86AudioPause, exec, dms ipc call mpris playPause
-      bindl = , XF86AudioPlay, exec, dms ipc call mpris playPause
-      bindl = , XF86AudioPrev, exec, dms ipc call mpris previous
-      bindl = , XF86AudioNext, exec, dms ipc call mpris next
-      bindel = CTRL, XF86AudioRaiseVolume, exec, dms ipc call mpris increment 3
-      bindel = CTRL, XF86AudioLowerVolume, exec, dms ipc call mpris decrement 3
-      bindel = , XF86MonBrightnessUp, exec, dms ipc call brightness increment 5
-      bindel = , XF86MonBrightnessDown, exec, dms ipc call brightness decrement 5
-
-      # 截图（Print 系列保留）
-      bind = , Print, exec, dms screenshot
-      bind = CTRL, Print, exec, dms screenshot full
-      bind = ALT, Print, exec, dms screenshot window
-
-      # 系统
-      bind = SUPER SHIFT, P, dpms, toggle
-
-      # 鼠标拖拽
-      bindm = SUPER, mouse:272, movewindow
-      bindm = SUPER, mouse:273, resizewindow
-    '';
+    extraConfig = hyprlandConfig;
   };
 
   services = {
-    swaync = {
-      enable = true;
-      settings = swayncSettings;
-      style = swayncStyle;
-    };
-
-    # DMS 已可直接使用 MPRIS；关闭 playerctld 避免无活动播放器时的重复告警
-    playerctld.enable = false;
+    playerctld.enable = true;
 
     # USB 设备自动挂载服务
     udiskie = {
       enable = true;
       automount = true;
       notify = true;
-      tray = "never"; # Wayland 会话使用 DMS 托盘
+      tray = "never"; # Wayland 会话使用 Waybar 托盘模块
+    };
+
+    swaync = {
+      enable = true;
+      settings = swayncSettings;
+      style = swayncStyle;
     };
   };
 
   systemd = {
-    user.services = {
-      # 压制 Quickshell 非关键噪音日志（不影响功能）
-      dms.Service = {
-        ExecStart = lib.mkForce "${dmsSessionBootstrap}";
-        Environment = [
-          "QT_LOGGING_RULES=quickshell.I3.ipc.warning=false;qt.core.qfuture.continuations.warning=false;quickshell.service.sni.watcher.warning=false;qt.qpa.services.warning=false;qt.qpa.wayland.textinput.warning=false"
-        ];
-      };
-
-      # 在 greetd + Hyprland 会话中显式拉起输入法，避免仅依赖 XDG autostart 导致未启动
-      fcitx5 = mkGraphicalService {
-        description = "Fcitx5 input method daemon";
-        # Use the system wrapper from i18n.inputMethod so selected addons
-        # (e.g. fcitx5-chinese-addons) are available at runtime.
-        execStart = "/run/current-system/sw/bin/fcitx5 --replace";
-        restartSec = 1;
-      };
-
-      provider-app-vpn-ui = mkGraphicalService {
-        description = "Provider app VPN GUI";
-        execStart = "${pkgs.provider-app-vpn}/bin/provider-app-vpn";
-        unitExtra = {
-          Wants = [ "dms.service" ];
-          After = [ "graphical-session.target" "dms.service" ];
+    user.services =
+      {
+        # Polkit 认证代理（图形会话自启）
+        # 无此服务时，需要权限提升的操作（virt-manager、Nautilus 挂载等）会静默失败
+        polkit-gnome-authentication-agent-1 = {
+          Unit = {
+            Description = "polkit-gnome-authentication-agent-1";
+            After = [ "graphical-session.target" ];
+          };
+          Install.WantedBy = [ "graphical-session.target" ];
+          Service = {
+            Type = "simple";
+            ExecStart = "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1";
+            Restart = "on-failure";
+            RestartSec = 1;
+            TimeoutStopSec = 10;
+          };
         };
-        environment = [
-          # Provider app wrapper 仅注入 coreutils/grep PATH；补齐 gsettings 与图形库搜索路径
-          "PATH=${pkgs.glib}/bin:/run/current-system/sw/bin:${userProfileBin}"
-          "LD_LIBRARY_PATH=${pkgs.libglvnd}/lib:/run/opengl-driver/lib:/run/opengl-driver-32/lib:/run/current-system/sw/lib"
-          "LIBGL_DRIVERS_PATH=/run/opengl-driver/lib/dri"
-          "GSETTINGS_SCHEMA_DIR=${pkgs.gsettings-desktop-schemas}/share/gsettings-schemas/${pkgs.gsettings-desktop-schemas.name}/glib-2.0/schemas"
-        ];
+
+        # Clipboard history
+        cliphist-daemon = {
+          Unit = {
+            Description = "cliphist clipboard history daemon";
+            After = [ "graphical-session.target" ];
+            PartOf = [ "graphical-session.target" ];
+          };
+          Install.WantedBy = [ "graphical-session.target" ];
+          Service = {
+            Type = "simple";
+            ExecStart = "${pkgs.wl-clipboard}/bin/wl-paste --watch ${pkgs.cliphist}/bin/cliphist store";
+            Restart = "always";
+            RestartSec = 2;
+          };
+        };
+
+        hypridle = {
+          Unit = {
+            Description = "Hypridle idle daemon";
+            After = [ "hyprland-session.target" ];
+            PartOf = [ "hyprland-session.target" ];
+          };
+          Install.WantedBy = [ "hyprland-session.target" ];
+          Service = {
+            Type = "simple";
+            ExecStart = "${pkgs.hypridle}/bin/hypridle";
+            Restart = "on-failure";
+            RestartSec = 2;
+          };
+        };
+
+        waybar = {
+          Unit = {
+            Description = "Waybar status bar";
+            After = [ "hyprland-session.target" ];
+            PartOf = [ "hyprland-session.target" ];
+          };
+          Install.WantedBy = [ "hyprland-session.target" ];
+          Service = {
+            Type = "simple";
+            Environment = [
+              "LANG=zh_CN.UTF-8"
+              "LC_ALL=zh_CN.UTF-8"
+              "LC_TIME=zh_CN.UTF-8"
+            ];
+            ExecStart = "${waybarLauncher}";
+            Restart = "always";
+            RestartSec = 2;
+          };
+        };
+
+        swaybg = {
+          Unit = {
+            Description = "Wallpaper daemon (swaybg)";
+            After = [ "graphical-session.target" ];
+            PartOf = [ "graphical-session.target" ];
+          };
+          Install.WantedBy = [ "graphical-session.target" ];
+          Service = {
+            Type = "simple";
+            ExecStart = "${swaybgLauncher}";
+            Restart = "on-failure";
+            RestartSec = 2;
+          };
+        };
+
+        # 在 greetd + Hyprland 会话中显式拉起输入法，避免仅依赖 XDG autostart 导致未启动
+        fcitx5 = {
+          Unit = {
+            Description = "Fcitx5 input method daemon";
+            After = [ "graphical-session.target" ];
+            PartOf = [ "graphical-session.target" ];
+          };
+          Install.WantedBy = [ "graphical-session.target" ];
+          Service = {
+            Type = "simple";
+            # Use the system wrapper from i18n.inputMethod so selected addons
+            # (e.g. fcitx5-chinese-addons) are available at runtime.
+            ExecStart = "/run/current-system/sw/bin/fcitx5 --replace";
+            Restart = "on-failure";
+            RestartSec = 1;
+          };
+        };
+
+        provider-app-vpn-ui = {
+          Unit = {
+            Description = "Provider app VPN GUI";
+            After = [ "graphical-session.target" ];
+            PartOf = [ "graphical-session.target" ];
+          };
+          Install.WantedBy = [ "graphical-session.target" ];
+          Service = {
+            Type = "simple";
+            Environment = [
+              # Provider app wrapper 仅注入 coreutils/grep PATH；补齐 gsettings 与图形库搜索路径
+              "PATH=${pkgs.glib}/bin:/run/current-system/sw/bin:${userProfileBin}"
+              "LD_LIBRARY_PATH=${pkgs.libglvnd}/lib:/run/opengl-driver/lib:/run/opengl-driver-32/lib:/run/current-system/sw/lib"
+              "LIBGL_DRIVERS_PATH=/run/opengl-driver/lib/dri"
+              "GSETTINGS_SCHEMA_DIR=${pkgs.gsettings-desktop-schemas}/share/gsettings-schemas/${pkgs.gsettings-desktop-schemas.name}/glib-2.0/schemas"
+            ];
+            ExecStart = "${pkgs.provider-app-vpn}/bin/provider-app-vpn";
+            Restart = "on-failure";
+            RestartSec = 2;
+          };
+        };
       };
-    };
   };
 
   xdg = {
     configFile =
       {
+        "qt6ct/qt6ct.conf".source = ./configs/qt6ct/qt6ct.conf;
+        "qt6ct/colors/darker.conf".source = "${pkgs.qt6Packages.qt6ct}/share/qt6ct/colors/darker.conf";
+        "waybar/config".text = waybarConfig;
+        "waybar/style.css".source = ./configs/waybar/style.css;
+        "hypr/hypridle.conf".text = hypridleConfig;
+        "wlogout/layout".source = ./configs/wlogout/layout;
+        "wlogout/style.css".source = ./configs/wlogout/style.css;
+
         "fcitx5/profile" = {
           source = ./configs/fcitx5/profile;
           force = true;
         };
 
+        "fuzzel/fuzzel.ini".source = ./configs/fuzzel/fuzzel.ini;
         "foot/foot.ini".source = ./configs/foot/foot.ini;
         "ghostty/config".source = ./configs/ghostty/config;
         "yazi/yazi.toml".source = ./configs/yazi/yazi.toml;
@@ -1347,13 +1392,29 @@ in
           source = ./configs/wallpapers;
           recursive = true;
         };
-        "qt6ct/qt6ct.conf".source = ./configs/qt6ct/qt6ct.conf;
 
         "pnpm/rc".text = ''
           global-dir=${localShareDir}/pnpm/global
           global-bin-dir=${localShareDir}/pnpm/bin
         '';
+      }
+      // wlogoutIconFiles;
+
+    portal = {
+      enable = true;
+      xdgOpenUsePortal = true;
+      # common 默认优先 gtk，避免 FileChooser/Settings 接口落到 hyprland backend
+      config = {
+        common = {
+          default = [ "gtk" ];
+          "org.freedesktop.impl.portal.Settings" = [ "gtk" ];
+        };
+        hyprland = {
+          default = [ "hyprland" "gtk" ];
+          "org.freedesktop.impl.portal.Settings" = [ "gtk" ];
+        };
       };
+    };
 
     userDirs = {
       enable = true;
@@ -1369,74 +1430,6 @@ in
       # 使用 genAttrs 保持行为一致，减少重复
       defaultApplications = lib.genAttrs imageMimeTypes (_: imageApps);
     };
-  };
-
-  home.file.".Xresources".text = ''
-    Xft.dpi: 120
-  '';
-
-  home.activation = {
-    ensureDmsStateFiles = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-      dmsConfigDir="${homeDir}/.config/DankMaterialShell"
-      dmsCacheDir="${homeDir}/.cache/DankMaterialShell"
-      hyprDmsDir="${homeDir}/.config/hypr/dms"
-
-      ${mkdirBin} -p "$dmsConfigDir" "$dmsCacheDir" "$hyprDmsDir"
-
-      # 旧代可能遗留 Nix store 的只读 symlink；转换为可写普通文件
-      if [ -L "$dmsConfigDir/settings.json" ]; then
-        settingsLinkTarget="$(${pkgs.coreutils}/bin/readlink "$dmsConfigDir/settings.json" || true)"
-        ${pkgs.coreutils}/bin/rm -f "$dmsConfigDir/settings.json"
-        if [ -n "$settingsLinkTarget" ] && [ -f "$settingsLinkTarget" ]; then
-          ${pkgs.coreutils}/bin/cp "$settingsLinkTarget" "$dmsConfigDir/settings.json"
-        else
-          printf '{}\n' > "$dmsConfigDir/settings.json"
-        fi
-      fi
-
-      if [ ! -e "$dmsConfigDir/settings.json" ]; then
-        printf '{}\n' > "$dmsConfigDir/settings.json"
-      fi
-
-      if ! ${pkgs.jq}/bin/jq -e '.' "$dmsConfigDir/settings.json" >/dev/null 2>&1; then
-        printf '{}\n' > "$dmsConfigDir/settings.json"
-      fi
-
-      settingsTmp="$dmsConfigDir/settings.json.tmp"
-      if ${pkgs.jq}/bin/jq \
-        '.osdPowerProfileEnabled = false
-         | .showSeconds = true
-         | .weatherEnabled = false
-         | .showCpuUsage = true
-         | .showMemUsage = true' \
-        "$dmsConfigDir/settings.json" > "$settingsTmp"; then
-        ${pkgs.coreutils}/bin/mv "$settingsTmp" "$dmsConfigDir/settings.json"
-      else
-        ${pkgs.coreutils}/bin/rm -f "$settingsTmp"
-      fi
-
-      if [ ! -e "$dmsConfigDir/plugin_settings.json" ]; then
-        printf '{}\n' > "$dmsConfigDir/plugin_settings.json"
-      fi
-
-      if [ ! -e "$dmsCacheDir/cache.json" ]; then
-        printf '{}\n' > "$dmsCacheDir/cache.json"
-      fi
-
-      if [ ! -e "$hyprDmsDir/cursor.conf" ]; then
-        printf '\n' > "$hyprDmsDir/cursor.conf"
-      fi
-
-      if [ ! -e "$hyprDmsDir/windowrules.conf" ]; then
-        printf '\n' > "$hyprDmsDir/windowrules.conf"
-      fi
-
-      # 清理历史兼容 shim（其输出固定为 {}，会导致 DMS CPU/内存小组件无数据）
-      legacyDgop="${homeDir}/.local/bin/dgop"
-      if [ -f "$legacyDgop" ] && ${pkgs.gnugrep}/bin/grep -q "dgop compatibility shim" "$legacyDgop"; then
-        ${pkgs.coreutils}/bin/rm -f "$legacyDgop"
-      fi
-    '';
   };
 
   dconf.settings = {
