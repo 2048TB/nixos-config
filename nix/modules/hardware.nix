@@ -63,7 +63,7 @@ in
   # GPU 驱动来源：使用 flake.nix 的 myvars.gpuMode 固定配置
   services = {
     xserver.videoDrivers = videoDrivers;
-    blueman.enable = true;
+    blueman.enable = false;
     power-profiles-daemon.enable = true;
     upower.enable = true;
   };
