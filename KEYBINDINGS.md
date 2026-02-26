@@ -30,8 +30,8 @@
 | `Super + Left/Right/Up/Down` | 将窗口移动到对应方向（`movewindow`） |
 | `Super + H/J/K/L` | 焦点切换（Vim 风格四向） |
 | `Super + , / .` | 与左/右方向窗口交换（补齐四向） |
-| `Super + Z` | 与主窗口交换（master） |
-| `Super + F` | 切换全屏 |
+| `Super + Z` | 切换全屏 |
+| `Super + F` | 与主窗口交换（master） |
 | `Super + M` | 切换最大化（fullscreen mode 1） |
 | `Super + V` | 切换浮动 |
 | `Alt + Tab` | 循环切换窗口（浮动窗口会置顶） |
