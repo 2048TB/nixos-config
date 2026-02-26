@@ -63,21 +63,22 @@ let
     (config.services.mullvad-vpn.enable or false)
     || (config.virtualisation.libvirtd.enable or false);
   tuigreetPackage = pkgs.tuigreet or pkgs.greetd.tuigreet;
-  # 参考 Catppuccin Mocha（tuigreet 仅支持 ANSI color name，做近似映射）。
+  # 参考 Catppuccin + ReGreet 常见高对比方案（tuigreet 仅支持 ANSI color name）。
   tuigreetTheme =
-    "border=lightmagenta;text=white;prompt=lightcyan;time=lightblue;action=lightblue;"
-    + "button=lightyellow;container=black;input=white;greet=lightmagenta;title=lightmagenta";
+    "border=cyan;text=white;prompt=lightcyan;time=lightblue;action=lightblue;"
+    + "button=yellow;container=black;input=lightyellow;greet=cyan;title=lightcyan";
   tuigreetCommand = pkgs.writeShellScript "greetd-tuigreet-session" ''
     exec ${lib.getExe tuigreetPackage} \
       --time \
-      --time-format '%a %Y-%m-%d %H:%M' \
+      --time-format '%a %Y-%m-%d %H:%M:%S' \
       --remember \
       --remember-session \
       --asterisks \
-      --greeting 'NixOS ${myvars.hostname}' \
-      --window-padding 3 \
-      --container-padding 3 \
-      --prompt-padding 1 \
+      --greeting 'NixOS ${myvars.hostname} login' \
+      --width 92 \
+      --window-padding 5 \
+      --container-padding 4 \
+      --prompt-padding 2 \
       --greet-align center \
       --theme '${tuigreetTheme}' \
       --power-shutdown '${pkgs.systemd}/bin/systemctl poweroff' \
