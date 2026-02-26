@@ -195,6 +195,7 @@ let
         userProfileBin
       ]
       (builtins.readFile ./configs/hypr/hypridle.conf);
+  hyprlockConfig = builtins.readFile ./configs/hypr/hyprlock.conf;
   waybarConfig =
     builtins.replaceStrings
       [
@@ -1414,6 +1415,7 @@ in
           recursive = true;
           force = true;
         };
+        "hypr/hyprlock.conf".text = hyprlockConfig;
         "hypr/hypridle.conf".text = hypridleConfig;
         "wlogout/layout".source = ./configs/wlogout/layout;
         "wlogout/style.css".source = ./configs/wlogout/style.css;
