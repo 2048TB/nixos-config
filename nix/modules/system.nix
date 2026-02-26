@@ -415,7 +415,13 @@ in
       lowLatency.enable = true;
       # 避免 xdg-desktop-portal 在实时优先级请求时打印 pidns/pidfd 报错。
       # 参考 PipeWire libpipewire-module-rt 文档：module.rt.args.rtportal.enabled
-      extraConfig.pipewire."10-disable-rtportal.conf" = {
+      # 注意：pipewire-pulse 会单独加载自身配置，需与 pipewire 同步关闭。
+      extraConfig.pipewire."10-disable-rtportal" = {
+        "module.rt.args" = {
+          "rtportal.enabled" = false;
+        };
+      };
+      extraConfig.pipewire-pulse."10-disable-rtportal" = {
         "module.rt.args" = {
           "rtportal.enabled" = false;
         };
