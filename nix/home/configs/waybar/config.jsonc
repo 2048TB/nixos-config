@@ -80,10 +80,11 @@
       "7": "⑦",
       "8": "⑧",
       "9": "⑨",
+      "10": "⑩",
       "default": "•"
     },
     "persistent-workspaces": {
-      "*": 9
+      "*": 10
     },
     "sort-by": "number",
     "all-outputs": false,
