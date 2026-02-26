@@ -23,12 +23,11 @@
 | `Super + Shift + S` | 将当前窗口发送到 scratchpad |
 | `Super + Q` | 关闭当前窗口 |
 
-## 焦点与窗口交换
+## 焦点、窗口交换与移动
 
 | 快捷键 | 功能 |
 |---|---|
-| `Super + Left/Right` | 焦点切换 |
-| `Super + Up/Down` | 与方向窗口交换 |
+| `Super + Left/Right/Up/Down` | 将窗口移动到对应方向（`movewindow`） |
 | `Super + H/J/K/L` | 焦点切换（Vim 风格四向） |
 | `Super + , / .` | 与左/右方向窗口交换（补齐四向） |
 | `Super + Z` | 与主窗口交换（master） |
