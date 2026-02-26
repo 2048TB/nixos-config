@@ -7,7 +7,7 @@
 - `default.nix` Home Manager 入口
 - `configs/` 配置素材目录
 - `configs/niri/` Niri KDL 配置（当前启用）
-- `configs/waybar/` Waybar 历史配置（当前未启用）
+- `configs/waybar/` Waybar 配置与脚本素材（按需启用）
 - `configs/wlogout/` Wlogout 电源菜单
 - `configs/fuzzel/` Fuzzel 应用启动器
 - `configs/foot/` Foot 终端

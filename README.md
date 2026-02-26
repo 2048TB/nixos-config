@@ -3,7 +3,7 @@
 可复现的 NixOS 桌面配置，基于 niri Wayland + Home Manager。
 
 相关文档：
-- `KEYBINDINGS.md` 快捷键说明（niri + DMS / Ghostty / Tmux / Zellij / Foot）
+- `KEYBINDINGS.md` 快捷键说明（Niri / Ghostty / Foot + Shell 快捷命令，按 `niri-waybar` 对齐）
 - `NIX-COMMANDS.md` 常用 Nix 命令速查
 - `AGENTS.md` 贡献与协作约定
 - `justfile` 日常操作命令

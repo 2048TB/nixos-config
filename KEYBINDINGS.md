@@ -1,188 +1,267 @@
 # 快捷键说明
 
-本文档覆盖 niri + DMS、Ghostty、Tmux、Zellij、Foot 的按键配置。
+本文档基于当前配置文件：
+- `nix/home/configs/niri/keybindings.kdl`
+- `nix/home/configs/ghostty/config`
+- `nix/home/configs/fuzzel/fuzzel.ini`
+- `nix/home/configs/foot/foot.ini`
 
-说明：`Super` 即 Windows/GUI 键；`prefix` 指统一前缀 `Ctrl+A`（Tmux + Zellij 共用）。
-
----
-
-## niri + DMS（窗口管理器 + 桌面 Shell）
-
-配置文件：`nix/home/configs/niri/keybindings.kdl`
-
-### 应用启动与 DMS 面板
-
-| 按键 | 功能 |
-|---|---|
-| `Super + Return` | 打开终端（Ghostty） |
-| `Super + Space` | DMS Spotlight |
-| `Super + B` / `Super + D` | 打开 Nautilus |
-| `Super + C` | DMS 剪贴板 |
-| `Super + Ctrl + M` | DMS 进程列表 |
-| `Super + Shift + ,` | DMS 设置面板 |
-| `Super + Shift + Y` | DMS 壁纸面板 |
-| `Super + Shift + X` | DMS 电源菜单 |
-| `Super + Ctrl + N` | DMS 通知中心 |
-| `Super + Shift + N` | DMS Notepad |
-| `Super + Tab` | 切回上一个工作区 |
-| `Super + Shift + /` | DMS Keybind Cheatsheet（niri） |
-| `Super + X` | DMS 锁屏 |
-
-### niri 窗口与工作区
-
-| 按键 | 功能 |
-|---|---|
-| `Super + Q` | 关闭当前窗口 |
-| `Ctrl + Alt + Delete` | 退出 niri 会话（带确认） |
-| `Super + H/J/K/L` 或 `Super + Arrow` | 焦点移动 |
-| `Super + Ctrl + H/J/K/L` 或 `Super + Ctrl + Arrow` | 移动窗口/列 |
-| `Super + Shift + H/J/K/L` | 聚焦其他显示器 |
-| `Super + Shift + Ctrl + H/J/K/L` | 移动列到其他显示器 |
-| `Super + V` | 切换窗口浮动 |
-| `Super + G` | 在浮动/平铺间切换焦点 |
-| `Super + F` | 最大化列 |
-| `Super + Shift + F` | 窗口全屏 |
-| `Super + 1..9` | 切换到工作区 1..9 |
-| `Super + Ctrl + 1..9` | 移动列到工作区 1..9 |
-| `Super + N` | 跳转到最底部空工作区 |
-| `Super + U / I` | 切换到相邻工作区 |
-| `Super + Ctrl + U / I` | 移动列到相邻工作区 |
-
-### 截图与媒体
-
-| 按键 | 功能 |
-|---|---|
-| `Super + A` | DMS 截图 |
-| `Print` | niri 截图 |
-| `Ctrl + Print` | niri 当前屏幕截图 |
-| `Alt + Print` | niri 当前窗口截图 |
-| `XF86AudioRaiseVolume / LowerVolume` | 音量 ±1% |
-| `XF86AudioMute` | 扬声器静音切换 |
-| `XF86AudioMicMute` | 麦克风静音切换 |
-| `XF86AudioPlay / Prev / Next` | MPRIS 播放控制 |
-| `XF86MonBrightnessUp / Down` | 亮度 ±1% |
+说明：Niri 中的 `Mod` 通常是 `Super`（Windows 键）。
 
 ---
 
-## Ghostty（终端）
+## 窗口管理器（Niri）
 
-配置文件：`nix/home/configs/ghostty/config`
-
-### 复制粘贴
+基础操作：
 
 | 快捷键 | 功能 |
 |---|---|
-| `Ctrl + Shift + C` | 复制到剪贴板 |
-| `Ctrl + Shift + V` | 从剪贴板粘贴 |
+| `Mod` + `Shift` + `/` | 显示快捷键帮助 |
+| `Mod` + `O` | 打开/关闭概览（窗口与工作区缩略视图） |
+| `Mod` + `Q` | 关闭当前窗口 |
+| `Ctrl` + `Alt` + `Delete` | 退出会话（确认对话框） |
+| `Mod` + `Escape` | 切换快捷键抑制模式 |
 
-> `Ctrl + V` 已 unbind，保留给 Vim visual-block 和 Bash literal insert。
-
-### 标签页
-
-| 快捷键 | 功能 |
-|---|---|
-| `Ctrl + Shift + T` | 新建标签页 |
-| `Ctrl + Shift + W` | 关闭标签页 |
-| `Ctrl + Tab` | 下一个标签页 |
-| `Ctrl + Shift + Tab` | 上一个标签页 |
-| `Ctrl + 1..9` / `Alt + 1..9` | 跳转到指定标签页 |
-
-### 窗口与显示
+应用启动：
 
 | 快捷键 | 功能 |
 |---|---|
-| `Ctrl + Shift + N` | 新建窗口 |
-| `F11` | 切换全屏 |
-| `Ctrl + Shift + K` / `Ctrl + L` | 清屏 |
-| `Ctrl + = / +` | 字体放大 |
-| `Ctrl + -` | 字体缩小 |
-| `Ctrl + 0` | 字体重置 |
+| `Mod` + `Enter` | 打开终端（Ghostty） |
+| `Mod` + `Shift` + `Enter` | 打开浮动终端（Ghostty） |
+| `Mod` + `Space` | 启动器（Fuzzel） |
+| `XF86Search` | 启动器（Fuzzel） |
+| `Mod` + `B` | 文件管理器（Nautilus） |
+| `Mod` + `X` | 锁屏 |
+| `Ctrl` + `Alt` + `L` | 锁屏 |
 
-### 滚动
-
-| 快捷键 | 功能 |
-|---|---|
-| `Shift + PageUp / PageDown` | 翻页滚动 |
-| `Shift + Up / Down` | 逐行滚动 |
-
-### 分屏（Ctrl+A leader）
+窗口焦点：
 
 | 快捷键 | 功能 |
 |---|---|
-| `Ctrl + A > Shift + 5` | 右侧分屏 |
-| `Ctrl + A > Shift + '` | 下方分屏 |
-| `Ctrl + A > x` | 关闭分屏 |
-| `Ctrl + A > z` | 分屏缩放切换 |
-| `Ctrl + A > h/j/k/l` | 分屏导航（Vim 风格） |
-| `Alt + h/j/k/l` | 分屏导航（快捷方式） |
-| `Ctrl + Shift + Arrow` | 调整分屏大小 |
+| `Mod` + `H/J/K/L` | 焦点移动（Vim 风格） |
+| `Mod` + `←/↓/↑/→` | 焦点移动（方向键） |
+| `Mod` + `N/M` | 焦点移到第一/最后一列 |
 
-### 其他
+窗口/列移动：
 
 | 快捷键 | 功能 |
 |---|---|
-| `Ctrl + Shift + ,` | 重新加载配置 |
+| `Mod` + `Ctrl` + `H/J/K/L` | 移动列/窗口（Vim 风格） |
+| `Mod` + `Ctrl` + `←/↓/↑/→` | 移动列/窗口（方向键） |
+| `Mod` + `Shift` + `N/M` | 移动列到首/尾 |
+
+多显示器：
+
+| 快捷键 | 功能 |
+|---|---|
+| `Mod` + `Shift` + `H/J/K/L` | 焦点移到其他显示器 |
+| `Mod` + `Shift` + `Ctrl` + `H/J/K/L` | 移动列到其他显示器 |
+
+工作区：
+
+| 快捷键 | 功能 |
+|---|---|
+| `Mod` + `U` / `Mod` + `Page Down` | 下一个工作区 |
+| `Mod` + `I` / `Mod` + `Page Up` | 上一个工作区 |
+| `Mod` + `Ctrl` + `U/I` | 移动列到上下工作区 |
+| `Mod` + `Shift` + `U/I` | 移动整个工作区 |
+| `Mod` + `Alt` + `U/I` | 发送当前窗口到上下工作区 |
+| `Mod` + `1-9` | 切换到工作区（索引 1-9） |
+| `Mod` + `Ctrl` + `1-9` | 移动当前列到工作区（索引 1-9） |
+| `Mod` + `Alt` + `1-9` | 发送当前窗口到工作区（索引 1-9） |
+| `Mod` + `Tab` | 切换到上一个工作区 |
+| `Mod` + `Shift` + `W` | 新建并切换到空工作区 |
+
+布局与尺寸：
+
+| 快捷键 | 功能 |
+|---|---|
+| `Mod` + `R` | 切换列宽预设 |
+| `Mod` + `Shift` + `R` | 切换窗口高度预设 |
+| `Mod` + `Ctrl` + `R` | 重置窗口高度 |
+| `Mod` + `F` | 最大化列 |
+| `Mod` + `Shift` + `F` | 全屏窗口 |
+| `Mod` + `Ctrl` + `F` | 扩展列到可用宽度 |
+| `Mod` + `Shift` + `C` | 居中当前列 |
+| `Mod` + `Ctrl` + `C` | 居中显示所有可见列 |
+| `Mod` + `Y` | 切换窗口浮动/平铺 |
+| `Mod` + `G` | 切换焦点：浮动窗口 ↔ 平铺窗口 |
+| `Mod` + `W` | 切换列标签页模式 |
+| `Mod` + `,` / `Mod` + `.` | 列宽 -10% / +10% |
+| `Mod` + `/` / `Mod` + `;` | 窗口高度 -10% / +10% |
+
+列内操作：
+
+| 快捷键 | 功能 |
+|---|---|
+| `Mod` + `Ctrl` + `[` / `Mod` + `Ctrl` + `]` | 消费/驱逐窗口到左右列 |
+| `Mod` + `Ctrl` + `,` | 消费右侧窗口到当前列底部 |
+| `Mod` + `Ctrl` + `.` | 驱逐当前列底部窗口到右侧 |
+
+截图：
+
+| 快捷键 | 功能 |
+|---|---|
+| `Print` | 截图（niri 内置） |
+| `Mod` + `A` | 区域截图 + 复制到剪贴板（保存到 `~/Pictures/Screenshots`） |
+| `Ctrl` + `Print` | 全屏截图 |
+| `Alt` + `Print` | 窗口截图 |
+
+系统功能：
+
+| 快捷键 | 功能 |
+|---|---|
+| `Mod` + `S` | 音量控制（pavucontrol） |
+| `Mod` + `E` | 电源菜单（wlogout） |
+| `Mod` + `Alt` + `V` | 剪贴板历史（cliphist + Fuzzel） |
+| `Mod` + `Alt` + `C` | 计算器 |
+| `Mod` + `Shift` + `P` | 关闭显示器 |
+
+媒体与亮度：
+
+| 快捷键 | 功能 |
+|---|---|
+| `XF86AudioRaiseVolume` | 增加音量 |
+| `XF86AudioLowerVolume` | 降低音量 |
+| `XF86AudioMute` | 静音/取消静音 |
+| `XF86AudioMicMute` | 麦克风静音 |
+| `XF86AudioPlay` | 播放/暂停 |
+| `XF86AudioStop` | 停止播放 |
+| `XF86AudioPrev` | 上一首 |
+| `XF86AudioNext` | 下一首 |
+| `XF86MonBrightnessUp` | 增加屏幕亮度 |
+| `XF86MonBrightnessDown` | 降低屏幕亮度 |
+| `XF86KbdBrightnessUp` | 增加键盘背光 |
+| `XF86KbdBrightnessDown` | 降低键盘背光 |
 
 ---
 
-## 分体键盘 Layer1（`2/1.vil`）
+## 终端（Ghostty）
 
-目标：`Layer0` 保持不变，`Layer1` 字母区全部使用“组合键/宏输出”，避免直接单字母造成记忆干扰；同时补齐空键位。
-
-| Layer1 键位语义 | 输出 |
-|---|---|
-| 左手 `Q/W/E/R/T` | `M12/M8/M9/M10/M11`（`Ctrl+A` 后 `c/s/v/x/z`） |
-| 左手 `A/S/D/F` | `M15 / leader / M13 / M14`（`r / Ctrl+A / n / p`） |
-| 右手 `P` | `M14`（`Ctrl+A` 后 `p`） |
-| 右手 `H/J/K/L` | leader 后第二击：`h/j/k/l`（pane 焦点） |
-| 右手 `Y/U/I/O` | leader 后第二击：`y/u/i/o`（pane resize） |
-| 左手 `Z/X/C/V` | `Super+Ctrl+H/J/K/L`（Hyprland 显示器焦点方向） |
-| 直达补充 | `G=Super+N(窗口到右显示器)`，`B=Super+Q`，`M=Super+B`，`N=Super+M(窗口到左显示器)`，`.=Super+Tab`，`,=Super+X` |
-
-## Tmux（终端复用器）
-
-配置文件：`nix/home/configs/tmux/tmux.conf`，前缀键：`Ctrl + A`
+复制粘贴：
 
 | 快捷键 | 功能 |
 |---|---|
-| `prefix + h/j/k/l` | Pane 导航（Vim 风格） |
-| `prefix + y/u/i/o` | 调整 Pane 大小（左/下/上/右，可重复） |
-| `prefix + v/s` | 右/下分屏（保持当前路径） |
-| `prefix + x/z` | 关闭 Pane / Pane 最大化切换 |
-| `prefix + c` | 新建 window |
-| `prefix + n/p` | 下一个/上一个 window |
-| `prefix + C-a` | 发送字面 `Ctrl + A` 到程序 |
-| `prefix + r` | 重新加载配置 |
+| `Ctrl` + `Shift` + `C` | 复制 |
+| `Ctrl` + `Shift` + `V` | 粘贴 |
+| `Ctrl` + `V` | 已解绑（保留给 Vim visual block / Bash literal insert） |
 
-其余使用 Tmux 默认绑定。鼠标已启用。
+清屏：
+
+| 快捷键 | 功能 |
+|---|---|
+| `Ctrl` + `Shift` + `K` | 清屏 |
+| `Ctrl` + `L` | 清屏（备选） |
+
+标签页：
+
+| 快捷键 | 功能 |
+|---|---|
+| `Ctrl` + `Shift` + `T` | 新建标签页 |
+| `Ctrl` + `Shift` + `W` | 关闭标签页 |
+| `Ctrl` + `Tab` | 下一个标签页 |
+| `Ctrl` + `Shift` + `Tab` | 上一个标签页 |
+| `Ctrl` + `1-9` | 切换到第 N 个标签页 |
+| `Alt` + `1-9` | 切换到第 N 个标签页（备选） |
+
+窗口：
+
+| 快捷键 | 功能 |
+|---|---|
+| `Ctrl` + `Shift` + `N` | 新建窗口 |
+| `F11` | 全屏切换 |
+
+字体大小：
+
+| 快捷键 | 功能 |
+|---|---|
+| `Ctrl` + `=` / `Ctrl` + `+` | 增大字体 |
+| `Ctrl` + `-` | 减小字体 |
+| `Ctrl` + `0` | 重置字体 |
+
+滚动：
+
+| 快捷键 | 功能 |
+|---|---|
+| `Shift` + `Page Up` | 向上翻页 |
+| `Shift` + `Page Down` | 向下翻页 |
+| `Shift` + `↑/↓` | 向上/下滚动一行 |
+
+分割与面板：
+
+| 快捷键 | 功能 |
+|---|---|
+| `Ctrl` + `A` 然后 `Shift` + `5` | 垂直分割（右侧新面板） |
+| `Ctrl` + `A` 然后 `Shift` + `'` | 水平分割（下方新面板） |
+| `Ctrl` + `A` 然后 `X` | 关闭当前面板 |
+| `Ctrl` + `A` 然后 `Z` | 切换面板缩放 |
+| `Ctrl` + `A` 然后 `H/J/K/L` | 面板导航（Vim 风格） |
+| `Alt` + `H/J/K/L` | 面板导航（备选） |
+| `Ctrl` + `←/→/↑/↓` | 调整面板大小 |
+
+其他：
+
+| 快捷键 | 功能 |
+|---|---|
+| `Ctrl` + `Shift` + `,` | 重新加载配置 |
 
 ---
 
-## Zellij（终端复用器）
+## 终端（Foot）
 
-配置文件：`nix/home/configs/zellij/config.kdl`，新增 Tmux 兼容层（共享 `Ctrl + A`），并对 `tmux` mode 启用 `clear-defaults` 防止重复按键。
+复制粘贴：
 
 | 快捷键 | 功能 |
 |---|---|
-| `Ctrl + A` | 进入 `Tmux` mode（与 tmux 前缀一致） |
-| `Tmux mode + h/j/k/l` | Pane 焦点移动 |
-| `Tmux mode + y/u/i/o` | Pane resize（左/下/上/右） |
-| `Tmux mode + v/s` | 右/下分屏 |
-| `Tmux mode + x/z` | 关闭 pane / pane 全屏切换 |
-| `Tmux mode + c` | 新建 tab |
-| `Tmux mode + n/p` | 下一个/上一个 tab |
-| `Tmux mode + d` | detach session |
-| `Tmux mode + r` | 切换到下一套 layout |
+| `Ctrl` + `Shift` + `C` | 复制 |
+| `Ctrl` + `Shift` + `V` | 粘贴 |
+
+字体大小：
+
+| 快捷键 | 功能 |
+|---|---|
+| `Ctrl` + `+` / `Ctrl` + `=` | 增大字体 |
+| `Ctrl` + `-` | 减小字体 |
+| `Ctrl` + `0` | 重置字体 |
+
+滚动：
+
+| 快捷键 | 功能 |
+|---|---|
+| `Shift` + `Page Up` | 向上翻页 |
+| `Shift` + `Page Down` | 向下翻页 |
+
+其他：
+
+| 快捷键 | 功能 |
+|---|---|
+| `Ctrl` + `Shift` + `N` | 新建窗口 |
+| `Ctrl` + `Shift` + `R` | 搜索回滚缓冲区 |
 
 ---
 
-## Foot（终端）
+## 配置文件位置
 
-配置文件：`nix/home/configs/foot/foot.ini`
+- Niri：`nix/home/configs/niri/keybindings.kdl`
+- Fuzzel：`nix/home/configs/fuzzel/fuzzel.ini`
+- Foot：`nix/home/configs/foot/foot.ini`
+- Ghostty：`nix/home/configs/ghostty/config`
 
-| 快捷键 | 功能 |
+修改配置后执行：
+
+```bash
+sudo nixos-rebuild switch --flake /etc/nixos#zly
+```
+
+---
+
+## Shell 快捷命令（zsh）
+
+以下为命令行快捷函数（非 GUI 快捷键）：
+
+| 命令 | 功能 |
 |---|---|
-| `Shift + Up` | 向上滚动一行 |
-| `Shift + Down` | 向下滚动一行 |
-
-其余使用 Foot 默认绑定。
+| `ccv` | 启动 Claude Code（危险权限模式） |
+| `ccv r` | 恢复 Claude Code 会话 |
+| `cdx` | 启动 Codex（`--dangerously-bypass-approvals-and-sandbox`） |
+| `cdx r` | 恢复 Codex 会话（`codex resume`） |
