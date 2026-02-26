@@ -83,7 +83,7 @@ window#waybar {
   background-size: 16px 16px;
 }
 
-#workspaces button.visible {
+#workspaces button.visible:not(.active) {
   background: linear-gradient(120deg, #12608a, #0986d3);
   color: #f9f9f9;
   border-color: rgba(9, 134, 211, 0.9);
@@ -118,7 +118,7 @@ window#waybar {
   font-size: 0;
 }
 
-#workspaces button.visible label {
+#workspaces button.visible:not(.active) label {
   color: #f9f9f9;
 }
 
