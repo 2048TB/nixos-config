@@ -9,6 +9,7 @@
 - 仅在用户明确要求时编辑 `*.md`。
 - 输出简洁、直接，中文说明 + 英文技术名词。
 - 只做用户请求范围内的改动。
+- 涉及 Hyprland/Waybar 行为变化时，同步更新 `README.md`、`KEYBINDINGS.md`、`NIX-COMMANDS.md`。
 
 ---
 
@@ -48,3 +49,13 @@
 ```bash
 nix build --dry-run .#nixosConfigurations.zly.config.system.build.toplevel
 ```
+
+---
+
+## 验证与同步
+
+- 文档更新后至少执行：
+  - `just fmt`
+  - `just lint`
+  - `just flake-check`
+- 如用户要求同步到 GitHub，按 Conventional Commit 提交并执行 `git push origin HEAD`。

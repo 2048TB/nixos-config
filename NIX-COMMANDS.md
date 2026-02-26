@@ -1,6 +1,7 @@
 # Nix 常用命令速查
 
 面向日常使用的精简清单。
+优先使用 `just`（仓库内已封装常用流程），必要时再直接调用 `nix*` 命令。
 
 ---
 
@@ -21,11 +22,11 @@ sudo nixos-rebuild switch --flake /etc/nixos#zly |& nom
 ## Flake 维护
 
 ```bash
-nix flake update
-nix flake lock --update-input nixpkgs
-nix flake show
-nix flake check
-nix flake metadata
+nix flake update --flake path:/persistent/nixos-config
+nix flake lock --update-input nixpkgs --flake path:/persistent/nixos-config
+nix flake show path:/persistent/nixos-config
+nix flake check path:/persistent/nixos-config
+nix flake metadata path:/persistent/nixos-config
 ```
 
 ---
@@ -40,7 +41,7 @@ just flake-check
 just check
 
 # 可选：完整系统构建验证（不切换）
-nix build .#nixosConfigurations.zly.config.system.build.toplevel --no-link
+nix build path:/persistent/nixos-config#nixosConfigurations.zly.config.system.build.toplevel --no-link
 ```
 
 ---
@@ -134,9 +135,24 @@ sudo nixos-rebuild switch --flake /etc/nixos#zly
 ## 常用排查
 
 ```bash
-journalctl -u <service>
-journalctl --user -u <service>
+journalctl -u <service> --no-pager
+journalctl --user -u <service> --no-pager
+
+# 桌面会话常用日志
+journalctl --user -b -u waybar.service -u hypridle.service -u xdg-desktop-portal.service --no-pager
+journalctl --user -b --no-pager | rg -i 'hyprland|waybar|portal|pipewire|wireplumber|swaync'
 
 nixos-version
 readlink /run/current-system
+```
+
+---
+
+## GitHub 同步
+
+```bash
+git status
+git add -A
+git commit -m "docs: refresh repository documentation"
+git push origin HEAD
 ```

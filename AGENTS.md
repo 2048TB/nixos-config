@@ -8,7 +8,7 @@ This repository is a flake-based NixOS desktop configuration.
 - `nix/home/default.nix`: Home Manager entrypoint (packages, Hyprland keybindings).
 - `nix/home/configs/`: app configs — Ghostty, Foot, Tmux, Zellij, Waybar, Fuzzel, Wlogout, Yazi, shell, fcitx5, etc.
 - `scripts/`: install/bootstrap helpers (for Live ISO and setup workflows).
-- Docs: `KEYBINDINGS.md`, `NIX-COMMANDS.md`.
+- Docs: `README.md`, `KEYBINDINGS.md`, `NIX-COMMANDS.md`, `CLAUDE.md`, `.github-optimization.md`, `nix/home/README.md`.
 
 ## Build, Test, and Development Commands
 Use `just` as the primary command runner:
@@ -20,6 +20,7 @@ Use `just` as the primary command runner:
 - `just lint`: run `statix` checks.
 - `just dead`: detect unused Nix code via `deadnix`.
 - `just dev`: common dev flow (`fmt + flake-check + test`).
+- Optional full build validation: `nix build --no-link path:/persistent/nixos-config#nixosConfigurations.zly.config.system.build.toplevel`.
 
 ## Coding Style & Naming Conventions
 - Format Nix code with `nixpkgs-fmt` before review.
@@ -37,6 +38,11 @@ There is no unit-test suite; verification is configuration-driven:
 - Commit history follows Conventional Commit style (`fix:`, `feat:`, `refactor:`, `style:`) with optional scopes (e.g. `fix(foot): ...`).
 - Write focused commits per concern (UI, module logic, docs).
 - PRs should include: purpose, changed paths, verification commands run, rollback notes, and screenshots for visible UI changes.
+
+## Documentation Sync Rules
+- When behavior/commands/keybindings change, update related docs in the same change set.
+- For Hyprland/Waybar changes, keep `README.md`, `KEYBINDINGS.md`, and `NIX-COMMANDS.md` consistent.
+- If docs are updated and user requests sync, push current branch with a Conventional Commit message.
 
 ## Security & Configuration Tips
 - Do not commit new secrets (tokens, private keys, plaintext credentials). If rotating password hashes in `flake.nix`, treat them as sensitive changes and review carefully.

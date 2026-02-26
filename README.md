@@ -5,6 +5,8 @@
 相关文档：
 - `KEYBINDINGS.md` 快捷键说明
 - `NIX-COMMANDS.md` 常用 Nix 命令速查
+- `nix/home/README.md` Home 配置结构与说明
+- `.github-optimization.md` Binary Cache 说明
 - `AGENTS.md` 贡献与协作约定
 - `justfile` 日常操作命令
 - `CLAUDE.md` 项目维护约定（给 AI/自动化工具）
@@ -26,7 +28,7 @@
 推荐方式（在 Live ISO 中）：
 
 ```bash
-git clone https://github.com/aicode12/nixos.git ~/nixos
+git clone https://github.com/2048TB/nixos.git ~/nixos
 cd ~/nixos
 ```
 
@@ -91,7 +93,7 @@ cd ~/nixos
 ## 一键式完整安装命令（Live ISO）
 
 ```bash
-git clone https://github.com/aicode12/nixos.git ~/nixos
+git clone https://github.com/2048TB/nixos.git ~/nixos
 cd ~/nixos
 
 sudo nix --extra-experimental-features "nix-command flakes" \
@@ -106,6 +108,43 @@ sudo nixos-install --impure --flake .#zly
 
 ```bash
 sudo nixos-rebuild switch --flake /etc/nixos#zly
+```
+
+---
+
+## 验证流程（推荐）
+
+```bash
+just fmt
+just lint
+just dead
+just flake-check
+just check
+
+# 可选：完整系统构建验证（不切换）
+nix build --no-link path:/persistent/nixos-config#nixosConfigurations.zly.config.system.build.toplevel
+```
+
+---
+
+## 日志排查（Hyprland/Waybar）
+
+```bash
+journalctl --user -b -u waybar.service -u hypridle.service -u xdg-desktop-portal.service --no-pager
+journalctl --user -b --no-pager | rg -i 'hyprland|waybar|portal|pipewire|wireplumber|swaync'
+```
+
+说明：当前配置已在 `nix/modules/system.nix` 中对 `pipewire` 与 `pipewire-pulse` 同步关闭 `rtportal.enabled`，用于减少 `xdg-desktop-portal` 的 `pidns/pidfd` 噪音日志。
+
+---
+
+## 同步到 GitHub
+
+```bash
+git status
+git add -A
+git commit -m "docs: refresh repository documentation"
+git push origin HEAD
 ```
 
 ---
