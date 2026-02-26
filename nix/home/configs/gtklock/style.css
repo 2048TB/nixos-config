@@ -1,15 +1,28 @@
+:root {
+  --ctp-base: #1e1e2e;
+  --ctp-mantle: #181825;
+  --ctp-surface0: #313244;
+  --ctp-surface1: #45475a;
+  --ctp-overlay0: #6c7086;
+  --ctp-text: #cdd6f4;
+  --ctp-subtext0: #a6adc8;
+  --ctp-blue: #89b4fa;
+  --ctp-lavender: #b4befe;
+  --ctp-mauve: #cba6f7;
+}
+
 window {
   background-size: cover;
   background-repeat: no-repeat;
   background-position: center;
-  background-color: #0b1220;
+  background-color: var(--ctp-base);
 }
 
 #window-box {
-  background-color: rgba(8, 15, 30, 0.72);
-  border: 1px solid rgba(147, 197, 253, 0.45);
-  border-radius: 20px;
-  box-shadow: 0 20px 48px rgba(2, 6, 23, 0.55);
+  background-color: rgba(24, 24, 37, 0.78);
+  border: 1px solid rgba(137, 180, 250, 0.55);
+  border-radius: 18px;
+  box-shadow: 0 22px 52px rgba(17, 17, 27, 0.58);
   padding: 24px 30px;
 }
 
@@ -18,46 +31,46 @@ window {
 }
 
 #clock-label {
-  color: #e2e8f0;
+  color: var(--ctp-text);
   font-size: 38px;
   font-weight: 700;
 }
 
 #date-label {
-  color: #94a3b8;
+  color: var(--ctp-subtext0);
   font-size: 14px;
 }
 
 #input-label,
 #warning-label,
 #error-label {
-  color: #cbd5e1;
+  color: var(--ctp-subtext0);
   font-size: 13px;
 }
 
 #input-field {
-  background-color: rgba(15, 23, 42, 0.7);
-  border: 1px solid rgba(148, 163, 184, 0.55);
+  background-color: rgba(49, 50, 68, 0.82);
+  border: 1px solid rgba(108, 112, 134, 0.85);
   border-radius: 10px;
-  color: #f8fafc;
+  color: var(--ctp-text);
   padding: 8px 10px;
 }
 
 #input-field:focus {
-  border-color: #60a5fa;
+  border-color: var(--ctp-blue);
 }
 
 #unlock-button,
 button {
-  background: linear-gradient(120deg, #0ea5e9, #2563eb);
+  background: linear-gradient(120deg, var(--ctp-blue), var(--ctp-mauve));
   border: none;
   border-radius: 10px;
-  color: #f8fafc;
-  font-weight: 600;
+  color: var(--ctp-mantle);
+  font-weight: 700;
   padding: 8px 14px;
 }
 
 #unlock-button:hover,
 button:hover {
-  background: linear-gradient(120deg, #38bdf8, #3b82f6);
+  background: linear-gradient(120deg, var(--ctp-lavender), var(--ctp-blue));
 }
