@@ -1398,6 +1398,11 @@ in
         "qt6ct/colors/darker.conf".source = "${pkgs.qt6Packages.qt6ct}/share/qt6ct/colors/darker.conf";
         "waybar/config".text = waybarConfig;
         "waybar/style.css".source = ./configs/waybar/style.css;
+        "waybar/icons" = {
+          source = ./configs/waybar/icons;
+          recursive = true;
+          force = true;
+        };
         "hypr/hypridle.conf".text = hypridleConfig;
         "wlogout/layout".source = ./configs/wlogout/layout;
         "wlogout/style.css".source = ./configs/wlogout/style.css;
