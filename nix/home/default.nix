@@ -1134,13 +1134,13 @@ in
       bind = SUPER, Return, exec, ${profileCmd "ghostty"}
       bind = SUPER, Space, exec, dms ipc call spotlight toggle
       bind = SUPER, B, exec, ${profileCmd "nautilus"}
-      bind = SUPER, V, exec, dms ipc call clipboard toggle
-      bind = SUPER, M, exec, dms ipc call processlist focusOrToggle
+      bind = SUPER, C, exec, dms ipc call clipboard toggle
+      bind = SUPER CTRL, M, exec, dms ipc call processlist focusOrToggle
       bind = SUPER SHIFT, comma, exec, dms ipc call settings focusOrToggle
       bind = SUPER SHIFT, Y, exec, dms ipc call dankdash wallpaper
       bind = SUPER, X, exec, dms ipc call lock lock
       bind = SUPER SHIFT, X, exec, dms ipc call powermenu toggle
-      bind = SUPER, N, exec, dms ipc call notifications toggle
+      bind = SUPER CTRL, N, exec, dms ipc call notifications toggle
       bind = SUPER SHIFT, N, exec, dms ipc call notepad toggle
       bind = SUPER, TAB, exec, dms ipc call hypr toggleOverview
       bind = SUPER SHIFT, Slash, exec, dms ipc call keybinds toggle hyprland
@@ -1148,28 +1148,27 @@ in
       # 窗口管理
       bind = SUPER, Q, killactive
       bind = SUPER SHIFT, E, exit
-      bind = SUPER, F, fullscreen, 1
-      bind = SUPER SHIFT, F, fullscreen, 0
-      bind = SUPER, T, togglefloating
+      bind = SUPER, Z, fullscreen, 1
+      bind = SUPER SHIFT, Z, fullscreen, 0
+      bind = SUPER, V, togglefloating
       bind = SUPER, G, togglegroup
-      bind = SUPER, H, movefocus, l
-      bind = SUPER, J, movefocus, d
-      bind = SUPER, K, movefocus, u
-      bind = SUPER, L, movefocus, r
+      bind = SUPER, H, movewindow, l
+      bind = SUPER, J, movewindow, d
+      bind = SUPER, K, movewindow, u
+      bind = SUPER, L, movewindow, r
       bind = SUPER, Home, focuswindow, first
       bind = SUPER, End, focuswindow, last
-      bind = SUPER, A, movewindow, l
-      bind = SUPER, S, movewindow, d
-      bind = SUPER, W, movewindow, u
-      bind = SUPER, D, movewindow, r
+      bind = SUPER, A, exec, dms screenshot
+      bind = SUPER, M, movewindow, mon:l
+      bind = SUPER, N, movewindow, mon:r
       bind = SUPER SHIFT, H, movewindow, l
       bind = SUPER SHIFT, J, movewindow, d
       bind = SUPER SHIFT, K, movewindow, u
       bind = SUPER SHIFT, L, movewindow, r
-      bind = SUPER, Left, movewindow, l
-      bind = SUPER, Down, movewindow, d
-      bind = SUPER, Up, movewindow, u
-      bind = SUPER, Right, movewindow, r
+      bind = SUPER, Left, movefocus, l
+      bind = SUPER, Down, movefocus, d
+      bind = SUPER, Up, movefocus, u
+      bind = SUPER, Right, movefocus, r
       bind = SUPER ALT, H, swapwindow, l
       bind = SUPER ALT, J, swapwindow, d
       bind = SUPER ALT, K, swapwindow, u
@@ -1194,11 +1193,6 @@ in
       bind = SUPER SHIFT CTRL, J, movewindow, mon:d
       bind = SUPER SHIFT CTRL, K, movewindow, mon:u
       bind = SUPER SHIFT CTRL, L, movewindow, mon:r
-      # Layer1 直出 F13-F16：覆盖难按的 SUPER+SHIFT+CTRL+H/J/K/L
-      bind = , F13, movewindow, mon:l
-      bind = , F14, movewindow, mon:d
-      bind = , F15, movewindow, mon:u
-      bind = , F16, movewindow, mon:r
       bind = SUPER SHIFT, bracketleft, layoutmsg, preselect l
       bind = SUPER SHIFT, bracketright, layoutmsg, preselect r
       bind = SUPER, R, layoutmsg, togglesplit
@@ -1209,8 +1203,8 @@ in
       binde = SUPER, apostrophe, resizeactive, 0 10%
 
       # 工作区
-      bind = SUPER, U, workspace, e+1
-      bind = SUPER, I, workspace, e-1
+      bind = SUPER, comma, workspace, e+1
+      bind = SUPER, period, workspace, e-1
       bind = CTRL SHIFT, R, exec, dms ipc call workspace-rename open
       bind = SUPER, 1, workspace, 1
       bind = SUPER, 2, workspace, 2
@@ -1225,17 +1219,17 @@ in
       bind = SUPER SHIFT, grave, movetoworkspacesilent, special:magic
       bind = SUPER, O, movetoworkspace, e+1
       bind = SUPER, P, movetoworkspace, e-1
-      bind = SUPER, comma, movetoworkspacesilent, e+1
-      bind = SUPER, period, movetoworkspacesilent, e-1
-      bind = SUPER, F1, movetoworkspace, 1
-      bind = SUPER, F2, movetoworkspace, 2
-      bind = SUPER, F3, movetoworkspace, 3
-      bind = SUPER, F4, movetoworkspace, 4
-      bind = SUPER, F5, movetoworkspace, 5
-      bind = SUPER, F6, movetoworkspace, 6
-      bind = SUPER, F7, movetoworkspace, 7
-      bind = SUPER, F8, movetoworkspace, 8
-      bind = SUPER, F9, movetoworkspace, 9
+      bind = SUPER, U, movetoworkspacesilent, e+1
+      bind = SUPER, I, movetoworkspacesilent, e-1
+      bind = SUPER SHIFT, 1, movetoworkspace, 1
+      bind = SUPER SHIFT, 2, movetoworkspace, 2
+      bind = SUPER SHIFT, 3, movetoworkspace, 3
+      bind = SUPER SHIFT, 4, movetoworkspace, 4
+      bind = SUPER SHIFT, 5, movetoworkspace, 5
+      bind = SUPER SHIFT, 6, movetoworkspace, 6
+      bind = SUPER SHIFT, 7, movetoworkspace, 7
+      bind = SUPER SHIFT, 8, movetoworkspace, 8
+      bind = SUPER SHIFT, 9, movetoworkspace, 9
       # MOD + 滚轮缩放活动窗口（Hyprland 官方支持 mouse_up/mouse_down）
       bind = SUPER, mouse_up, resizeactive, 40 40
       bind = SUPER, mouse_down, resizeactive, -40 -40
@@ -1254,7 +1248,7 @@ in
       bindel = , XF86MonBrightnessUp, exec, dms ipc call brightness increment 5
       bindel = , XF86MonBrightnessDown, exec, dms ipc call brightness decrement 5
 
-      # 截图
+      # 截图（Print 系列保留）
       bind = , Print, exec, dms screenshot
       bind = CTRL, Print, exec, dms screenshot full
       bind = ALT, Print, exec, dms screenshot window
