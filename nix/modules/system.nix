@@ -648,6 +648,7 @@ in
       # wireplumber 0.5.12 启动期稳定出现同一条 GLib assertion 噪音，保留其他日志。
       wireplumber.serviceConfig.LogFilterPatterns = [
         "~wp_event_dispatcher_unregister_hook: assertion 'already_registered_dispatcher == self' failed"
+        "~wp-event-dispatcher: wp_event_dispatcher_unregister_hook: assertion 'already_registered_dispatcher == self' failed"
       ];
     };
 
