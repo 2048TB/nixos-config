@@ -17,6 +17,7 @@ binds {
     // 启动器（DMS Spotlight）
     Mod+Space { spawn "dms" "ipc" "call" "spotlight" "toggle"; }
     XF86Search { spawn "fuzzel"; }
+    Mod+P { spawn "fuzzel"; }
 
     // 文件管理器
     Mod+B { spawn "nautilus"; }
@@ -85,6 +86,9 @@ binds {
     // Mod+Ctrl+J     { move-window-down-or-to-workspace-down; }
     // Mod+Ctrl+K     { move-window-up-or-to-workspace-up; }
 
+    // 兼容 niri-waybar 手感：N/M 直达列首尾，同时保留 Home/End。
+    Mod+N { focus-column-first; }
+    Mod+M { focus-column-last; }
     Mod+Home { focus-column-first; }
     Mod+End  { focus-column-last; }
     Mod+Ctrl+Home { move-column-to-first; }
@@ -163,18 +167,18 @@ binds {
 
     // 新建工作区（类别）并切换到它：
     // 使用动态工作区，跳到“最底部空工作区”。
-    Mod+N { focus-workspace 99; }
+    Mod+Shift+W { focus-workspace 99; }
 
     // 以下绑定用于在列内/列外移动焦点窗口。
     // 如果窗口独立存在，将其并入旁边的列；
     // 若已在列内，则将其移出。
-    Mod+BracketLeft  { consume-or-expel-window-left; }
-    Mod+BracketRight { consume-or-expel-window-right; }
+    Mod+Ctrl+BracketLeft  { consume-or-expel-window-left; }
+    Mod+Ctrl+BracketRight { consume-or-expel-window-right; }
 
     // 从右侧列吸入一个窗口到当前列底部。
-    Mod+Comma  { consume-window-into-column; }
+    Mod+Ctrl+Comma  { consume-window-into-column; }
     // 将当前列底部窗口移到右侧。
-    Mod+Period { expel-window-from-column; }
+    Mod+Ctrl+Period { expel-window-from-column; }
 
     Mod+R { switch-preset-column-width; }
     // 也可按反向顺序循环预设。
@@ -187,6 +191,7 @@ binds {
     // 将当前列扩展到未被其他完整可见列占用的空间，
     // 使其“填满剩余空间”。
     Mod+Ctrl+F { expand-column-to-available-width; }
+    Mod+Shift+C { center-column; }
 
     // 剪贴板面板
     Mod+C { spawn "dms" "ipc" "call" "clipboard" "toggle"; }
@@ -200,15 +205,20 @@ binds {
     // * 以百分比增减宽度："-10%" 或 "+10%"
     // 像素尺寸使用逻辑/缩放像素。例如输出缩放为 2.0 时，
     // set-column-width "100" 会让列占用 200 物理像素。
+    Mod+Comma { set-column-width "-10%"; }
+    Mod+Period { set-column-width "+10%"; }
     Mod+Minus { set-column-width "-10%"; }
     Mod+Equal { set-column-width "+10%"; }
 
     // 与其他窗口同列时的更精细高度调整。
+    Mod+Slash { set-window-height "-10%"; }
+    Mod+Semicolon { set-window-height "+10%"; }
     Mod+Shift+Minus { set-window-height "-10%"; }
     Mod+Shift+Equal { set-window-height "+10%"; }
 
     // 在浮动与平铺布局间切换当前窗口。
     Mod+V       { toggle-window-floating; }
+    Mod+Y       { toggle-window-floating; }
 
     // 在浮动窗口与平铺窗口之间切换焦点。
     Mod+G       { switch-focus-between-floating-and-tiling; }

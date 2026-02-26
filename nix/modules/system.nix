@@ -544,6 +544,8 @@ in
     ruff
     black
     uv
+    # niri 启动日志提示缺失该组件；安装后可启用 xwayland-satellite 集成。
+    xwayland-satellite
     lutris
   ];
 

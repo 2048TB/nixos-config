@@ -149,6 +149,9 @@ let
   dmsSessionBootstrap = pkgs.writeShellScript "dms-session-bootstrap" ''
     set -eu
 
+    # 避免 user systemd 环境 PATH 不完整导致 dms 拉起 quickshell(qs) 失败。
+    export PATH="${userProfileBin}:/run/current-system/sw/bin:''${PATH:-}"
+
     # greetd + user systemd 场景下 XDG_SESSION_ID 可能未注入到 dms.service 环境，
     # 会导致 logind GetSession("self") 失败并退化禁用 loginctl 集成。
     if [ -z "''${XDG_SESSION_ID:-}" ]; then
@@ -1387,8 +1390,10 @@ in
       dmsConfigDir="${homeDir}/.config/DankMaterialShell"
       dmsCacheDir="${homeDir}/.cache/DankMaterialShell"
       niriDmsDir="${homeDir}/.config/niri/dms"
+      qt6ctDir="${homeDir}/.config/qt6ct"
+      qt6ctConf="$qt6ctDir/qt6ct.conf"
 
-      ${mkdirBin} -p "$dmsConfigDir" "$dmsCacheDir" "$niriDmsDir"
+      ${mkdirBin} -p "$dmsConfigDir" "$dmsCacheDir" "$niriDmsDir" "$qt6ctDir"
 
       # 旧代可能遗留 Nix store 的只读 symlink；转换为可写普通文件
       if [ -L "$dmsConfigDir/settings.json" ]; then
@@ -1433,6 +1438,22 @@ in
 
       if [ ! -e "$dmsCacheDir/cache.json" ]; then
         printf '{}\n' > "$dmsCacheDir/cache.json"
+      fi
+
+      # qt6ct.conf 默认由 HM 链接到 Nix store；DMS 触摸该文件会遇到只读告警。
+      # 将旧代 symlink 转成可写普通文件，并在缺失时按仓库模板初始化。
+      if [ -L "$qt6ctConf" ]; then
+        qt6ctLinkTarget="$(${pkgs.coreutils}/bin/readlink "$qt6ctConf" || true)"
+        ${pkgs.coreutils}/bin/rm -f "$qt6ctConf"
+        if [ -n "$qt6ctLinkTarget" ] && [ -f "$qt6ctLinkTarget" ]; then
+          ${pkgs.coreutils}/bin/cp "$qt6ctLinkTarget" "$qt6ctConf"
+        else
+          ${pkgs.coreutils}/bin/cp ${./configs/qt6ct/qt6ct.conf} "$qt6ctConf"
+        fi
+      fi
+
+      if [ ! -e "$qt6ctConf" ]; then
+        ${pkgs.coreutils}/bin/cp ${./configs/qt6ct/qt6ct.conf} "$qt6ctConf"
       fi
 
       if [ ! -e "$niriDmsDir/colors.kdl" ]; then
