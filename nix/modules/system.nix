@@ -413,6 +413,13 @@ in
       alsa.support32Bit = true;
       pulse.enable = true;
       lowLatency.enable = true;
+      # 避免 xdg-desktop-portal 在实时优先级请求时打印 pidns/pidfd 报错。
+      # 参考 PipeWire libpipewire-module-rt 文档：module.rt.args.rtportal.enabled
+      extraConfig.pipewire."10-disable-rtportal.conf" = {
+        "module.rt.args" = {
+          "rtportal.enabled" = false;
+        };
+      };
       wireplumber.extraConfig."10-disable-libcamera-monitor"."wireplumber.profiles" = {
         # libcamera monitor 在当前 wireplumber 版本会触发已知启动期告警。
         # 若未来需要 libcamera 管线，可删除该项并升级 wireplumber 后复测。
@@ -643,6 +650,7 @@ in
       wireplumber.serviceConfig.LogFilterPatterns = [
         "~wp_event_dispatcher_unregister_hook: assertion 'already_registered_dispatcher == self' failed"
         "~wp-event-dispatcher: wp_event_dispatcher_unregister_hook: assertion 'already_registered_dispatcher == self' failed"
+        "~wp-event-dispatcher: <WpAsyncEventHook:.*> failed: failed to activate item: Object activation aborted: proxy destroyed"
       ];
     };
 

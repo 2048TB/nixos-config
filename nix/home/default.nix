@@ -816,7 +816,7 @@ let
       "title"
       "dnd"
       "notifications"
-      "mpris"
+      # 暂时移除 mpris：swaync 0.12.3 在当前会话下启动期会触发 GTK assertion。
     ];
     "widget-config" = {
       title = {
