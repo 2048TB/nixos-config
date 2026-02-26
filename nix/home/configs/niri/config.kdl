@@ -155,8 +155,8 @@ layout {
 cursor {
     // 设置光标主题与大小，并同时设置
     // `XCURSOR_THEME` 与 `XCURSOR_SIZE` 环境变量。
-    // xcursor-theme "default"
-    // xcursor-size 24
+    xcursor-theme "Adwaita"
+    xcursor-size 24
 }
 
 hotkey-overlay {

@@ -1334,6 +1334,11 @@ in
           source = ./configs/fcitx5/profile;
           force = true;
         };
+        # 禁用 XDG autostart 的 fcitx5，避免与自定义 user service 同时启动导致 DBus 名称竞争
+        "autostart/org.fcitx.Fcitx5.desktop".text = ''
+          [Desktop Entry]
+          Hidden=true
+        '';
 
         "foot/foot.ini".source = ./configs/foot/foot.ini;
         "ghostty/config".source = ./configs/ghostty/config;
@@ -1410,7 +1415,12 @@ in
          | .showSeconds = true
          | .weatherEnabled = false
          | .showCpuUsage = true
-         | .showMemUsage = true' \
+         | .showMemUsage = true
+         | .controlCenterShowBluetoothIcon = false
+         | .controlCenterWidgets = (
+             (.controlCenterWidgets // [])
+             | map(if .id == "bluetooth" then (. + { enabled: false }) else . end)
+           )' \
         "$dmsConfigDir/settings.json" > "$settingsTmp"; then
         ${pkgs.coreutils}/bin/mv "$settingsTmp" "$dmsConfigDir/settings.json"
       else
