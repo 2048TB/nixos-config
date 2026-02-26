@@ -18,7 +18,7 @@
 - `nix/hosts/` 主机配置。
 - `nix/modules/system.nix` 系统配置。
 - `nix/modules/hardware.nix` GPU 选择与驱动配置。
-- `nix/home/default.nix` Home Manager 入口（含 River 按键绑定）。
+- `nix/home/default.nix` Home Manager 入口（含 Hyprland 按键绑定）。
 - `nix/home/configs/` 应用配置（ghostty/foot/tmux/zellij/waybar/fuzzel 等）。
 
 ---
@@ -27,8 +27,8 @@
 
 - GPU 驱动配置固定来自 `flake.nix` 的 `myvars.gpuMode`。
 - GPU 启动菜单切换默认关闭，需在 `flake.nix` 中设置 `myvars.enableGpuSpecialisation = true` 才启用。
-- 会话管理器为 `river-classic`（`programs.river-classic` + `wayland.windowManager.river`）。
-- `wayland.windowManager.river.package = null`，避免与系统级 `programs.river-classic` 重复安装。
+- 会话管理器为 `Hyprland`（`programs.hyprland` + `wayland.windowManager.hyprland`）。
+- `wayland.windowManager.hyprland.package = null`，避免与系统级 `programs.hyprland` 重复安装。
 - 安装流程若依赖 `NIXOS_DISK_DEVICE` 覆盖目标盘，`nixos-install` 需使用 `--impure`。
 
 ---

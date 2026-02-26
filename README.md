@@ -1,16 +1,16 @@
-# NixOS Desktop (river-classic + Home Manager)
+# NixOS Desktop (Hyprland + Home Manager)
 
-可复现的 NixOS 桌面配置，基于 river-classic Wayland + Home Manager。
+可复现的 NixOS 桌面配置，基于 Hyprland Wayland + Home Manager。
 
 相关文档：
-- `KEYBINDINGS.md` 快捷键说明（River / Ghostty / Tmux / Zellij / Foot）
+- `KEYBINDINGS.md` 快捷键说明（Hyprland + DMS / Ghostty / Tmux / Zellij / Foot）
 - `NIX-COMMANDS.md` 常用 Nix 命令速查
 - `AGENTS.md` 贡献与协作约定
 - `justfile` 日常操作命令
 - `CLAUDE.md` 项目维护约定（给 AI/自动化工具）
 
 主要特性：
-- Wayland 桌面：river-classic + Waybar + Fuzzel + Wlogout
+- Wayland 桌面：Hyprland + DankMaterialShell (DMS)
 - 终端：Ghostty（主力）+ Foot + Tmux + Zellij
 - 开发工具链：Rust / Zig / Go / Node.js / Python
 - 游戏支持：Steam / Proton / Wine / Lutris
