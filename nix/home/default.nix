@@ -1270,6 +1270,12 @@ in
   };
 
   services = {
+    swaync = {
+      enable = true;
+      settings = swayncSettings;
+      style = swayncStyle;
+    };
+
     # DMS 已可直接使用 MPRIS；关闭 playerctld 避免无活动播放器时的重复告警
     playerctld.enable = false;
 

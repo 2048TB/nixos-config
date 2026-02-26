@@ -28,6 +28,12 @@ let
     paths = [ pkgs.pkgsCross.mingwW64.stdenv.cc ];
     pathsToLink = [ "/bin" ];
   };
+  # 部分 Electron 应用（如 Mullvad）会在空 PATH 环境里调用 `gsettings`。
+  # NixOS 下 /bin/sh 默认 PATH 为 /no-such-path，需要提供兼容入口并补齐 schema 路径。
+  gsettingsCompatWrapper = pkgs.writeShellScript "gsettings-compat" ''
+    export GSETTINGS_SCHEMA_DIR="${pkgs.gsettings-desktop-schemas}/share/gsettings-schemas/${pkgs.gsettings-desktop-schemas.name}/glib-2.0/schemas"
+    exec ${pkgs.glib}/bin/gsettings "$@"
+  '';
   allowedGpuModes = [
     "auto"
     "none"
@@ -637,9 +643,11 @@ in
       "L+ /var/run - - - - /run"
       # 兼容硬编码 shebang（#!/bin/bash）的第三方脚本
       "L+ /bin/bash - - - - /run/current-system/sw/bin/bash"
-      # Mullvad GUI 上游在 Linux 中以精简 env 调用 `gsettings`，会退化到 /usr/bin 搜索路径
-      # 直接链接到 glib 包内二进制，避免 /run/current-system/sw/bin 下缺失 gsettings 导致 code:127
-      "L+ /usr/bin/gsettings - - - - ${pkgs.glib}/bin/gsettings"
+      # Mullvad GUI 上游在 Linux 中以精简 env 调用 `gsettings`，并丢失 PATH。
+      # NixOS 的 /bin/sh 在 PATH 未设置时默认 /no-such-path，因此同时提供 /usr/bin 与 /no-such-path 入口。
+      "d /no-such-path 0755 root root -"
+      "L+ /usr/bin/gsettings - - - - ${gsettingsCompatWrapper}"
+      "L+ /no-such-path/gsettings - - - - ${gsettingsCompatWrapper}"
       "d /persistent/nixos-config 0755 ${mainUser} ${mainUser} -"
       # Keep a stable entrypoint; /etc/nixos is a symlink to persistent config.
       # This relies on /persistent being mounted early (neededForBoot=true).
