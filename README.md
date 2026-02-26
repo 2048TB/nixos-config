@@ -1,16 +1,16 @@
-# NixOS Desktop (Hyprland + Home Manager)
+# NixOS Desktop (niri + Home Manager)
 
-可复现的 NixOS 桌面配置，基于 Hyprland Wayland + Home Manager。
+可复现的 NixOS 桌面配置，基于 niri Wayland + Home Manager。
 
 相关文档：
-- `KEYBINDINGS.md` 快捷键说明（Hyprland + DMS / Ghostty / Tmux / Zellij / Foot）
+- `KEYBINDINGS.md` 快捷键说明（niri + DMS / Ghostty / Tmux / Zellij / Foot）
 - `NIX-COMMANDS.md` 常用 Nix 命令速查
 - `AGENTS.md` 贡献与协作约定
 - `justfile` 日常操作命令
 - `CLAUDE.md` 项目维护约定（给 AI/自动化工具）
 
 主要特性：
-- Wayland 桌面：Hyprland + DankMaterialShell (DMS)
+- Wayland 桌面：niri + DankMaterialShell (DMS)
 - 终端：Ghostty（主力）+ Foot + Tmux + Zellij
 - 开发工具链：Rust / Zig / Go / Node.js / Python
 - 游戏支持：Steam / Proton / Wine / Lutris

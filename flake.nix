@@ -168,7 +168,7 @@
           allowedSystemDuplicateNames = [
             "dosfstools"
             "fuse"
-            "hyprland"
+            "niri"
             "iptables"
             "less"
             "shadow"

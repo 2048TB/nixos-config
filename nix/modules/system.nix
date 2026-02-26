@@ -57,7 +57,7 @@ let
     (lib.optional hasIntel "options kvm_intel nested=1")
   ]);
   # common default 必须与已安装 backend 对齐，避免指向未安装 portal。
-  portalDefaults = [ "gtk" ];
+  portalDefaults = [ "gnome" "gtk" ];
   # 仅在 VPN/libvirt NAT 场景使用 loose rpfilter，其余默认严格模式。
   requiresLooseReversePath =
     (config.services.provider-app-vpn.enable or false)
@@ -313,10 +313,9 @@ in
 
     zsh.enable = true;
 
-    # Hyprland 合成器
-    hyprland = {
+    # Niri 合成器
+    niri = {
       enable = true;
-      xwayland.enable = true;
     };
 
     seahorse.enable = true;
@@ -445,11 +444,11 @@ in
     enable = true;
     xdgOpenUsePortal = true;
     config.common.default = portalDefaults;
-    # Hyprland 专用 portal 配置：屏幕共享与截图走 hyprland backend
-    config.hyprland.default = [ "hyprland" "gtk" ];
+    # Niri 会话 portal 配置：屏幕共享与截图走 gnome backend
+    config.niri.default = [ "gnome" "gtk" ];
     # 去重并固定 portal backend 组合，避免模块合并导致重复项。
     extraPortals = lib.mkForce (with pkgs; [
-      xdg-desktop-portal-hyprland
+      xdg-desktop-portal-gnome
       xdg-desktop-portal-gtk
     ]);
   };

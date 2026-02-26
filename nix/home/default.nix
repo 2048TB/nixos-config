@@ -133,10 +133,9 @@ let
       . "$hm_vars"
     fi
 
-    # 由 Home Manager 的 wayland.windowManager.hyprland.systemd.enable
     # 统一导入关键环境变量到 systemd user / dbus，避免重复导入。
-    export XDG_CURRENT_DESKTOP=Hyprland
-    export XDG_SESSION_DESKTOP=Hyprland
+    export XDG_CURRENT_DESKTOP=niri
+    export XDG_SESSION_DESKTOP=niri
     # greetd 启动链路下，systemd user 可能不会自动继承 HM session vars；
     # 显式导入 IM 变量，保证由 user service 启动的应用可用中文输入法。
     /run/current-system/sw/bin/systemctl --user import-environment \
@@ -145,7 +144,7 @@ let
     /run/current-system/sw/bin/dbus-update-activation-environment --systemd \
       INPUT_METHOD GTK_IM_MODULE QT_IM_MODULE XMODIFIERS SDL_IM_MODULE \
       XDG_CURRENT_DESKTOP XDG_SESSION_DESKTOP || true
-    exec /run/current-system/sw/bin/Hyprland
+    exec /run/current-system/sw/bin/niri-session
   '';
   dmsSessionBootstrap = pkgs.writeShellScript "dms-session-bootstrap" ''
     set -eu
@@ -905,7 +904,7 @@ in
       git-lfs # Git 大文件支持
 
       # === 图形界面应用 ===
-      # 在 Hyprland 会话中显式使用 libsecret 后端，避免凭据存储后端选择不稳定导致重复口令提示
+      # 在 Wayland 会话中显式使用 libsecret 后端，避免凭据存储后端选择不稳定导致重复口令提示
       (google-chrome.override { commandLineArgs = "--password-store=gnome-libsecret"; })
       vscode
       remmina
@@ -943,7 +942,7 @@ in
       lrzip
       lzop
 
-      # === Hyprland / DMS 生态 ===
+      # === niri / DMS 生态 ===
       gnome-calculator
 
       # === Wayland 基础设施 ===
@@ -1080,7 +1079,7 @@ in
   };
 
   wayland.windowManager.hyprland = {
-    enable = true;
+    enable = false;
     package = null; # 由 NixOS 的 programs.hyprland 安装
     portalPackage = null;
     systemd.enable = true;
@@ -1301,7 +1300,7 @@ in
         ];
       };
 
-      # 在 greetd + Hyprland 会话中显式拉起输入法，避免仅依赖 XDG autostart 导致未启动
+      # 在 greetd + Wayland 会话中显式拉起输入法，避免仅依赖 XDG autostart 导致未启动
       fcitx5 = mkGraphicalService {
         description = "Fcitx5 input method daemon";
         # Use the system wrapper from i18n.inputMethod so selected addons
@@ -1338,6 +1337,9 @@ in
 
         "foot/foot.ini".source = ./configs/foot/foot.ini;
         "ghostty/config".source = ./configs/ghostty/config;
+        "niri/config.kdl".source = ./configs/niri/config.kdl;
+        "niri/keybindings.kdl".source = ./configs/niri/keybindings.kdl;
+        "niri/windowrules.kdl".source = ./configs/niri/windowrules.kdl;
         "yazi/yazi.toml".source = ./configs/yazi/yazi.toml;
         "yazi/keymap.toml".source = ./configs/yazi/keymap.toml;
         "git/config".source = ./configs/git/config;
@@ -1379,9 +1381,9 @@ in
     ensureDmsStateFiles = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
       dmsConfigDir="${homeDir}/.config/DankMaterialShell"
       dmsCacheDir="${homeDir}/.cache/DankMaterialShell"
-      hyprDmsDir="${homeDir}/.config/hypr/dms"
+      niriDmsDir="${homeDir}/.config/niri/dms"
 
-      ${mkdirBin} -p "$dmsConfigDir" "$dmsCacheDir" "$hyprDmsDir"
+      ${mkdirBin} -p "$dmsConfigDir" "$dmsCacheDir" "$niriDmsDir"
 
       # 旧代可能遗留 Nix store 的只读 symlink；转换为可写普通文件
       if [ -L "$dmsConfigDir/settings.json" ]; then
@@ -1423,12 +1425,36 @@ in
         printf '{}\n' > "$dmsCacheDir/cache.json"
       fi
 
-      if [ ! -e "$hyprDmsDir/cursor.conf" ]; then
-        printf '\n' > "$hyprDmsDir/cursor.conf"
+      if [ ! -e "$niriDmsDir/colors.kdl" ]; then
+        printf '\n' > "$niriDmsDir/colors.kdl"
       fi
 
-      if [ ! -e "$hyprDmsDir/windowrules.conf" ]; then
-        printf '\n' > "$hyprDmsDir/windowrules.conf"
+      if [ ! -e "$niriDmsDir/layout.kdl" ]; then
+        printf '\n' > "$niriDmsDir/layout.kdl"
+      fi
+
+      if [ ! -e "$niriDmsDir/alttab.kdl" ]; then
+        printf '\n' > "$niriDmsDir/alttab.kdl"
+      fi
+
+      if [ ! -e "$niriDmsDir/binds.kdl" ]; then
+        printf '\n' > "$niriDmsDir/binds.kdl"
+      fi
+
+      if [ ! -e "$niriDmsDir/outputs.kdl" ]; then
+        printf '\n' > "$niriDmsDir/outputs.kdl"
+      fi
+
+      if [ ! -e "$niriDmsDir/cursor.kdl" ]; then
+        printf '\n' > "$niriDmsDir/cursor.kdl"
+      fi
+
+      if [ ! -e "$niriDmsDir/wpblur.kdl" ]; then
+        printf '\n' > "$niriDmsDir/wpblur.kdl"
+      fi
+
+      if [ ! -e "$niriDmsDir/windowrules.kdl" ]; then
+        printf '\n' > "$niriDmsDir/windowrules.kdl"
       fi
 
       # 清理历史兼容 shim（其输出固定为 {}，会导致 DMS CPU/内存小组件无数据）
