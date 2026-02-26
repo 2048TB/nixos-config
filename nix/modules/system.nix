@@ -433,7 +433,7 @@ in
       };
     };
     pulseaudio.enable = false;
-    # 为 WirePlumber 提供 UPower DBus 接口（蓝牙电量读取依赖该 DBus name）
+    # UPower DBus 接口：WirePlumber 蓝牙电量读取 + Waybar battery 模块依赖
     upower.enable = true;
 
     # 文件管理常用的缩略图/挂载支持
@@ -469,6 +469,9 @@ in
         default = [ "hyprland" "gtk" ];
         "org.freedesktop.impl.portal.Settings" = [ "gtk" ];
         "org.freedesktop.impl.portal.FileChooser" = [ "gtk" ];
+        # Hyprland portal 不实现 Inhibit，显式路由到 gtk 避免
+        # "Inhibiting other than idle not supported" 告警。
+        "org.freedesktop.impl.portal.Inhibit" = [ "gtk" ];
       };
     };
     # 系统侧仅固定 hyprland backend；gtk backend 由 Home Manager 注入用户 profile。

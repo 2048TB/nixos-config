@@ -57,6 +57,7 @@ let
 
   # 仅在混合显卡（amd-nvidia-hybrid）时安装 GPU 加速相关软件
   gpuChoice = myvars.gpuMode or "auto";
+  isHybridGpu = gpuChoice == "amd-nvidia-hybrid";
   ollamaVulkan = pkgs.ollama or null;
   tensorflowCudaPkg = pkgs.python3Packages.tensorflowWithCuda or null;
   tensorflowCudaEnv =
@@ -64,10 +65,11 @@ let
     then pkgs.python3.withPackages (_: [ tensorflowCudaPkg ])
     else null;
   hashcatPkg = pkgs.hashcat or null;
-  hybridPackages =
-    lib.optionals (gpuChoice == "amd-nvidia-hybrid" && ollamaVulkan != null) [ ollamaVulkan ]
-    ++ lib.optionals (gpuChoice == "amd-nvidia-hybrid" && tensorflowCudaEnv != null) [ tensorflowCudaEnv ]
-    ++ lib.optionals (gpuChoice == "amd-nvidia-hybrid" && hashcatPkg != null) [ hashcatPkg ];
+  hybridPackages = lib.optionals isHybridGpu (
+    lib.optional (ollamaVulkan != null) ollamaVulkan
+    ++ lib.optional (tensorflowCudaEnv != null) tensorflowCudaEnv
+    ++ lib.optional (hashcatPkg != null) hashcatPkg
+  );
 
   # WPS Office steam-run 包装器
   # 修复 NixOS 上 WPS 无法启动的问题（FHS 兼容性）
@@ -1320,8 +1322,6 @@ in
             # Waybar 会持续打印固定错误；先做定向降噪。
             LogFilterPatterns = [
               "~Item 'chrome_status_icon_1': No icon name or pixmap given."
-              "~Unable to load hand2 from the cursor theme"
-              "~Unable to load arrow from the cursor theme"
             ];
             ExecStart = "${waybarLauncher}";
             Restart = "always";
@@ -1460,6 +1460,7 @@ in
           default = [ "hyprland" "gtk" ];
           "org.freedesktop.impl.portal.Settings" = [ "gtk" ];
           "org.freedesktop.impl.portal.FileChooser" = [ "gtk" ];
+          "org.freedesktop.impl.portal.Inhibit" = [ "gtk" ];
         };
       };
     };
@@ -1478,6 +1479,15 @@ in
       # 使用 genAttrs 保持行为一致，减少重复
       defaultApplications = lib.genAttrs imageMimeTypes (_: imageApps);
     };
+  };
+
+  # Cursor theme：Adwaita 已在 closure 中（GTK 应用隐式依赖），不增加额外构建负担。
+  # 同时为 Waybar/GTK 提供完整 cursor name set（hand2、arrow 等），消除加载告警。
+  home.pointerCursor = {
+    gtk.enable = true;
+    package = pkgs.adwaita-icon-theme;
+    name = "Adwaita";
+    size = 24;
   };
 
   dconf.settings = {
