@@ -75,7 +75,7 @@
     "move-to-monitor": true,
     "show-special": true,
     "special-visible-only": true,
-    "disable-scroll": true,
+    "enable-bar-scroll": false,
     "swap-icon-label": false
   },
 
