@@ -139,6 +139,21 @@ let
     export XDG_SESSION_DESKTOP=Hyprland
     exec /run/current-system/sw/bin/Hyprland
   '';
+  dmsSessionBootstrap = pkgs.writeShellScript "dms-session-bootstrap" ''
+    set -eu
+
+    # greetd + user systemd 场景下 XDG_SESSION_ID 可能未注入到 dms.service 环境，
+    # 会导致 logind GetSession("self") 失败并退化禁用 loginctl 集成。
+    if [ -z "''${XDG_SESSION_ID:-}" ]; then
+      uid="$(${pkgs.coreutils}/bin/id -u)"
+      sid="$(${pkgs.systemd}/bin/loginctl show-user "$uid" -p Display --value 2>/dev/null || true)"
+      if [ -n "$sid" ] && [ "$sid" != "n/a" ] && [ "$sid" != "-" ]; then
+        export XDG_SESSION_ID="$sid"
+      fi
+    fi
+
+    exec ${profileCmd "dms"} run --session
+  '';
 
   # 仅在混合显卡（amd-nvidia-hybrid）时安装 GPU 加速相关软件
   gpuChoice = myvars.gpuMode or "auto";
@@ -1270,9 +1285,12 @@ in
   systemd = {
     user.services = {
       # 压制 Quickshell 非关键噪音日志（不影响功能）
-      dms.Service.Environment = [
-        "QT_LOGGING_RULES=quickshell.I3.ipc.warning=false;qt.core.qfuture.continuations.warning=false;quickshell.service.sni.watcher.warning=false"
-      ];
+      dms.Service = {
+        ExecStart = lib.mkForce "${dmsSessionBootstrap}";
+        Environment = [
+          "QT_LOGGING_RULES=quickshell.I3.ipc.warning=false;qt.core.qfuture.continuations.warning=false;quickshell.service.sni.watcher.warning=false;qt.qpa.services.warning=false;qt.qpa.wayland.textinput.warning=false"
+        ];
+      };
 
       # 在 greetd + Hyprland 会话中显式拉起输入法，避免仅依赖 XDG autostart 导致未启动
       fcitx5 = mkGraphicalService {
