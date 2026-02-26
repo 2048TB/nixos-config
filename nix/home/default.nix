@@ -1427,10 +1427,13 @@ in
       }
       // wlogoutIconFiles;
 
+    # Home Manager 会设置 NIX_XDG_DESKTOP_PORTAL_DIR，并优先从用户 profile 读取 .portal。
+    # 需显式注入 gtk backend，否则在 Hyprland 会出现 "Requested gtk.portal is unrecognized"，
+    # 进而导致 org.freedesktop.portal.Settings/FileChooser 缺失。
     portal = {
       enable = true;
       xdgOpenUsePortal = true;
-      # common 默认优先 gtk，避免 FileChooser/Settings 接口落到 hyprland backend
+      extraPortals = with pkgs; [ xdg-desktop-portal-gtk ];
       config = {
         common = {
           default = [ "gtk" ];

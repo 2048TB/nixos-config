@@ -458,10 +458,10 @@ in
         "org.freedesktop.impl.portal.FileChooser" = [ "gtk" ];
       };
     };
-    # 去重并固定 portal backend 组合，避免模块合并导致重复项。
+    # 系统侧仅固定 hyprland backend；gtk backend 由 Home Manager 注入用户 profile。
+    # 原因：当前仓库对 system/home 包重叠有校验，双侧同时声明 gtk 会触发失败。
     extraPortals = lib.mkForce (with pkgs; [
       xdg-desktop-portal-hyprland
-      xdg-desktop-portal-gtk
     ]);
   };
 
