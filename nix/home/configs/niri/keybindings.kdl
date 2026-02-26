@@ -15,7 +15,7 @@ binds {
     Mod+Shift+Return { spawn "ghostty" "--class=ghostty-float"; }
 
     // 启动器
-    Mod+Space { spawn "fuzzel"; }
+    Mod+Space { spawn "dms" "ipc" "call" "spotlight" "toggle"; }
     XF86Search { spawn "fuzzel"; }
     Mod+P { spawn "fuzzel"; }
 
