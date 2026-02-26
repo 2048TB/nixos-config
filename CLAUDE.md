@@ -28,7 +28,9 @@
 - GPU 驱动配置固定来自 `flake.nix` 的 `myvars.gpuMode`。
 - GPU 启动菜单切换默认关闭，需在 `flake.nix` 中设置 `myvars.enableGpuSpecialisation = true` 才启用。
 - 会话管理器为 `Niri`（`wayland.windowManager.niri` + `niri/config.kdl`）。
+- 当前桌面实际使用 `niri`；`wayland.windowManager.hyprland.enable = false`，其绑定仅作备用配置参考。
 - 快捷键以 `nix/home/configs/niri/keybindings.kdl` 为准。
+- 启动器按键以当前 WM 配置判定：`niri` 下 `Mod+Space -> dms ipc call spotlight toggle`（与 DMS 官方 Niri 示例一致）。
 - 安装流程若依赖 `NIXOS_DISK_DEVICE` 覆盖目标盘，`nixos-install` 需使用 `--impure`。
 
 ---

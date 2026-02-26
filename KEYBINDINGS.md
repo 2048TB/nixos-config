@@ -28,7 +28,7 @@
 |---|---|
 | `Mod` + `Enter` | 打开终端（Ghostty） |
 | `Mod` + `Shift` + `Enter` | 打开浮动终端（Ghostty） |
-| `Mod` + `Space` | 启动器（Fuzzel） |
+| `Mod` + `Space` | 启动器（DMS Spotlight） |
 | `XF86Search` | 启动器（Fuzzel） |
 | `Mod` + `B` | 文件管理器（Nautilus） |
 | `Mod` + `X` | 锁屏 |

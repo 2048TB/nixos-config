@@ -41,3 +41,9 @@ There is no unit-test suite; verification is configuration-driven:
 ## Security & Configuration Tips
 - Do not commit new secrets (tokens, private keys, plaintext credentials). If rotating password hashes in `flake.nix`, treat them as sensitive changes and review carefully.
 - Treat disk/install scripts as destructive unless verified (`scripts/`, disko-related flows).
+
+## Session & Keybinding Source of Truth
+- Active window manager is `niri`; treat `wayland.windowManager.hyprland.enable = false` in `nix/home/default.nix` as disabled fallback config.
+- For active desktop keybindings, use `nix/home/configs/niri/keybindings.kdl` as the source of truth.
+- Current launcher binding in active `niri` config is `Mod+Space -> dms ipc call spotlight toggle`.
+- `dms ipc call spotlight toggle` appears in Hyprland binds and applies only if Hyprland is enabled.
