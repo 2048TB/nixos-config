@@ -63,17 +63,20 @@ let
     (config.services.provider-app-vpn.enable or false)
     || (config.virtualisation.libvirtd.enable or false);
   tuigreetPackage = pkgs.tuigreet or pkgs.greetd.tuigreet;
-  tuigreetTheme = "border=blue;text=white;prompt=cyan;time=green;action=lightblue;button=yellow;container=black;input=white;greet=cyan;title=lightblue";
+  # 参考 Catppuccin Mocha（tuigreet 仅支持 ANSI color name，做近似映射）。
+  tuigreetTheme =
+    "border=lightmagenta;text=white;prompt=lightcyan;time=lightblue;action=lightblue;"
+    + "button=lightyellow;container=black;input=white;greet=lightmagenta;title=lightmagenta";
   tuigreetCommand = pkgs.writeShellScript "greetd-tuigreet-session" ''
     exec ${lib.getExe tuigreetPackage} \
       --time \
-      --time-format '%Y-%m-%d %H:%M' \
+      --time-format '%a %Y-%m-%d %H:%M' \
       --remember \
       --remember-session \
       --asterisks \
-      --greeting 'Welcome to ${myvars.hostname}' \
-      --window-padding 2 \
-      --container-padding 2 \
+      --greeting 'NixOS ${myvars.hostname}' \
+      --window-padding 3 \
+      --container-padding 3 \
       --prompt-padding 1 \
       --greet-align center \
       --theme '${tuigreetTheme}' \
