@@ -160,7 +160,10 @@
   "tray": {
     "spacing": 8,
     "icon-size": 16,
-    "show-passive-items": true
+    "show-passive-items": true,
+    "icons": {
+      "chrome_status_icon_1": "mullvad-vpn"
+    }
   },
 
   "custom/public-ip": {
