@@ -674,8 +674,12 @@ in
     };
 
     user.services = {
-      # systemd 的 LogFilterPatterns 对 user services 不生效，改为 wrapper 过滤启动期已知噪音。
-      wireplumber.serviceConfig.ExecStart = lib.mkForce "${wireplumberQuietLauncher}";
+      # systemd override 中需先清空原 ExecStart，再设置 wrapper；
+      # 否则与上游 unit 的 ExecStart 并存，导致 bad-setting。
+      wireplumber.serviceConfig.ExecStart = lib.mkForce [
+        ""
+        "${wireplumberQuietLauncher}"
+      ];
     };
 
     # 定期清理临时文件（模拟部分 tmpfs 优势）
