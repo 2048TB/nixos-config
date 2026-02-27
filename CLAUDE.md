@@ -9,7 +9,7 @@
 - 仅在用户明确要求时编辑 `*.md`。
 - 输出简洁、直接，中文说明 + 英文技术名词。
 - 只做用户请求范围内的改动。
-- 涉及 Hyprland/Waybar 行为变化时，同步更新 `README.md`、`KEYBINDINGS.md`、`NIX-COMMANDS.md`。
+- 涉及 Niri/Waybar 行为变化时，同步更新 `README.md`、`KEYBINDINGS.md`、`NIX-COMMANDS.md`。
 
 ---
 
@@ -19,7 +19,7 @@
 - `nix/hosts/` 主机配置。
 - `nix/modules/system.nix` 系统配置。
 - `nix/modules/hardware.nix` GPU 选择与驱动配置。
-- `nix/home/default.nix` Home Manager 入口（含 Hyprland 按键绑定）。
+- `nix/home/default.nix` Home Manager 入口（含 Niri 会话脚本与用户服务）。
 - `nix/home/configs/` 应用配置（ghostty/foot/tmux/zellij/waybar/fuzzel 等）。
 
 ---
@@ -28,8 +28,9 @@
 
 - GPU 驱动配置固定来自 `flake.nix` 的 `myvars.gpuMode`。
 - GPU 启动菜单切换默认关闭，需在 `flake.nix` 中设置 `myvars.enableGpuSpecialisation = true` 才启用。
-- 会话管理器为 `Hyprland`（`programs.hyprland` + `wayland.windowManager.hyprland`）。
-- `wayland.windowManager.hyprland.package = null`，避免与系统级 `programs.hyprland` 重复安装。
+- 会话管理器为 `Niri`（`programs.niri` + `~/.wayland-session -> niri-session`）。
+- `nix/home/configs/niri/*.kdl` 为当前会话配置真源，快捷键说明与其保持一致。
+- `xwayland-satellite` 需保持在系统 PATH（Niri 下 XWayland 应用兼容依赖）。
 - 安装流程若依赖 `NIXOS_DISK_DEVICE` 覆盖目标盘，`nixos-install` 需使用 `--impure`。
 
 ---

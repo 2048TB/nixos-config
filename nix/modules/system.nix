@@ -57,7 +57,7 @@ let
     (lib.optional hasIntel "options kvm_intel nested=1")
   ]);
   # common default 必须与已安装 backend 对齐，避免指向未安装 portal。
-  portalDefaults = [ "gtk" ];
+  portalDefaults = [ "gnome" "gtk" ];
   # 仅在 VPN/libvirt NAT 场景使用 loose rpfilter，其余默认严格模式。
   requiresLooseReversePath =
     (config.services.provider-app-vpn.enable or false)
@@ -314,10 +314,11 @@ in
 
     zsh.enable = true;
 
-    # Hyprland 合成器
-    hyprland = {
+    # Niri 合成器
+    niri = {
       enable = true;
-      xwayland.enable = true;
+      # 已在 xdg.portal 配置中显式固定 FileChooser=gtk，无需额外依赖 Nautilus。
+      useNautilus = false;
     };
 
     seahorse.enable = true;
@@ -461,24 +462,24 @@ in
     config = {
       common = {
         default = portalDefaults;
-        # 显式固定常见接口到 gtk，避免 Hyprland backend 缺失时报错。
+        # 显式固定常见接口到 gtk，避免非 GNOME 后端未实现时报错。
         "org.freedesktop.impl.portal.Settings" = [ "gtk" ];
         "org.freedesktop.impl.portal.FileChooser" = [ "gtk" ];
       };
-      # Hyprland 专用 portal 配置：屏幕共享与截图走 hyprland backend
-      hyprland = {
-        default = [ "hyprland" "gtk" ];
+      # Niri 专用 portal 配置：屏幕共享与截图走 GNOME backend
+      niri = {
+        default = [ "gnome" "gtk" ];
         "org.freedesktop.impl.portal.Settings" = [ "gtk" ];
         "org.freedesktop.impl.portal.FileChooser" = [ "gtk" ];
-        # Hyprland portal 不实现 Inhibit，显式路由到 gtk 避免
+        # 显式路由到 gtk，避免 Inhibit 接口缺失告警。
         # "Inhibiting other than idle not supported" 告警。
         "org.freedesktop.impl.portal.Inhibit" = [ "gtk" ];
       };
     };
-    # 系统侧仅固定 hyprland backend；gtk backend 由 Home Manager 注入用户 profile。
+    # 系统侧固定 GNOME backend；gtk backend 由 Home Manager 注入用户 profile。
     # 原因：当前仓库对 system/home 包重叠有校验，双侧同时声明 gtk 会触发失败。
     extraPortals = lib.mkForce (with pkgs; [
-      xdg-desktop-portal-hyprland
+      xdg-desktop-portal-gnome
     ]);
   };
 
@@ -573,6 +574,8 @@ in
     ruff
     black
     uv
+    # Niri 官方要求：xwayland-satellite 需在 PATH 中，供 XWayland 应用桥接。
+    xwayland-satellite
     lutris
   ];
 

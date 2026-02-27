@@ -45,14 +45,7 @@ let
       . "$hm_vars"
     fi
 
-    # 由 Home Manager 的 wayland.windowManager.hyprland.systemd.enable
-    # 统一导入关键环境变量到 systemd user / dbus，避免重复导入。
-
-    # 尝试结束旧会话，避免残留服务状态影响新会话
-    if systemctl --user is-active hyprland-session.target >/dev/null 2>&1; then
-      systemctl --user stop hyprland-session.target
-    fi
-    exec /run/current-system/sw/bin/Hyprland
+    exec /run/current-system/sw/bin/niri-session
   '';
 
   # 仅在混合显卡（amd-nvidia-hybrid）时安装 GPU 加速相关软件
@@ -74,7 +67,7 @@ let
   # WPS Office steam-run 包装器
   # 修复 NixOS 上 WPS 无法启动的问题（FHS 兼容性）
   # 参考：https://github.com/NixOS/nixpkgs/issues/125951
-  # 额外注入 Qt 缩放变量，配合 Hyprland xwayland.force_zero_scaling 避免“清晰但过小”。
+  # 额外注入 Qt 缩放变量，确保 XWayland 应用在分数缩放下保持可读尺寸。
   wpsRunWrapper = bin: lib.hiPrio (pkgs.writeShellScriptBin bin ''
     exec env \
       QT_AUTO_SCREEN_SCALE_FACTOR=0 \
@@ -130,72 +123,6 @@ let
     [ -n "$picked" ] || exit 0
     printf '%s' "$picked" | ${pkgs.cliphist}/bin/cliphist decode | ${pkgs.wl-clipboard}/bin/wl-copy
   '';
-  hyprlandSubmapCycle = pkgs.writeShellScriptBin "hyprland-submap-cycle" ''
-    set -euo pipefail
-    stateFile="${homeDir}/.local/state/hyprland/submap"
-    action="''${1:-toggle}"
-    current="normal"
-    next="normal"
-
-    if [ -s "$stateFile" ]; then
-      current="$(${pkgs.coreutils}/bin/head -n 1 "$stateFile")"
-    fi
-
-    case "$action" in
-      toggle)
-        case "$current" in
-          normal) next="float" ;;
-          float) next="passthrough" ;;
-          passthrough) next="normal" ;;
-          *) next="normal" ;;
-        esac
-        ;;
-      set)
-        next="''${2:-normal}"
-        ;;
-      *)
-        echo "Usage: hyprland-submap-cycle [toggle|set <normal|float|passthrough>]" >&2
-        exit 1
-        ;;
-    esac
-
-    case "$next" in
-      normal|float|passthrough) ;;
-      *) next="normal" ;;
-    esac
-
-    ${pkgs.coreutils}/bin/mkdir -p "$(${pkgs.coreutils}/bin/dirname "$stateFile")"
-    printf '%s\n' "$next" > "$stateFile"
-    if [ "$next" = "normal" ]; then
-      exec /run/current-system/sw/bin/hyprctl dispatch submap reset
-    fi
-    exec /run/current-system/sw/bin/hyprctl dispatch submap "$next"
-  '';
-  hyprlandConfig =
-    builtins.replaceStrings
-      [
-        "@HOME_DIR@"
-        "@PROFILE_BIN@"
-        "@PLAYERCTL_BIN@"
-        "@RIVER_SCREENSHOT_BIN@"
-      ]
-      [
-        homeDir
-        userProfileBin
-        "${pkgs.playerctl}/bin/playerctl"
-        "${riverScreenshot}/bin/river-screenshot"
-      ]
-      (builtins.readFile ./configs/hypr/hyprland.conf);
-  hypridleConfig =
-    builtins.replaceStrings
-      [
-        "@PROFILE_BIN@"
-      ]
-      [
-        userProfileBin
-      ]
-      (builtins.readFile ./configs/hypr/hypridle.conf);
-  hyprlockConfig = builtins.readFile ./configs/hypr/hyprlock.conf;
   waybarConfig =
     builtins.replaceStrings
       [
@@ -366,19 +293,17 @@ let
     set -euo pipefail
     runtimeDir="''${XDG_RUNTIME_DIR:-/run/user/$(${pkgs.coreutils}/bin/id -u)}"
     waybarBin="${pkgs.waybar}/bin/waybar"
-    basenameBin="${pkgs.coreutils}/bin/basename"
-    dirnameBin="${pkgs.coreutils}/bin/dirname"
     sleepBin="${pkgs.coreutils}/bin/sleep"
     seqBin="${pkgs.coreutils}/bin/seq"
 
-    launch_if_ready() {
-      if [ -n "''${HYPRLAND_INSTANCE_SIGNATURE:-}" ] && [ -S "$runtimeDir/hypr/$HYPRLAND_INSTANCE_SIGNATURE/.socket2.sock" ]; then
+    launch_if_wayland_ready() {
+      if [ -n "''${WAYLAND_DISPLAY:-}" ] && [ -S "$runtimeDir/$WAYLAND_DISPLAY" ]; then
         exec "$waybarBin"
       fi
 
-      for socket in "$runtimeDir"/hypr/*/.socket2.sock; do
+      for socket in "$runtimeDir"/wayland-*; do
         [ -S "$socket" ] || continue
-        export HYPRLAND_INSTANCE_SIGNATURE="$("$basenameBin" "$("$dirnameBin" "$socket")")"
+        export WAYLAND_DISPLAY="''${socket##*/}"
         exec "$waybarBin"
       done
 
@@ -386,7 +311,7 @@ let
     }
 
     for _ in $("$seqBin" 1 100); do
-      launch_if_ready || true
+      launch_if_wayland_ready || true
       "$sleepBin" 0.1
     done
 
@@ -1054,8 +979,7 @@ in
 
       # === Wayland 工具 ===
       satty
-      hypridle # Hyprland 空闲管理（锁屏/熄屏/休眠）
-      hyprlock # Hyprland 锁屏
+      swaylock # Niri 手动锁屏
       grim
       slurp
       wl-screenrec
@@ -1129,7 +1053,6 @@ in
       wlogoutMenu
       riverScreenshot
       riverCliphistMenu
-      hyprlandSubmapCycle
       waybarClockCalendar
       waybarTemperatureStatus
       waybarBacklightStatus
@@ -1228,14 +1151,6 @@ in
 
   };
 
-  wayland.windowManager.hyprland = {
-    enable = true;
-    package = null; # 由 NixOS 的 programs.hyprland 安装
-    xwayland.enable = true;
-    systemd.enable = true;
-    extraConfig = hyprlandConfig;
-  };
-
   services = {
     playerctld.enable = true;
 
@@ -1290,28 +1205,13 @@ in
           };
         };
 
-        hypridle = {
-          Unit = {
-            Description = "Hypridle idle daemon";
-            After = [ "hyprland-session.target" ];
-            PartOf = [ "hyprland-session.target" ];
-          };
-          Install.WantedBy = [ "hyprland-session.target" ];
-          Service = {
-            Type = "simple";
-            ExecStart = "${pkgs.hypridle}/bin/hypridle";
-            Restart = "on-failure";
-            RestartSec = 2;
-          };
-        };
-
         waybar = {
           Unit = {
             Description = "Waybar status bar";
-            After = [ "hyprland-session.target" ];
-            PartOf = [ "hyprland-session.target" ];
+            After = [ "graphical-session.target" ];
+            PartOf = [ "graphical-session.target" ];
           };
-          Install.WantedBy = [ "hyprland-session.target" ];
+          Install.WantedBy = [ "graphical-session.target" ];
           Service = {
             Type = "simple";
             Environment = [
@@ -1323,6 +1223,8 @@ in
             # Waybar 会持续打印固定错误；先做定向降噪。
             LogFilterPatterns = [
               "~Item 'chrome_status_icon_1': No icon name or pixmap given."
+              "~Item '': No icon name or pixmap given."
+              "~Unable to replace properties on 0: Error getting properties for ID"
             ];
             ExecStart = "${waybarLauncher}";
             Restart = "always";
@@ -1361,7 +1263,7 @@ in
           };
         };
 
-        # 在 greetd + Hyprland 会话中显式拉起输入法，避免仅依赖 XDG autostart 导致未启动
+        # 在 greetd + Wayland 会话中显式拉起输入法，避免仅依赖 XDG autostart 导致未启动
         fcitx5 = {
           Unit = {
             Description = "Fcitx5 input method daemon";
@@ -1415,8 +1317,9 @@ in
           recursive = true;
           force = true;
         };
-        "hypr/hyprlock.conf".text = hyprlockConfig;
-        "hypr/hypridle.conf".text = hypridleConfig;
+        "niri/config.kdl".source = ./configs/niri/config.kdl;
+        "niri/keybindings.kdl".source = ./configs/niri/keybindings.kdl;
+        "niri/windowrules.kdl".source = ./configs/niri/windowrules.kdl;
         "wlogout/layout".source = ./configs/wlogout/layout;
         "wlogout/style.css".source = ./configs/wlogout/style.css;
 
@@ -1446,20 +1349,23 @@ in
       // wlogoutIconFiles;
 
     # Home Manager 会设置 NIX_XDG_DESKTOP_PORTAL_DIR，并优先从用户 profile 读取 .portal。
-    # 需显式注入 gtk backend，否则在 Hyprland 会出现 "Requested gtk.portal is unrecognized"，
+    # 需显式注入 gtk backend，否则会出现 "Requested gtk.portal is unrecognized"，
     # 进而导致 org.freedesktop.portal.Settings/FileChooser 缺失。
     portal = {
       enable = true;
       xdgOpenUsePortal = true;
-      extraPortals = with pkgs; [ xdg-desktop-portal-gtk ];
+      extraPortals = with pkgs; [
+        xdg-desktop-portal-gnome
+        xdg-desktop-portal-gtk
+      ];
       config = {
         common = {
-          default = [ "gtk" ];
+          default = [ "gnome" "gtk" ];
           "org.freedesktop.impl.portal.Settings" = [ "gtk" ];
           "org.freedesktop.impl.portal.FileChooser" = [ "gtk" ];
         };
-        hyprland = {
-          default = [ "hyprland" "gtk" ];
+        niri = {
+          default = [ "gnome" "gtk" ];
           "org.freedesktop.impl.portal.Settings" = [ "gtk" ];
           "org.freedesktop.impl.portal.FileChooser" = [ "gtk" ];
           "org.freedesktop.impl.portal.Inhibit" = [ "gtk" ];

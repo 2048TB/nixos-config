@@ -73,7 +73,8 @@ window#waybar {
   transition: all 0.2s ease;
 }
 
-#workspaces button.active {
+#workspaces button.active,
+#workspaces button.focused {
   background: #89b4fa;
   color: #1c1f2d;
   border-color: rgba(137, 180, 250, 0.92);
@@ -84,7 +85,8 @@ window#waybar {
   background-size: 16px 16px;
 }
 
-#workspaces button.visible:not(.active) {
+#workspaces button.visible:not(.active):not(.focused),
+#workspaces button.current_output:not(.active):not(.focused) {
   background: linear-gradient(120deg, #12608a, #0986d3);
   color: #f9f9f9;
   border-color: rgba(9, 134, 211, 0.9);
@@ -114,12 +116,14 @@ window#waybar {
   font-weight: 900;
 }
 
-#workspaces button.active label {
+#workspaces button.active label,
+#workspaces button.focused label {
   color: transparent;
   font-size: 0;
 }
 
-#workspaces button.visible:not(.active) label {
+#workspaces button.visible:not(.active):not(.focused) label,
+#workspaces button.current_output:not(.active):not(.focused) label {
   color: #f9f9f9;
 }
 

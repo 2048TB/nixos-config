@@ -139,8 +139,8 @@ journalctl -u <service> --no-pager
 journalctl --user -u <service> --no-pager
 
 # 桌面会话常用日志
-journalctl --user -b -u waybar.service -u hypridle.service -u xdg-desktop-portal.service --no-pager
-journalctl --user -b --no-pager | rg -i 'hyprland|waybar|portal|pipewire|wireplumber|swaync'
+journalctl --user -b -u waybar.service -u xdg-desktop-portal.service --no-pager
+journalctl --user -b --no-pager | rg -i 'niri|waybar|portal|pipewire|wireplumber|swaync'
 
 nixos-version
 readlink /run/current-system

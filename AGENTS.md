@@ -5,7 +5,7 @@ This repository is a flake-based NixOS desktop configuration.
 - `flake.nix`: main entrypoint (`inputs`, `outputs`, host wiring, `myvars`).
 - `nix/hosts/`: host-specific machine definitions (e.g. `zly.nix`).
 - `nix/modules/`: shared system modules (`system.nix`, `hardware.nix`).
-- `nix/home/default.nix`: Home Manager entrypoint (packages, Hyprland keybindings).
+- `nix/home/default.nix`: Home Manager entrypoint (packages, Niri session wiring).
 - `nix/home/configs/`: app configs — Ghostty, Foot, Tmux, Zellij, Waybar, Fuzzel, Wlogout, Yazi, shell, fcitx5, etc.
 - `scripts/`: install/bootstrap helpers (for Live ISO and setup workflows).
 - Docs: `README.md`, `KEYBINDINGS.md`, `NIX-COMMANDS.md`, `CLAUDE.md`, `.github-optimization.md`, `nix/home/README.md`.
@@ -41,7 +41,7 @@ There is no unit-test suite; verification is configuration-driven:
 
 ## Documentation Sync Rules
 - When behavior/commands/keybindings change, update related docs in the same change set.
-- For Hyprland/Waybar changes, keep `README.md`, `KEYBINDINGS.md`, and `NIX-COMMANDS.md` consistent.
+- For Niri/Waybar changes, keep `README.md`, `KEYBINDINGS.md`, and `NIX-COMMANDS.md` consistent.
 - If docs are updated and user requests sync, push current branch with a Conventional Commit message.
 
 ## Security & Configuration Tips
