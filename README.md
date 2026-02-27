@@ -14,7 +14,8 @@
 主要特性：
 - Wayland 桌面：Hyprland + Waybar + Fuzzel + Wlogout
 - 窗口管理：Master 布局 + float/passthrough submap，高频操作以二键绑定为主（见 `KEYBINDINGS.md`）
-- Waybar 网络区：`network` + `custom/public-ip` + `custom/wifi-manager`（链路状态、公网 IP、WiFi 管理入口）
+- 终端复用器：Tmux / Zellij 统一使用 `Ctrl + B` 作为 leader/prefix（见 `KEYBINDINGS.md`）
+- Waybar 状态区：`cpu`/`memory`/`temperature`/`public-ip`/`battery` 等核心模块（见 `nix/home/configs/waybar/config.jsonc`）
 - 开发工具链：Rust / Zig / Go / Node.js / Python
 - 游戏支持：Steam / Proton / Wine / Lutris
 - 中文输入：Fcitx5
