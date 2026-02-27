@@ -638,6 +638,7 @@ in
       app2unit
       polkit_gnome # Polkit 认证代理（权限提升对话框，virt-manager/Nautilus 等需要）
       networkmanagerapplet # nm-connection-editor（WiFi GUI 管理入口）
+      pasystray # 托盘音量控制（恢复托盘区声音管理）
 
       # === 游戏工具 ===
       mangohud
@@ -779,7 +780,7 @@ in
       enable = true;
       automount = true;
       notify = true;
-      tray = "never"; # Wayland 会话使用 Waybar 托盘模块
+      tray = "auto"; # Waybar tray 可用时显示设备托盘菜单
     };
 
     swaync = {
@@ -841,6 +842,21 @@ in
             ];
             ExecStart = "${waybarLauncher}";
             Restart = "always";
+            RestartSec = 2;
+          };
+        };
+
+        pasystray = {
+          Unit = {
+            Description = "PulseAudio tray applet";
+            After = [ "graphical-session.target" ];
+            PartOf = [ "graphical-session.target" ];
+          };
+          Install.WantedBy = [ "graphical-session.target" ];
+          Service = {
+            Type = "simple";
+            ExecStart = "${pkgs.pasystray}/bin/pasystray";
+            Restart = "on-failure";
             RestartSec = 2;
           };
         };
