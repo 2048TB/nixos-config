@@ -9,7 +9,7 @@
 - 仅在用户明确要求时编辑 `*.md`。
 - 输出简洁、直接，中文说明 + 英文技术名词。
 - 只做用户请求范围内的改动。
-- 涉及 Niri/Waybar 行为变化时，同步更新 `README.md`、`KEYBINDINGS.md`、`NIX-COMMANDS.md`。
+- 涉及 Niri/Waybar/Tmux/Zellij 行为变化时，同步更新 `README.md`、`KEYBINDINGS.md`、`NIX-COMMANDS.md`（必要时含 `nix/home/README.md`）。
 
 ---
 
@@ -29,7 +29,8 @@
 - GPU 驱动配置固定来自 `flake.nix` 的 `myvars.gpuMode`。
 - GPU 启动菜单切换默认关闭，需在 `flake.nix` 中设置 `myvars.enableGpuSpecialisation = true` 才启用。
 - 会话管理器为 `Niri`（`programs.niri` + `~/.wayland-session -> niri-session`）。
-- `nix/home/configs/niri/*.kdl` 为当前会话配置真源，快捷键说明与其保持一致。
+- `nix/home/configs/niri/*.kdl` 为 Niri 快捷键真源，文档需保持一致。
+- `nix/home/configs/tmux/tmux.conf` 与 `nix/home/configs/zellij/config.kdl` 为终端复用器快捷键真源，文档需保持一致。
 - `xwayland-satellite` 需保持在系统 PATH（Niri 下 XWayland 应用兼容依赖）。
 - 安装流程若依赖 `NIXOS_DISK_DEVICE` 覆盖目标盘，`nixos-install` 需使用 `--impure`。
 

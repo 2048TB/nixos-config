@@ -89,6 +89,9 @@ rec {
           in
           if envDiskDevice != "" then envDiskDevice else "/dev/nvme0n1";
         swapSizeGb = 32;
+        # hibernate 恢复偏移（swapfile 场景）。
+        # 用 root 执行：btrfs inspect-internal map-swapfile -r /swap/swapfile
+        resumeOffset = 7709952;
 
         # GPU 固定配置（不再依赖文件/环境变量）
         gpuMode = "amd-nvidia-hybrid";

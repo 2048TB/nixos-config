@@ -41,7 +41,8 @@ There is no unit-test suite; verification is configuration-driven:
 
 ## Documentation Sync Rules
 - When behavior/commands/keybindings change, update related docs in the same change set.
-- For Niri/Waybar changes, keep `README.md`, `KEYBINDINGS.md`, and `NIX-COMMANDS.md` consistent.
+- For Niri/Waybar/Tmux/Zellij changes, keep `README.md`, `KEYBINDINGS.md`, and `NIX-COMMANDS.md` consistent.
+- If terminal multiplexer keybindings change, treat `nix/home/configs/tmux/tmux.conf` and `nix/home/configs/zellij/config.kdl` as source of truth and sync docs accordingly.
 - If docs are updated and user requests sync, push current branch with a Conventional Commit message.
 
 ## Security & Configuration Tips

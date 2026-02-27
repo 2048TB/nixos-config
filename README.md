@@ -3,7 +3,7 @@
 可复现的 NixOS 桌面配置，基于 Niri Wayland + Home Manager。
 
 相关文档：
-- `KEYBINDINGS.md` 快捷键说明
+- `KEYBINDINGS.md` 快捷键说明（Niri / Tmux / Zellij）
 - `NIX-COMMANDS.md` 常用 Nix 命令速查
 - `nix/home/README.md` Home 配置结构与说明
 - `.github-optimization.md` Binary Cache 说明
@@ -14,6 +14,7 @@
 主要特性：
 - Wayland 桌面：Niri + Waybar + Fuzzel + Wlogout
 - 窗口管理：Niri scrollable-tiling + 动态工作区（见 `KEYBINDINGS.md`）
+- 终端复用器：Tmux / Zellij 统一使用 `Ctrl + B` 作为 leader/prefix（见 `KEYBINDINGS.md`）
 - X11 兼容：`xwayland-satellite`（Niri 官方推荐路径）
 - Waybar 网络区：`network` + `custom/public-ip` + `custom/wifi-manager`（链路状态、公网 IP、WiFi 管理入口）
 - 开发工具链：Rust / Zig / Go / Node.js / Python
@@ -157,6 +158,7 @@ git push origin HEAD
 - `hostname`
 - `gpuMode`（如 `amd-nvidia-hybrid`）
 - `swapSizeGb`
+- `resumeOffset`（hibernate 恢复偏移，swapfile 场景）
 - `userPasswordHash`
 - `rootPasswordHash`
 
@@ -203,6 +205,25 @@ GPU 使用 `flake.nix` 的 `myvars.gpuMode` 固定配置。
         ├── @snapshots  → /snapshots
         └── @tmp        → /tmp
 ```
+
+---
+
+## Hibernate（休眠恢复）
+
+当前配置使用 `swapfile`，要保证 `systemctl hibernate` 能恢复到原会话，需要设置 `myvars.resumeOffset`。
+
+1. 以 `root` 获取 offset（来自 `btrfs`）：
+
+```bash
+sudo btrfs inspect-internal map-swapfile -r /swap/swapfile
+```
+
+2. 将输出数字写入 `flake.nix` 的 `myvars.resumeOffset`。
+3. 执行 `just switch` 生效。
+
+注意：
+- 如果你重建/迁移了 `/swap/swapfile`，需要重新获取 `resumeOffset`。
+- 仅有 `systemctl hibernate` 入口但没有正确 `resumeOffset` 时，可能会“关机但无法恢复会话”。
 
 ---
 
