@@ -22,7 +22,7 @@ binds {
     Mod+D { spawn "nautilus"; }
 
     // 手动锁屏（关闭了自动锁屏）
-    Mod+Shift+L { spawn "lock-screen"; }
+    Mod+Alt+L { spawn "lock-screen"; }
 
     // 使用 spawn-sh 运行 shell 命令，如需管道、多条命令等。
     // 注意：整条命令作为单个参数传递，原样交给 `sh -c`。
@@ -76,6 +76,11 @@ binds {
     // Mod+K     { focus-window-or-workspace-up; }
     // Mod+Ctrl+J     { move-window-down-or-to-workspace-down; }
     // Mod+Ctrl+K     { move-window-up-or-to-workspace-up; }
+    // 不覆盖现有 J/K 习惯，提供 Alt 别名启用该能力。
+    Mod+Alt+J { focus-window-or-workspace-down; }
+    Mod+Alt+K { focus-window-or-workspace-up; }
+    Mod+Alt+Ctrl+J { move-window-down-or-to-workspace-down; }
+    Mod+Alt+Ctrl+K { move-window-up-or-to-workspace-up; }
 
     Mod+Home { focus-column-first; }
     Mod+End  { focus-column-last; }
@@ -89,6 +94,7 @@ binds {
     Mod+Shift+H     { focus-monitor-left; }
     Mod+Shift+J     { focus-monitor-down; }
     Mod+Shift+K     { focus-monitor-up; }
+    Mod+Shift+L     { focus-monitor-right; }
 
     Mod+Shift+Ctrl+Left  { move-column-to-monitor-left; }
     Mod+Shift+Ctrl+Down  { move-column-to-monitor-down; }
@@ -102,10 +108,28 @@ binds {
     // 也可以只移动单个窗口：
     // Mod+Shift+Ctrl+Left  { move-window-to-monitor-left; }
     // ...
+    // 不替换“移动整列”语义，给单窗口移动提供 Alt 别名。
+    Mod+Alt+Shift+Left  { move-window-to-monitor-left; }
+    Mod+Alt+Shift+Down  { move-window-to-monitor-down; }
+    Mod+Alt+Shift+Up    { move-window-to-monitor-up; }
+    Mod+Alt+Shift+Right { move-window-to-monitor-right; }
+    Mod+Alt+Shift+H     { move-window-to-monitor-left; }
+    Mod+Alt+Shift+J     { move-window-to-monitor-down; }
+    Mod+Alt+Shift+K     { move-window-to-monitor-up; }
+    Mod+Alt+Shift+L     { move-window-to-monitor-right; }
 
     // 也可将整个工作区移动到另一个显示器：
     // Mod+Shift+Ctrl+Left  { move-workspace-to-monitor-left; }
     // ...
+    // 同样保留“移动整列”为主语义，使用 Alt+Ctrl+Shift 提供整工作区移动。
+    Mod+Alt+Shift+Ctrl+Left  { move-workspace-to-monitor-left; }
+    Mod+Alt+Shift+Ctrl+Down  { move-workspace-to-monitor-down; }
+    Mod+Alt+Shift+Ctrl+Up    { move-workspace-to-monitor-up; }
+    Mod+Alt+Shift+Ctrl+Right { move-workspace-to-monitor-right; }
+    Mod+Alt+Shift+Ctrl+H     { move-workspace-to-monitor-left; }
+    Mod+Alt+Shift+Ctrl+J     { move-workspace-to-monitor-down; }
+    Mod+Alt+Shift+Ctrl+K     { move-workspace-to-monitor-up; }
+    Mod+Alt+Shift+Ctrl+L     { move-workspace-to-monitor-right; }
 
     "Mod+Page_Down"      { focus-workspace-down; }
     "Mod+Page_Up" { focus-workspace-up; }
@@ -115,6 +139,8 @@ binds {
     "Mod+Ctrl+Page_Up" { move-column-to-workspace-up; }
     Mod+Ctrl+U { move-column-to-workspace-down; }
     Mod+Ctrl+I { move-column-to-workspace-up; }
+    Mod+Alt+U { move-window-to-workspace-down; }
+    Mod+Alt+I { move-window-to-workspace-up; }
     // Hyprland 风格别名：B/N 对应发送到上/下一个工作区。
     Mod+B { move-column-to-workspace-up; }
     Mod+N { move-column-to-workspace-down; }
@@ -122,6 +148,16 @@ binds {
     "Mod+Shift+Page_Up" { move-workspace-up; }
     Mod+Shift+U { move-workspace-down; }
     Mod+Shift+I { move-workspace-up; }
+
+    // 按住 Mod 的滚轮操作（官方默认推荐模式）。
+    Mod+WheelScrollDown      cooldown-ms=150 { focus-workspace-down; }
+    Mod+WheelScrollUp        cooldown-ms=150 { focus-workspace-up; }
+    Mod+Ctrl+WheelScrollDown cooldown-ms=150 { move-column-to-workspace-down; }
+    Mod+Ctrl+WheelScrollUp   cooldown-ms=150 { move-column-to-workspace-up; }
+    Mod+WheelScrollRight      { focus-column-right; }
+    Mod+WheelScrollLeft       { focus-column-left; }
+    Mod+Ctrl+WheelScrollRight { move-column-right; }
+    Mod+Ctrl+WheelScrollLeft  { move-column-left; }
 
     // 可按索引引用工作区。但 niri 使用动态工作区系统，
     // 这些命令属于“尽力而为”。当索引大于当前工作区数量时，
@@ -149,6 +185,16 @@ binds {
     Mod+Ctrl+7 { move-column-to-workspace 7; }
     Mod+Ctrl+8 { move-column-to-workspace 8; }
     Mod+Ctrl+9 { move-column-to-workspace 9; }
+    // 将当前窗口直接投递到指定工作区 1-9
+    Mod+Alt+1 { move-window-to-workspace 1; }
+    Mod+Alt+2 { move-window-to-workspace 2; }
+    Mod+Alt+3 { move-window-to-workspace 3; }
+    Mod+Alt+4 { move-window-to-workspace 4; }
+    Mod+Alt+5 { move-window-to-workspace 5; }
+    Mod+Alt+6 { move-window-to-workspace 6; }
+    Mod+Alt+7 { move-window-to-workspace 7; }
+    Mod+Alt+8 { move-window-to-workspace 8; }
+    Mod+Alt+9 { move-window-to-workspace 9; }
 
     // 在当前与上一个工作区之间切换焦点。
     Mod+Tab { focus-workspace-previous; }
@@ -176,6 +222,7 @@ binds {
     Mod+Ctrl+R { reset-window-height; }
     Mod+F { maximize-column; }
     Mod+Shift+F { fullscreen-window; }
+    Mod+Shift+M { maximize-window-to-edges; }
     // Hyprland 风格别名：Z=maximize，M=fullscreen。
     Mod+Z { maximize-column; }
     Mod+M { fullscreen-window; }
@@ -217,6 +264,8 @@ binds {
     // 切换布局的动作。
     // 注意：若取消注释，请确保上面的 xkb 选项中没有相同快捷键。
     // 同一快捷键若同时存在，会导致按下时切换两次（xkb 一次、niri 一次），从而失效。
+    Mod+Alt+Space { switch-layout "next"; }
+    Mod+Alt+Shift+Space { switch-layout "prev"; }
     // Mod+Space       { switch-layout "next"; }
     // Mod+Shift+Space { switch-layout "prev"; }
 
