@@ -821,16 +821,6 @@ let
         "max-lines" = 1;
         text = "Notification Center";
       };
-      mpris = {
-        "image-size" = 80;
-        "image-radius" = 8;
-        # 在空元数据播放器场景下，自动隐藏并忽略聚合器，避免断言噪音
-        autohide = true;
-        blacklist = [
-          "org.mpris.MediaPlayer2.playerctld"
-          "playerctld"
-        ];
-      };
       notifications = { };
     };
   };
@@ -847,8 +837,7 @@ let
     }
 
     .control-center .widget-title,
-    .control-center .widget-dnd,
-    .control-center .widget-mpris {
+    .control-center .widget-dnd {
       background: rgba(255, 255, 255, 0.03);
       border: 1px solid rgba(255, 255, 255, 0.08);
       border-radius: 10px;
