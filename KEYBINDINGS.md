@@ -13,7 +13,7 @@
 | `Mod + Shift + Return` | 打开浮动终端（`ghostty-float`） |
 | `Mod + Space` / `XF86Search` | 启动器（Fuzzel） |
 | `Mod + D` | 文件管理器（Nautilus） |
-| `Ctrl + Alt + L` | 锁屏（swaylock） |
+| `Mod + Shift + L` | 锁屏（lock-screen -> swaylock） |
 | `Mod + E` | 电源菜单（wlogout） |
 | `Mod + Q` | 关闭当前窗口 |
 | `Ctrl + Alt + Delete` | 退出 Niri（带确认） |
@@ -26,7 +26,7 @@
 | `Mod + Left/Down/Up/Right` | 焦点切换（方向键别名） |
 | `Mod + Ctrl + H/J/K/L` | 移动窗口/列 |
 | `Mod + Ctrl + Left/Down/Up/Right` | 移动窗口/列（方向键别名） |
-| `Mod + Shift + H/J/K/L` | 切换显示器焦点 |
+| `Mod + Shift + H/J/K` | 切换显示器焦点 |
 | `Mod + Shift + Ctrl + H/J/K/L` | 将列移动到相邻显示器 |
 
 ## 工作区

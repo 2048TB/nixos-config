@@ -22,7 +22,7 @@ binds {
     Mod+D { spawn "nautilus"; }
 
     // 手动锁屏（关闭了自动锁屏）
-    CTRL+Alt+L { spawn "swaylock" "-f"; }
+    Mod+Shift+L { spawn "lock-screen"; }
 
     // 使用 spawn-sh 运行 shell 命令，如需管道、多条命令等。
     // 注意：整条命令作为单个参数传递，原样交给 `sh -c`。
@@ -89,7 +89,6 @@ binds {
     Mod+Shift+H     { focus-monitor-left; }
     Mod+Shift+J     { focus-monitor-down; }
     Mod+Shift+K     { focus-monitor-up; }
-    Mod+Shift+L     { focus-monitor-right; }
 
     Mod+Shift+Ctrl+Left  { move-column-to-monitor-left; }
     Mod+Shift+Ctrl+Down  { move-column-to-monitor-down; }
