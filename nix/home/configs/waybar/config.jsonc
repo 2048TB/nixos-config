@@ -17,9 +17,7 @@
     "cpu",
     "memory",
     "custom/temperature",
-    "custom/public-ip",
-    "network",
-    "bluetooth",
+    "tray",
     "pulseaudio",
     "custom/backlight",
     "custom/battery",
@@ -158,63 +156,11 @@
     "interval": 10
   },
 
-  // network
-  "network": {
-    "interval": 5,
-    "family": "ipv4_6",
-    "format-wifi": "{icon}",
-    "format-ethernet": "󰈀",
-    "format-linked": "󰈀",
-    "format-disconnected": "󰖪",
-    "format-disabled": "󰖪",
-    "format-icons": [
-      "󰤯",
-      "󰤟",
-      "󰤢",
-      "󰤥",
-      "󰤨"
-    ],
-    "tooltip-format-wifi": "{essid}\nIP: {ipaddr}/{cidr}\nSignal: {signalStrength}%\nFrequency: {frequency} GHz\nGateway: {gwaddr}\n\nLeft: WiFi menu | Middle: Toggle radio | Right: Connections GUI",
-    "tooltip-format-ethernet": "{ifname}\nIP: {ipaddr}/{cidr}\nGateway: {gwaddr}\n\nLeft: WiFi menu | Middle: Toggle radio | Right: Connections GUI",
-    "tooltip-format-disconnected": "Network disconnected\n\nLeft: WiFi menu | Middle: Toggle radio | Right: Connections GUI",
-    "on-click": "@USER_BIN@/wifi-quick-menu",
-    "on-click-middle": "@USER_BIN@/wifi-toggle-radio",
-    "on-click-right": "@USER_BIN@/nm-connection-editor"
-  },
-
-  "custom/public-ip": {
-    "format": "{}",
-    "return-type": "json",
-    "exec-if": "test -x @USER_BIN@/public-ip-status",
-    "exec": "@USER_BIN@/public-ip-status",
-    "interval": 180,
-    "on-click": "@USER_BIN@/wifi-quick-menu",
-    "on-click-right": "@USER_BIN@/ghostty -e @SYSTEM_BIN@/nmtui"
-  },
-
-  // bluetooth & audio
-  "bluetooth": {
-    "format": "{icon}",
-    "format-icons": {
-      "disabled": "󰂲",
-      "off": "󰂲",
-      "on": "󰂯",
-      "connected": "󰂱"
-    },
-    "format-disabled": "{icon}",
-    "format-off": "{icon}",
-    "format-on": "{icon}",
-    "format-no-controller": "󰂲",
-    "format-connected": "{icon}",
-    "format-connected-battery": "{icon}",
-    "tooltip-format": "Bluetooth: {status}\n{controller_alias}\n{controller_address}\n\nLeft: Quick menu | Right: Devices GUI",
-    "tooltip-format-connected": "{controller_alias}\n{num_connections} connected\n\n{device_enumerate}",
-    "tooltip-format-enumerate-connected": "{device_alias}",
-    "tooltip-format-enumerate-connected-battery": "{device_alias} {device_battery_percentage}%",
-    "min-length": 2,
-    "max-length": 22,
-    "on-click": "@USER_BIN@/bluetooth-quick-menu",
-    "on-click-right": "@SYSTEM_BIN@/blueman-manager"
+  // tray & audio
+  "tray": {
+    "spacing": 8,
+    "icon-size": 16,
+    "show-passive-items": true
   },
 
   "pulseaudio": {
