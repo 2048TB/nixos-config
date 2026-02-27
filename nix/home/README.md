@@ -36,7 +36,7 @@ just switch
 
 - `configs/niri/*.kdl` 为历史归档文件，当前会话管理器为 Hyprland。
 - Waybar 由 systemd 用户服务管理（`systemd.user.services.waybar`）。
-- Waybar 网络区采用紧凑架构：`network` + `custom/public-ip` + `custom/wifi-manager`，覆盖链路状态、公网 IP 与 WiFi 管理入口。
+- Waybar 网络区采用紧凑架构：`network` + `custom/public-ip`，覆盖链路状态、公网 IP 与网络管理入口。
 - 主题采用统一暗色策略：GTK（`dconf.settings`）+ Qt6（`qt6ct`）+ Wayland 组件单独配色文件。
 - `default.nix` 会生成多个脚本包装器（如 `waybar-launcher`、`wlogout-menu`、`hyprland-submap-cycle`）；配置调试时优先检查这些生成脚本与对应 systemd 用户服务。
 
