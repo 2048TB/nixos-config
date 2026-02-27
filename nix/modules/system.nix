@@ -86,6 +86,14 @@ let
     (lib.optional hasAmd "options kvm_amd nested=1")
     (lib.optional hasIntel "options kvm_intel nested=1")
   ]);
+  resumeDevice =
+    if config.fileSystems ? "/swap" && config.fileSystems."/swap" ? device
+    then config.fileSystems."/swap".device
+    else "/dev/mapper/crypted-nixos";
+  resumeKernelParams =
+    if myvars ? resumeOffset && myvars.resumeOffset != null
+    then [ "resume_offset=${toString myvars.resumeOffset}" ]
+    else [ ];
   cacheSubstituters = binaryCaches.substituters;
   cacheTrustedPublicKeys = binaryCaches.trustedPublicKeys;
   portalConfig = sharedPortalConfig;
@@ -138,6 +146,8 @@ in
     # KVM 内核模块（AMD/Intel）
     kernelModules = kvmModules;
     extraModprobeConfig = kvmExtraModprobeConfig;
+    resumeDevice = lib.mkDefault resumeDevice;
+    kernelParams = resumeKernelParams;
 
     # 支持的文件系统
     supportedFilesystems = [
@@ -543,6 +553,31 @@ in
             --uuid clear \
             /swap/swapfile
           chmod 600 /swap/swapfile
+        fi
+      '';
+      deps = [ "specialfs" ];
+    };
+
+    warnMissingResumeOffset = {
+      text = ''
+        if [ -f /swap/swapfile ] && [ -z "${if myvars ? resumeOffset && myvars.resumeOffset != null then toString myvars.resumeOffset else ""}" ]; then
+          echo "WARNING: myvars.resumeOffset is not set on host ${myvars.hostname}." >&2
+          echo "WARNING: hibernate may power off without resuming previous session." >&2
+          echo "WARNING: run (as root): btrfs inspect-internal map-swapfile -r /swap/swapfile" >&2
+        fi
+      '';
+      deps = [ "specialfs" ];
+    };
+
+    warnSwapfileSizeMismatch = {
+      text = ''
+        if [ -f /swap/swapfile ]; then
+          current_size_bytes="$(${pkgs.coreutils}/bin/stat -c %s /swap/swapfile 2>/dev/null || echo 0)"
+          target_size_bytes=$(( ${toString myvars.swapSizeGb} * 1024 * 1024 * 1024 ))
+          if [ "$current_size_bytes" -ne "$target_size_bytes" ]; then
+            echo "WARNING: /swap/swapfile size ($current_size_bytes bytes) != configured ${toString myvars.swapSizeGb}GiB ($target_size_bytes bytes) on host ${myvars.hostname}." >&2
+            echo "WARNING: recreate swapfile and refresh myvars.resumeOffset before relying on hibernate." >&2
+          fi
         fi
       '';
       deps = [ "specialfs" ];
