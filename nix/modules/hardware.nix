@@ -13,6 +13,8 @@ let
   isAmd = gpuChoice == "amd" || gpuChoice == driverAmdgpu;
   isAmdNvidiaHybrid = gpuChoice == driverAmdNvidiaHybrid;
   useNvidia = isNvidia || isAmdNvidiaHybrid;
+  # 官方默认关闭 nvidia-container-toolkit。桌面场景按需开启，避免无用 CDI 生成告警。
+  enableNvidiaContainerToolkit = myvars.enableNvidiaContainerToolkit or false;
 
   # 统一 NVIDIA 配置，避免专用配置与默认配置漂移
   nvidiaKernelParams = [ "nvidia-drm.fbdev=1" ];
@@ -46,7 +48,7 @@ in
       enable32Bit = true;
     };
     nvidia = lib.mkIf useNvidia nvidiaBase;
-    nvidia-container-toolkit.enable = lib.mkIf useNvidia true;
+    nvidia-container-toolkit.enable = lib.mkIf (useNvidia && enableNvidiaContainerToolkit) true;
     bluetooth = {
       enable = true;
       # 官方选项：通过 bluetoothd --noplugin 关闭有问题的插件。
@@ -104,7 +106,7 @@ in
       boot.kernelParams = nvidiaKernelParams;
       hardware = {
         nvidia = nvidiaBase;
-        nvidia-container-toolkit.enable = true;
+        nvidia-container-toolkit.enable = enableNvidiaContainerToolkit;
         graphics.enable32Bit = true;
       };
     };
