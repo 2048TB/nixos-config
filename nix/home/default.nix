@@ -336,9 +336,9 @@ let
       ];
       mkHyprFloatWindowRuleTriplet = rule:
         lib.concatStringsSep "\n" [
-          "windowrulev2 = float, class:${rule.classPattern}"
-          "windowrulev2 = size ${rule.size}, class:${rule.classPattern}"
-          "windowrulev2 = center, class:${rule.classPattern}"
+          "windowrule = match:class ${rule.classPattern}, float 1"
+          "windowrule = match:class ${rule.classPattern}, size ${rule.size}"
+          "windowrule = match:class ${rule.classPattern}, center 1"
         ];
     in
     {
