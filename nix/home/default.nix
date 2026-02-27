@@ -427,15 +427,15 @@ let
     layout="$("$hyprctlBin" -j getoption general:layout 2>/dev/null | "$jqBin" -r '.str // empty' 2>/dev/null || true)"
     case "$layout" in
       master)
-        text="主从布局"
+        text="主从"
         class="master"
         ;;
       scrolling)
-        text="滚动布局"
+        text="滚动"
         class="scrolling"
         ;;
       *)
-        text="布局未知"
+        text="未知"
         class="unknown"
         ;;
     esac
