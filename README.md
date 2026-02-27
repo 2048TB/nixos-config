@@ -13,7 +13,7 @@
 
 主要特性：
 - Wayland 桌面：Hyprland + Waybar + Fuzzel + Wlogout
-- 窗口管理：Master 布局 + float/passthrough submap，高频操作以二键绑定为主（见 `KEYBINDINGS.md`）
+- 窗口管理：Master / Scrolling 双布局 + float/passthrough submap，高频操作以二键绑定为主（见 `KEYBINDINGS.md`）
 - 终端复用器：Tmux / Zellij 统一使用 `Ctrl + B` 作为 leader/prefix（见 `KEYBINDINGS.md`）
 - Waybar 状态区：`cpu`/`memory`/`temperature`/`public-ip`/`battery` 等核心模块（见 `nix/home/configs/waybar/config.jsonc`）
 - 开发工具链：Rust / Zig / Go / Node.js / Python

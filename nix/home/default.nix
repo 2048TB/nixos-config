@@ -184,6 +184,124 @@ let
     fi
     exec /run/current-system/sw/bin/hyprctl dispatch submap "$next"
   '';
+  hyprlandLayoutToggle = pkgs.writeShellScriptBin "hyprland-layout-toggle" ''
+    set -euo pipefail
+    hyprctlBin="/run/current-system/sw/bin/hyprctl"
+    jqBin="${pkgs.jq}/bin/jq"
+
+    get_layout() {
+      local layout=""
+      if [ -x "$hyprctlBin" ]; then
+        layout="$("$hyprctlBin" -j getoption general:layout 2>/dev/null | "$jqBin" -r '.str // empty' 2>/dev/null || true)"
+      fi
+      case "$layout" in
+        master|scrolling) printf '%s\n' "$layout" ;;
+        *) printf '%s\n' "unknown" ;;
+      esac
+    }
+
+    current="$(get_layout)"
+    case "$current" in
+      scrolling) next="master" ;;
+      master) next="scrolling" ;;
+      *) next="scrolling" ;;
+    esac
+
+    exec "$hyprctlBin" keyword general:layout "$next"
+  '';
+  hyprlandLayoutDispatch = pkgs.writeShellScriptBin "hyprland-layout-dispatch" ''
+    set -euo pipefail
+    hyprctlBin="/run/current-system/sw/bin/hyprctl"
+    jqBin="${pkgs.jq}/bin/jq"
+    action="''${1:-}"
+
+    get_layout() {
+      local layout=""
+      if [ -x "$hyprctlBin" ]; then
+        layout="$("$hyprctlBin" -j getoption general:layout 2>/dev/null | "$jqBin" -r '.str // empty' 2>/dev/null || true)"
+      fi
+      case "$layout" in
+        master|scrolling) printf '%s\n' "$layout" ;;
+        *) printf '%s\n' "scrolling" ;;
+      esac
+    }
+
+    dispatch_layoutmsg() {
+      local msg="$1"
+      exec "$hyprctlBin" dispatch layoutmsg "$msg"
+    }
+
+    layout="$(get_layout)"
+    case "$action" in
+      focus)
+        if [ "$layout" = "master" ]; then
+          dispatch_layoutmsg "swapwithmaster"
+        else
+          dispatch_layoutmsg "fit active"
+        fi
+        ;;
+      grow)
+        if [ "$layout" = "master" ]; then
+          dispatch_layoutmsg "mfact +0.05"
+        else
+          dispatch_layoutmsg "colresize +0.05"
+        fi
+        ;;
+      shrink)
+        if [ "$layout" = "master" ]; then
+          dispatch_layoutmsg "mfact -0.05"
+        else
+          dispatch_layoutmsg "colresize -0.05"
+        fi
+        ;;
+      right)
+        if [ "$layout" = "master" ]; then
+          dispatch_layoutmsg "addmaster"
+        else
+          dispatch_layoutmsg "move +col"
+        fi
+        ;;
+      left)
+        if [ "$layout" = "master" ]; then
+          dispatch_layoutmsg "removemaster"
+        else
+          dispatch_layoutmsg "move -col"
+        fi
+        ;;
+      shift-up)
+        if [ "$layout" = "master" ]; then
+          dispatch_layoutmsg "orientationtop"
+        else
+          dispatch_layoutmsg "colresize +conf"
+        fi
+        ;;
+      shift-right)
+        if [ "$layout" = "master" ]; then
+          dispatch_layoutmsg "orientationright"
+        else
+          dispatch_layoutmsg "swapcol r"
+        fi
+        ;;
+      shift-down)
+        if [ "$layout" = "master" ]; then
+          dispatch_layoutmsg "orientationbottom"
+        else
+          dispatch_layoutmsg "colresize -conf"
+        fi
+        ;;
+      shift-left)
+        if [ "$layout" = "master" ]; then
+          dispatch_layoutmsg "orientationleft"
+        else
+          dispatch_layoutmsg "swapcol l"
+        fi
+        ;;
+      *)
+        echo "Usage: hyprland-layout-dispatch [focus|grow|shrink|right|left|shift-up|shift-right|shift-down|shift-left]" >&2
+        exit 1
+        ;;
+    esac
+  '';
   hyprGeneratedConfig =
     let
       workspaceIds = map toString (lib.range 1 10);
@@ -300,6 +418,29 @@ let
       printf '%s\n' "Calendar $monthTitle"
       "$calBin"
     } | "$fuzzel" --dmenu --prompt 'Date > ' --lines 10 >/dev/null || true
+  '';
+  waybarLayoutMode = pkgs.writeShellScriptBin "waybar-layout-mode" ''
+    set -euo pipefail
+    hyprctlBin="/run/current-system/sw/bin/hyprctl"
+    jqBin="${pkgs.jq}/bin/jq"
+
+    layout="$("$hyprctlBin" -j getoption general:layout 2>/dev/null | "$jqBin" -r '.str // empty' 2>/dev/null || true)"
+    case "$layout" in
+      master)
+        text="主从布局"
+        class="master"
+        ;;
+      scrolling)
+        text="滚动布局"
+        class="scrolling"
+        ;;
+      *)
+        text="布局未知"
+        class="unknown"
+        ;;
+    esac
+
+    printf '{"text":"%s","class":"%s","tooltip":"当前布局：%s"}\n' "$text" "$class" "$text"
   '';
   waybarTemperatureStatus = pkgs.writeShellScriptBin "waybar-temperature-status" ''
     set -euo pipefail
@@ -1106,7 +1247,10 @@ in
       riverScreenshot
       riverCliphistMenu
       hyprlandSubmapCycle
+      hyprlandLayoutToggle
+      hyprlandLayoutDispatch
       waybarClockCalendar
+      waybarLayoutMode
       waybarTemperatureStatus
       waybarBacklightStatus
       waybarBatteryStatus

@@ -31,7 +31,8 @@ window#waybar {
 #custom-notification,
 #idle_inhibitor,
 #custom-launcher,
-#custom-power {
+#custom-power,
+#custom-layout-mode {
   background-color: rgba(61, 61, 61, 0.62);
   color: #e7e4e0;
   margin: 4px 1px 0 1px;
@@ -108,7 +109,7 @@ window#waybar {
 
 #workspaces button label {
   color: #e7e4e0;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 900;
 }
 
@@ -139,6 +140,23 @@ window#waybar {
   font-feature-settings: "tnum";
   padding: 0 13px;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 0 16px rgba(9, 134, 211, 0.14);
+}
+
+#custom-layout-mode {
+  min-width: 72px;
+  padding: 0 11px;
+}
+
+#custom-layout-mode.master {
+  color: #89b4fa;
+}
+
+#custom-layout-mode.scrolling {
+  color: #7ac887;
+}
+
+#custom-layout-mode.unknown {
+  color: #979797;
 }
 
 #submap {

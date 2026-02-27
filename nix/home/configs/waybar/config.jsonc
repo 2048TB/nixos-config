@@ -9,6 +9,7 @@
   "modules-left": [
     "custom/launcher",
     "clock",
+    "custom/layout-mode",
     "hyprland/window",
     "mpris"
   ],
@@ -78,6 +79,18 @@
       "10": "10",
       "default": "•"
     },
+    "persistent-workspaces": {
+      "1": [],
+      "2": [],
+      "3": [],
+      "4": [],
+      "5": [],
+      "6": [],
+      "7": [],
+      "8": [],
+      "9": [],
+      "10": []
+    },
     "all-outputs": false,
     "swap-icon-label": false
   },
@@ -127,6 +140,16 @@
       "on-click-middle": "shift_reset"
     },
     "on-click": "@USER_BIN@/waybar-clock-calendar"
+  },
+
+  "custom/layout-mode": {
+    "format": "{}",
+    "return-type": "json",
+    "exec-if": "test -x @USER_BIN@/waybar-layout-mode",
+    "exec": "@USER_BIN@/waybar-layout-mode",
+    "interval": 1,
+    "on-click": "@USER_BIN@/hyprland-layout-toggle",
+    "tooltip": true
   },
 
   // system metrics
