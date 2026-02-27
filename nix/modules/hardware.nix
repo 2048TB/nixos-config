@@ -49,9 +49,11 @@ in
     nvidia-container-toolkit.enable = lib.mkIf useNvidia true;
     bluetooth = {
       enable = true;
+      # 官方选项：通过 bluetoothd --noplugin 关闭有问题的插件。
+      disabledPlugins = [ "bap" ];
       # 避免适配器默认掉电，减少桌面层蓝牙开关“点了无效”的概率
       powerOnBoot = true;
-      # Waybar bluetooth 模块的设备电量显示依赖 BlueZ experimental
+      # 保留 experimental 以兼容电量与 LE 特性。
       settings = {
         General = {
           Experimental = true;
@@ -82,7 +84,12 @@ in
     };
   };
 
-  boot.kernelParams = lib.mkIf useNvidia nvidiaKernelParams;
+  boot = {
+    kernelParams = lib.mkIf useNvidia nvidiaKernelParams;
+    # Kraken 设备在无 SATA 供电或固件异常时会持续打印硬错误日志；
+    # 如需该设备监控/控制能力，可删除此黑名单并先排查供电与固件。
+    blacklistedKernelModules = [ "nzxt_kraken3" ];
+  };
 
   # GPU 专用配置：启动时在引导菜单中切换驱动
   # 默认禁用以减少 ISO 体积（~500MB）和安装时间
