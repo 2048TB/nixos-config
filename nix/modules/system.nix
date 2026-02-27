@@ -1,4 +1,12 @@
-{ config, pkgs, lib, myvars, mainUser, ... }:
+{ config
+, pkgs
+, lib
+, myvars
+, mainUser
+, binaryCaches ? null
+, sharedPortalConfig ? null
+, ...
+}:
 let
   # 系统常量
   defaultUid = 1000;
@@ -71,8 +79,38 @@ let
     (lib.optional hasAmd "options kvm_amd nested=1")
     (lib.optional hasIntel "options kvm_intel nested=1")
   ]);
-  # common default 必须与已安装 backend 对齐，避免指向未安装 portal。
-  portalDefaults = [ "gnome" "gtk" ];
+  cacheSubstituters =
+    if binaryCaches != null
+    then binaryCaches.substituters
+    else [
+      "https://nix-community.cachix.org"
+      "https://nixpkgs-wayland.cachix.org"
+      "https://cache.garnix.io"
+    ];
+  cacheTrustedPublicKeys =
+    if binaryCaches != null
+    then binaryCaches.trustedPublicKeys
+    else [
+      "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
+      "nixpkgs-wayland.cachix.org-1:3lwxaILxMRkVhehr5StQprHdEo4IrE8sRho9R9HOLYA="
+      "cache.garnix.io:CTFPyKSLcx5RMJKfLo5EEPUObbA78b0YQ2DTCJXqr9g="
+    ];
+  portalConfig =
+    if sharedPortalConfig != null
+    then sharedPortalConfig
+    else {
+      common = {
+        default = [ "gnome" "gtk" ];
+        "org.freedesktop.impl.portal.Settings" = [ "gtk" ];
+        "org.freedesktop.impl.portal.FileChooser" = [ "gtk" ];
+      };
+      niri = {
+        default = [ "gnome" "gtk" ];
+        "org.freedesktop.impl.portal.Settings" = [ "gtk" ];
+        "org.freedesktop.impl.portal.FileChooser" = [ "gtk" ];
+        "org.freedesktop.impl.portal.Inhibit" = [ "gtk" ];
+      };
+    };
   # 仅在 VPN/libvirt NAT 场景使用 loose rpfilter，其余默认严格模式。
   requiresLooseReversePath =
     (config.services.mullvad-vpn.enable or false)
@@ -230,18 +268,11 @@ in
       experimental-features = [ "nix-command" "flakes" ];
 
       # 配置二进制缓存以加速包下载
-      substituters = [
-        "https://nix-community.cachix.org"
-        "https://nixpkgs-wayland.cachix.org"
-        "https://cache.garnix.io"
-      ];
+      substituters = cacheSubstituters;
 
       trusted-public-keys = [
         "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
-        "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
-        "nixpkgs-wayland.cachix.org-1:3lwxaILxMRkVhehr5StQprHdEo4IrE8sRho9R9HOLYA="
-        "cache.garnix.io:CTFPyKSLcx5RMJKfLo5EEPUObbA78b0YQ2DTCJXqr9g="
-      ];
+      ] ++ cacheTrustedPublicKeys;
 
       # 仅信任 root（@wheel 可通过恶意 substituter 提权，已移除）
       trusted-users = lib.mkForce [ "root" ];
@@ -345,6 +376,9 @@ in
       protontricks.enable = true;
       extest.enable = true; # Wayland 下将 X11 输入事件转换为 uinput（Steam Input 控制器支持）
       platformOptimizations.enable = true;
+      # 局域网传输与 Remote Play 使用时自动放行防火墙端口
+      remotePlay.openFirewall = true;
+      localNetworkGameTransfers.openFirewall = true;
 
       # Proton-GE 配置：通过 Steam 的 extraCompatPackages 安装
       # 注意：不能放在 environment.systemPackages（会导致 buildEnv 错误）
@@ -474,23 +508,8 @@ in
   xdg.portal = {
     enable = true;
     xdgOpenUsePortal = true;
-    config = {
-      common = {
-        default = portalDefaults;
-        # 显式固定常见接口到 gtk，避免非 GNOME 后端未实现时报错。
-        "org.freedesktop.impl.portal.Settings" = [ "gtk" ];
-        "org.freedesktop.impl.portal.FileChooser" = [ "gtk" ];
-      };
-      # Niri 专用 portal 配置：屏幕共享与截图走 GNOME backend
-      niri = {
-        default = [ "gnome" "gtk" ];
-        "org.freedesktop.impl.portal.Settings" = [ "gtk" ];
-        "org.freedesktop.impl.portal.FileChooser" = [ "gtk" ];
-        # 显式路由到 gtk，避免 Inhibit 接口缺失告警。
-        # "Inhibiting other than idle not supported" 告警。
-        "org.freedesktop.impl.portal.Inhibit" = [ "gtk" ];
-      };
-    };
+    # portal 接口映射由 flake specialArgs 统一提供，避免 system/home 漂移。
+    config = portalConfig;
     # 系统侧固定 GNOME backend；gtk backend 由 Home Manager 注入用户 profile。
     # 原因：当前仓库对 system/home 包重叠有校验，双侧同时声明 gtk 会触发失败。
     extraPortals = lib.mkForce (with pkgs; [
@@ -591,7 +610,6 @@ in
     uv
     # Niri 官方要求：xwayland-satellite 需在 PATH 中，供 XWayland 应用桥接。
     xwayland-satellite
-    lutris
   ];
 
   # KVM / libvirt 虚拟化
