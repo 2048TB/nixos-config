@@ -290,7 +290,9 @@
     "show-passive-items": true,
     "spacing": 8,
     "icons": {
-      "chrome_status_icon_1": "google-chrome"
+      "chrome_status_icon_1": "google-chrome",
+      "0": "google-chrome",
+      "": "google-chrome"
     }
   }
 }
