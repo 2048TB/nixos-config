@@ -35,6 +35,23 @@ let
     "image/tiff"
   ];
   imageApps = [ "org.nomacs.ImageLounge.desktop" "nomacs.desktop" ];
+  portalGtkInterfaces = {
+    "org.freedesktop.impl.portal.Settings" = [ "gtk" ];
+    "org.freedesktop.impl.portal.FileChooser" = [ "gtk" ];
+  };
+  portalHyprlandInterfaces = portalGtkInterfaces // {
+    default = [ "hyprland" "gtk" ];
+    "org.freedesktop.impl.portal.Inhibit" = [ "gtk" ];
+  };
+  mkHyprlandSessionService = description: serviceConfig: {
+    Unit = {
+      Description = description;
+      After = [ "hyprland-session.target" ];
+      PartOf = [ "hyprland-session.target" ];
+    };
+    Install.WantedBy = [ "hyprland-session.target" ];
+    Service = serviceConfig;
+  };
 
   # ===== 启动脚本与包装器 =====
   waylandSession = pkgs.writeScript "wayland-session" ''
@@ -1290,42 +1307,57 @@ in
           };
         };
 
-        hypridle = {
+        hypridle = mkHyprlandSessionService "Hypridle idle daemon" {
+          Type = "simple";
+          ExecStart = "${pkgs.hypridle}/bin/hypridle";
+          Restart = "on-failure";
+          RestartSec = 2;
+        };
+
+        waybar = mkHyprlandSessionService "Waybar status bar" {
+          Type = "simple";
+          Environment = [
+            "LANG=zh_CN.UTF-8"
+            "LC_ALL=zh_CN.UTF-8"
+            "LC_TIME=zh_CN.UTF-8"
+          ];
+          # 某些第三方托盘项（例如 chrome status icon）不提供 icon/pixmap，
+          # Waybar 会持续打印固定错误；先做定向降噪。
+          LogFilterPatterns = [
+            "~Item 'chrome_status_icon_1': No icon name or pixmap given."
+          ];
+          ExecStart = "${waybarLauncher}";
+          Restart = "always";
+          RestartSec = 2;
+        };
+
+        # 显式启动托盘来源进程，避免依赖 xdg-desktop-autostart.target 未激活时缺图标。
+        nm-applet = {
           Unit = {
-            Description = "Hypridle idle daemon";
-            After = [ "hyprland-session.target" ];
-            PartOf = [ "hyprland-session.target" ];
+            Description = "NetworkManager applet";
+            After = [ "graphical-session.target" ];
+            PartOf = [ "graphical-session.target" ];
           };
-          Install.WantedBy = [ "hyprland-session.target" ];
+          Install.WantedBy = [ "graphical-session.target" ];
           Service = {
             Type = "simple";
-            ExecStart = "${pkgs.hypridle}/bin/hypridle";
+            ExecStart = "${profileCmd "nm-applet"} --indicator";
             Restart = "on-failure";
             RestartSec = 2;
           };
         };
 
-        waybar = {
+        blueman-applet = {
           Unit = {
-            Description = "Waybar status bar";
-            After = [ "hyprland-session.target" ];
-            PartOf = [ "hyprland-session.target" ];
+            Description = "Blueman applet";
+            After = [ "graphical-session.target" ];
+            PartOf = [ "graphical-session.target" ];
           };
-          Install.WantedBy = [ "hyprland-session.target" ];
+          Install.WantedBy = [ "graphical-session.target" ];
           Service = {
             Type = "simple";
-            Environment = [
-              "LANG=zh_CN.UTF-8"
-              "LC_ALL=zh_CN.UTF-8"
-              "LC_TIME=zh_CN.UTF-8"
-            ];
-            # 某些第三方托盘项（例如 chrome status icon）不提供 icon/pixmap，
-            # Waybar 会持续打印固定错误；先做定向降噪。
-            LogFilterPatterns = [
-              "~Item 'chrome_status_icon_1': No icon name or pixmap given."
-            ];
-            ExecStart = "${waybarLauncher}";
-            Restart = "always";
+            ExecStart = "${pkgs.blueman}/bin/blueman-applet";
+            Restart = "on-failure";
             RestartSec = 2;
           };
         };
@@ -1455,15 +1487,8 @@ in
       config = {
         common = {
           default = [ "gtk" ];
-          "org.freedesktop.impl.portal.Settings" = [ "gtk" ];
-          "org.freedesktop.impl.portal.FileChooser" = [ "gtk" ];
-        };
-        hyprland = {
-          default = [ "hyprland" "gtk" ];
-          "org.freedesktop.impl.portal.Settings" = [ "gtk" ];
-          "org.freedesktop.impl.portal.FileChooser" = [ "gtk" ];
-          "org.freedesktop.impl.portal.Inhibit" = [ "gtk" ];
-        };
+        } // portalGtkInterfaces;
+        hyprland = portalHyprlandInterfaces;
       };
     };
 
