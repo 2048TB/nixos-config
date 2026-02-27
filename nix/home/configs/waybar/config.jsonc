@@ -17,6 +17,8 @@
     "cpu",
     "memory",
     "custom/temperature",
+    "network",
+    "bluetooth",
     "custom/public-ip",
     "custom/backlight",
     "custom/battery",
@@ -167,6 +169,31 @@
     "on-click-right": "@USER_BIN@/ghostty -e @SYSTEM_BIN@/nmtui"
   },
 
+  "network": {
+    "format-wifi": "󰖩 {essid} {signalStrength}%",
+    "format-ethernet": "󰈀 {ifname}",
+    "format-linked": "󰈀 {ifname} (no ip)",
+    "format-disconnected": "󰖪",
+    "format-disabled": "󰖪",
+    "tooltip-format-wifi": "WiFi: {essid}\nSignal: {signalStrength}%\nIP: {ipaddr}",
+    "tooltip-format-ethernet": "Ethernet: {ifname}\nIP: {ipaddr}",
+    "on-click": "@SYSTEM_BIN@/nm-connection-editor",
+    "on-click-right": "@USER_BIN@/ghostty -e @SYSTEM_BIN@/nmtui",
+    "on-click-middle": "@USER_BIN@/wifi-toggle-radio"
+  },
+
+  "bluetooth": {
+    "format": "",
+    "format-disabled": "󰂲",
+    "format-off": "󰂲",
+    "format-on": "",
+    "format-connected": " {device_alias}",
+    "format-connected-battery": " {device_alias} {device_battery_percentage}%",
+    "tooltip-format": "{controller_alias}\t{controller_address}",
+    "tooltip-format-connected": "{controller_alias}\nConnected: {num_connections}",
+    "on-click": "@USER_BIN@/bluetooth-quick-menu"
+  },
+
   // device power
   "custom/backlight": {
     "format": "{}",
@@ -211,9 +238,6 @@
   "tray": {
     "spacing": 8,
     "icon-size": 16,
-    "show-passive-items": true,
-    "icons": {
-      "chrome_status_icon_1": "provider-app-vpn"
-    }
+    "show-passive-items": true
   }
 }
