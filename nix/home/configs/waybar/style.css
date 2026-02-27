@@ -22,8 +22,6 @@ window#waybar {
 #cpu,
 #memory,
 #custom-temperature,
-#network,
-#bluetooth,
 #custom-public-ip,
 #tray,
 #submap,
@@ -110,7 +108,7 @@ window#waybar {
 
 #workspaces button label {
   color: #e7e4e0;
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 900;
 }
 
@@ -169,11 +167,6 @@ window#waybar {
 
 #custom-public-ip {
   color: #0986d3;
-}
-
-#network,
-#bluetooth {
-  color: #e7e4e0;
 }
 
 #custom-public-ip.offline {
@@ -243,8 +236,6 @@ window#waybar {
 #cpu,
 #memory,
 #custom-temperature,
-#network,
-#bluetooth,
 #custom-public-ip,
 #tray,
 #custom-backlight {
@@ -255,8 +246,6 @@ window#waybar {
 
 #memory,
 #custom-temperature,
-#network,
-#bluetooth,
 #custom-public-ip,
 #tray,
 #custom-backlight {
@@ -266,8 +255,6 @@ window#waybar {
 }
 
 #custom-temperature,
-#network,
-#bluetooth,
 #custom-backlight {
   margin-right: 1px;
 }

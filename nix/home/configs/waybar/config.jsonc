@@ -17,8 +17,6 @@
     "cpu",
     "memory",
     "custom/temperature",
-    "network",
-    "bluetooth",
     "custom/public-ip",
     "custom/backlight",
     "custom/battery",
@@ -68,16 +66,16 @@
   "hyprland/workspaces": {
     "format": "{icon}",
     "format-icons": {
-      "1": "①",
-      "2": "②",
-      "3": "③",
-      "4": "④",
-      "5": "⑤",
-      "6": "⑥",
-      "7": "⑦",
-      "8": "⑧",
-      "9": "⑨",
-      "10": "⑩",
+      "1": "⓵",
+      "2": "⓶",
+      "3": "⓷",
+      "4": "⓸",
+      "5": "⓹",
+      "6": "⓺",
+      "7": "⓻",
+      "8": "⓼",
+      "9": "⓽",
+      "10": "⓾",
       "default": "•"
     },
     "all-outputs": false,
@@ -167,31 +165,6 @@
     "exec-on-event": false,
     "on-click": "@SYSTEM_BIN@/nm-connection-editor",
     "on-click-right": "@USER_BIN@/ghostty -e @SYSTEM_BIN@/nmtui"
-  },
-
-  "network": {
-    "format-wifi": "󰖩 {essid} {signalStrength}%",
-    "format-ethernet": "󰈀 {ifname}",
-    "format-linked": "󰈀 {ifname} (no ip)",
-    "format-disconnected": "󰖪",
-    "format-disabled": "󰖪",
-    "tooltip-format-wifi": "WiFi: {essid}\nSignal: {signalStrength}%\nIP: {ipaddr}",
-    "tooltip-format-ethernet": "Ethernet: {ifname}\nIP: {ipaddr}",
-    "on-click": "@SYSTEM_BIN@/nm-connection-editor",
-    "on-click-right": "@USER_BIN@/ghostty -e @SYSTEM_BIN@/nmtui",
-    "on-click-middle": "@USER_BIN@/wifi-toggle-radio"
-  },
-
-  "bluetooth": {
-    "format": "",
-    "format-disabled": "󰂲",
-    "format-off": "󰂲",
-    "format-on": "",
-    "format-connected": " {device_alias}",
-    "format-connected-battery": " {device_alias} {device_battery_percentage}%",
-    "tooltip-format": "{controller_alias}\t{controller_address}",
-    "tooltip-format-connected": "{controller_alias}\nConnected: {num_connections}",
-    "on-click": "@USER_BIN@/bluetooth-quick-menu"
   },
 
   // device power
