@@ -22,18 +22,14 @@ window#waybar {
 #cpu,
 #memory,
 #custom-temperature,
-#network,
 #custom-public-ip,
-#bluetooth,
-#custom-wifi-manager,
-#pulseaudio,
+#tray,
 #submap,
 #custom-backlight,
 #custom-battery,
 #power-profiles-daemon,
 #custom-notification,
 #idle_inhibitor,
-#tray,
 #custom-launcher,
 #custom-power {
   background-color: rgba(61, 61, 61, 0.62);
@@ -73,7 +69,8 @@ window#waybar {
   transition: all 0.2s ease;
 }
 
-#workspaces button.active {
+#workspaces button.active,
+#workspaces button.focused {
   background: #89b4fa;
   color: #1c1f2d;
   border-color: rgba(137, 180, 250, 0.92);
@@ -84,7 +81,8 @@ window#waybar {
   background-size: 16px 16px;
 }
 
-#workspaces button.visible:not(.active) {
+#workspaces button.visible:not(.active):not(.focused),
+#workspaces button.current_output:not(.active):not(.focused) {
   background: linear-gradient(120deg, #12608a, #0986d3);
   color: #f9f9f9;
   border-color: rgba(9, 134, 211, 0.9);
@@ -114,12 +112,14 @@ window#waybar {
   font-weight: 900;
 }
 
-#workspaces button.active label {
+#workspaces button.active label,
+#workspaces button.focused label {
   color: transparent;
   font-size: 0;
 }
 
-#workspaces button.visible:not(.active) label {
+#workspaces button.visible:not(.active):not(.focused) label,
+#workspaces button.current_output:not(.active):not(.focused) label {
   color: #f9f9f9;
 }
 
@@ -153,81 +153,24 @@ window#waybar {
   color: #a70b06;
 }
 
+#tray {
+  padding: 0 8px;
+}
+
+#tray > .passive {
+  -gtk-icon-effect: dim;
+}
+
+#tray > .needs-attention {
+  -gtk-icon-effect: highlight;
+}
+
 #custom-public-ip {
   color: #0986d3;
 }
 
-#network {
-  color: #0986d3;
-}
-
-#network.disconnected,
-#network.disabled {
-  color: #a70b06;
-}
-
 #custom-public-ip.offline {
   color: #a70b06;
-}
-
-#bluetooth {
-  color: #b6deff;
-  background: linear-gradient(180deg, rgba(20, 78, 117, 0.58), rgba(16, 58, 92, 0.58));
-  border: 1px solid rgba(112, 175, 222, 0.42);
-  min-width: 24px;
-  font-weight: 800;
-  transition: all 0.2s ease;
-}
-
-#bluetooth.connected {
-  color: #f4fbff;
-  box-shadow: inset 0 0 0 1px rgba(171, 217, 250, 0.32), 0 0 10px rgba(18, 96, 138, 0.24);
-}
-
-#bluetooth.off,
-#bluetooth.disabled {
-  color: #82878a;
-  background: rgba(58, 62, 66, 0.45);
-  border-color: rgba(109, 113, 119, 0.36);
-}
-
-#bluetooth:hover,
-#custom-wifi-manager:hover {
-  color: #ffffff;
-  border-color: rgba(160, 220, 255, 0.65);
-  box-shadow: 0 0 10px rgba(60, 156, 208, 0.22);
-}
-
-#custom-wifi-manager {
-  color: #b6f3ff;
-  background: linear-gradient(180deg, rgba(17, 112, 135, 0.58), rgba(15, 84, 106, 0.58));
-  border: 1px solid rgba(120, 214, 227, 0.4);
-  min-width: 24px;
-  font-weight: 800;
-  transition: all 0.2s ease;
-}
-
-#custom-wifi-manager.connected {
-  color: #f4fbff;
-  box-shadow: inset 0 0 0 1px rgba(169, 240, 250, 0.32), 0 0 10px rgba(17, 112, 135, 0.24);
-}
-
-#custom-wifi-manager.disabled,
-#custom-wifi-manager.disabling,
-#custom-wifi-manager.enabling,
-#custom-wifi-manager.unavailable,
-#custom-wifi-manager.unknown {
-  color: #82878a;
-  background: rgba(58, 62, 66, 0.45);
-  border-color: rgba(109, 113, 119, 0.36);
-}
-
-#pulseaudio {
-  color: #e7e4e0;
-}
-
-#pulseaudio.muted {
-  color: #979797;
 }
 
 #custom-backlight {
@@ -293,11 +236,9 @@ window#waybar {
 #cpu,
 #memory,
 #custom-temperature,
-#network,
 #custom-public-ip,
-#bluetooth,
-#custom-wifi-manager,
-#pulseaudio {
+#tray,
+#custom-backlight {
   margin-right: 0;
   border-top-right-radius: 0;
   border-bottom-right-radius: 0;
@@ -305,11 +246,8 @@ window#waybar {
 
 #memory,
 #custom-temperature,
-#network,
 #custom-public-ip,
-#bluetooth,
-#custom-wifi-manager,
-#pulseaudio,
+#tray,
 #custom-backlight {
   margin-left: 0;
   border-top-left-radius: 0;
@@ -317,7 +255,6 @@ window#waybar {
 }
 
 #custom-temperature,
-#custom-wifi-manager,
 #custom-backlight {
   margin-right: 1px;
 }

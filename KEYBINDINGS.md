@@ -1,7 +1,9 @@
-# 快捷键说明（Hyprland）
+# 快捷键说明（Hyprland / Tmux / Zellij）
 
-本文档对应配置：`nix/home/default.nix` 中 `wayland.windowManager.hyprland.extraConfig`。
-若文档与实际行为冲突，以 `nix/home/configs/hypr/hyprland.conf` 为准。
+本文档对应以下配置文件（若文档与实际行为冲突，以配置文件为准）：
+- `nix/home/configs/hypr/hyprland.conf`
+- `nix/home/configs/tmux/tmux.conf`
+- `nix/home/configs/zellij/config.kdl`
 
 说明：`Super` 即 Windows 键。
 
@@ -21,6 +23,7 @@
 | `Super + Shift + E` | 退出 Hyprland 会话 |
 | `Super + Shift + L` | 锁屏（hyprlock） |
 | `Super + Shift + S` | 将当前窗口发送到 scratchpad |
+| `Super + '` | Pin 当前窗口到所有工作区（仅 floating 窗口有效） |
 | `Super + Q` | 关闭当前窗口 |
 
 ## 焦点、窗口交换与移动
@@ -30,6 +33,7 @@
 | `Super + Left/Right/Up/Down` | 将窗口移动到对应方向（`movewindow`） |
 | `Super + H/J/K/L` | 焦点切换（Vim 风格四向） |
 | `Super + , / .` | 与左/右方向窗口交换（补齐四向） |
+| `Super + Shift + Alt + H/J/K/L` | 切换显示器焦点（`focusmonitor`） |
 | `Super + Z` | 切换全屏 |
 | `Super + F` | 与主窗口交换（master） |
 | `Super + M` | 切换最大化（fullscreen mode 1） |
@@ -42,6 +46,8 @@
 |---|---|
 | `Super + Ctrl + Shift + Left/Right/Up/Down` | 将窗口移动到方向位置（`movewindow`） |
 | `Super + Home/End/PageUp/PageDown` | 将窗口移动到左/右/上/下（`movewindow` 双键别名） |
+| `Super + Ctrl + H/J/K/L` | 将当前窗口发送到左/下/上/右显示器（`movewindow mon:*`） |
+| `Super + Ctrl + Shift + H/J/K/L` | 将当前工作区发送到左/下/上/右显示器（`movecurrentworkspacetomonitor`） |
 | `Super + Alt + H/J/K/L` | 微调当前窗口尺寸（`resizeactive`） |
 
 ## Master 布局控制
@@ -119,6 +125,46 @@
 | `Super + P`（normal） | 进入 `passthrough` submap |
 | `Super + P`（passthrough） | 返回 normal |
 | `Esc`（passthrough） | 返回 normal（兜底） |
+
+## Tmux（Prefix: `Ctrl + B`）
+
+| 快捷键 | 功能 |
+|---|---|
+| `Ctrl + B` | Prefix 键 |
+| `Prefix + Ctrl + B` | 发送字面 `Ctrl + B` 到程序 |
+| `Prefix + R` | 重载 `~/.config/tmux/tmux.conf` |
+| `Prefix + H/J/K/L` 或 `Left/Down/Up/Right` | Pane 焦点切换（左/下/上/右） |
+| `Prefix + V` / `Prefix + S` | 水平/垂直分屏（在当前路径） |
+| `Prefix + Pipe` / `Prefix + -` | 水平/垂直分屏（经典别名） |
+| `Prefix + X` | 关闭当前 Pane |
+| `Prefix + Z` | 当前 Pane 放大/还原 |
+| `Prefix + C` | 新建 Window |
+| `Prefix + W` / `Prefix + Q` | 下一个/上一个 Window |
+| `Prefix + Tab` | 切换到上一个活跃 Window（last-window） |
+| `Prefix + P` | 显示 Pane 编号并快速选择（display-panes） |
+| `Prefix + Shift + W` | 打开 Window/Session 树选择器（choose-tree） |
+| `Prefix + G` | Detach 当前会话 |
+| `Prefix + A/D/E/F` | 调整 Pane 大小（左/下/上/右，支持连按） |
+
+## Zellij（Tmux Mode，Leader: `Ctrl + B`）
+
+说明：
+- 当前配置 `tmux clear-defaults=true`，只启用下表按键。
+- 在 Normal mode 按 `Ctrl + B` 进入 Tmux mode；执行一次命令后自动回到 Normal mode。
+
+| 快捷键 | 功能 |
+|---|---|
+| `Ctrl + B`（Normal） | 进入 Tmux mode |
+| `Ctrl + B`（Tmux mode） | 发送字面 `Ctrl + B` 到 Pane，并返回 Normal mode |
+| `Tmux mode + H/J/K/L` 或 `Left/Down/Up/Right` | Pane 焦点切换（左/下/上/右） |
+| `Tmux mode + A/D/E/F` | 调整 Pane 大小（左/下/上/右） |
+| `Tmux mode + S` / `V` | 向下/向右分屏 |
+| `Tmux mode + X` | 关闭当前 Pane |
+| `Tmux mode + Z` | 当前 Pane 全屏切换 |
+| `Tmux mode + C` | 新建 Tab |
+| `Tmux mode + W` / `Q` | 下一个/上一个 Tab |
+| `Tmux mode + G` | Detach 当前会话 |
+| `Tmux mode + R` | 切换到下一个布局（swap layout） |
 
 ## 与 river 的差异
 
