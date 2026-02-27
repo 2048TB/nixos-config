@@ -1,4 +1,4 @@
-{ config, pkgs, lib, myvars, mainUser, ... }:
+{ config, pkgs, lib, myvars, mainUser, inputs, ... }:
 let
   # 系统常量
   defaultUid = 1000;
@@ -321,6 +321,9 @@ in
     hyprland = {
       enable = true;
       xwayland.enable = true;
+      # 使用 Hyprland upstream flake 版本，保证 scrolling layout 语法可用。
+      package = inputs.hyprland.packages.${pkgs.stdenv.hostPlatform.system}.hyprland;
+      portalPackage = inputs.hyprland.packages.${pkgs.stdenv.hostPlatform.system}.xdg-desktop-portal-hyprland;
     };
 
     seahorse.enable = true;

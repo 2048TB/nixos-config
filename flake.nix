@@ -31,9 +31,11 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    hyprland.url = "github:hyprwm/Hyprland";
+
   };
 
-  outputs = { nixpkgs, rust-overlay, home-manager, lanzaboote, nix-gaming, preservation, disko, ... }:
+  outputs = inputs@{ nixpkgs, rust-overlay, home-manager, lanzaboote, nix-gaming, preservation, disko, ... }:
     let
       inherit (nixpkgs) lib;
 
@@ -79,7 +81,7 @@
       };
 
       specialArgs = {
-        inherit myvars mainUser;
+        inherit myvars mainUser inputs;
       };
 
       homeManagerModule = {
