@@ -184,6 +184,56 @@ let
     fi
     exec /run/current-system/sw/bin/hyprctl dispatch submap "$next"
   '';
+  hyprGeneratedConfig =
+    let
+      workspaceIds = map toString (lib.range 1 10);
+      workspaceKeybindings = map
+        (workspace: {
+          key = if workspace == "10" then "0" else workspace;
+          inherit workspace;
+        })
+        workspaceIds;
+      mkWorkspaceBindLines = dispatcher: modifier:
+        let
+          modifierSuffix = if modifier == "" then "" else " ${modifier}";
+        in
+        lib.concatStringsSep "\n" (
+          map
+            (entry: "bind = $mainMod${modifierSuffix}, ${entry.key}, ${dispatcher}, ${entry.workspace}")
+            workspaceKeybindings
+        );
+      hyprFloatWindowRules = [
+        {
+          classPattern = "^(org\\.pulseaudio\\.pavucontrol|pavucontrol)$";
+          size = "980 700";
+        }
+        {
+          classPattern = "^(blueman-manager)$";
+          size = "900 620";
+        }
+        {
+          classPattern = "^(nm-connection-editor|Nm-connection-editor)$";
+          size = "980 700";
+        }
+      ];
+      mkHyprFloatWindowRuleTriplet = rule:
+        lib.concatStringsSep "\n" [
+          "windowrulev2 = float, class:${rule.classPattern}"
+          "windowrulev2 = size ${rule.size}, class:${rule.classPattern}"
+          "windowrulev2 = center, class:${rule.classPattern}"
+        ];
+    in
+    {
+      persistentWorkspaces =
+        lib.concatStringsSep "\n" (
+          map (ws: "workspace = ${ws}, persistent:true") workspaceIds
+        );
+      workspaceSwitchBinds = mkWorkspaceBindLines "workspace" "";
+      workspaceMoveBinds = mkWorkspaceBindLines "movetoworkspace" "SHIFT";
+      workspaceSilentMoveBinds = mkWorkspaceBindLines "movetoworkspacesilent" "ALT";
+      floatWindowRuleTriplets =
+        lib.concatStringsSep "\n" (map mkHyprFloatWindowRuleTriplet hyprFloatWindowRules);
+    };
   hyprlandConfig =
     builtins.replaceStrings
       [
@@ -191,12 +241,22 @@ let
         "@PROFILE_BIN@"
         "@PLAYERCTL_BIN@"
         "@RIVER_SCREENSHOT_BIN@"
+        "@HYPR_PERSISTENT_WORKSPACES@"
+        "@HYPR_FLOAT_WINDOW_RULE_TRIPLETS@"
+        "@HYPR_WORKSPACE_SWITCH_BINDS@"
+        "@HYPR_WORKSPACE_MOVE_BINDS@"
+        "@HYPR_WORKSPACE_SILENT_MOVE_BINDS@"
       ]
       [
         homeDir
         userProfileBin
         "${pkgs.playerctl}/bin/playerctl"
         "${riverScreenshot}/bin/river-screenshot"
+        hyprGeneratedConfig.persistentWorkspaces
+        hyprGeneratedConfig.floatWindowRuleTriplets
+        hyprGeneratedConfig.workspaceSwitchBinds
+        hyprGeneratedConfig.workspaceMoveBinds
+        hyprGeneratedConfig.workspaceSilentMoveBinds
       ]
       (builtins.readFile ./configs/hypr/hyprland.conf);
   hypridleConfig =
@@ -404,18 +464,6 @@ let
     done
 
     exit 1
-  '';
-  wifiToggleRadio = pkgs.writeShellScriptBin "wifi-toggle-radio" ''
-    set -euo pipefail
-    nmcli="/run/current-system/sw/bin/nmcli"
-    wifiState="$("$nmcli" -g WIFI general status 2>/dev/null || true)"
-    wifiState="''${wifiState%%$'\n'*}"
-    wifiState="''${wifiState,,}"
-
-    case "$wifiState" in
-      enabled) exec "$nmcli" radio wifi off ;;
-      *) exec "$nmcli" radio wifi on ;;
-    esac
   '';
   wifiQuickMenu = pkgs.writeShellScriptBin "wifi-quick-menu" ''
     set -euo pipefail
@@ -1073,7 +1121,6 @@ in
       waybarTemperatureStatus
       waybarBacklightStatus
       waybarBatteryStatus
-      wifiToggleRadio
       wifiQuickMenu
       bluetoothQuickMenu
       publicIpStatus
