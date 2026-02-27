@@ -56,18 +56,11 @@ let
     (lib.optional hasAmd "options kvm_amd nested=1")
     (lib.optional hasIntel "options kvm_intel nested=1")
   ]);
+  portalInterfaces = import ../lib/portal-interfaces.nix { };
   # common default 必须与已安装 backend 对齐，避免指向未安装 portal。
-  portalDefaults = [ "gtk" ];
-  portalGtkInterfaces = {
-    "org.freedesktop.impl.portal.Settings" = [ "gtk" ];
-    "org.freedesktop.impl.portal.FileChooser" = [ "gtk" ];
-  };
-  portalHyprlandInterfaces = portalGtkInterfaces // {
-    default = [ "hyprland" "gtk" ];
-    # Hyprland portal 不实现 Inhibit，显式路由到 gtk 避免
-    # "Inhibiting other than idle not supported" 告警。
-    "org.freedesktop.impl.portal.Inhibit" = [ "gtk" ];
-  };
+  portalDefaults = portalInterfaces.defaultBackends;
+  portalGtkInterfaces = portalInterfaces.gtkInterfaces;
+  portalHyprlandInterfaces = portalInterfaces.hyprlandInterfaces;
   # 仅在 VPN/libvirt NAT 场景使用 loose rpfilter，其余默认严格模式。
   requiresLooseReversePath =
     (config.services.provider-app-vpn.enable or false)
