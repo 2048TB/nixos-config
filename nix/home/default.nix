@@ -1,5 +1,6 @@
 { config
 , pkgs
+, pkgsUnstable
 , lib
 , myvars
 , mainUser
@@ -42,6 +43,7 @@ let
   ];
   imageApps = [ "org.nomacs.ImageLounge.desktop" "nomacs.desktop" ];
   portalConfig = sharedPortalConfig;
+  cherryStudioPackage = pkgsUnstable.cherry-studio;
 
   # ===== 启动脚本与包装器 =====
   waylandSession = pkgs.writeScript "wayland-session" ''
@@ -382,31 +384,38 @@ let
 
     exit 1
   '';
-  nmAppletQuiet = pkgs.writeShellScriptBin "nm-applet-quiet" ''
-    set -euo pipefail
-    sedBin="${pkgs.gnused}/bin/sed"
-    set +e
-    ${pkgs.networkmanagerapplet}/bin/nm-applet "$@" 2>&1 \
-      | "$sedBin" -u -E \
-        -e "/gtk_widget_get_scale_factor: assertion 'GTK_IS_WIDGET \\(widget\\)' failed/d" \
-        >&2
-    status="''${PIPESTATUS[0]}"
-    set -e
-    exit "$status"
-  '';
-  pasystrayQuiet = pkgs.writeShellScriptBin "pasystray-quiet" ''
-    set -euo pipefail
-    sedBin="${pkgs.gnused}/bin/sed"
-    set +e
-    ${pkgs.pasystray}/bin/pasystray "$@" 2>&1 \
-      | "$sedBin" -u -E \
-        -e "/Error initializing Avahi: Daemon not running/d" \
-        -e "/gtk_radio_menu_item_get_group: assertion 'GTK_IS_RADIO_MENU_ITEM \\(radio_menu_item\\)' failed/d" \
-        >&2
-    status="''${PIPESTATUS[0]}"
-    set -e
-    exit "$status"
-  '';
+  mkLogFilteredLauncher =
+    name: executable: filters:
+    pkgs.writeShellScriptBin name (
+      ''
+        set -euo pipefail
+        sedBin="${pkgs.gnused}/bin/sed"
+
+        set +e
+        ${executable} "$@" 2>&1 \
+          | "$sedBin" -u -E \
+      ''
+      + lib.concatMapStringsSep "\n" (pattern: "          -e ${lib.escapeShellArg pattern} \\") filters
+      + ''
+            >&2
+        status="''${PIPESTATUS[0]}"
+        set -e
+        exit "$status"
+      ''
+    );
+  nmAppletQuiet = mkLogFilteredLauncher "nm-applet-quiet" "${pkgs.networkmanagerapplet}/bin/nm-applet" [
+    "gtk_widget_get_scale_factor: assertion 'GTK_IS_WIDGET \\(widget\\)' failed"
+  ];
+  pasystrayQuiet = mkLogFilteredLauncher "pasystray-quiet" "${pkgs.pasystray}/bin/pasystray" [
+    "Error initializing Avahi: Daemon not running"
+    "gtk_radio_menu_item_get_group: assertion 'GTK_IS_RADIO_MENU_ITEM \\(radio_menu_item\\)' failed"
+  ];
+  swayncQuiet = mkLogFilteredLauncher "swaync-quiet" "${pkgs.swaynotificationcenter}/bin/swaync" [
+    "gtk_native_get_surface: assertion 'GTK_IS_NATIVE \\(self\\)' failed"
+  ];
+  udiskieQuiet = mkLogFilteredLauncher "udiskie-quiet" "${pkgs.udiskie}/bin/udiskie" [
+    "gtk_widget_get_scale_factor: assertion 'GTK_IS_WIDGET \\(widget\\)' failed"
+  ];
   publicIpStatus = pkgs.writeShellScriptBin "public-ip-status" ''
     set -euo pipefail
     wgetBin="${pkgs.wget}/bin/wget"
@@ -793,7 +802,7 @@ in
       ghostty
       foot # 轻量 Wayland 终端（备用）
       papirus-icon-theme # dconf/qt6ct 使用 Papirus 图标主题
-      cherry-studio # 多 LLM 提供商桌面客户端
+      cherryStudioPackage # 多 LLM 提供商桌面客户端（来自 nixpkgs-unstable）
 
       # === Wayland 工具 ===
       satty
@@ -1066,14 +1075,9 @@ in
           "LANG=C.UTF-8"
           "LC_ALL=C.UTF-8"
         ];
-        # swaync 0.12.x 在空 MPRIS metadata 时会产生已知断言噪音。
-        swaync.Service.LogFilterPatterns = [
-          "~sway_notification_center_widgets_mpris_mpris_player_update_album_art: assertion 'metadata != NULL' failed"
-          "~sway_notification_center_widgets_mpris_mpris_player_update_title: assertion 'metadata != NULL' failed"
-          "~sway_notification_center_widgets_mpris_mpris_player_update_sub_title: assertion 'metadata != NULL' failed"
-          "~sway_notification_center_widgets_mpris_mpris_player_update_buttons: assertion 'metadata != NULL' failed"
-          "~gtk_native_get_surface: assertion 'GTK_IS_NATIVE (self)' failed"
-        ];
+        # systemd.exec(5): LogFilterPatterns 当前不支持 per-user services；使用 wrapper 过滤噪音。
+        swaync.Service.ExecStart = lib.mkForce "${lib.getExe swayncQuiet}";
+        udiskie.Service.ExecStart = lib.mkForce "${lib.getExe udiskieQuiet}";
 
         swaybg = {
           Unit = {

@@ -17,6 +17,7 @@ rec {
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-25.11";
+    nixpkgs-unstable.url = "github:nixos/nixpkgs/nixpkgs-unstable";
 
     rust-overlay = {
       url = "github:oxalica/rust-overlay";
@@ -52,7 +53,7 @@ rec {
 
   };
 
-  outputs = { nixpkgs, rust-overlay, home-manager, lanzaboote, nix-gaming, preservation, disko, pre-commit-hooks, ... }:
+  outputs = { nixpkgs, nixpkgs-unstable, rust-overlay, home-manager, lanzaboote, nix-gaming, preservation, disko, pre-commit-hooks, ... }:
     let
       inherit (nixpkgs) lib;
       binaryCaches = {
@@ -116,12 +117,17 @@ rec {
         config = nixpkgsConfig;
         overlays = nixpkgsOverlays;
       };
+      pkgsUnstable = import nixpkgs-unstable {
+        inherit system;
+        config = nixpkgsConfig;
+      };
 
       specialArgs = {
         inherit
           myvars
           mainUser
           binaryCaches
+          pkgsUnstable
           sharedPortalConfig
           ;
       };
