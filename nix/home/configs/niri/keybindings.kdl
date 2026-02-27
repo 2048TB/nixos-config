@@ -115,9 +115,9 @@ binds {
     "Mod+Ctrl+Page_Up" { move-column-to-workspace-up; }
     Mod+Ctrl+U { move-column-to-workspace-down; }
     Mod+Ctrl+I { move-column-to-workspace-up; }
-    // 2 键别名：快速将当前列投递到相邻工作区
-    Mod+X { move-column-to-workspace-down; }
-    Mod+Z { move-column-to-workspace-up; }
+    // Hyprland 风格别名：B/N 对应发送到上/下一个工作区。
+    Mod+B { move-column-to-workspace-up; }
+    Mod+N { move-column-to-workspace-down; }
     "Mod+Shift+Page_Down" { move-workspace-down; }
     "Mod+Shift+Page_Up" { move-workspace-up; }
     Mod+Shift+U { move-workspace-down; }
@@ -155,8 +155,8 @@ binds {
 
     // 新建工作区（类别）并切换到它：
     // 使用动态工作区，跳到“最底部空工作区”。
-    Mod+N { focus-workspace 99; }
     Mod+Shift+N { focus-workspace 99; }
+    Mod+Ctrl+Shift+N { focus-workspace 99; }
 
     // 以下绑定用于在列内/列外移动焦点窗口。
     // 如果窗口独立存在，将其并入旁边的列；
@@ -176,6 +176,9 @@ binds {
     Mod+Ctrl+R { reset-window-height; }
     Mod+F { maximize-column; }
     Mod+Shift+F { fullscreen-window; }
+    // Hyprland 风格别名：Z=maximize，M=fullscreen。
+    Mod+Z { maximize-column; }
+    Mod+M { fullscreen-window; }
 
     // 将当前列扩展到未被其他完整可见列占用的空间，
     // 使其“填满剩余空间”。
@@ -218,7 +221,8 @@ binds {
     // Mod+Shift+Space { switch-layout "prev"; }
 
     Print { screenshot; }
-    Mod+A { spawn "sh" "-c" "dir=\"${XDG_SCREENSHOTS_DIR:-$HOME/Pictures/Screenshots}\"; mkdir -p \"$dir\"; path=\"$dir/Screenshot from $(date '+%Y-%m-%d %H-%M-%S').png\"; grim -g \"$(slurp)\" - | tee \"$path\" | wl-copy --type image/png"; }
+    // Hyprland 风格：Mod+X 区域截图。
+    Mod+X { spawn "sh" "-c" "dir=\"${XDG_SCREENSHOTS_DIR:-$HOME/Pictures/Screenshots}\"; mkdir -p \"$dir\"; path=\"$dir/Screenshot from $(date '+%Y-%m-%d %H-%M-%S').png\"; grim -g \"$(slurp)\" - | tee \"$path\" | wl-copy --type image/png"; }
     Ctrl+Print { screenshot-screen; }
     Alt+Print { screenshot-window; }
 
