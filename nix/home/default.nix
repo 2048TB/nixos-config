@@ -341,12 +341,16 @@ let
     sedBin="${pkgs.gnused}/bin/sed"
 
     launch_waybar() {
-      # 过滤 Waybar tray 在当前版本的已知启动期噪音，保留其余 stderr 输出。
-      exec "$waybarBin" 2> >("$sedBin" -u -E \
+      # 过滤 Waybar tray 在当前版本的已知启动期噪音，保留其余日志。
+      set +e
+      "$waybarBin" 2>&1 | "$sedBin" -u -E \
         -e "/Item .*No icon name or pixmap given\\./d" \
         -e "/Status Notifier Item with bus name '.*' and object path '\\/org\\/ayatana\\/NotificationItem\\/udiskie' is already registered/d" \
         -e "/Unable to replace properties on 0: Error getting properties for ID/d" \
-        >&2)
+        >&2
+      status="''${PIPESTATUS[0]}"
+      set -e
+      return "$status"
     }
 
     launch_if_wayland_ready() {
@@ -369,6 +373,31 @@ let
     done
 
     exit 1
+  '';
+  nmAppletQuiet = pkgs.writeShellScriptBin "nm-applet-quiet" ''
+    set -euo pipefail
+    sedBin="${pkgs.gnused}/bin/sed"
+    set +e
+    ${pkgs.networkmanagerapplet}/bin/nm-applet "$@" 2>&1 \
+      | "$sedBin" -u -E \
+        -e "/gtk_widget_get_scale_factor: assertion 'GTK_IS_WIDGET \\(widget\\)' failed/d" \
+        >&2
+    status="''${PIPESTATUS[0]}"
+    set -e
+    exit "$status"
+  '';
+  pasystrayQuiet = pkgs.writeShellScriptBin "pasystray-quiet" ''
+    set -euo pipefail
+    sedBin="${pkgs.gnused}/bin/sed"
+    set +e
+    ${pkgs.pasystray}/bin/pasystray "$@" 2>&1 \
+      | "$sedBin" -u -E \
+        -e "/Error initializing Avahi: Daemon not running/d" \
+        -e "/gtk_radio_menu_item_get_group: assertion 'GTK_IS_RADIO_MENU_ITEM \\(radio_menu_item\\)' failed/d" \
+        >&2
+    status="''${PIPESTATUS[0]}"
+    set -e
+    exit "$status"
   '';
   publicIpStatus = pkgs.writeShellScriptBin "public-ip-status" ''
     set -euo pipefail
@@ -836,6 +865,8 @@ in
       lockScreen
       riverScreenshot
       riverCliphistMenu
+      nmAppletQuiet
+      pasystrayQuiet
       waybarClockCalendar
       waybarTemperatureStatus
       waybarBacklightStatus
@@ -1070,6 +1101,32 @@ in
             Type=Application
             Name=Provider app VPN
             Hidden=true
+          '';
+          force = true;
+        };
+        # 覆盖系统 autostart：维持功能不变，仅过滤启动期已知噪音日志。
+        "autostart/nm-applet.desktop" = {
+          text = ''
+            [Desktop Entry]
+            Type=Application
+            Name=NetworkManager Applet
+            Exec=${userProfileBin}/nm-applet-quiet
+            Terminal=false
+            NoDisplay=true
+            NotShowIn=KDE;GNOME;COSMIC;
+            X-GNOME-UsesNotifications=true
+          '';
+          force = true;
+        };
+        "autostart/pasystray.desktop" = {
+          text = ''
+            [Desktop Entry]
+            Type=Application
+            Name=PulseAudio System Tray
+            Exec=${userProfileBin}/pasystray-quiet
+            Icon=pasystray
+            StartupNotify=true
+            Terminal=false
           '';
           force = true;
         };
