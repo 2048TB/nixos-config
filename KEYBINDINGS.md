@@ -19,6 +19,7 @@
 | `Super + Ctrl + S` | 打开音频面板（pavucontrol） |
 | `Super + Ctrl + B` | 切换 Waybar 显示（SIGUSR1） |
 | `Super + Ctrl + R` | 重载 Hyprland 配置 |
+| `Super + T` | 切换布局模式（`master`/`scrolling`） |
 | `Super + Ctrl + E` | 电源菜单（wlogout） |
 | `Super + Shift + E` | 退出 Hyprland 会话 |
 | `Super + Shift + L` | 锁屏（hyprlock） |
@@ -35,7 +36,7 @@
 | `Super + , / .` | 与左/右方向窗口交换（补齐四向） |
 | `Super + Shift + Alt + H/J/K/L` | 切换显示器焦点（`focusmonitor`） |
 | `Super + Z` | 切换全屏 |
-| `Super + F` | 与主窗口交换（master） |
+| `Super + F` | 当前布局主操作（master: 与主窗口交换 / scrolling: 聚焦列适配） |
 | `Super + M` | 切换最大化（fullscreen mode 1） |
 | `Super + V` | 切换浮动 |
 | `Alt + Tab` | 循环切换窗口（浮动窗口会置顶） |
@@ -50,13 +51,14 @@
 | `Super + Ctrl + Shift + H/J/K/L` | 将当前工作区发送到左/下/上/右显示器（`movecurrentworkspacetomonitor`） |
 | `Super + Alt + H/J/K/L` | 微调当前窗口尺寸（`resizeactive`） |
 
-## Master 布局控制
+## 布局控制（Master / Scrolling）
 
 | 快捷键 | 功能 |
 |---|---|
-| `Super + Ctrl + Up/Down` | 增加/减少主区域比例（`mfact`） |
-| `Super + Ctrl + Right/Left` | 增加/减少主区域窗口数（`addmaster/removemaster`） |
-| `Super + Shift + Up/Right/Down/Left` | 设置主区域方向（top/right/bottom/left） |
+| `Super + Ctrl + Up/Down` | 主参数增减（master: `mfact ±0.05` / scrolling: `colresize ±0.05`） |
+| `Super + Ctrl + Right/Left` | 结构前进/后退（master: `addmaster/removemaster` / scrolling: `move ±col`） |
+| `Super + Shift + Up/Down` | 上/下扩展操作（master: `orientationtop/bottom` / scrolling: `colresize ±conf`） |
+| `Super + Shift + Right/Left` | 右/左扩展操作（master: `orientationright/left` / scrolling: `swapcol r/l`） |
 
 ## 浮动窗口控制（float submap）
 
