@@ -386,23 +386,31 @@ let
   '';
   mkLogFilteredLauncher =
     name: executable: filters:
-    pkgs.writeShellScriptBin name (
-      ''
-        set -euo pipefail
-        sedBin="${pkgs.gnused}/bin/sed"
+    let
+      mkSedDeleteExpr = pattern:
+        let
+          # sed 地址默认使用 `/.../` 分隔，先转义 `/` 避免表达式截断。
+          escapedPattern = lib.replaceStrings [ "/" ] [ "\\/" ] pattern;
+        in
+        "/${escapedPattern}/d";
+      sedDeleteArgs =
+        lib.concatMapStringsSep " \\\n"
+          (pattern: "          -e ${lib.escapeShellArg (mkSedDeleteExpr pattern)}")
+          filters;
+    in
+    pkgs.writeShellScriptBin name ''
+            set -euo pipefail
+            sedBin="${pkgs.gnused}/bin/sed"
 
-        set +e
-        ${executable} "$@" 2>&1 \
-          | "$sedBin" -u -E \
-      ''
-      + lib.concatMapStringsSep "\n" (pattern: "          -e ${lib.escapeShellArg pattern} \\") filters
-      + ''
-            >&2
-        status="''${PIPESTATUS[0]}"
-        set -e
-        exit "$status"
-      ''
-    );
+            set +e
+            ${executable} "$@" 2>&1 \
+              | "$sedBin" -u -E \
+      ${sedDeleteArgs}
+              >&2
+            status="''${PIPESTATUS[0]}"
+            set -e
+            exit "$status"
+    '';
   nmAppletQuiet = mkLogFilteredLauncher "nm-applet-quiet" "${pkgs.networkmanagerapplet}/bin/nm-applet" [
     "gtk_widget_get_scale_factor: assertion 'GTK_IS_WIDGET \\(widget\\)' failed"
   ];
