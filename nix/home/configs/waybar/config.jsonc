@@ -20,14 +20,12 @@
     "network",
     "custom/public-ip",
     "bluetooth",
-    "custom/wifi-manager",
     "pulseaudio",
     "custom/backlight",
     "custom/battery",
     "power-profiles-daemon",
     "idle_inhibitor",
     "custom/notification",
-    "tray",
     "custom/power"
   ],
 
@@ -176,9 +174,12 @@
       "󰤥",
       "󰤨"
     ],
-    "tooltip-format-wifi": "{essid}\nIP: {ipaddr}/{cidr}\nSignal: {signalStrength}%\nFrequency: {frequency} GHz\nGateway: {gwaddr}",
-    "tooltip-format-ethernet": "{ifname}\nIP: {ipaddr}/{cidr}\nGateway: {gwaddr}",
-    "tooltip-format-disconnected": "Network disconnected"
+    "tooltip-format-wifi": "{essid}\nIP: {ipaddr}/{cidr}\nSignal: {signalStrength}%\nFrequency: {frequency} GHz\nGateway: {gwaddr}\n\nLeft: WiFi menu | Middle: Toggle radio | Right: Connections GUI",
+    "tooltip-format-ethernet": "{ifname}\nIP: {ipaddr}/{cidr}\nGateway: {gwaddr}\n\nLeft: WiFi menu | Middle: Toggle radio | Right: Connections GUI",
+    "tooltip-format-disconnected": "Network disconnected\n\nLeft: WiFi menu | Middle: Toggle radio | Right: Connections GUI",
+    "on-click": "@USER_BIN@/wifi-quick-menu",
+    "on-click-middle": "@USER_BIN@/wifi-toggle-radio",
+    "on-click-right": "@USER_BIN@/nm-connection-editor"
   },
 
   "custom/public-ip": {
@@ -214,17 +215,6 @@
     "max-length": 22,
     "on-click": "@USER_BIN@/bluetooth-quick-menu",
     "on-click-right": "@SYSTEM_BIN@/blueman-manager"
-  },
-
-  "custom/wifi-manager": {
-    "format": "{}",
-    "return-type": "json",
-    "exec-if": "test -x @USER_BIN@/waybar-wifi-manager-status",
-    "exec": "@USER_BIN@/waybar-wifi-manager-status",
-    "interval": 10,
-    "on-click": "@USER_BIN@/wifi-quick-menu",
-    "on-click-middle": "@USER_BIN@/wifi-toggle-radio",
-    "on-click-right": "@USER_BIN@/nm-connection-editor"
   },
 
   "pulseaudio": {
@@ -283,16 +273,5 @@
       "deactivated": ""
     },
     "tooltip": true
-  },
-
-  "tray": {
-    "icon-size": 14,
-    "show-passive-items": true,
-    "spacing": 8,
-    "icons": {
-      "chrome_status_icon_1": "google-chrome",
-      "0": "google-chrome",
-      "": "google-chrome"
-    }
   }
 }
