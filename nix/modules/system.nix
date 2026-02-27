@@ -3,8 +3,8 @@
 , lib
 , myvars
 , mainUser
-, binaryCaches ? null
-, sharedPortalConfig ? null
+, binaryCaches
+, sharedPortalConfig
 , ...
 }:
 let
@@ -18,13 +18,20 @@ let
   mkFixOwnershipScript = targetDir: {
     text = ''
       if [ -d ${targetDir} ] && id -u ${mainUser} >/dev/null 2>&1; then
+        marker_root="/persistent/.nixos-activation/ownership-fix"
+        marker_name="$(printf '%s' "${targetDir}" | tr '/ ' '__')"
         current_uid=$(stat -c %u ${targetDir} 2>/dev/null || echo "")
         current_gid=$(stat -c %g ${targetDir} 2>/dev/null || echo "")
         target_uid=$(id -u ${mainUser})
         target_gid=$(id -g ${mainUser})
-        if [ -n "$current_uid" ] && [ -n "$current_gid" ] && { [ "$current_uid" != "$target_uid" ] || [ "$current_gid" != "$target_gid" ]; }; then
-          find ${targetDir} -xdev \( -not -user ${mainUser} -o -not -group ${mainUser} \) \
-            -exec chown ${mainUser}:${mainUser} {} + || true
+        marker_file="$marker_root/$marker_name.uid$target_uid.gid$target_gid.done"
+        if [ ! -f "$marker_file" ]; then
+          if [ -n "$current_uid" ] && [ -n "$current_gid" ] && { [ "$current_uid" != "$target_uid" ] || [ "$current_gid" != "$target_gid" ]; }; then
+            find ${targetDir} -xdev \( -not -user ${mainUser} -o -not -group ${mainUser} \) \
+              -exec chown ${mainUser}:${mainUser} {} + || true
+          fi
+          mkdir -p "$marker_root"
+          touch "$marker_file"
         fi
       fi
     '';
@@ -79,38 +86,9 @@ let
     (lib.optional hasAmd "options kvm_amd nested=1")
     (lib.optional hasIntel "options kvm_intel nested=1")
   ]);
-  cacheSubstituters =
-    if binaryCaches != null
-    then binaryCaches.substituters
-    else [
-      "https://nix-community.cachix.org"
-      "https://nixpkgs-wayland.cachix.org"
-      "https://cache.garnix.io"
-    ];
-  cacheTrustedPublicKeys =
-    if binaryCaches != null
-    then binaryCaches.trustedPublicKeys
-    else [
-      "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
-      "nixpkgs-wayland.cachix.org-1:3lwxaILxMRkVhehr5StQprHdEo4IrE8sRho9R9HOLYA="
-      "cache.garnix.io:CTFPyKSLcx5RMJKfLo5EEPUObbA78b0YQ2DTCJXqr9g="
-    ];
-  portalConfig =
-    if sharedPortalConfig != null
-    then sharedPortalConfig
-    else {
-      common = {
-        default = [ "gnome" "gtk" ];
-        "org.freedesktop.impl.portal.Settings" = [ "gtk" ];
-        "org.freedesktop.impl.portal.FileChooser" = [ "gtk" ];
-      };
-      niri = {
-        default = [ "gnome" "gtk" ];
-        "org.freedesktop.impl.portal.Settings" = [ "gtk" ];
-        "org.freedesktop.impl.portal.FileChooser" = [ "gtk" ];
-        "org.freedesktop.impl.portal.Inhibit" = [ "gtk" ];
-      };
-    };
+  cacheSubstituters = binaryCaches.substituters;
+  cacheTrustedPublicKeys = binaryCaches.trustedPublicKeys;
+  portalConfig = sharedPortalConfig;
   # 仅在 VPN/libvirt NAT 场景使用 loose rpfilter，其余默认严格模式。
   requiresLooseReversePath =
     (config.services.provider-app-vpn.enable or false)

@@ -3,7 +3,7 @@
 , lib
 , myvars
 , mainUser
-, sharedPortalConfig ? null
+, sharedPortalConfig
 , ...
 }:
 let
@@ -41,22 +41,7 @@ let
     "image/tiff"
   ];
   imageApps = [ "org.nomacs.ImageLounge.desktop" "nomacs.desktop" ];
-  portalConfig =
-    if sharedPortalConfig != null
-    then sharedPortalConfig
-    else {
-      common = {
-        default = [ "gnome" "gtk" ];
-        "org.freedesktop.impl.portal.Settings" = [ "gtk" ];
-        "org.freedesktop.impl.portal.FileChooser" = [ "gtk" ];
-      };
-      niri = {
-        default = [ "gnome" "gtk" ];
-        "org.freedesktop.impl.portal.Settings" = [ "gtk" ];
-        "org.freedesktop.impl.portal.FileChooser" = [ "gtk" ];
-        "org.freedesktop.impl.portal.Inhibit" = [ "gtk" ];
-      };
-    };
+  portalConfig = sharedPortalConfig;
 
   # ===== 启动脚本与包装器 =====
   waylandSession = pkgs.writeScript "wayland-session" ''
