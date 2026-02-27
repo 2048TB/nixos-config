@@ -65,6 +65,9 @@ let
     if systemctl --user is-active hyprland-session.target >/dev/null 2>&1; then
       systemctl --user stop hyprland-session.target
     fi
+    if [ -x /run/current-system/sw/bin/start-hyprland ]; then
+      exec /run/current-system/sw/bin/start-hyprland
+    fi
     exec /run/current-system/sw/bin/Hyprland
   '';
 

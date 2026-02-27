@@ -109,7 +109,7 @@ window#waybar {
 
 #workspaces button label {
   color: #e7e4e0;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 900;
 }
 
@@ -143,20 +143,25 @@ window#waybar {
 }
 
 #custom-layout-mode {
-  min-width: 72px;
-  padding: 0 11px;
+  min-width: 0;
+  padding: 0 8px;
+  background-color: rgba(42, 44, 48, 0.88);
+  border: 1px solid rgba(82, 86, 93, 0.62);
 }
 
 #custom-layout-mode.master {
-  color: #89b4fa;
+  color: #9aa6b5;
+  background-color: rgba(43, 48, 55, 0.9);
 }
 
 #custom-layout-mode.scrolling {
-  color: #7ac887;
+  color: #93a289;
+  background-color: rgba(42, 49, 44, 0.9);
 }
 
 #custom-layout-mode.unknown {
-  color: #979797;
+  color: #8a9098;
+  background-color: rgba(44, 46, 50, 0.9);
 }
 
 #submap {
