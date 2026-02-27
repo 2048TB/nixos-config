@@ -34,6 +34,21 @@ let
     export GSETTINGS_SCHEMA_DIR="${pkgs.gsettings-desktop-schemas}/share/gsettings-schemas/${pkgs.gsettings-desktop-schemas.name}/glib-2.0/schemas"
     exec ${pkgs.glib}/bin/gsettings "$@"
   '';
+  wireplumberQuietLauncher = pkgs.writeShellScript "wireplumber-quiet-launcher" ''
+    set -euo pipefail
+    sedBin="${pkgs.gnused}/bin/sed"
+
+    set +e
+    ${pkgs.wireplumber}/bin/wireplumber "$@" 2>&1 \
+      | "$sedBin" -u -E \
+        -e "/wp_event_dispatcher_unregister_hook: assertion 'already_registered_dispatcher == self' failed/d" \
+        -e "/wp-event-dispatcher: wp_event_dispatcher_unregister_hook: assertion 'already_registered_dispatcher == self' failed/d" \
+        -e "/wp-event-dispatcher: <WpAsyncEventHook:.*> failed: failed to activate item: Object activation aborted: proxy destroyed/d" \
+        >&2
+    status="''${PIPESTATUS[0]}"
+    set -e
+    exit "$status"
+  '';
   allowedGpuModes = [
     "auto"
     "none"
@@ -659,12 +674,8 @@ in
     };
 
     user.services = {
-      # wireplumber 0.5.12 启动期稳定出现同一条 GLib assertion 噪音，保留其他日志。
-      wireplumber.serviceConfig.LogFilterPatterns = [
-        "~wp_event_dispatcher_unregister_hook: assertion 'already_registered_dispatcher == self' failed"
-        "~wp-event-dispatcher: wp_event_dispatcher_unregister_hook: assertion 'already_registered_dispatcher == self' failed"
-        "~wp-event-dispatcher: <WpAsyncEventHook:.*> failed: failed to activate item: Object activation aborted: proxy destroyed"
-      ];
+      # systemd 的 LogFilterPatterns 对 user services 不生效，改为 wrapper 过滤启动期已知噪音。
+      wireplumber.serviceConfig.ExecStart = lib.mkForce "${wireplumberQuietLauncher}";
     };
 
     # 定期清理临时文件（模拟部分 tmpfs 优势）
