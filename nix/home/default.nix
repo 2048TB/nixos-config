@@ -950,21 +950,6 @@ in
           };
         };
 
-        pasystray = {
-          Unit = {
-            Description = "PulseAudio tray applet";
-            After = [ "graphical-session.target" ];
-            PartOf = [ "graphical-session.target" ];
-          };
-          Install.WantedBy = [ "graphical-session.target" ];
-          Service = {
-            Type = "simple";
-            ExecStart = "${pkgs.pasystray}/bin/pasystray";
-            Restart = "on-failure";
-            RestartSec = 2;
-          };
-        };
-
         # udiskie 在中文 locale 下会触发 Python logging format KeyError（'信息'）
         # 将其 locale 固定为 C.UTF-8，避免格式化字段被翻译。
         udiskie.Service.Environment = [

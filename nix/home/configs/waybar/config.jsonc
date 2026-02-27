@@ -17,12 +17,12 @@
     "cpu",
     "memory",
     "custom/temperature",
+    "custom/public-ip",
     "custom/backlight",
     "custom/battery",
     "power-profiles-daemon",
     "idle_inhibitor",
     "custom/notification",
-    "custom/public-ip",
     "tray",
     "custom/power"
   ],
@@ -169,6 +169,7 @@
     "exec-if": "test -x @USER_BIN@/public-ip-status",
     "exec": "@USER_BIN@/public-ip-status",
     "interval": 180,
+    "exec-on-event": false,
     "on-click": "@SYSTEM_BIN@/nm-connection-editor",
     "on-click-right": "@USER_BIN@/ghostty -e @SYSTEM_BIN@/nmtui"
   },
