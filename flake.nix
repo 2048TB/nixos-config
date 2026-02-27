@@ -1,4 +1,4 @@
-{
+rec {
   description = "NixOS desktop config";
 
   # 仅影响 flake 自身（如 nix flake check / CI），不直接修改系统级 nix.conf。
@@ -55,6 +55,23 @@
   outputs = { nixpkgs, rust-overlay, home-manager, lanzaboote, nix-gaming, preservation, disko, pre-commit-hooks, ... }:
     let
       inherit (nixpkgs) lib;
+      binaryCaches = {
+        substituters = nixConfig."extra-substituters";
+        trustedPublicKeys = nixConfig."extra-trusted-public-keys";
+      };
+      sharedPortalConfig = {
+        common = {
+          default = [ "gnome" "gtk" ];
+          "org.freedesktop.impl.portal.Settings" = [ "gtk" ];
+          "org.freedesktop.impl.portal.FileChooser" = [ "gtk" ];
+        };
+        niri = {
+          default = [ "gnome" "gtk" ];
+          "org.freedesktop.impl.portal.Settings" = [ "gtk" ];
+          "org.freedesktop.impl.portal.FileChooser" = [ "gtk" ];
+          "org.freedesktop.impl.portal.Inhibit" = [ "gtk" ];
+        };
+      };
 
       myvars = rec {
         # 用户配置
@@ -98,7 +115,12 @@
       };
 
       specialArgs = {
-        inherit myvars mainUser;
+        inherit
+          myvars
+          mainUser
+          binaryCaches
+          sharedPortalConfig
+          ;
       };
 
       homeManagerModule = {

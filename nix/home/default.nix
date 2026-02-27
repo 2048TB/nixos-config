@@ -1,4 +1,11 @@
-{ config, pkgs, lib, myvars, mainUser, ... }:
+{ config
+, pkgs
+, lib
+, myvars
+, mainUser
+, sharedPortalConfig ? null
+, ...
+}:
 let
   # ===== 基础常量 =====
   homeStateVersion = "25.11";
@@ -34,6 +41,22 @@ let
     "image/tiff"
   ];
   imageApps = [ "org.nomacs.ImageLounge.desktop" "nomacs.desktop" ];
+  portalConfig =
+    if sharedPortalConfig != null
+    then sharedPortalConfig
+    else {
+      common = {
+        default = [ "gnome" "gtk" ];
+        "org.freedesktop.impl.portal.Settings" = [ "gtk" ];
+        "org.freedesktop.impl.portal.FileChooser" = [ "gtk" ];
+      };
+      niri = {
+        default = [ "gnome" "gtk" ];
+        "org.freedesktop.impl.portal.Settings" = [ "gtk" ];
+        "org.freedesktop.impl.portal.FileChooser" = [ "gtk" ];
+        "org.freedesktop.impl.portal.Inhibit" = [ "gtk" ];
+      };
+    };
 
   # ===== 启动脚本与包装器 =====
   waylandSession = pkgs.writeScript "wayland-session" ''
@@ -453,7 +476,7 @@ let
     for entry in \
       "https://api.ipify.org|ipify|plain" \
       "https://ifconfig.me/ip|ifconfig.me|plain" \
-      "http://1.1.1.1/cdn-cgi/trace|cloudflare-trace|trace"; do
+      "https://www.cloudflare.com/cdn-cgi/trace|cloudflare-trace|trace"; do
       url="''${entry%%|*}"
       rest="''${entry#*|}"
       label="''${rest%%|*}"
@@ -942,6 +965,23 @@ in
       scripts = [ pkgs.mpvScripts.mpris ];
     };
 
+    # 由 Home Manager 管理 Lutris，统一 runner 与依赖集合
+    lutris = {
+      enable = true;
+      defaultWinePackage = pkgs.proton-ge-bin;
+      protonPackages = [ pkgs.proton-ge-bin ];
+      winePackages = [
+        pkgs.wineWowPackages.stable
+      ];
+      extraPackages = with pkgs; [
+        winetricks
+        gamescope
+        gamemode
+        mangohud
+        umu-launcher
+      ];
+    };
+
     # 终端 Shell 配置（必需，用于加载会话变量）
     zsh = {
       enable = true;
@@ -1178,19 +1218,8 @@ in
         xdg-desktop-portal-gnome
         xdg-desktop-portal-gtk
       ];
-      config = {
-        common = {
-          default = [ "gnome" "gtk" ];
-          "org.freedesktop.impl.portal.Settings" = [ "gtk" ];
-          "org.freedesktop.impl.portal.FileChooser" = [ "gtk" ];
-        };
-        niri = {
-          default = [ "gnome" "gtk" ];
-          "org.freedesktop.impl.portal.Settings" = [ "gtk" ];
-          "org.freedesktop.impl.portal.FileChooser" = [ "gtk" ];
-          "org.freedesktop.impl.portal.Inhibit" = [ "gtk" ];
-        };
-      };
+      # portal 接口映射由 flake specialArgs 统一提供，避免 system/home 漂移。
+      config = portalConfig;
     };
 
     userDirs = {
