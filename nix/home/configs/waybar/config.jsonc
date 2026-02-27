@@ -9,11 +9,10 @@
   "modules-left": [
     "custom/launcher",
     "clock",
-    "hyprland/submap",
-    "hyprland/window",
+    "niri/window",
     "mpris"
   ],
-  "modules-center": [ "hyprland/workspaces" ],
+  "modules-center": [ "niri/workspaces" ],
   "modules-right": [
     "cpu",
     "memory",
@@ -67,8 +66,8 @@
     "escape": true
   },
 
-  // hyprland state
-  "hyprland/workspaces": {
+  // niri state
+  "niri/workspaces": {
     "format": "{icon}",
     "format-icons": {
       "1": "①",
@@ -83,29 +82,12 @@
       "10": "⑩",
       "default": "•"
     },
-    "persistent-workspaces": {
-      "*": 10
-    },
-    "sort-by": "number",
     "all-outputs": false,
-    "move-to-monitor": true,
-    "show-special": true,
-    "special-visible-only": true,
-    "enable-bar-scroll": false,
     "swap-icon-label": false
   },
 
-  "hyprland/submap": {
-    "format": "MODE {}",
-    "default-submap": "normal",
-    "always-on": true,
-    "on-click": "@USER_BIN@/hyprland-submap-cycle toggle",
-    "max-length": 14,
-    "swap-icon-label": false
-  },
-
-  "hyprland/window": {
-    "format": "{class} {title}",
+  "niri/window": {
+    "format": "{title}",
     "max-length": 36,
     "separate-outputs": true,
     "swap-icon-label": false
@@ -154,7 +136,7 @@
   // system metrics
   "cpu": {
     "format": "󰻠 {usage}%",
-    "interval": 3,
+    "interval": 5,
     "states": {
       "warning": 70,
       "critical": 90
@@ -163,7 +145,7 @@
 
   "memory": {
     "format": "󰍛 {}%",
-    "interval": 3,
+    "interval": 5,
     "states": {
       "warning": 75,
       "critical": 90
@@ -175,12 +157,12 @@
     "return-type": "json",
     "exec-if": "/run/current-system/sw/bin/ls /sys/class/hwmon/hwmon*/temp*_input >/dev/null 2>&1",
     "exec": "@USER_BIN@/waybar-temperature-status",
-    "interval": 5
+    "interval": 10
   },
 
   // network
   "network": {
-    "interval": 5,
+    "interval": 10,
     "family": "ipv4_6",
     "format-wifi": "{icon} {signalStrength}%",
     "format-ethernet": "󰈀 wired",
@@ -239,7 +221,7 @@
     "return-type": "json",
     "exec-if": "test -x @USER_BIN@/waybar-wifi-manager-status",
     "exec": "@USER_BIN@/waybar-wifi-manager-status",
-    "interval": 5,
+    "interval": 10,
     "on-click": "@USER_BIN@/wifi-quick-menu",
     "on-click-middle": "@USER_BIN@/wifi-toggle-radio",
     "on-click-right": "@USER_BIN@/nm-connection-editor"
@@ -268,7 +250,7 @@
     "return-type": "json",
     "exec-if": "/run/current-system/sw/bin/ls /sys/class/backlight/*/brightness >/dev/null 2>&1",
     "exec": "@USER_BIN@/waybar-backlight-status",
-    "interval": 5,
+    "interval": 30,
     "on-scroll-up": "@USER_BIN@/brightnessctl --class=backlight set 1%+",
     "on-scroll-down": "@USER_BIN@/brightnessctl --class=backlight set 1%-",
     "tooltip": false
@@ -279,7 +261,7 @@
     "return-type": "json",
     "exec-if": "/run/current-system/sw/bin/ls /sys/class/power_supply/BAT*/capacity >/dev/null 2>&1",
     "exec": "@USER_BIN@/waybar-battery-status",
-    "interval": 15
+    "interval": 30
   },
 
   "power-profiles-daemon": {
