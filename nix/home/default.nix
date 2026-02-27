@@ -1055,6 +1055,16 @@ in
       {
         "qt6ct/qt6ct.conf".source = ./configs/qt6ct/qt6ct.conf;
         "qt6ct/colors/darker.conf".source = "${pkgs.qt6Packages.qt6ct}/share/qt6ct/colors/darker.conf";
+        # 覆盖上游桌面自启动：避免与 provider-app-vpn-ui.service 双启动导致日志噪音与崩溃。
+        "autostart/provider-app-vpn.desktop" = {
+          text = ''
+            [Desktop Entry]
+            Type=Application
+            Name=Provider app VPN
+            Hidden=true
+          '';
+          force = true;
+        };
         "waybar/config".text = waybarConfig;
         "waybar/style.css".text = waybarStyle;
         "waybar/icons" = {
