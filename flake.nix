@@ -1,6 +1,20 @@
 {
   description = "NixOS desktop config";
 
+  # 仅影响 flake 自身（如 nix flake check / CI），不直接修改系统级 nix.conf。
+  nixConfig = {
+    extra-substituters = [
+      "https://nix-community.cachix.org"
+      "https://nixpkgs-wayland.cachix.org"
+      "https://cache.garnix.io"
+    ];
+    extra-trusted-public-keys = [
+      "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
+      "nixpkgs-wayland.cachix.org-1:3lwxaILxMRkVhehr5StQprHdEo4IrE8sRho9R9HOLYA="
+      "cache.garnix.io:CTFPyKSLcx5RMJKfLo5EEPUObbA78b0YQ2DTCJXqr9g="
+    ];
+  };
+
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-25.11";
 
@@ -31,9 +45,14 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    pre-commit-hooks = {
+      url = "github:cachix/git-hooks.nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
   };
 
-  outputs = { nixpkgs, rust-overlay, home-manager, lanzaboote, nix-gaming, preservation, disko, ... }:
+  outputs = { nixpkgs, rust-overlay, home-manager, lanzaboote, nix-gaming, preservation, disko, pre-commit-hooks, ... }:
     let
       inherit (nixpkgs) lib;
 
@@ -119,6 +138,15 @@
         modules = [
           ./nix/hosts/${myvars.hostname}.nix
         ] ++ hostModules;
+      };
+
+      preCommitCheck = pre-commit-hooks.lib.${system}.run {
+        src = ./.;
+        hooks = {
+          nixpkgs-fmt.enable = true;
+          statix.enable = true;
+          deadnix.enable = true;
+        };
       };
     in
     {
@@ -214,6 +242,8 @@
             "eval-system-package-duplicates"
             unexpectedSystemDuplicateNames
             "Unexpected duplicate packages in environment.systemPackages";
+
+          pre-commit-check = preCommitCheck;
         };
 
       # 开发环境
@@ -224,8 +254,9 @@
           nixpkgs-fmt
           statix
           deadnix
-        ];
+        ] ++ preCommitCheck.enabledPackages;
         shellHook = ''
+          ${preCommitCheck.shellHook}
           echo "🚀 NixOS 配置开发环境"
           echo ""
           echo "可用命令："
