@@ -330,7 +330,9 @@ in
       '';
     };
     rtkit.enable = true;
-    pam.services.greetd.enableGnomeKeyring = true;
+    # greetd 在 greeter 阶段不会持有 keyring daemon 控制文件，
+    # 开启该项会产生 gkr-pam "unable to locate daemon control file" 报错。
+    pam.services.greetd.enableGnomeKeyring = false;
     # 通过 passwd 修改登录密码时，同步更新 keyring 密码，避免后续出现二次解锁提示
     pam.services.passwd.enableGnomeKeyring = true;
   };
