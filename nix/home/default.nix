@@ -329,80 +329,6 @@ let
       *) exec "$nmcli" radio wifi on ;;
     esac
   '';
-  waybarWifiManagerStatus = pkgs.writeShellScriptBin "waybar-wifi-manager-status" ''
-        set -euo pipefail
-        nmcli="/run/current-system/sw/bin/nmcli"
-        sedBin="/run/current-system/sw/bin/sed"
-
-        escape_json() {
-          "$sedBin" -e 's/\\/\\\\/g' -e 's/"/\\"/g' -e ':a;N;$!ba;s/\n/\\n/g'
-        }
-
-        wifiState="$("$nmcli" -g WIFI general status 2>/dev/null || true)"
-        wifiState="''${wifiState%%$'\n'*}"
-        wifiState="''${wifiState,,}"
-        [ -n "$wifiState" ] || wifiState="unknown"
-
-        currentPayload=""
-        while IFS= read -r line; do
-          case "$line" in
-            yes:*)
-              currentPayload="''${line#yes:}"
-              break
-              ;;
-          esac
-        done < <("$nmcli" -t -f ACTIVE,SSID,SIGNAL dev wifi 2>/dev/null || true)
-
-        connected="false"
-        currentSsid="Not connected"
-        currentSignal="-"
-        if [ -n "$currentPayload" ]; then
-          currentSignal="''${currentPayload##*:}"
-          currentSsidEscaped="''${currentPayload%:*}"
-          if [ "$currentSignal" = "$currentPayload" ]; then
-            currentSignal="?"
-            currentSsidEscaped="$currentPayload"
-          fi
-          currentSsid="''${currentSsidEscaped//\\:/:}"
-          [ -n "$currentSsid" ] || currentSsid="<hidden>"
-          [ -n "$currentSignal" ] || currentSignal="?"
-          currentSignal="''${currentSignal}%"
-          connected="true"
-        fi
-
-        icon="󰖪"
-        cssClass="disabled"
-        statusLabel="disabled"
-        case "$wifiState" in
-          enabled)
-            icon="󰖩"
-            cssClass="enabled"
-            statusLabel="enabled"
-            if [ "$connected" = "true" ]; then
-              cssClass="connected"
-              statusLabel="connected"
-            fi
-            ;;
-          enabling|disabling|disabled|unavailable)
-            cssClass="$wifiState"
-            statusLabel="$wifiState"
-            ;;
-          *)
-            cssClass="unknown"
-            statusLabel="$wifiState"
-            ;;
-        esac
-
-        tooltip="WiFi: $statusLabel
-    Current SSID: $currentSsid
-    Signal: $currentSignal
-
-    Left: Quick menu | Middle: Toggle radio | Right: Connections GUI"
-        tooltipEscaped="$(printf '%s' "$tooltip" | escape_json)"
-        textEscaped="$(printf '%s' "$icon" | escape_json)"
-
-        printf '{"text":"%s","tooltip":"%s","class":"%s"}\n' "$textEscaped" "$tooltipEscaped" "$cssClass"
-  '';
   wifiQuickMenu = pkgs.writeShellScriptBin "wifi-quick-menu" ''
     set -euo pipefail
     nmcli="/run/current-system/sw/bin/nmcli"
@@ -1057,7 +983,6 @@ in
       waybarTemperatureStatus
       waybarBacklightStatus
       waybarBatteryStatus
-      waybarWifiManagerStatus
       wifiToggleRadio
       wifiQuickMenu
       bluetoothQuickMenu
@@ -1218,13 +1143,6 @@ in
               "LANG=zh_CN.UTF-8"
               "LC_ALL=zh_CN.UTF-8"
               "LC_TIME=zh_CN.UTF-8"
-            ];
-            # 某些第三方托盘项（例如 chrome status icon）不提供 icon/pixmap，
-            # Waybar 会持续打印固定错误；先做定向降噪。
-            LogFilterPatterns = [
-              "~Item 'chrome_status_icon_1': No icon name or pixmap given."
-              "~Item '': No icon name or pixmap given."
-              "~Unable to replace properties on 0: Error getting properties for ID"
             ];
             ExecStart = "${waybarLauncher}";
             Restart = "always";
