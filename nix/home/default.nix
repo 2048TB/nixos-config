@@ -39,6 +39,34 @@ let
   portalDefaults = portalInterfaces.defaultBackends;
   portalGtkInterfaces = portalInterfaces.gtkInterfaces;
   portalHyprlandInterfaces = portalInterfaces.hyprlandInterfaces;
+  workspaceIds = map toString (lib.range 1 10);
+  waybarPersistentWorkspaceEntries =
+    let
+      len = builtins.length workspaceIds;
+    in
+    lib.concatStringsSep "\n" (
+      builtins.genList
+        (i:
+          let
+            ws = builtins.elemAt workspaceIds i;
+            suffix = if i + 1 < len then "," else "";
+          in
+          "      \"${ws}\": []${suffix}")
+        len
+    );
+  hyprlandLayoutGetFunction = ''
+    get_layout() {
+      local fallback="$1"
+      local layout=""
+      if [ -x "$hyprctlBin" ]; then
+        layout="$("$hyprctlBin" -j getoption general:layout 2>/dev/null | "$jqBin" -r '.str // empty' 2>/dev/null || true)"
+      fi
+      case "$layout" in
+        master|scrolling) printf '%s\n' "$layout" ;;
+        *) printf '%s\n' "$fallback" ;;
+      esac
+    }
+  '';
   mkHyprlandSessionService = description: serviceConfig: {
     Unit = {
       Description = description;
@@ -192,18 +220,9 @@ let
     hyprctlBin="/run/current-system/sw/bin/hyprctl"
     jqBin="${pkgs.jq}/bin/jq"
 
-    get_layout() {
-      local layout=""
-      if [ -x "$hyprctlBin" ]; then
-        layout="$("$hyprctlBin" -j getoption general:layout 2>/dev/null | "$jqBin" -r '.str // empty' 2>/dev/null || true)"
-      fi
-      case "$layout" in
-        master|scrolling) printf '%s\n' "$layout" ;;
-        *) printf '%s\n' "unknown" ;;
-      esac
-    }
+    ${hyprlandLayoutGetFunction}
 
-    current="$(get_layout)"
+    current="$(get_layout unknown)"
     case "$current" in
       scrolling) next="master" ;;
       master) next="scrolling" ;;
@@ -218,23 +237,14 @@ let
     jqBin="${pkgs.jq}/bin/jq"
     action="''${1:-}"
 
-    get_layout() {
-      local layout=""
-      if [ -x "$hyprctlBin" ]; then
-        layout="$("$hyprctlBin" -j getoption general:layout 2>/dev/null | "$jqBin" -r '.str // empty' 2>/dev/null || true)"
-      fi
-      case "$layout" in
-        master|scrolling) printf '%s\n' "$layout" ;;
-        *) printf '%s\n' "scrolling" ;;
-      esac
-    }
+    ${hyprlandLayoutGetFunction}
 
     dispatch_layoutmsg() {
       local msg="$1"
       exec "$hyprctlBin" dispatch layoutmsg "$msg"
     }
 
-    layout="$(get_layout)"
+    layout="$(get_layout scrolling)"
     case "$action" in
       focus)
         if [ "$layout" = "master" ]; then
@@ -307,7 +317,6 @@ let
   '';
   hyprGeneratedConfig =
     let
-      workspaceIds = map toString (lib.range 1 10);
       workspaceKeybindings = map
         (workspace: {
           key = if workspace == "10" then "0" else workspace;
@@ -395,10 +404,12 @@ let
       [
         "@USER_BIN@"
         "@SYSTEM_BIN@"
+        "@WAYBAR_PERSISTENT_WORKSPACES@"
       ]
       [
         userProfileBin
         "/run/current-system/sw/bin"
+        waybarPersistentWorkspaceEntries
       ]
       (builtins.readFile ./configs/waybar/config.jsonc);
   waybarStyle =
@@ -1429,6 +1440,7 @@ in
           # 某些第三方托盘项（例如 chrome status icon）不提供 icon/pixmap，
           # Waybar 会持续打印固定错误；先做定向降噪。
           LogFilterPatterns = [
+            "~Item '': No icon name or pixmap given."
             "~Item 'chrome_status_icon_1': No icon name or pixmap given."
             "~Unable to replace properties on 0: Error getting properties for ID"
           ];
