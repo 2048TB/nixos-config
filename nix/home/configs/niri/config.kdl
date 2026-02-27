@@ -27,8 +27,8 @@ input {
 
         // 可设置键盘连发参数，默认值与 wlroots 和 sway 一致。
         // Delay 为开始连发前的毫秒数；Rate 为每秒字符数。
-        // repeat-delay 600
-        // repeat-rate 25
+        repeat-delay 300
+        repeat-rate 50
 
         // Niri 可全局（默认）或按窗口记忆键盘布局。
         // - "global" - 所有窗口共享布局切换。
