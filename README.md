@@ -1,6 +1,6 @@
-# NixOS Desktop (Hyprland + Home Manager)
+# NixOS Desktop (Niri + Home Manager)
 
-可复现的 NixOS 桌面配置，基于 Hyprland Wayland + Home Manager。
+可复现的 NixOS 桌面配置，基于 Niri Wayland + Home Manager。
 
 相关文档：
 - `KEYBINDINGS.md` 快捷键说明
@@ -12,8 +12,9 @@
 - `CLAUDE.md` 项目维护约定（给 AI/自动化工具）
 
 主要特性：
-- Wayland 桌面：Hyprland + Waybar + Fuzzel + Wlogout
-- 窗口管理：Master 布局 + float/passthrough submap，高频操作以二键绑定为主（见 `KEYBINDINGS.md`）
+- Wayland 桌面：Niri + Waybar + Fuzzel + Wlogout
+- 窗口管理：Niri scrollable-tiling + 动态工作区（见 `KEYBINDINGS.md`）
+- X11 兼容：`xwayland-satellite`（Niri 官方推荐路径）
 - Waybar 网络区：`network` + `custom/public-ip` + `custom/wifi-manager`（链路状态、公网 IP、WiFi 管理入口）
 - 开发工具链：Rust / Zig / Go / Node.js / Python
 - 游戏支持：Steam / Proton / Wine / Lutris
@@ -127,11 +128,11 @@ nix build --no-link path:/persistent/nixos-config#nixosConfigurations.zly.config
 
 ---
 
-## 日志排查（Hyprland/Waybar）
+## 日志排查（Niri/Waybar）
 
 ```bash
-journalctl --user -b -u waybar.service -u hypridle.service -u xdg-desktop-portal.service --no-pager
-journalctl --user -b --no-pager | rg -i 'hyprland|waybar|portal|pipewire|wireplumber|swaync'
+journalctl --user -b -u waybar.service -u xdg-desktop-portal.service --no-pager
+journalctl --user -b --no-pager | rg -i 'niri|waybar|portal|pipewire|wireplumber|swaync'
 ```
 
 说明：当前配置已在 `nix/modules/system.nix` 中对 `pipewire` 与 `pipewire-pulse` 同步关闭 `rtportal.enabled`，用于减少 `xdg-desktop-portal` 的 `pidns/pidfd` 噪音日志。
@@ -166,7 +167,7 @@ git push origin HEAD
 当前配置使用「全局暗色 + 分层覆盖」：
 - GTK：`dconf.settings` 统一 `prefer-dark` + `Adwaita-dark`
 - Qt6：`qt6ct` 使用 `darker.conf`
-- Wayland 组件（Hyprland / Waybar / Fuzzel / Wlogout / Foot / Ghostty）：统一到深色调（Catppuccin 风格）
+- Wayland 组件（Niri / Waybar / Fuzzel / Wlogout / Foot / Ghostty）：统一到深色调（Catppuccin 风格）
 
 说明：
 - 浏览器与 Electron 类应用（如 Chrome、VS Code）通常需要应用内单独选择主题，无法仅靠 GTK/Qt 全局主题强制统一。
@@ -218,13 +219,13 @@ GPU 使用 `flake.nix` 的 `myvars.gpuMode` 固定配置。
 │   └── home/
 │       ├── default.nix       # Home Manager 入口
 │       └── configs/          # 应用配置
-│           ├── niri/         # 旧 Niri 配置（已归档，当前主用 Hyprland）
+│           ├── niri/         # Niri 配置（当前启用）
 │           ├── waybar/       # Waybar 状态栏
 │           ├── wlogout/      # 电源菜单
 │           ├── fuzzel/       # 应用启动器
 │           ├── foot/         # Foot 终端
 │           ├── ghostty/      # Ghostty 终端
-│           ├── hypr/         # Hyprland 配置
+│           ├── hypr/         # Hyprland 配置（历史保留）
 │           ├── shell/        # zsh/vim
 │           ├── fcitx5/       # 输入法
 │           ├── git/          # Git + delta

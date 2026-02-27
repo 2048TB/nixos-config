@@ -158,7 +158,7 @@
           allowedSystemDuplicateNames = [
             "dosfstools"
             "fuse"
-            "hyprland"
+            "niri"
             "iptables"
             "less"
             "shadow"
@@ -169,7 +169,7 @@
           allowedSystemHomeOverlapNames = [
             "xwayland"
             "xdg-desktop-portal"
-            "xdg-desktop-portal-hyprland"
+            "xdg-desktop-portal-gnome"
             "python3"
             "zsh"
             "nix-zsh-completions"
