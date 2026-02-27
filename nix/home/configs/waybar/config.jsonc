@@ -17,12 +17,13 @@
     "cpu",
     "memory",
     "custom/temperature",
-    "tray",
     "custom/backlight",
     "custom/battery",
     "power-profiles-daemon",
     "idle_inhibitor",
     "custom/notification",
+    "custom/public-ip",
+    "tray",
     "custom/power"
   ],
 
@@ -160,6 +161,16 @@
     "spacing": 8,
     "icon-size": 16,
     "show-passive-items": true
+  },
+
+  "custom/public-ip": {
+    "format": "{}",
+    "return-type": "json",
+    "exec-if": "test -x @USER_BIN@/public-ip-status",
+    "exec": "@USER_BIN@/public-ip-status",
+    "interval": 180,
+    "on-click": "@SYSTEM_BIN@/nm-connection-editor",
+    "on-click-right": "@USER_BIN@/ghostty -e @SYSTEM_BIN@/nmtui"
   },
 
   // device power
