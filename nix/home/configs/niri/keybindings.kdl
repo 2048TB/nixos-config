@@ -222,7 +222,7 @@ binds {
 
     Print { screenshot; }
     // Hyprland 风格：Mod+X 区域截图。
-    Mod+X { spawn "sh" "-c" "dir=\"${XDG_SCREENSHOTS_DIR:-$HOME/Pictures/Screenshots}\"; mkdir -p \"$dir\"; path=\"$dir/Screenshot from $(date '+%Y-%m-%d %H-%M-%S').png\"; grim -g \"$(slurp)\" - | tee \"$path\" | wl-copy --type image/png"; }
+    Mod+X { spawn "river-screenshot" "area"; }
     Ctrl+Print { screenshot-screen; }
     Alt+Print { screenshot-window; }
 
@@ -243,8 +243,8 @@ binds {
     Mod+Shift+P { power-off-monitors; }
 
     // 实用快捷键
-    Mod+Shift+V { spawn "sh" "-c" "cliphist list | fuzzel --dmenu | cliphist decode | wl-copy"; }
+    Mod+Shift+V { spawn "river-cliphist-menu"; }
 
     Mod+S { spawn "pavucontrol"; }
-    Mod+E { spawn "sh" "-c" "/etc/profiles/per-user/$USER/bin/wlogout-menu"; }
+    Mod+E { spawn "wlogout-menu"; }
 }

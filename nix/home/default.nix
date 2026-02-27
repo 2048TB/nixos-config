@@ -8,7 +8,6 @@ let
   localBinDir = "${homeDir}/.local/bin";
   localShareDir = "${homeDir}/.local/share";
   userProfileBin = "/etc/profiles/per-user/${mainUser}/bin";
-  profileCmd = cmd: "${userProfileBin}/${cmd}";
   fractionalScale = "1.25";
 
   # 资源映射常量
@@ -339,16 +338,26 @@ let
     waybarBin="${pkgs.waybar}/bin/waybar"
     sleepBin="${pkgs.coreutils}/bin/sleep"
     seqBin="${pkgs.coreutils}/bin/seq"
+    sedBin="${pkgs.gnused}/bin/sed"
+
+    launch_waybar() {
+      # 过滤 Waybar tray 在当前版本的已知启动期噪音，保留其余 stderr 输出。
+      exec "$waybarBin" 2> >("$sedBin" -u -E \
+        -e "/Item .*No icon name or pixmap given\\./d" \
+        -e "/Status Notifier Item with bus name '.*' and object path '\\/org\\/ayatana\\/NotificationItem\\/udiskie' is already registered/d" \
+        -e "/Unable to replace properties on 0: Error getting properties for ID/d" \
+        >&2)
+    }
 
     launch_if_wayland_ready() {
       if [ -n "''${WAYLAND_DISPLAY:-}" ] && [ -S "$runtimeDir/$WAYLAND_DISPLAY" ]; then
-        exec "$waybarBin"
+        launch_waybar
       fi
 
       for socket in "$runtimeDir"/wayland-*; do
         [ -S "$socket" ] || continue
         export WAYLAND_DISPLAY="''${socket##*/}"
-        exec "$waybarBin"
+        launch_waybar
       done
 
       return 1
@@ -1001,7 +1010,6 @@ in
           "LANG=C.UTF-8"
           "LC_ALL=C.UTF-8"
         ];
-
         # swaync 0.12.x 在空 MPRIS metadata 时会产生已知断言噪音。
         swaync.Service.LogFilterPatterns = [
           "~sway_notification_center_widgets_mpris_mpris_player_update_album_art: assertion 'metadata != NULL' failed"
