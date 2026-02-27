@@ -1349,6 +1349,7 @@ in
   wayland.windowManager.hyprland = {
     enable = true;
     package = null; # 由 NixOS 的 programs.hyprland 安装
+    portalPackage = null; # 与 package 保持同源，避免版本混用
     xwayland.enable = true;
     systemd.enable = true;
     extraConfig = hyprlandConfig;
@@ -1583,7 +1584,7 @@ in
     # 需显式注入 gtk backend，否则在 Hyprland 会出现 "Requested gtk.portal is unrecognized"，
     # 进而导致 org.freedesktop.portal.Settings/FileChooser 缺失。
     portal = {
-      enable = true;
+      enable = lib.mkForce true;
       xdgOpenUsePortal = true;
       extraPortals = with pkgs; [ xdg-desktop-portal-gtk ];
       config = {
