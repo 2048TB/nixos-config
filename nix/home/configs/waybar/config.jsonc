@@ -18,7 +18,6 @@
     "memory",
     "custom/temperature",
     "tray",
-    "pulseaudio",
     "custom/backlight",
     "custom/battery",
     "power-profiles-daemon",
@@ -161,23 +160,6 @@
     "spacing": 8,
     "icon-size": 16,
     "show-passive-items": true
-  },
-
-  "pulseaudio": {
-    "format": "{icon} {volume}%",
-    "format-bluetooth": "{icon} {volume}%",
-    "format-muted": "",
-    "scroll-step": 1,
-    "format-icons": {
-      "default": [
-        "",
-        "",
-        ""
-      ]
-    },
-    "on-click": "@USER_BIN@/pavucontrol",
-    "on-scroll-up": "@SYSTEM_BIN@/wpctl set-volume @DEFAULT_AUDIO_SINK@ 1%+ --limit 1.0",
-    "on-scroll-down": "@SYSTEM_BIN@/wpctl set-volume @DEFAULT_AUDIO_SINK@ 1%-"
   },
 
   // device power

@@ -23,7 +23,6 @@ window#waybar {
 #memory,
 #custom-temperature,
 #tray,
-#pulseaudio,
 #submap,
 #custom-backlight,
 #custom-battery,
@@ -165,14 +164,6 @@ window#waybar {
   -gtk-icon-effect: highlight;
 }
 
-#pulseaudio {
-  color: #e7e4e0;
-}
-
-#pulseaudio.muted {
-  color: #979797;
-}
-
 #custom-backlight {
   color: #e7e4e0;
 }
@@ -237,7 +228,7 @@ window#waybar {
 #memory,
 #custom-temperature,
 #tray,
-#pulseaudio {
+#custom-backlight {
   margin-right: 0;
   border-top-right-radius: 0;
   border-bottom-right-radius: 0;
@@ -246,7 +237,6 @@ window#waybar {
 #memory,
 #custom-temperature,
 #tray,
-#pulseaudio,
 #custom-backlight {
   margin-left: 0;
   border-top-left-radius: 0;
