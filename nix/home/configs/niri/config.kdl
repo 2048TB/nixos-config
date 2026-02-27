@@ -90,7 +90,7 @@ layout {
 
     // 可以修改新窗口的默认宽度。
     // 默认全屏，通过 Mod+R 快捷键在 33%, 50%, 67%, 100% 之间切换
-    default-column-width { proportion 0.5; }
+    default-column-width { proportion 1.0; }
     // 若花括号留空，由窗口自身决定初始宽度。
     // default-column-width {}
 
@@ -197,12 +197,8 @@ recent-windows {
 }
 
 // 输出缩放（百分比 = scale * 100）
-// 使用 niri msg outputs 中的输出名匹配（当前显示器：DP-1）
-output "DP-1" {
-	mode "2560x1440@180.000"
-	scale 1.20
-}
-output "DP-2" {
-	mode "2560x1440@180.000"
-	scale 1.20
+// 使用 niri msg outputs 中的“厂商 型号 序列号”匹配，避免 DP-1/DP-2 端口号切换导致重复配置。
+output "HKC OVERSEAS LIMITED MG27Q 0000000000001" {
+    mode "2560x1440@180.000"
+    scale 1.20
 }
