@@ -6,6 +6,7 @@
 - `KEYBINDINGS.md` 快捷键说明（Niri / Tmux / Zellij）
 - `NIX-COMMANDS.md` 常用 Nix 命令速查
 - `nix/home/README.md` Home 配置结构与说明
+- `apps/README.md` flake apps 命令入口说明
 - `AGENTS.md` 贡献与协作约定
 - `justfile` 日常操作命令
 - `CLAUDE.md` 项目维护约定（给 AI/自动化工具）
@@ -40,7 +41,7 @@ mkpasswd -m sha-512
 mkpasswd -m sha-512
 ```
 
-把两次输出分别填入 `vars/default.nix` 的 `userPasswordHash` 和 `rootPasswordHash`。
+把两次输出分别填入 `hosts/vars/default.nix` 的 `userPasswordHash` 和 `rootPasswordHash`。
 
 2. 安装前构建校验（推荐）
 
@@ -70,6 +71,17 @@ just switch host=zky
 ```bash
 just darwin-check darwin_host=zly-mac
 just darwin-switch darwin_host=zly-mac
+```
+
+5. 可选：使用 flake apps 管理（参考仓库方式）
+
+```bash
+nix run .#build
+nix run .#build-switch
+
+# 指定主机
+NIXOS_HOST=zky nix run .#build-switch
+DARWIN_HOST=zly-mac nix run .#build-switch
 ```
 
 说明：`/etc/nixos` 是指向 `/persistent/nixos-config` 的符号链接。
@@ -141,7 +153,7 @@ git push origin HEAD
 
 ## 配置入口
 
-主要变量集中在 `vars/default.nix`：
+主要变量集中在 `hosts/vars/default.nix`：
 - `username`
 - `hostname`
 - `gpuMode`（如 `amd-nvidia-hybrid`）
@@ -174,7 +186,7 @@ git push origin HEAD
 
 ## GPU 选择
 
-GPU 使用 `vars/default.nix` 的 `gpuMode` 固定配置。
+GPU 使用 `hosts/vars/default.nix` 的 `gpuMode` 固定配置。
 
 ---
 
@@ -198,7 +210,7 @@ GPU 使用 `vars/default.nix` 的 `gpuMode` 固定配置。
 
 ## Hibernate（休眠恢复）
 
-当前配置使用 `swapfile`，要保证 `systemctl hibernate` 能恢复到原会话，需要设置 `vars/default.nix` 中的 `resumeOffset`。
+当前配置使用 `swapfile`，要保证 `systemctl hibernate` 能恢复到原会话，需要设置 `hosts/vars/default.nix` 中的 `resumeOffset`。
 
 1. 以 `root` 获取 offset（来自 `btrfs`）：
 
@@ -206,7 +218,7 @@ GPU 使用 `vars/default.nix` 的 `gpuMode` 固定配置。
 sudo btrfs inspect-internal map-swapfile -r /swap/swapfile
 ```
 
-2. 将输出数字写入 `vars/default.nix` 的 `resumeOffset`。
+2. 将输出数字写入 `hosts/vars/default.nix` 的 `resumeOffset`。
 3. 执行 `just switch` 生效。
 
 注意：
@@ -220,34 +232,44 @@ sudo btrfs inspect-internal map-swapfile -r /swap/swapfile
 ```
 .
 ├── flake.nix                     # Flake 入口（inputs/nixConfig/outputs）
-├── vars/default.nix              # 用户/主机参数（用户名、GPU、密码哈希等）
 ├── lib/                          # 构建器与辅助函数
+│   ├── default.nix               # lib 聚合入口（system/host 构建函数）
 │   ├── mkDarwinHost.nix
 │   └── mkNixosHost.nix
-├── outputs/                      # 多平台 outputs 组装
+├── hosts/                        # 主机相关统一收敛
 │   ├── README.md
-│   ├── x86_64-linux/default.nix  # Linux 平台聚合（自动发现 src/*.nix）
-│   ├── x86_64-linux/src/zly.nix
-│   ├── x86_64-linux/src/zky.nix
-│   ├── x86_64-linux/tests/{hostname,home}
-│   ├── aarch64-darwin/default.nix
-│   ├── aarch64-darwin/tests/{hostname,home}
-│   └── aarch64-darwin/src/zly-mac.nix
-├── hosts/                        # 主机声明
-│   ├── README.md
-│   ├── nixos/
+│   ├── vars/default.nix          # 全局变量（用户名、GPU、密码哈希等）
+│   ├── outputs/                  # 多平台 outputs 组装
+│   │   ├── README.md
 │   │   ├── default.nix
-│   │   ├── zly/{default.nix,disko.nix,hardware.nix,checks.nix}
-│   │   └── zky/{default.nix,disko.nix,hardware.nix,checks.nix}
+│   │   ├── x86_64-linux/{default.nix,tests/{hostname,home}}
+│   │   └── aarch64-darwin/{default.nix,tests/{hostname,home}}
+│   ├── nixos/
+│   │   ├── zly/{disko.nix,hardware.nix,checks.nix}
+│   │   └── zky/{disko.nix,hardware.nix,checks.nix,vars.nix}
 │   └── darwin/
-│       ├── default.nix
-│       └── zly-mac/{default.nix,home.nix,checks.nix}
+│       └── zly-mac/{default.nix,checks.nix}
 ├── nix/
 │   ├── modules/                  # 系统公共模块
 │   └── home/
-│       ├── default.nix           # Home 入口（base + linux）
 │       ├── base/default.nix      # 跨平台共享 Home 配置
 │       ├── linux/default.nix     # Linux Home 配置（Niri/Waybar 等）
 │       ├── darwin/default.nix    # Darwin Home 配置模板
 │       └── configs/              # 应用配置素材
+```
+
+---
+
+## 新增主机（自动发现）
+
+新增主机不再需要修改 `hosts/outputs/<system>/default.nix`，只需新增 `hosts` 目录：
+
+1. NixOS：新增 `hosts/nixos/<host>/hardware.nix` 与 `hosts/nixos/<host>/disko.nix`（可选 `host.nix`）。
+2. Darwin：新增 `hosts/darwin/<host>/default.nix`。
+3. 可选：新增 `vars.nix` 做主机变量覆盖（例如 `gpuMode`、`resumeOffset`）。
+4. 可选：新增 `checks.nix` 做主机级 eval 校验。
+5. 验证自动发现：
+
+```bash
+just hosts
 ```

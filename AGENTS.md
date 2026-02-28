@@ -3,10 +3,13 @@
 ## Project Structure & Module Organization
 This repository is a flake-based NixOS desktop configuration.
 - `flake.nix`: main entrypoint (`inputs`, `nixConfig`, `outputs`).
-- `vars/default.nix`: machine/user variables (host/user/GPU/password hash).
-- `hosts/`: host-specific machine definitions (e.g. `nixos/zly/default.nix`, `darwin/zly-mac/default.nix`).
+- `hosts/vars/default.nix`: machine/user variables (host/user/GPU/password hash).
+- `hosts/outputs/`: multi-platform flake output composition.
+- `hosts/`: host-specific machine definitions (e.g. `nixos/zly/{hardware.nix,disko.nix}`, `darwin/zly-mac/default.nix`).
+- `lib/default.nix`: shared helper + system assembly entry (`nixosSystem`, `macosSystem`, `mk*Host`).
+- `apps/README.md`: flake app entrypoints (`nix run .#build-switch` etc.).
 - `nix/modules/`: shared system modules (`system.nix`, `hardware.nix`).
-- `nix/home/default.nix`: Home Manager entrypoint (`base + linux`).
+- `nix/home/linux/default.nix`: Home Manager entrypoint for NixOS hosts.
 - `nix/home/base|linux|darwin`: layered Home modules.
 - `nix/home/configs/`: app configs — Ghostty, Foot, Tmux, Zellij, Waybar, Fuzzel, Wlogout, Yazi, shell, fcitx5, etc.
 - Docs: `README.md`, `KEYBINDINGS.md`, `NIX-COMMANDS.md`, `CLAUDE.md`, `AGENTS.md`, `nix/home/README.md`.
@@ -22,6 +25,7 @@ Use `just` as the primary command runner:
 - `just dead`: detect unused Nix code via `deadnix`.
 - `just dev`: common dev flow (`fmt + flake-check + test`).
 - Optional full build validation: `nix build --no-link path:/persistent/nixos-config#nixosConfigurations.zly.config.system.build.toplevel`.
+- Optional app-style management (reference-aligned): `nix run .#build`, `nix run .#build-switch`.
 
 ## Coding Style & Naming Conventions
 - Format Nix code with `nixpkgs-fmt` before review.
@@ -48,5 +52,5 @@ There is no unit-test suite; verification is configuration-driven:
 - If docs are updated and user requests sync, push current branch with a Conventional Commit message.
 
 ## Security & Configuration Tips
-- Do not commit new secrets (tokens, private keys, plaintext credentials). If rotating password hashes in `vars/default.nix`, treat them as sensitive changes and review carefully.
+- Do not commit new secrets (tokens, private keys, plaintext credentials). If rotating password hashes in `hosts/vars/default.nix`, treat them as sensitive changes and review carefully.
 - Treat disk provisioning and install commands as destructive unless verified (disko-related flows).

@@ -660,11 +660,11 @@ in
     }
     {
       assertion = myvars ? userPasswordHash && myvars.userPasswordHash != "CHANGE_ME";
-      message = "Set myvars.userPasswordHash in vars/default.nix (use mkpasswd -m sha-512).";
+      message = "Set myvars.userPasswordHash in hosts/vars/default.nix (use mkpasswd -m sha-512).";
     }
     {
       assertion = myvars ? rootPasswordHash && myvars.rootPasswordHash != "CHANGE_ME";
-      message = "Set myvars.rootPasswordHash in vars/default.nix (use mkpasswd -m sha-512).";
+      message = "Set myvars.rootPasswordHash in hosts/vars/default.nix (use mkpasswd -m sha-512).";
     }
   ];
 

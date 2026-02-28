@@ -21,6 +21,31 @@ just darwin-switch darwin_host=zly-mac
 
 ---
 
+## Flake Apps（对齐参考管理方式）
+
+```bash
+# Linux: 构建检查 / 切换 / 安装 / 清理
+nix run .#build
+nix run .#build-switch
+nix run .#install
+nix run .#clean
+
+# Darwin: 构建检查 / 切换
+nix run .#build
+nix run .#build-switch
+```
+
+可选环境变量：
+
+```bash
+NIXOS_HOST=zky nix run .#build-switch
+NIXOS_DISK_DEVICE=/dev/nvme0n1 nix run .#install
+DARWIN_HOST=zly-mac nix run .#build-switch
+NIXOS_CONFIG_REPO=/persistent/nixos-config nix run .#build
+```
+
+---
+
 ## Live ISO 安装（NixOS）
 
 ```bash
@@ -67,7 +92,7 @@ just switch host=zky
 just check host=zky
 ```
 
-说明：GPU 使用 `vars/default.nix` 中的 `gpuMode` 固定配置。
+说明：GPU 使用 `hosts/vars/default.nix` 中的 `gpuMode` 固定配置。
 
 ---
 
@@ -198,7 +223,7 @@ mkpasswd -m sha-512
 mkpasswd -m sha-512
 ```
 
-将两次输出分别写入 `vars/default.nix` 的 `userPasswordHash` 与 `rootPasswordHash`，然后执行：
+将两次输出分别写入 `hosts/vars/default.nix` 的 `userPasswordHash` 与 `rootPasswordHash`，然后执行：
 
 ```bash
 sudo nixos-rebuild switch --flake /etc/nixos#zly

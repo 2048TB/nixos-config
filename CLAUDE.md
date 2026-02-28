@@ -17,11 +17,14 @@
 ## 项目结构
 
 - `flake.nix` 入口（inputs/nixConfig/outputs）。
-- `vars/default.nix` 参数配置（username/hostname/gpu/password hash）。
-- `hosts/` 主机配置（如 `hosts/nixos/zly/default.nix`、`hosts/darwin/zly-mac/default.nix`）。
+- `hosts/vars/default.nix` 参数配置（username/hostname/gpu/password hash）。
+- `hosts/outputs/` 按平台聚合 flake outputs（自动发现主机）。
+- `hosts/` 主机配置（如 `hosts/nixos/zly/{hardware.nix,disko.nix}`、`hosts/darwin/zly-mac/default.nix`）。
+- `lib/default.nix` 公共工具与系统装配入口（`nixosSystem`/`macosSystem`/`mk*Host`）。
+- `apps/README.md` flake apps 入口说明（`nix run .#build-switch` 等）。
 - `nix/modules/system.nix` 系统配置。
 - `nix/modules/hardware.nix` GPU 选择与驱动配置。
-- `nix/home/default.nix` Home Manager 入口（`base + linux`）。
+- `nix/home/linux/default.nix` Linux Home Manager 入口。
 - `nix/home/base|linux|darwin` Home 分层配置。
 - `nix/home/configs/` 应用配置（ghostty/foot/tmux/zellij/waybar/fuzzel 等）。
 
@@ -29,19 +32,20 @@
 
 ## 关键约定
 
-- GPU 驱动配置固定来自 `vars/default.nix` 的 `gpuMode`。
-- GPU 启动菜单切换默认关闭，需在 `vars/default.nix` 中设置 `enableGpuSpecialisation = true` 才启用。
+- GPU 驱动配置固定来自 `hosts/vars/default.nix` 的 `gpuMode`。
+- GPU 启动菜单切换默认关闭，需在 `hosts/vars/default.nix` 中设置 `enableGpuSpecialisation = true` 才启用。
 - 会话管理器为 `Niri`（`programs.niri` + `~/.wayland-session -> niri-session`）。
 - `nix/home/configs/niri/*.kdl` 为 Niri 快捷键真源，文档需保持一致。
 - `nix/home/configs/tmux/tmux.conf` 与 `nix/home/configs/zellij/config.kdl` 为终端复用器快捷键真源，文档需保持一致。
 - `xwayland-satellite` 需保持在系统 PATH（Niri 下 XWayland 应用兼容依赖）。
 - 安装流程若依赖 `NIXOS_DISK_DEVICE` 覆盖目标盘，`nixos-install` 需使用 `--impure`。
+- 管理入口同时支持 `just` 与 flake `apps`（`nix run .#<app>`）。
 
 ---
 
 ## 密码与持久化
 
-- 密码以哈希写入 `vars/default.nix` 的 `userPasswordHash` / `rootPasswordHash`。
+- 密码以哈希写入 `hosts/vars/default.nix` 的 `userPasswordHash` / `rootPasswordHash`。
 - 不再依赖 `/etc/*-password` 等外部密码文件；安装统一使用命令流程。
 
 ---

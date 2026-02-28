@@ -4,7 +4,7 @@
 }@inputs:
 let
   inherit (nixpkgs) lib;
-  mylib = import ../lib { inherit lib; };
+  mylib = import ../../lib { inherit lib; };
   myvars = import ../vars;
 
   flakeNixConfig = self.nixConfig or { };
@@ -63,6 +63,7 @@ in
     map (it: it.darwinConfigurations or { }) darwinSystemValues
   );
 
+  apps = mylib.mergeRecursiveAttrsList (map (it: it.apps or { }) allSystemValues);
   checks = mylib.mergeRecursiveAttrsList (map (it: it.checks or { }) allSystemValues);
   devShells = mylib.mergeRecursiveAttrsList (map (it: it.devShells or { }) allSystemValues);
   formatter = mylib.mergeRecursiveAttrsList (map (it: it.formatter or { }) allSystemValues);
