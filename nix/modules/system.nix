@@ -398,10 +398,7 @@ in
   ];
 
   services = {
-    xserver = {
-      enable = false;
-      desktopManager.runXdgAutostartIfNone = true; # 启用 XDG 自启动（fcitx5 等）
-    };
+    xserver.enable = false;
 
     greetd = {
       enable = true;
@@ -458,6 +455,9 @@ in
     resolved.enable = true;
 
     flatpak.enable = true;
+
+    # dbus-broker 性能优于传统 dbus-daemon（Hyprland Wiki / 知名 NixOS 配置推荐）
+    dbus.implementation = "broker";
   };
 
   # Wayland 桌面常用门户（文件选择/截图/投屏）
