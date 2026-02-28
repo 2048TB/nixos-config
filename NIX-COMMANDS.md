@@ -44,6 +44,8 @@ just check
 nix build path:/persistent/nixos-config#nixosConfigurations.zly.config.system.build.toplevel --no-link
 ```
 
+说明：`just check` 依赖 `sudo nixos-rebuild dry-build`。在无交互密码环境下，可先用上面的 `nix build --no-link` 作为等价构建校验。
+
 ---
 
 ## 垃圾回收与优化

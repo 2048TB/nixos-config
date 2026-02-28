@@ -6,7 +6,6 @@
 - `KEYBINDINGS.md` 快捷键说明（Niri / Tmux / Zellij）
 - `NIX-COMMANDS.md` 常用 Nix 命令速查
 - `nix/home/README.md` Home 配置结构与说明
-- `.github-optimization.md` Binary Cache 说明
 - `AGENTS.md` 贡献与协作约定
 - `justfile` 日常操作命令
 - `CLAUDE.md` 项目维护约定（给 AI/自动化工具）
@@ -16,7 +15,7 @@
 - 窗口管理：Niri scrollable-tiling + 动态工作区（见 `KEYBINDINGS.md`）
 - 终端复用器：Tmux / Zellij 统一使用 `Ctrl + B` 作为 leader/prefix（见 `KEYBINDINGS.md`）
 - X11 兼容：`xwayland-satellite`（Niri 官方推荐路径）
-- Waybar 网络区：`network` + `custom/public-ip` + `custom/wifi-manager`（链路状态、公网 IP、WiFi 管理入口）
+- Waybar 状态栏：`niri/workspaces` + `niri/window` + `mpris` + `cpu/memory/temperature/public-ip/backlight/battery/tray/notification`
 - 开发工具链：Rust / Zig / Go / Node.js / Python
 - 游戏支持：Steam / Proton / Wine / Lutris
 - 中文输入：Fcitx5

@@ -8,7 +8,7 @@ This repository is a flake-based NixOS desktop configuration.
 - `nix/home/default.nix`: Home Manager entrypoint (packages, Niri session wiring).
 - `nix/home/configs/`: app configs — Ghostty, Foot, Tmux, Zellij, Waybar, Fuzzel, Wlogout, Yazi, shell, fcitx5, etc.
 - `scripts/`: install/bootstrap helpers (for Live ISO and setup workflows).
-- Docs: `README.md`, `KEYBINDINGS.md`, `NIX-COMMANDS.md`, `CLAUDE.md`, `.github-optimization.md`, `nix/home/README.md`.
+- Docs: `README.md`, `KEYBINDINGS.md`, `NIX-COMMANDS.md`, `CLAUDE.md`, `AGENTS.md`, `nix/home/README.md`.
 
 ## Build, Test, and Development Commands
 Use `just` as the primary command runner:
@@ -43,6 +43,7 @@ There is no unit-test suite; verification is configuration-driven:
 - When behavior/commands/keybindings change, update related docs in the same change set.
 - For Niri/Waybar/Tmux/Zellij changes, keep `README.md`, `KEYBINDINGS.md`, and `NIX-COMMANDS.md` consistent.
 - If terminal multiplexer keybindings change, treat `nix/home/configs/tmux/tmux.conf` and `nix/home/configs/zellij/config.kdl` as source of truth and sync docs accordingly.
+- If process rules change, sync `CLAUDE.md` and `AGENTS.md` together.
 - If docs are updated and user requests sync, push current branch with a Conventional Commit message.
 
 ## Security & Configuration Tips

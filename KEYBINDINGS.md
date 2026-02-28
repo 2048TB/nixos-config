@@ -14,8 +14,10 @@
 | `Mod + Return` | 打开终端（Ghostty） |
 | `Mod + Shift + Return` | 打开浮动终端（`ghostty-float`） |
 | `Mod + Space` / `XF86Search` | 启动器（Fuzzel） |
+| `Mod + Shift + Slash` | 显示 Niri 快捷键概览（hotkey overlay） |
 | `Mod + E` | 文件管理器（Nautilus） |
 | `Mod + Shift + L` | 锁屏（lock-screen -> swaylock） |
+| `Mod + Shift + E` | 退出 Niri（带确认） |
 | `Mod + Q` | 关闭当前窗口 |
 | `Ctrl + Alt + Delete` | 退出 Niri（带确认） |
 
@@ -23,9 +25,9 @@
 
 | 快捷键 | 功能 |
 |---|---|
-| `Mod + Left/Down/Up/Right` | 移动窗口/列（左/下/上/右） |
-| `Mod + H/L` | 焦点切换到左/右列 |
-| `Mod + J/K` | 焦点向下/向上（到边界时跨工作区） |
+| `Mod + Left/Right` | 焦点切换到左/右列 |
+| `Mod + Down/Up` | 焦点向下/向上（到边界时跨工作区） |
+| `Mod + H/J/K/L` | 移动窗口/列（左/下/上/右） |
 | `Mod + Ctrl + Left/Down/Up/Right` | 移动窗口/列（方向键） |
 | `Mod + Shift + Alt + H/J/K/L` | 切换显示器焦点 |
 | `Mod + Ctrl + H/J/K/L` | 将当前窗口移动到相邻显示器 |
@@ -37,7 +39,7 @@
 |---|---|
 | `Mod + Page_Down / Page_Up` | 切换到上/下一个工作区 |
 | `Mod + Ctrl + Page_Down / Page_Up` | 将当前列移动到上/下一个工作区 |
-| `Mod + B / N` | 将当前窗口发送到上/下一个工作区（Hyprland 对位） |
+| `Mod + B / N` | 将当前窗口发送到上/下一个工作区 |
 | `Mod + 1..9` | 直达工作区 1..9 |
 | `Mod + Ctrl + 1..9` | 将当前列移动到工作区 1..9 |
 | `Mod + Alt + 1..9` | 将当前窗口移动到工作区 1..9 |
@@ -56,8 +58,9 @@
 | `Mod + R` | 循环列宽预设 |
 | `Mod + Shift + R` | 循环窗口高度预设 |
 | `Mod + Ctrl + R` | 重置窗口高度 |
-| `Mod + F` | 最大化当前列 |
+| `Mod + Z` | 最大化当前列（恢复历史常用键位） |
 | `Mod + C` | 全屏当前窗口 |
+| `Mod + Ctrl + Shift + F` | 窗口化全屏（toggle-windowed-fullscreen） |
 | `Mod + Shift + M` | 窗口最大化到屏幕边缘（非全屏） |
 | `Mod + Ctrl + F` | 列扩展到可用宽度 |
 | `Mod + Shift + C` | 当前列居中 |

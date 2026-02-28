@@ -54,15 +54,15 @@ binds {
     // 或在触控板上四指上滑。
     Mod+O repeat=false { toggle-overview; }
 
-    // 对齐 Hyprland：方向键移动窗口，HJKL 聚焦
-    Mod+Left { move-column-left; }
-    Mod+Down { move-window-down; }
-    Mod+Up { move-window-up; }
-    Mod+Right { move-column-right; }
-    Mod+H { focus-column-left; }
-    Mod+J { focus-window-or-workspace-down; }
-    Mod+K { focus-window-or-workspace-up; }
-    Mod+L { focus-column-right; }
+    // 交换为：方向键聚焦，HJKL 移动窗口/列
+    Mod+Left { focus-column-left; }
+    Mod+Down { focus-window-or-workspace-down; }
+    Mod+Up { focus-window-or-workspace-up; }
+    Mod+Right { focus-column-right; }
+    Mod+H { move-column-left; }
+    Mod+J { move-window-down; }
+    Mod+K { move-window-up; }
+    Mod+L { move-column-right; }
     Mod+Ctrl+Left { move-column-left; }
     Mod+Ctrl+Down { move-window-down; }
     Mod+Ctrl+Up { move-window-up; }
@@ -173,10 +173,12 @@ binds {
     // Mod+R { switch-preset-column-width-back; }
     Mod+Shift+R { switch-preset-window-height; }
     Mod+Ctrl+R { reset-window-height; }
-    Mod+F { maximize-column; }
+    Mod+Z { maximize-column; }
     Mod+Shift+M { maximize-window-to-edges; }
     // 对齐 Hyprland：Mod+C 全屏，Mod+X 浮动切换。
     Mod+C { fullscreen-window; }
+    // 官方 Screencasting 推荐：应用“窗口化全屏”（fake fullscreen）
+    Mod+Ctrl+Shift+F { toggle-windowed-fullscreen; }
 
     // 将当前列扩展到未被其他完整可见列占用的空间，
     // 使其“填满剩余空间”。
@@ -236,6 +238,7 @@ binds {
     Mod+Escape allow-inhibiting=false { toggle-keyboard-shortcuts-inhibit; }
 
     // 退出动作会显示确认对话框，避免误退出。
+    Mod+Shift+E { quit; }
     Ctrl+Alt+Delete { quit; }
     Mod+Q repeat=false { close-window; }
 
