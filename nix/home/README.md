@@ -4,7 +4,11 @@
 
 ## 结构
 
-- `default.nix` Home Manager 入口
+- `default.nix` Home Manager 入口（导入 `base` 与 `linux`）
+- `base/default.nix` 跨平台共享 Home 配置
+- `linux/default.nix` Linux Home 配置（Niri/Waybar/systemd user services）
+- `darwin/default.nix` Darwin Home 配置模板
+- `packages/` Home 包清单分层（`shared.nix` + `darwin.nix`）
 - `configs/` 配置素材目录
 - `configs/niri/` Niri KDL 配置（当前启用，按 `input/layout/animations/output` 拆分）
 - `configs/waybar/` Waybar 状态栏
@@ -24,7 +28,7 @@
 
 ## 使用方式
 
-`default.nix` 通过 Home Manager 的 `xdg.configFile` / `home.file` 管理这些配置文件。
+`linux/default.nix` 通过 Home Manager 的 `xdg.configFile` / `home.file` 管理这些配置文件。
 
 应用更改：
 
@@ -39,7 +43,8 @@ just switch
 - Waybar 由 systemd 用户服务管理（`systemd.user.services.waybar`）。
 - Waybar 当前模块以 `niri/workspaces`、`niri/window`、`mpris`、`custom/public-ip`、`backlight`、`battery`、`tray` 等为主，详见 `configs/waybar/config.jsonc`。
 - 主题采用统一暗色策略：GTK（`dconf.settings`）+ Qt6（`qt6ct`）+ Wayland 组件单独配色文件。
-- `default.nix` 会生成多个脚本包装器（如 `waybar-launcher`、`wlogout-menu`）；配置调试时优先检查这些生成脚本与对应 systemd 用户服务。
+- `linux/default.nix` 会生成多个脚本包装器（如 `waybar-launcher`、`wlogout-menu`）；配置调试时优先检查这些生成脚本与对应 systemd 用户服务。
+- `darwin/default.nix` 通过 `packages/darwin.nix` 按平台可用性过滤包；不可用包会记录为 Home Manager warnings，不再导致评估失败。`ghostty` 由 `hosts/darwin/zly-mac/default.nix` 的 `homebrew.casks` 安装，Homebrew 本体由 `nix-homebrew` 自动接管安装。
 
 ## Niri Typed 配置评估
 

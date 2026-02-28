@@ -1,14 +1,8 @@
-{ config, lib, modulesPath, pkgs, myvars, ... }:
+{ myvars, ... }:
 {
-  imports = [
-    (modulesPath + "/installer/scan/not-detected.nix")
-    ../modules/system.nix
-    ../modules/hardware.nix
-  ];
-
   disko.devices = {
     disk = {
-      nvme0n1 = {
+      disk0 = {
         type = "disk";
         device = myvars.diskDevice;
         content = {
@@ -66,26 +60,4 @@
       };
     };
   };
-
-  boot = {
-    initrd.availableKernelModules = [
-      "nvme"
-      "xhci_pci"
-      "ahci"
-      "usbhid"
-      "usb_storage"
-      "sd_mod"
-    ];
-    initrd.kernelModules = [ ];
-    extraModulePackages = [ ];
-  };
-
-  nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
-  hardware.cpu.amd.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
-
-  environment.systemPackages = with pkgs; [
-    sbctl
-  ];
-
-  system.stateVersion = "25.11";
 }

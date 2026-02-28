@@ -2,12 +2,13 @@
 
 ## Project Structure & Module Organization
 This repository is a flake-based NixOS desktop configuration.
-- `flake.nix`: main entrypoint (`inputs`, `outputs`, host wiring, `myvars`).
-- `nix/hosts/`: host-specific machine definitions (e.g. `zly.nix`).
+- `flake.nix`: main entrypoint (`inputs`, `nixConfig`, `outputs`).
+- `vars/default.nix`: machine/user variables (host/user/GPU/password hash).
+- `hosts/`: host-specific machine definitions (e.g. `nixos/zly/default.nix`, `darwin/zly-mac/default.nix`).
 - `nix/modules/`: shared system modules (`system.nix`, `hardware.nix`).
-- `nix/home/default.nix`: Home Manager entrypoint (packages, Niri session wiring).
+- `nix/home/default.nix`: Home Manager entrypoint (`base + linux`).
+- `nix/home/base|linux|darwin`: layered Home modules.
 - `nix/home/configs/`: app configs — Ghostty, Foot, Tmux, Zellij, Waybar, Fuzzel, Wlogout, Yazi, shell, fcitx5, etc.
-- `scripts/`: install/bootstrap helpers (for Live ISO and setup workflows).
 - Docs: `README.md`, `KEYBINDINGS.md`, `NIX-COMMANDS.md`, `CLAUDE.md`, `AGENTS.md`, `nix/home/README.md`.
 
 ## Build, Test, and Development Commands
@@ -24,7 +25,7 @@ Use `just` as the primary command runner:
 
 ## Coding Style & Naming Conventions
 - Format Nix code with `nixpkgs-fmt` before review.
-- Keep module boundaries clear: host-specific logic in `nix/hosts`, reusable logic in `nix/modules`.
+- Keep module boundaries clear: host-specific logic in `hosts/`, reusable logic in `nix/modules`.
 - Follow existing naming patterns: lowercase kebab/camel mix already used in repo (e.g. `homeStateVersion`, `swapSizeGb`); keep new names consistent within the same file.
 - Prefer minimal diffs and reuse existing module patterns instead of refactoring unrelated areas.
 
@@ -47,5 +48,5 @@ There is no unit-test suite; verification is configuration-driven:
 - If docs are updated and user requests sync, push current branch with a Conventional Commit message.
 
 ## Security & Configuration Tips
-- Do not commit new secrets (tokens, private keys, plaintext credentials). If rotating password hashes in `flake.nix`, treat them as sensitive changes and review carefully.
-- Treat disk/install scripts as destructive unless verified (`scripts/`, disko-related flows).
+- Do not commit new secrets (tokens, private keys, plaintext credentials). If rotating password hashes in `vars/default.nix`, treat them as sensitive changes and review carefully.
+- Treat disk provisioning and install commands as destructive unless verified (disko-related flows).

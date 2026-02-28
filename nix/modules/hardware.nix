@@ -9,7 +9,7 @@ let
 
   gpuChoice = myvars.gpuMode or gpuDefaultValue;
   isNvidia = gpuChoice == driverNvidia;
-  # 兼容安装脚本/README 的 "amd" 取值
+  # 兼容历史配置/README 中的 "amd" 取值
   isAmd = gpuChoice == "amd" || gpuChoice == driverAmdgpu;
   isAmdNvidiaHybrid = gpuChoice == driverAmdNvidiaHybrid;
   useNvidia = isNvidia || isAmdNvidiaHybrid;
@@ -25,7 +25,7 @@ let
     powerManagement.enable = true;
   };
 
-  # "auto" 不应出现在实际配置中（安装脚本已修复），但为向后兼容保留
+  # "auto" 不建议用于实际配置，但为向后兼容保留
   # 如果是 "auto" 或其他未知值，使用安全的通用 modesetting 驱动
   videoDrivers =
     if isNvidia then [ driverNvidia ]
@@ -64,7 +64,7 @@ in
     };
   };
 
-  # GPU 驱动来源：使用 flake.nix 的 myvars.gpuMode 固定配置
+  # GPU 驱动来源：使用 vars/default.nix 的 myvars.gpuMode 固定配置
   services = {
     xserver.videoDrivers = videoDrivers;
     blueman.enable = true;
@@ -95,7 +95,7 @@ in
 
   # GPU 专用配置：启动时在引导菜单中切换驱动
   # 默认禁用以减少 ISO 体积（~500MB）和安装时间
-  # 启用方式：在 flake.nix 中将 myvars.enableGpuSpecialisation 设为 true
+  # 启用方式：在 vars/default.nix 中将 myvars.enableGpuSpecialisation 设为 true
   specialisation = lib.mkIf enableGpuSpecialisation {
     gpu-amd.configuration = {
       services.xserver.videoDrivers = [ driverAmdgpu ];

@@ -16,19 +16,21 @@
 
 ## 项目结构
 
-- `flake.nix` 入口（inputs/outputs/myvars）。
-- `nix/hosts/` 主机配置。
+- `flake.nix` 入口（inputs/nixConfig/outputs）。
+- `vars/default.nix` 参数配置（username/hostname/gpu/password hash）。
+- `hosts/` 主机配置（如 `hosts/nixos/zly/default.nix`、`hosts/darwin/zly-mac/default.nix`）。
 - `nix/modules/system.nix` 系统配置。
 - `nix/modules/hardware.nix` GPU 选择与驱动配置。
-- `nix/home/default.nix` Home Manager 入口（含 Niri 会话脚本与用户服务）。
+- `nix/home/default.nix` Home Manager 入口（`base + linux`）。
+- `nix/home/base|linux|darwin` Home 分层配置。
 - `nix/home/configs/` 应用配置（ghostty/foot/tmux/zellij/waybar/fuzzel 等）。
 
 ---
 
 ## 关键约定
 
-- GPU 驱动配置固定来自 `flake.nix` 的 `myvars.gpuMode`。
-- GPU 启动菜单切换默认关闭，需在 `flake.nix` 中设置 `myvars.enableGpuSpecialisation = true` 才启用。
+- GPU 驱动配置固定来自 `vars/default.nix` 的 `gpuMode`。
+- GPU 启动菜单切换默认关闭，需在 `vars/default.nix` 中设置 `enableGpuSpecialisation = true` 才启用。
 - 会话管理器为 `Niri`（`programs.niri` + `~/.wayland-session -> niri-session`）。
 - `nix/home/configs/niri/*.kdl` 为 Niri 快捷键真源，文档需保持一致。
 - `nix/home/configs/tmux/tmux.conf` 与 `nix/home/configs/zellij/config.kdl` 为终端复用器快捷键真源，文档需保持一致。
@@ -39,8 +41,8 @@
 
 ## 密码与持久化
 
-- 密码以哈希写入 `flake.nix` 的 `myvars.userPasswordHash` / `myvars.rootPasswordHash`。
-- 不再依赖 `/etc/*-password` 文件或安装脚本。
+- 密码以哈希写入 `vars/default.nix` 的 `userPasswordHash` / `rootPasswordHash`。
+- 不再依赖 `/etc/*-password` 等外部密码文件；安装统一使用命令流程。
 
 ---
 

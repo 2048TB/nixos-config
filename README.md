@@ -26,7 +26,7 @@
 
 ## 快速开始
 
-推荐方式（在 Live ISO 中）：
+推荐方式（统一命令入口，在 Live ISO 中）：
 
 ```bash
 git clone https://github.com/2048TB/nixos.git ~/nixos
@@ -40,28 +40,36 @@ mkpasswd -m sha-512
 mkpasswd -m sha-512
 ```
 
-把两次输出分别填入 `flake.nix` 的 `myvars.userPasswordHash` 和 `myvars.rootPasswordHash`。
+把两次输出分别填入 `vars/default.nix` 的 `userPasswordHash` 和 `rootPasswordHash`。
 
-2. 磁盘分区与挂载（会清空目标磁盘）
+2. 安装前构建校验（推荐）
 
 ```bash
-sudo nix --extra-experimental-features nix-command --extra-experimental-features flakes \
-  run github:nix-community/disko -- \
-  --mode disko --flake .#zly
-
-findmnt /mnt/boot
+just install-live-check host=zly
+just install-live-check host=zky
 ```
 
-3. 安装系统
+3. 安装系统（危险：会清空目标盘）
 
 ```bash
-sudo nixos-install --impure --flake .#zly
+just install-live host=zly disk=/dev/nvme0n1
+# 或
+just install-live host=zky disk=/dev/nvme0n1
 ```
 
 安装完成后：
 
 ```bash
-sudo nixos-rebuild switch --flake /etc/nixos#zly
+just switch host=zly
+# 或
+just switch host=zky
+```
+
+4. macOS（M4 mini）切换配置
+
+```bash
+just darwin-check darwin_host=zly-mac
+just darwin-switch darwin_host=zly-mac
 ```
 
 说明：`/etc/nixos` 是指向 `/persistent/nixos-config` 的符号链接。
@@ -72,42 +80,23 @@ sudo nixos-rebuild switch --flake /etc/nixos#zly
 4. symlink 的创建依赖 `/persistent` 在早期启动阶段已挂载；当前已设置 `fileSystems."/persistent".neededForBoot = true`。
 5. 如果你将来修改 disko 布局（改名/移除 `/persistent` 子卷），必须同步调整：disko 配置中的挂载点、`fileSystems."/persistent"` 以及 `tmpfiles` 规则（`/etc/nixos` symlink）。
 
----
-
-## 安装脚本（Live ISO）
-
-已提供脚本：`scripts/install-live.sh`
+如不使用 `just`，等价的底层命令如下：
 
 ```bash
-cd ~/nixos
-./scripts/install-live.sh
-```
-
-默认等价于：
-- 自动探测并选择最大非 USB 磁盘
-- 固定流程：`预清理挂载/LUKS -> disko -> EFI 挂载检查 -> 交互式修改 LUKS 密码 -> nixos-install -> 同步 flake 到 /mnt/persistent/nixos-config -> dry-build 校验`（高危，会重建分区）
-- 无需命令参数
-- 可选环境变量：`NIXOS_DISK_DEVICE=/dev/<disk>`（覆盖目标盘）、`DRY_RUN=1`、`CONFIRM=0`
-
----
-
-## 一键式完整安装命令（Live ISO）
-
-```bash
-git clone https://github.com/2048TB/nixos.git ~/nixos
-cd ~/nixos
-
-sudo nix --extra-experimental-features "nix-command flakes" \
+sudo env NIXOS_DISK_DEVICE=/dev/nvme0n1 \
+  nix --extra-experimental-features "nix-command flakes" \
   run github:nix-community/disko -- --mode disko --flake .#zly
 
 findmnt /mnt/boot
+findmnt /mnt/persistent
 
-sudo nixos-install --impure --flake .#zly
-```
+sudo rm -rf /mnt/persistent/nixos-config
+sudo mkdir -p /mnt/persistent/nixos-config
+sudo cp -a ./. /mnt/persistent/nixos-config/
 
-重启后执行：
+sudo env NIXOS_DISK_DEVICE=/dev/nvme0n1 \
+  nixos-install --impure --flake /mnt/persistent/nixos-config#zly
 
-```bash
 sudo nixos-rebuild switch --flake /etc/nixos#zly
 ```
 
@@ -152,7 +141,7 @@ git push origin HEAD
 
 ## 配置入口
 
-主要变量集中在 `flake.nix` 的 `myvars`：
+主要变量集中在 `vars/default.nix`：
 - `username`
 - `hostname`
 - `gpuMode`（如 `amd-nvidia-hybrid`）
@@ -185,7 +174,7 @@ git push origin HEAD
 
 ## GPU 选择
 
-GPU 使用 `flake.nix` 的 `myvars.gpuMode` 固定配置。
+GPU 使用 `vars/default.nix` 的 `gpuMode` 固定配置。
 
 ---
 
@@ -209,7 +198,7 @@ GPU 使用 `flake.nix` 的 `myvars.gpuMode` 固定配置。
 
 ## Hibernate（休眠恢复）
 
-当前配置使用 `swapfile`，要保证 `systemctl hibernate` 能恢复到原会话，需要设置 `myvars.resumeOffset`。
+当前配置使用 `swapfile`，要保证 `systemctl hibernate` 能恢复到原会话，需要设置 `vars/default.nix` 中的 `resumeOffset`。
 
 1. 以 `root` 获取 offset（来自 `btrfs`）：
 
@@ -217,7 +206,7 @@ GPU 使用 `flake.nix` 的 `myvars.gpuMode` 固定配置。
 sudo btrfs inspect-internal map-swapfile -r /swap/swapfile
 ```
 
-2. 将输出数字写入 `flake.nix` 的 `myvars.resumeOffset`。
+2. 将输出数字写入 `vars/default.nix` 的 `resumeOffset`。
 3. 执行 `just switch` 生效。
 
 注意：
@@ -230,29 +219,35 @@ sudo btrfs inspect-internal map-swapfile -r /swap/swapfile
 
 ```
 .
-├── flake.nix                 # 入口（inputs/outputs/myvars）
+├── flake.nix                     # Flake 入口（inputs/nixConfig/outputs）
+├── vars/default.nix              # 用户/主机参数（用户名、GPU、密码哈希等）
+├── lib/                          # 构建器与辅助函数
+│   ├── mkDarwinHost.nix
+│   └── mkNixosHost.nix
+├── outputs/                      # 多平台 outputs 组装
+│   ├── README.md
+│   ├── x86_64-linux/default.nix  # Linux 平台聚合（自动发现 src/*.nix）
+│   ├── x86_64-linux/src/zly.nix
+│   ├── x86_64-linux/src/zky.nix
+│   ├── x86_64-linux/tests/{hostname,home}
+│   ├── aarch64-darwin/default.nix
+│   ├── aarch64-darwin/tests/{hostname,home}
+│   └── aarch64-darwin/src/zly-mac.nix
+├── hosts/                        # 主机声明
+│   ├── README.md
+│   ├── nixos/
+│   │   ├── default.nix
+│   │   ├── zly/{default.nix,disko.nix,hardware.nix,checks.nix}
+│   │   └── zky/{default.nix,disko.nix,hardware.nix,checks.nix}
+│   └── darwin/
+│       ├── default.nix
+│       └── zly-mac/{default.nix,home.nix,checks.nix}
 ├── nix/
-│   ├── hosts/                # 主机配置
-│   ├── modules/
-│   │   ├── system.nix        # 系统配置
-│   │   └── hardware.nix      # GPU 驱动
+│   ├── modules/                  # 系统公共模块
 │   └── home/
-│       ├── default.nix       # Home Manager 入口
-│       └── configs/          # 应用配置
-│           ├── niri/         # Niri 配置（当前启用）
-│           ├── waybar/       # Waybar 状态栏
-│           ├── wlogout/      # 电源菜单
-│           ├── fuzzel/       # 应用启动器
-│           ├── foot/         # Foot 终端
-│           ├── ghostty/      # Ghostty 终端
-│           ├── hypr/         # Hyprland 配置（历史保留）
-│           ├── shell/        # zsh/vim
-│           ├── fcitx5/       # 输入法
-│           ├── git/          # Git + delta
-│           ├── qt6ct/        # Qt6 主题
-│           ├── yazi/         # 终端文件管理器
-│           ├── tmux/         # 终端复用器
-│           ├── zellij/       # 终端复用器
-│           └── wallpapers/   # 壁纸
-└── scripts/                  # 安装脚本
+│       ├── default.nix           # Home 入口（base + linux）
+│       ├── base/default.nix      # 跨平台共享 Home 配置
+│       ├── linux/default.nix     # Linux Home 配置（Niri/Waybar 等）
+│       ├── darwin/default.nix    # Darwin Home 配置模板
+│       └── configs/              # 应用配置素材
 ```

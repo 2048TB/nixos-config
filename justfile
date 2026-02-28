@@ -5,27 +5,75 @@
 default:
     @just --list
 
+host := "zly"
+darwin_host := "zly-mac"
+disk := "/dev/nvme0n1"
+repo := "/persistent/nixos-config"
+
 # ========== 系统管理 ==========
+
+# Live ISO 安装前构建校验（不落盘）
+install-live-check:
+    nix build --no-link .#nixosConfigurations.{{host}}.config.system.build.toplevel
+
+# Live ISO 一键安装（危险：会清空 {{disk}}，并同步仓库到 /mnt/persistent/nixos-config）
+install-live:
+    @echo ">>> host={{host}} disk={{disk}}"
+    sudo env NIXOS_DISK_DEVICE={{disk}} nix --extra-experimental-features "nix-command flakes" \
+      run github:nix-community/disko -- --mode disko --flake .#{{host}}
+    findmnt /mnt/boot
+    findmnt /mnt/persistent
+    sudo rm -rf /mnt/persistent/nixos-config
+    sudo mkdir -p /mnt/persistent/nixos-config
+    sudo cp -a ./. /mnt/persistent/nixos-config/
+    sudo env NIXOS_DISK_DEVICE={{disk}} nixos-install --impure --flake /mnt/persistent/nixos-config#{{host}}
+    @echo "✓ 安装完成，重启后执行：just switch host={{host}}"
 
 # 应用配置并立即切换（常用）
 switch:
-    sudo nixos-rebuild switch --flake /etc/nixos#zly |& nom
+    sudo nixos-rebuild switch --flake /etc/nixos#{{host}} |& nom
 
 # 应用配置但下次启动生效
 boot:
-    sudo nixos-rebuild boot --flake /etc/nixos#zly |& nom
+    sudo nixos-rebuild boot --flake /etc/nixos#{{host}} |& nom
 
 # 临时测试配置（重启后失效）
 test:
-    sudo nixos-rebuild test --flake /etc/nixos#zly |& nom
+    sudo nixos-rebuild test --flake /etc/nixos#{{host}} |& nom
 
 # 检查配置但不应用（快速验证）
 check:
-    sudo nixos-rebuild dry-build --flake /etc/nixos#zly
+    sudo nixos-rebuild dry-build --flake /etc/nixos#{{host}}
 
 # 回滚到上一个系统世代
 rollback:
     sudo nixos-rebuild switch --rollback
+
+# ========== Darwin 管理 ==========
+
+# 应用 macOS 配置（在 macOS 主机执行）
+darwin-switch:
+    darwin-rebuild switch --flake path:{{repo}}#{{darwin_host}}
+
+# 构建 macOS 配置（不切换）
+darwin-check:
+    nix build --no-link path:{{repo}}#darwinConfigurations.{{darwin_host}}.system
+
+# 列出可用 darwin 主机
+darwin-hosts:
+    nix eval path:{{repo}}#darwinConfigurations --apply builtins.attrNames
+
+# 列出可用 nixos 主机
+nixos-hosts:
+    nix eval path:{{repo}}#nixosConfigurations --apply builtins.attrNames
+
+# 列出全部主机
+hosts:
+    @echo "=== nixosConfigurations ==="
+    @just nixos-hosts
+    @echo ""
+    @echo "=== darwinConfigurations ==="
+    @just darwin-hosts
 
 # ========== 清理维护 ==========
 
@@ -60,24 +108,24 @@ disk:
 
 # 更新所有 flake 输入
 update:
-    nix flake update --flake path:/persistent/nixos-config
+    nix flake update --flake path:{{repo}}
     @echo "✓ flake.lock 已更新"
 
 # 只更新 nixpkgs
 update-nixpkgs:
-    nix flake update nixpkgs --flake path:/persistent/nixos-config
+    nix flake update nixpkgs --flake path:{{repo}}
     @echo "✓ nixpkgs 已更新"
 
 # 查看 flake 信息
 info:
-    nix flake show path:/persistent/nixos-config
+    nix flake show path:{{repo}}
     @echo ""
     @echo "=== Flake 元数据 ==="
-    nix flake metadata path:/persistent/nixos-config
+    nix flake metadata path:{{repo}}
 
 # 检查 flake 配置
 flake-check:
-    nix flake check path:/persistent/nixos-config
+    nix flake check path:{{repo}}
     @echo "✓ Flake 配置检查通过"
 
 # 查看 flake.lock 依赖树
@@ -254,6 +302,10 @@ tmp PACKAGE:
 # 显示常用命令
 help:
     @echo "📖 常用命令快速参考"
+    @echo ""
+    @echo "💿 安装（Live ISO）："
+    @echo "  just install-live-check host=zly"
+    @echo "  just install-live host=zly disk=/dev/nvme0n1"
     @echo ""
     @echo "🚀 日常使用："
     @echo "  just switch      - 应用配置"

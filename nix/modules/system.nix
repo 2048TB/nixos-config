@@ -546,7 +546,7 @@ in
     };
   };
 
-  # 首次启动时修复用户目录权限（由于安装脚本使用硬编码 UID）
+  # 首次启动时修复用户目录权限（兼容历史安装过程中的 UID 偏差）
   # 同时在激活阶段兜底创建 swapfile（仅在缺失时），避免开机阶段引入 systemd 依赖环。
   # 说明：曾出现 create-swapfile.service 与 swap.target/run-wrappers 形成 ordering cycle，
   # 导致 suid-sgid-wrappers 被跳过，进而触发 greetd 的 pam_unix helper 缺失。
@@ -660,11 +660,11 @@ in
     }
     {
       assertion = myvars ? userPasswordHash && myvars.userPasswordHash != "CHANGE_ME";
-      message = "Set myvars.userPasswordHash in flake.nix (use mkpasswd -m sha-512).";
+      message = "Set myvars.userPasswordHash in vars/default.nix (use mkpasswd -m sha-512).";
     }
     {
       assertion = myvars ? rootPasswordHash && myvars.rootPasswordHash != "CHANGE_ME";
-      message = "Set myvars.rootPasswordHash in flake.nix (use mkpasswd -m sha-512).";
+      message = "Set myvars.rootPasswordHash in vars/default.nix (use mkpasswd -m sha-512).";
     }
   ];
 

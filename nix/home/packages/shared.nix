@@ -1,0 +1,14 @@
+[
+  "git"
+  "gh"
+  "tmux"
+  "zellij"
+  "yazi"
+  "bat"
+  "fd"
+  "eza"
+  "ripgrep"
+  "jq"
+  "wget"
+  "just"
+]
