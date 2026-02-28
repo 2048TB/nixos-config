@@ -4,11 +4,10 @@
 , genSpecialArgs
 , system
 , name
-, hostPath
+, hostPath ? null
 , hostMyvars ? { }
 , extraModules ? [ ]
-, homeModules ? [ (mylib.relativeToRoot "home/darwin") ]
-, hostHomeModulePath ? null
+, homeModules ? [ (mylib.relativeToRoot "nix/home/darwin") ]
 , ...
 }:
 let
@@ -50,16 +49,25 @@ let
     inherit mainUser;
   };
 
-  resolvedHostHomeModulePath =
-    if hostHomeModulePath != null
-    then hostHomeModulePath
-    else mylib.relativeToRoot "hosts/darwin/${name}/home.nix";
+  sharedDarwinDefaults = {
+    homebrew = {
+      enable = true;
+      onActivation = {
+        autoUpdate = false;
+        upgrade = false;
+        cleanup = "none";
+      };
+    };
+  };
 
   darwinSystem = mylib.macosSystem {
     inherit inputs system mainUser specialArgs;
-    modules = darwinBootstrapModules ++ [ hostPath ] ++ extraModules;
-    homeModules = homeModules
-      ++ lib.optionals (builtins.pathExists resolvedHostHomeModulePath) [ resolvedHostHomeModulePath ];
+    modules =
+      darwinBootstrapModules
+      ++ [ sharedDarwinDefaults ]
+      ++ lib.optionals (hostPath != null) [ hostPath ]
+      ++ extraModules;
+    inherit homeModules;
   };
 
   pkgs = import inputs.nixpkgs-darwin {

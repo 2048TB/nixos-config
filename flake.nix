@@ -78,5 +78,5 @@ rec {
 
   };
 
-  outputs = inputs: import ./outputs inputs;
+  outputs = inputs: import ./hosts/outputs inputs;
 }

@@ -4,10 +4,10 @@
 , genSpecialArgs
 , system
 , name
-, hostPath
+, hostPath ? null
 , hostMyvars ? { }
 , extraModules ? [ ]
-, homeModules ? [ (mylib.relativeToRoot "home") ]
+, homeModules ? [ (mylib.relativeToRoot "nix/home/linux") ]
 , nixpkgsOverlays ? [ inputs.rust-overlay.overlays.default ]
 , nixpkgsConfig ? { allowUnfree = true; }
 , ...
@@ -30,7 +30,9 @@ let
     inherit mainUser;
   };
 
-  hostHomeModulePath = mylib.relativeToRoot "hosts/nixos/${name}/home.nix";
+  hostDir = "hosts/nixos/${name}";
+  hostHardwarePath = mylib.relativeToRoot "${hostDir}/hardware.nix";
+  hostDiskoPath = mylib.relativeToRoot "${hostDir}/disko.nix";
 
   nixpkgsModule = {
     nixpkgs = {
@@ -40,20 +42,25 @@ let
   };
 
   hostModules = [
-    hostPath
     nixpkgsModule
+    (mylib.relativeToRoot "nix/modules/system.nix")
+    (mylib.relativeToRoot "nix/modules/hardware.nix")
+    ({ modulesPath, ... }: { imports = [ (modulesPath + "/installer/scan/not-detected.nix") ]; })
+    hostHardwarePath
+    hostDiskoPath
     preservation.nixosModules.default
     lanzaboote.nixosModules.lanzaboote
     nix-gaming.nixosModules.pipewireLowLatency
     nix-gaming.nixosModules.platformOptimizations
     disko.nixosModules.disko
-  ] ++ extraModules;
+  ]
+  ++ lib.optionals (hostPath != null) [ hostPath ]
+  ++ extraModules;
 
   nixosSystem = mylib.nixosSystem {
     inherit inputs system specialArgs mainUser;
     modules = hostModules;
-    homeModules = homeModules
-      ++ lib.optionals (builtins.pathExists hostHomeModulePath) [ hostHomeModulePath ];
+    inherit homeModules;
   };
 
   pkgs = import nixpkgs {
@@ -62,6 +69,8 @@ let
     overlays = nixpkgsOverlays;
   };
 in
+assert lib.assertMsg (builtins.pathExists hostHardwarePath) "Missing ${hostDir}/hardware.nix";
+assert lib.assertMsg (builtins.pathExists hostDiskoPath) "Missing ${hostDir}/disko.nix";
 {
   inherit
     name
