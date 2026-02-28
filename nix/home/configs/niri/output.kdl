@@ -1,0 +1,6 @@
+// 输出缩放（百分比 = scale * 100）
+// 使用 niri msg outputs 中的“厂商 型号 序列号”匹配，避免 DP-1/DP-2 端口号切换导致重复配置。
+output "HKC OVERSEAS LIMITED MG27Q 0000000000001" {
+    mode "2560x1440@180.000"
+    scale 1.20
+}

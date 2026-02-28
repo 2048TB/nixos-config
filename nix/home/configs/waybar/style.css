@@ -25,8 +25,8 @@ window#waybar {
 #custom-public-ip,
 #tray,
 #submap,
-#custom-backlight,
-#custom-battery,
+#backlight,
+#battery,
 #power-profiles-daemon,
 #custom-notification,
 #idle_inhibitor,
@@ -173,7 +173,7 @@ window#waybar {
   color: #a70b06;
 }
 
-#custom-backlight {
+#backlight {
   color: #e7e4e0;
 }
 
@@ -189,15 +189,16 @@ window#waybar {
   color: #a70b06;
 }
 
-#custom-battery.charging {
+#battery.charging,
+#battery.full {
   color: #0986d3;
 }
 
-#custom-battery.warning:not(.charging) {
+#battery.warning:not(.charging):not(.full) {
   color: #12608a;
 }
 
-#custom-battery.critical:not(.charging) {
+#battery.critical:not(.charging):not(.full) {
   color: #a70b06;
 }
 
@@ -238,7 +239,7 @@ window#waybar {
 #custom-temperature,
 #custom-public-ip,
 #tray,
-#custom-backlight {
+#backlight {
   margin-right: 0;
   border-top-right-radius: 0;
   border-bottom-right-radius: 0;
@@ -248,14 +249,14 @@ window#waybar {
 #custom-temperature,
 #custom-public-ip,
 #tray,
-#custom-backlight {
+#backlight {
   margin-left: 0;
   border-top-left-radius: 0;
   border-bottom-left-radius: 0;
 }
 
 #custom-temperature,
-#custom-backlight {
+#backlight {
   margin-right: 1px;
 }
 
