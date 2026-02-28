@@ -1,7 +1,6 @@
 { ... }:
 {
   imports = [
-    ./base
-    ./linux
+    ../nix/modules/hardware.nix
   ];
 }

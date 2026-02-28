@@ -1,7 +1,6 @@
 { ... }:
 {
   imports = [
-    ./base
-    ./linux
+    ../nix/home/default.nix
   ];
 }

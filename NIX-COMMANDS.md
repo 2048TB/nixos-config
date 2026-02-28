@@ -5,6 +5,51 @@
 
 ---
 
+## 统一入口（推荐）
+
+```bash
+just hosts
+just install-live-check host=zly
+just install-live host=zly disk=/dev/nvme0n1
+just switch host=zly
+
+just switch host=zky
+
+just darwin-check darwin_host=zly-mac
+just darwin-switch darwin_host=zly-mac
+```
+
+---
+
+## Live ISO 安装（NixOS）
+
+```bash
+just install-live-check host=zly
+just install-live host=zly disk=/dev/nvme0n1
+
+# 另一台 x86
+just install-live-check host=zky
+just install-live host=zky disk=/dev/nvme0n1
+```
+
+如不使用 `just`，可执行等价命令：
+
+```bash
+sudo env NIXOS_DISK_DEVICE=/dev/nvme0n1 \
+  nix --extra-experimental-features "nix-command flakes" \
+  run github:nix-community/disko -- --mode disko --flake .#zly
+
+findmnt /mnt/persistent
+sudo rm -rf /mnt/persistent/nixos-config
+sudo mkdir -p /mnt/persistent/nixos-config
+sudo cp -a ./. /mnt/persistent/nixos-config/
+
+sudo env NIXOS_DISK_DEVICE=/dev/nvme0n1 \
+  nixos-install --impure --flake /mnt/persistent/nixos-config#zly
+```
+
+---
+
 ## 系统重建
 
 ```bash
@@ -15,7 +60,34 @@ sudo nixos-rebuild dry-build --flake /etc/nixos#zly
 sudo nixos-rebuild switch --flake /etc/nixos#zly |& nom
 ```
 
-说明：GPU 使用 `flake.nix` 中的 `myvars.gpuMode` 固定配置。
+通过 `justfile` 可切换目标 NixOS 主机（默认 `host := "zly"`）：
+
+```bash
+just switch host=zky
+just check host=zky
+```
+
+说明：GPU 使用 `vars/default.nix` 中的 `gpuMode` 固定配置。
+
+---
+
+## Darwin（macOS）
+
+```bash
+just hosts
+just nixos-hosts
+just darwin-hosts
+just darwin-check
+just darwin-switch
+```
+
+说明：默认使用 `justfile` 里的 `darwin_host := "zly-mac"`，可临时覆盖：
+
+```bash
+just darwin-switch darwin_host=<host>
+```
+
+说明：Darwin 侧已启用 `nix-homebrew`，`darwin-switch` 会声明式确保 Homebrew 可用，并按配置安装 casks（如 `ghostty`）。
 
 ---
 
@@ -126,7 +198,7 @@ mkpasswd -m sha-512
 mkpasswd -m sha-512
 ```
 
-将两次输出分别写入 `flake.nix` 的 `myvars.userPasswordHash` 与 `myvars.rootPasswordHash`，然后执行：
+将两次输出分别写入 `vars/default.nix` 的 `userPasswordHash` 与 `rootPasswordHash`，然后执行：
 
 ```bash
 sudo nixos-rebuild switch --flake /etc/nixos#zly
