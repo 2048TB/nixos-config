@@ -262,8 +262,12 @@ in
         "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
       ] ++ cacheTrustedPublicKeys;
 
-      # 仅信任 root（@wheel 可通过恶意 substituter 提权，已移除）
-      trusted-users = lib.mkForce [ "root" ];
+      # 仅额外信任主用户，避免放开到整个 wheel 组。
+      # 用于允许 flake 提供受限 nix 配置（如 trusted-public-keys）。
+      trusted-users = lib.mkForce [ "root" mainUser ];
+
+      # 永久接受 flake 的 nixConfig，避免每次手动 --accept-flake-config。
+      accept-flake-config = true;
 
       # 自动优化存储（硬链接重复文件）
       auto-optimise-store = true;
