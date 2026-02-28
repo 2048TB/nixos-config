@@ -5,7 +5,6 @@
 let
   inherit (nixpkgs) lib;
   mylib = import ../../lib { inherit lib; };
-  myvars = import ../vars;
 
   flakeNixConfig = self.nixConfig or { };
   binaryCaches = {
@@ -31,8 +30,7 @@ let
     system:
     inputs
     // {
-      inherit mylib myvars binaryCaches sharedPortalConfig;
-      mainUser = myvars.username;
+      inherit mylib binaryCaches sharedPortalConfig;
       pkgsUnstable = import inputs.nixpkgs-unstable {
         inherit system;
         config.allowUnfree = true;
@@ -40,7 +38,7 @@ let
     };
 
   args = {
-    inherit inputs lib mylib myvars genSpecialArgs;
+    inherit inputs lib mylib genSpecialArgs;
   };
 
   nixosSystems = {

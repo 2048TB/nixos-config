@@ -86,21 +86,38 @@ let
     (lib.optional hasAmd "options kvm_amd nested=1")
     (lib.optional hasIntel "options kvm_intel nested=1")
   ]);
+  enableHibernate = myvars.enableHibernate or true;
   resumeDevice =
     if config.fileSystems ? "/swap" && config.fileSystems."/swap" ? device
     then config.fileSystems."/swap".device
     else "/dev/mapper/crypted-nixos";
   resumeKernelParams =
-    if myvars ? resumeOffset && myvars.resumeOffset != null
+    if enableHibernate && myvars ? resumeOffset && myvars.resumeOffset != null
     then [ "resume_offset=${toString myvars.resumeOffset}" ]
     else [ ];
+  knownHostRoles = [
+    "desktop"
+    "gaming"
+    "vpn"
+    "virt"
+    "container"
+  ];
+  hostRoles = myvars.roles or [ "desktop" ];
+  hasRole = role: builtins.elem role hostRoles;
+  # 服务开关默认由 roles 驱动，仍允许每台主机通过 enable* 显式覆盖。
+  enableSteam = myvars.enableSteam or (hasRole "gaming");
+  enableProvider appVpn = myvars.enableProvider appVpn or (hasRole "vpn");
+  enableLibvirtd = myvars.enableLibvirtd or (hasRole "virt");
+  enableDocker = myvars.enableDocker or (hasRole "container");
+  enableFlatpak = myvars.enableFlatpak or (hasRole "desktop");
+  rootTmpfsSize = myvars.rootTmpfsSize or "2G";
+  journaldSystemMaxUse = myvars.journaldSystemMaxUse or "512M";
+  journaldRuntimeMaxUse = myvars.journaldRuntimeMaxUse or "256M";
   cacheSubstituters = binaryCaches.substituters;
   cacheTrustedPublicKeys = binaryCaches.trustedPublicKeys;
   portalConfig = sharedPortalConfig;
   # 仅在 VPN/libvirt NAT 场景使用 loose rpfilter，其余默认严格模式。
-  requiresLooseReversePath =
-    (config.services.provider-app-vpn.enable or false)
-    || (config.virtualisation.libvirtd.enable or false);
+  requiresLooseReversePath = enableProvider appVpn || enableLibvirtd;
   tuigreetPackage = pkgs.tuigreet or pkgs.greetd.tuigreet;
   # 参考 Catppuccin + ReGreet 常见高对比方案（tuigreet 仅支持 ANSI color name）。
   tuigreetTheme =
@@ -146,8 +163,8 @@ in
     # KVM 内核模块（AMD/Intel）
     kernelModules = kvmModules;
     extraModprobeConfig = kvmExtraModprobeConfig;
-    resumeDevice = lib.mkDefault resumeDevice;
-    kernelParams = resumeKernelParams;
+    resumeDevice = lib.mkIf enableHibernate (lib.mkDefault resumeDevice);
+    kernelParams = lib.mkIf enableHibernate resumeKernelParams;
 
     # 支持的文件系统
     supportedFilesystems = [
@@ -186,10 +203,18 @@ in
       "/var/lib/systemd"
       "/var/lib/NetworkManager"
       "/var/lib/bluetooth"
+    ]
+    ++ lib.optionals enableLibvirtd [
       "/var/lib/libvirt" # 虚拟机镜像和配置
+    ]
+    ++ lib.optionals enableDocker [
       "/var/lib/docker" # Docker 镜像、容器和卷
+    ]
+    ++ lib.optionals enableProvider appVpn [
       "/etc/provider-app-vpn"
       "/var/cache/provider-app-vpn" # relay 列表缓存（避免重启后重新下载）
+    ]
+    ++ lib.optionals enableFlatpak [
       "/var/lib/flatpak"
     ];
     files = [
@@ -210,6 +235,7 @@ in
       options = [
         "relatime"
         "mode=755"
+        "size=${rootTmpfsSize}"
       ];
     };
 
@@ -266,8 +292,8 @@ in
       # 用于允许 flake 提供受限 nix 配置（如 trusted-public-keys）。
       trusted-users = lib.mkForce [ "root" mainUser ];
 
-      # 永久接受 flake 的 nixConfig，避免每次手动 --accept-flake-config。
-      accept-flake-config = true;
+      # 默认拒绝 flake 内嵌 nixConfig，按需在命令行显式 `--accept-flake-config`。
+      accept-flake-config = false;
 
       # 自动优化存储（硬链接重复文件）
       auto-optimise-store = true;
@@ -312,23 +338,21 @@ in
 
     polkit = {
       enable = true;
-      # 允许 wheel 组用户挂载/卸载外部存储设备（仅限 mount 类操作）
+      # wheel 组执行 UDisks 操作时仍要求管理员认证并缓存一次会话。
       extraConfig = ''
         polkit.addRule(function(action, subject) {
-          if (
-            subject.isInGroup("wheel")
-            && (
-              action.id == "org.freedesktop.udisks2.filesystem-mount" ||
-              action.id == "org.freedesktop.udisks2.filesystem-mount-system" ||
-              action.id == "org.freedesktop.udisks2.filesystem-mount-other-seat" ||
-              action.id == "org.freedesktop.udisks2.filesystem-unmount-others" ||
-              action.id == "org.freedesktop.udisks2.encrypted-unlock" ||
-              action.id == "org.freedesktop.udisks2.encrypted-lock-others" ||
-              action.id == "org.freedesktop.udisks2.loop-setup" ||
-              action.id == "org.freedesktop.udisks2.power-off-drive"
-            )
-          ) {
-            return polkit.Result.YES;
+          var guardedActions = [
+            "org.freedesktop.udisks2.filesystem-mount",
+            "org.freedesktop.udisks2.filesystem-mount-system",
+            "org.freedesktop.udisks2.filesystem-mount-other-seat",
+            "org.freedesktop.udisks2.filesystem-unmount-others",
+            "org.freedesktop.udisks2.encrypted-unlock",
+            "org.freedesktop.udisks2.encrypted-lock-others",
+            "org.freedesktop.udisks2.loop-setup",
+            "org.freedesktop.udisks2.power-off-drive"
+          ];
+          if (subject.isInGroup("wheel") && guardedActions.indexOf(action.id) >= 0) {
+            return polkit.Result.AUTH_ADMIN_KEEP;
           }
         });
       '';
@@ -364,7 +388,7 @@ in
     seahorse.enable = true;
 
     # 游戏支持
-    steam = {
+    steam = lib.mkIf enableSteam {
       enable = true;
       gamescopeSession.enable = true;
       protontricks.enable = true;
@@ -381,10 +405,10 @@ in
       ];
     };
 
-    gamemode.enable = true;
+    gamemode.enable = enableSteam;
 
     # KVM / libvirt 虚拟化管理
-    virt-manager.enable = true;
+    virt-manager.enable = enableLibvirtd;
 
     # 兼容通用 Linux 动态链接可执行文件（如第三方 CLI 安装器）
     nix-ld = {
@@ -490,12 +514,17 @@ in
     gnome.gnome-keyring.enable = true;
 
     # Provider app VPN
-    provider-app-vpn.enable = true;
+    provider-app-vpn.enable = enableProvider appVpn;
 
     # Provider app 依赖 systemd-resolved 管理 DNS 分流（防止 VPN 连接后 DNS 泄漏）
-    resolved.enable = true;
+    resolved.enable = enableProvider appVpn;
 
-    flatpak.enable = true;
+    flatpak.enable = enableFlatpak;
+
+    journald.extraConfig = ''
+      SystemMaxUse=${journaldSystemMaxUse}
+      RuntimeMaxUse=${journaldRuntimeMaxUse}
+    '';
   };
 
   # Wayland 桌面常用门户（文件选择/截图/投屏）
@@ -566,7 +595,7 @@ in
 
     warnMissingResumeOffset = {
       text = ''
-        if [ -f /swap/swapfile ] && [ -z "${if myvars ? resumeOffset && myvars.resumeOffset != null then toString myvars.resumeOffset else ""}" ]; then
+        if [ "${if enableHibernate then "1" else "0"}" = "1" ] && [ -f /swap/swapfile ] && [ -z "${if myvars ? resumeOffset && myvars.resumeOffset != null then toString myvars.resumeOffset else ""}" ]; then
           echo "WARNING: myvars.resumeOffset is not set on host ${myvars.hostname}." >&2
           echo "WARNING: hibernate may power off without resuming previous session." >&2
           echo "WARNING: run (as root): btrfs inspect-internal map-swapfile -r /swap/swapfile" >&2
@@ -577,7 +606,7 @@ in
 
     warnSwapfileSizeMismatch = {
       text = ''
-        if [ -f /swap/swapfile ]; then
+        if [ "${if enableHibernate then "1" else "0"}" = "1" ] && [ -f /swap/swapfile ]; then
           current_size_bytes="$(${pkgs.coreutils}/bin/stat -c %s /swap/swapfile 2>/dev/null || echo 0)"
           target_size_bytes=$(( ${toString myvars.swapSizeGb} * 1024 * 1024 * 1024 ))
           if [ "$current_size_bytes" -ne "$target_size_bytes" ]; then
@@ -634,13 +663,13 @@ in
   # KVM / libvirt 虚拟化
   virtualisation = {
     libvirtd = {
-      enable = true;
+      enable = enableLibvirtd;
       qemu.swtpm.enable = true;
     };
 
     # Docker 容器
     docker = {
-      enable = true;
+      enable = enableDocker;
       enableOnBoot = false; # 按需 socket activation 启动（减少开机时间）
       autoPrune = {
         enable = true;
@@ -660,11 +689,30 @@ in
     }
     {
       assertion = myvars ? userPasswordHash && myvars.userPasswordHash != "CHANGE_ME";
-      message = "Set myvars.userPasswordHash in hosts/vars/default.nix (use mkpasswd -m sha-512).";
+      message = "Set myvars.userPasswordHash in hosts/nixos/<host>/vars.nix (use mkpasswd -m sha-512).";
     }
     {
       assertion = myvars ? rootPasswordHash && myvars.rootPasswordHash != "CHANGE_ME";
-      message = "Set myvars.rootPasswordHash in hosts/vars/default.nix (use mkpasswd -m sha-512).";
+      message = "Set myvars.rootPasswordHash in hosts/nixos/<host>/vars.nix (use mkpasswd -m sha-512).";
+    }
+    {
+      assertion =
+        (!enableHibernate)
+        || (
+          myvars ? resumeOffset
+          && myvars.resumeOffset != null
+          && builtins.isInt myvars.resumeOffset
+          && myvars.resumeOffset > 0
+        );
+      message = "When myvars.enableHibernate=true, set a positive integer myvars.resumeOffset (btrfs inspect-internal map-swapfile -r /swap/swapfile).";
+    }
+    {
+      assertion = builtins.isList hostRoles;
+      message = "myvars.roles must be a list (e.g. [ \"desktop\" \"container\" ]).";
+    }
+    {
+      assertion = lib.subtractLists knownHostRoles hostRoles == [ ];
+      message = "myvars.roles contains unknown values. allowed: desktop, gaming, vpn, virt, container.";
     }
   ];
 
@@ -676,23 +724,25 @@ in
       # 在 nsncd 失败导致名称解析不可用时尤其严重，会造成级联等待
       NetworkManager-wait-online.enable = false;
 
-      provider-app-daemon.serviceConfig = {
-        ExecStartPre = pkgs.writeShellScript "disable-provider-app-lockdown" ''
-          settings_dir="/etc/provider-app-vpn"
-          settings_file="$settings_dir/settings.json"
-          mkdir -p "$settings_dir"
-          if [ ! -f "$settings_file" ]; then
-            echo '{}' > "$settings_file"
-          fi
+      provider-app-daemon = lib.mkIf enableProvider appVpn {
+        serviceConfig = {
+          ExecStartPre = pkgs.writeShellScript "disable-provider-app-lockdown" ''
+            settings_dir="/etc/provider-app-vpn"
+            settings_file="$settings_dir/settings.json"
+            mkdir -p "$settings_dir"
+            if [ ! -f "$settings_file" ]; then
+              echo '{}' > "$settings_file"
+            fi
 
-          if ${pkgs.jq}/bin/jq '.block_when_disconnected = false | .auto_connect = true' "$settings_file" > "$settings_file.tmp"; then
-            mv "$settings_file.tmp" "$settings_file"
-            echo "Provider app autoconnect 已启用，lockdown mode 已禁用"
-          else
-            rm -f "$settings_file.tmp"
-            echo "WARNING: Failed to update Provider app settings (invalid JSON). Keeping existing file." >&2
-          fi
-        '';
+            if ${pkgs.jq}/bin/jq '.block_when_disconnected = false | .auto_connect = true' "$settings_file" > "$settings_file.tmp"; then
+              mv "$settings_file.tmp" "$settings_file"
+              echo "Provider app autoconnect 已启用，lockdown mode 已禁用"
+            else
+              rm -f "$settings_file.tmp"
+              echo "WARNING: Failed to update Provider app settings (invalid JSON). Keeping existing file." >&2
+            fi
+          '';
+        };
       };
 
       # provider-app-network-safety 已移除：ExecStartPre 已在 daemon 启动前禁用 lockdown mode

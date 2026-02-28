@@ -22,7 +22,7 @@ let
     ;
 
   baseSpecialArgs = genSpecialArgs system;
-  resolvedMyvars = baseSpecialArgs.myvars // { hostname = name; } // hostMyvars;
+  resolvedMyvars = hostMyvars // { hostname = name; };
   mainUser = resolvedMyvars.username;
 
   specialArgs = baseSpecialArgs // {
@@ -71,6 +71,7 @@ let
 in
 assert lib.assertMsg (builtins.pathExists hostHardwarePath) "Missing ${hostDir}/hardware.nix";
 assert lib.assertMsg (builtins.pathExists hostDiskoPath) "Missing ${hostDir}/disko.nix";
+assert lib.assertMsg (hostMyvars != { }) "Missing or empty ${hostDir}/vars.nix";
 {
   inherit
     name

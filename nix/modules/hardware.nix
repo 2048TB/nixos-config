@@ -39,6 +39,7 @@ let
   # 是否启用 GPU 专用配置（启动菜单中切换驱动）
   # 默认禁用以减少 ISO 体积和安装时间
   enableGpuSpecialisation = myvars.enableGpuSpecialisation or false;
+  enableBluetoothRfkillUnblock = myvars.enableBluetoothRfkillUnblock or false;
 in
 {
   # 图形基础设置（Wayland + Xwayland）
@@ -64,7 +65,7 @@ in
     };
   };
 
-  # GPU 驱动来源：使用 hosts/vars/default.nix 的 myvars.gpuMode 固定配置
+  # GPU 驱动来源：使用主机 vars.nix 的 myvars.gpuMode 固定配置
   services = {
     xserver.videoDrivers = videoDrivers;
     blueman.enable = true;
@@ -72,7 +73,7 @@ in
   };
 
   # 兜底解除 rfkill soft block：避免蓝牙控制器在桌面会话中无法正常启用
-  systemd.services.unblock-bluetooth-rfkill = {
+  systemd.services.unblock-bluetooth-rfkill = lib.mkIf enableBluetoothRfkillUnblock {
     description = "Unblock Bluetooth rfkill state";
     wantedBy = [ "multi-user.target" ];
     after = [
@@ -95,7 +96,7 @@ in
 
   # GPU 专用配置：启动时在引导菜单中切换驱动
   # 默认禁用以减少 ISO 体积（~500MB）和安装时间
-  # 启用方式：在 hosts/vars/default.nix 中将 myvars.enableGpuSpecialisation 设为 true
+  # 启用方式：在对应主机 vars.nix 中将 myvars.enableGpuSpecialisation 设为 true
   specialisation = lib.mkIf enableGpuSpecialisation {
     gpu-amd.configuration = {
       services.xserver.videoDrivers = [ driverAmdgpu ];

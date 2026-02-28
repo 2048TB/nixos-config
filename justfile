@@ -27,23 +27,34 @@ install-live:
     sudo mkdir -p /mnt/persistent/nixos-config
     sudo cp -a ./. /mnt/persistent/nixos-config/
     sudo env NIXOS_DISK_DEVICE={{disk}} nixos-install --impure --flake /mnt/persistent/nixos-config#{{host}}
-    @echo "✓ 安装完成，重启后执行：just switch host={{host}}"
+    @echo "✓ 安装完成，重启后执行：just host={{host}} switch"
 
 # 应用配置并立即切换（常用）
 switch:
-    sudo nixos-rebuild switch --flake /etc/nixos#{{host}} |& nom
+    sudo nixos-rebuild switch --flake path:{{repo}}#{{host}} |& nom
 
 # 应用配置但下次启动生效
 boot:
-    sudo nixos-rebuild boot --flake /etc/nixos#{{host}} |& nom
+    sudo nixos-rebuild boot --flake path:{{repo}}#{{host}} |& nom
 
 # 临时测试配置（重启后失效）
 test:
-    sudo nixos-rebuild test --flake /etc/nixos#{{host}} |& nom
+    sudo nixos-rebuild test --flake path:{{repo}}#{{host}} |& nom
 
 # 检查配置但不应用（快速验证）
 check:
-    sudo nixos-rebuild dry-build --flake /etc/nixos#{{host}}
+    nix build --no-link path:{{repo}}#nixosConfigurations.{{host}}.config.system.build.toplevel
+
+# 快速执行 eval tests（hostname/home 映射一致性）
+eval-tests:
+    @echo "=== checks.x86_64-linux (eval tests) ==="
+    nix build --no-link \
+      path:{{repo}}#checks.x86_64-linux.evaltest-hostname \
+      path:{{repo}}#checks.x86_64-linux.evaltest-home
+    @echo ""
+    @echo "=== checks.aarch64-darwin (eval only) ==="
+    nix eval path:{{repo}}#checks.aarch64-darwin.evaltest-darwin-hostname.drvPath >/dev/null
+    nix eval path:{{repo}}#checks.aarch64-darwin.evaltest-darwin-home.drvPath >/dev/null
 
 # 回滚到上一个系统世代
 rollback:
@@ -55,7 +66,7 @@ rollback:
 darwin-switch:
     darwin-rebuild switch --flake path:{{repo}}#{{darwin_host}}
 
-# 构建 macOS 配置（不切换）
+# 构建 macOS 配置（不切换；需在 macOS 或配置了 aarch64-darwin remote builder 的环境执行）
 darwin-check:
     nix build --no-link path:{{repo}}#darwinConfigurations.{{darwin_host}}.system
 
@@ -304,8 +315,8 @@ help:
     @echo "📖 常用命令快速参考"
     @echo ""
     @echo "💿 安装（Live ISO）："
-    @echo "  just install-live-check host=zly"
-    @echo "  just install-live host=zly disk=/dev/nvme0n1"
+    @echo "  just host=zly install-live-check"
+    @echo "  just host=zly disk=/dev/nvme0n1 install-live"
     @echo ""
     @echo "🚀 日常使用："
     @echo "  just switch      - 应用配置"

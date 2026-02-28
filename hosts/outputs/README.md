@@ -10,9 +10,9 @@
 
 ## 主机注册流程
 
-1. NixOS：在 `hosts/nixos/<host>/` 下至少提供 `hardware.nix` 与 `disko.nix`（可选 `host.nix`）。
-2. Darwin：在 `hosts/darwin/<host>/` 下提供 `default.nix`。
-3. 按需添加 `checks.nix` 与 `vars.nix`（主机变量覆盖）。
+1. NixOS：在 `hosts/nixos/<host>/` 下必须提供 `hardware.nix`、`disko.nix`、`vars.nix`（可选 `host.nix`）。
+2. Darwin：在 `hosts/darwin/<host>/` 下必须提供 `default.nix` 与 `vars.nix`。
+3. 按需添加 `checks.nix`。
 4. `hosts/outputs/<system>/default.nix` 会自动扫描 `hosts/<platform>/*` 聚合主机。
 
 ## 设计目标

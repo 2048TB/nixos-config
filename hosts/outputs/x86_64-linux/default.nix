@@ -1,9 +1,10 @@
-{ lib, mylib, myvars, inputs, system, ... }@args:
+{ lib, mylib, inputs, system, ... }@args:
 let
   hostsRoot = mylib.relativeToRoot "hosts/nixos";
   hostNames = mylib.discoverHostNamesBy hostsRoot [
     "hardware.nix"
     "disko.nix"
+    "vars.nix"
   ];
 
   mkHostData =
@@ -13,7 +14,7 @@ let
       hostPath = mylib.relativeToRoot "${hostDir}/host.nix";
       hostVarsPath = mylib.relativeToRoot "${hostDir}/vars.nix";
       hostChecksPath = mylib.relativeToRoot "${hostDir}/checks.nix";
-      hostMyvars = if builtins.pathExists hostVarsPath then import hostVarsPath else { };
+      hostMyvars = import hostVarsPath;
       hostCtx = mylib.mkNixosHost (args // {
         inherit name hostMyvars;
         hostPath = if builtins.pathExists hostPath then hostPath else null;
@@ -26,6 +27,7 @@ let
     {
       nixosConfigurations.${hostCtx.name} = hostCtx.nixosSystem;
       checks.${hostCtx.system} = hostChecks;
+      mainUsers.${hostCtx.name} = hostCtx.mainUser;
     };
 
   data = builtins.listToAttrs (
@@ -39,16 +41,14 @@ let
   dataWithoutPaths = builtins.attrValues data;
   nixosConfigurations =
     mylib.mergeRecursiveAttrsList (map (it: it.nixosConfigurations or { }) dataWithoutPaths);
+  mainUsers = mylib.mergeRecursiveAttrsList (map (it: it.mainUsers or { }) dataWithoutPaths);
   resolvedHostNames = builtins.attrNames nixosConfigurations;
 
   hostnameExpr = import ./tests/hostname/expr.nix { inherit lib nixosConfigurations; };
   hostnameExpected = import ./tests/hostname/expected.nix { hostNames = resolvedHostNames; };
   homeExpr = import ./tests/home/expr.nix { inherit lib nixosConfigurations; };
-  homeExpected = import ./tests/home/expected.nix {
-    hostNames = resolvedHostNames;
-    mainUser = myvars.username;
-  };
-  evalTests = {
+  homeExpected = import ./tests/home/expected.nix { inherit mainUsers; };
+  hostEvalTests = {
     hostname = hostnameExpr == hostnameExpected;
     home = homeExpr == homeExpected;
   };
@@ -70,7 +70,7 @@ let
         repo="/persistent/nixos-config"
       fi
       cd "$repo"
-      exec ${pkgs.just}/bin/just switch host="''${NIXOS_HOST:-zly}"
+      exec ${pkgs.just}/bin/just host="''${NIXOS_HOST:-zly}" switch
     '';
     build-switch = mkApp "build-switch" "Build and switch Linux host configuration" ''
       set -euo pipefail
@@ -79,7 +79,7 @@ let
         repo="/persistent/nixos-config"
       fi
       cd "$repo"
-      exec ${pkgs.just}/bin/just switch host="''${NIXOS_HOST:-zly}"
+      exec ${pkgs.just}/bin/just host="''${NIXOS_HOST:-zly}" switch
     '';
     build = mkApp "build" "Dry-build Linux host configuration" ''
       set -euo pipefail
@@ -88,7 +88,7 @@ let
         repo="/persistent/nixos-config"
       fi
       cd "$repo"
-      exec ${pkgs.just}/bin/just check host="''${NIXOS_HOST:-zly}"
+      exec ${pkgs.just}/bin/just host="''${NIXOS_HOST:-zly}" check
     '';
     install = mkApp "install" "Install Linux host on Live ISO with disko+nixos-install" ''
       set -euo pipefail
@@ -97,7 +97,7 @@ let
         repo="/persistent/nixos-config"
       fi
       cd "$repo"
-      exec ${pkgs.just}/bin/just install-live host="''${NIXOS_HOST:-zly}" disk="''${NIXOS_DISK_DEVICE:-/dev/nvme0n1}"
+      exec ${pkgs.just}/bin/just host="''${NIXOS_HOST:-zly}" disk="''${NIXOS_DISK_DEVICE:-/dev/nvme0n1}" install-live
     '';
     clean = mkApp "clean" "Clean old generations" ''
       set -euo pipefail
@@ -111,14 +111,14 @@ let
   };
   evalTestChecks.${system} = {
     evaltest-hostname = pkgs.runCommand "evaltest-hostname" { } ''
-      if [ "${if evalTests.hostname then "1" else "0"}" != "1" ]; then
+      if [ "${if hostEvalTests.hostname then "1" else "0"}" != "1" ]; then
         echo "hostname eval test failed" >&2
         exit 1
       fi
       touch "$out"
     '';
     evaltest-home = pkgs.runCommand "evaltest-home" { } ''
-      if [ "${if evalTests.home then "1" else "0"}" != "1" ]; then
+      if [ "${if hostEvalTests.home then "1" else "0"}" != "1" ]; then
         echo "home eval test failed" >&2
         exit 1
       fi
@@ -160,7 +160,7 @@ assert lib.assertMsg (hostNames != [ ]) "No hosts found under hosts/nixos";
 {
   inherit data;
   registeredHosts = resolvedHostNames;
-  inherit nixosConfigurations evalTests;
+  inherit nixosConfigurations;
   apps = platformApps;
   checks =
     mylib.mergeRecursiveAttrsList (

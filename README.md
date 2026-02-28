@@ -41,37 +41,39 @@ mkpasswd -m sha-512
 mkpasswd -m sha-512
 ```
 
-把两次输出分别填入 `hosts/vars/default.nix` 的 `userPasswordHash` 和 `rootPasswordHash`。
+把两次输出分别填入目标主机的 `hosts/nixos/<host>/vars.nix`（`userPasswordHash` / `rootPasswordHash`）。
 
 2. 安装前构建校验（推荐）
 
 ```bash
-just install-live-check host=zly
-just install-live-check host=zky
+just host=zly install-live-check
+just host=zky install-live-check
 ```
 
 3. 安装系统（危险：会清空目标盘）
 
 ```bash
-just install-live host=zly disk=/dev/nvme0n1
+just host=zly disk=/dev/nvme0n1 install-live
 # 或
-just install-live host=zky disk=/dev/nvme0n1
+just host=zky disk=/dev/nvme0n1 install-live
 ```
 
 安装完成后：
 
 ```bash
-just switch host=zly
+just host=zly switch
 # 或
-just switch host=zky
+just host=zky switch
 ```
 
 4. macOS（M4 mini）切换配置
 
 ```bash
-just darwin-check darwin_host=zly-mac
-just darwin-switch darwin_host=zly-mac
+just darwin_host=zly-mac darwin-check
+just darwin_host=zly-mac darwin-switch
 ```
+
+说明：`darwin-check` 需要在 macOS 主机执行，或在 Linux 上配置 `aarch64-darwin` remote builder 后执行。
 
 5. 可选：使用 flake apps 管理（参考仓库方式）
 
@@ -109,7 +111,7 @@ sudo cp -a ./. /mnt/persistent/nixos-config/
 sudo env NIXOS_DISK_DEVICE=/dev/nvme0n1 \
   nixos-install --impure --flake /mnt/persistent/nixos-config#zly
 
-sudo nixos-rebuild switch --flake /etc/nixos#zly
+sudo nixos-rebuild switch --flake path:/persistent/nixos-config#zly
 ```
 
 ---
@@ -122,6 +124,7 @@ just lint
 just dead
 just flake-check
 just check
+just eval-tests
 
 # 可选：完整系统构建验证（不切换）
 nix build --no-link path:/persistent/nixos-config#nixosConfigurations.zly.config.system.build.toplevel
@@ -153,10 +156,11 @@ git push origin HEAD
 
 ## 配置入口
 
-主要变量集中在 `hosts/vars/default.nix`：
+NixOS 主机变量集中在各自的 `hosts/nixos/<host>/vars.nix`：
 - `username`
 - `hostname`
 - `gpuMode`（如 `amd-nvidia-hybrid`）
+- `roles`（如 `["desktop" "container"]`，控制 Steam/VPN/libvirt/docker/flatpak 默认开关）
 - `swapSizeGb`
 - `resumeOffset`（hibernate 恢复偏移，swapfile 场景）
 - `userPasswordHash`
@@ -186,7 +190,7 @@ git push origin HEAD
 
 ## GPU 选择
 
-GPU 使用 `hosts/vars/default.nix` 的 `gpuMode` 固定配置。
+GPU 使用对应主机 `hosts/nixos/<host>/vars.nix` 的 `gpuMode` 固定配置。
 
 ---
 
@@ -210,7 +214,7 @@ GPU 使用 `hosts/vars/default.nix` 的 `gpuMode` 固定配置。
 
 ## Hibernate（休眠恢复）
 
-当前配置使用 `swapfile`，要保证 `systemctl hibernate` 能恢复到原会话，需要设置 `hosts/vars/default.nix` 中的 `resumeOffset`。
+当前配置使用 `swapfile`，要保证 `systemctl hibernate` 能恢复到原会话，需要设置对应主机 `hosts/nixos/<host>/vars.nix` 中的 `resumeOffset`。
 
 1. 以 `root` 获取 offset（来自 `btrfs`）：
 
@@ -218,7 +222,7 @@ GPU 使用 `hosts/vars/default.nix` 的 `gpuMode` 固定配置。
 sudo btrfs inspect-internal map-swapfile -r /swap/swapfile
 ```
 
-2. 将输出数字写入 `hosts/vars/default.nix` 的 `resumeOffset`。
+2. 将输出数字写入对应主机 `hosts/nixos/<host>/vars.nix` 的 `resumeOffset`。
 3. 执行 `just switch` 生效。
 
 注意：
@@ -238,17 +242,16 @@ sudo btrfs inspect-internal map-swapfile -r /swap/swapfile
 │   └── mkNixosHost.nix
 ├── hosts/                        # 主机相关统一收敛
 │   ├── README.md
-│   ├── vars/default.nix          # 全局变量（用户名、GPU、密码哈希等）
 │   ├── outputs/                  # 多平台 outputs 组装
 │   │   ├── README.md
 │   │   ├── default.nix
 │   │   ├── x86_64-linux/{default.nix,tests/{hostname,home}}
 │   │   └── aarch64-darwin/{default.nix,tests/{hostname,home}}
 │   ├── nixos/
-│   │   ├── zly/{disko.nix,hardware.nix,checks.nix}
+│   │   ├── zly/{disko.nix,hardware.nix,checks.nix,vars.nix}
 │   │   └── zky/{disko.nix,hardware.nix,checks.nix,vars.nix}
 │   └── darwin/
-│       └── zly-mac/{default.nix,checks.nix}
+│       └── zly-mac/{default.nix,checks.nix,vars.nix}
 ├── nix/
 │   ├── modules/                  # 系统公共模块
 │   └── home/
@@ -264,11 +267,12 @@ sudo btrfs inspect-internal map-swapfile -r /swap/swapfile
 
 新增主机不再需要修改 `hosts/outputs/<system>/default.nix`，只需新增 `hosts` 目录：
 
-1. NixOS：新增 `hosts/nixos/<host>/hardware.nix` 与 `hosts/nixos/<host>/disko.nix`（可选 `host.nix`）。
-2. Darwin：新增 `hosts/darwin/<host>/default.nix`。
-3. 可选：新增 `vars.nix` 做主机变量覆盖（例如 `gpuMode`、`resumeOffset`）。
-4. 可选：新增 `checks.nix` 做主机级 eval 校验。
-5. 验证自动发现：
+1. NixOS：新增 `hosts/nixos/<host>/hardware.nix`、`hosts/nixos/<host>/disko.nix`、`hosts/nixos/<host>/vars.nix`（可选 `host.nix`）。
+2. Darwin：新增 `hosts/darwin/<host>/default.nix` 与 `hosts/darwin/<host>/vars.nix`。
+3. NixOS 必需：在 `vars.nix` 中填写完整主机变量（例如 `gpuMode`、`resumeOffset`、密码哈希等）。
+4. Darwin 必需：在 `vars.nix` 中至少填写 `username`（可按需扩展）。
+5. 可选：新增 `checks.nix` 做主机级 eval 校验。
+6. 验证自动发现：
 
 ```bash
 just hosts
