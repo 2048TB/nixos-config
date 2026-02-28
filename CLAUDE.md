@@ -10,6 +10,7 @@
 - 输出简洁、直接，中文说明 + 英文技术名词。
 - 只做用户请求范围内的改动。
 - 涉及 Niri/Waybar/Tmux/Zellij 行为变化时，同步更新 `README.md`、`KEYBINDINGS.md`、`NIX-COMMANDS.md`（必要时含 `nix/home/README.md`）。
+- 涉及流程规范变化时，同步更新 `CLAUDE.md` 与 `AGENTS.md`。
 
 ---
 
