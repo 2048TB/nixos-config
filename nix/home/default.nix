@@ -256,134 +256,6 @@ let
     printf '{"text":"%s %s°C","class":"%s","tooltip":"Temperature: %s°C\\nSensor: %s"}\n' \
       "$icon" "$tempC" "$class" "$tempC" "''${inputFile%/*}"
   '';
-  waybarBacklightStatus = pkgs.writeShellScriptBin "waybar-backlight-status" ''
-    set -euo pipefail
-    headBin="${pkgs.coreutils}/bin/head"
-
-    pick_backlight_dir() {
-      local dir=""
-      for dir in /sys/class/backlight/*; do
-        [ -d "$dir" ] || continue
-        [ -r "$dir/brightness" ] || continue
-        [ -r "$dir/max_brightness" ] || continue
-        printf '%s\n' "$dir"
-        return 0
-      done
-      return 1
-    }
-
-    backlightDir="$(pick_backlight_dir || true)"
-    [ -n "$backlightDir" ] || exit 1
-
-    current="$("$headBin" -n 1 "$backlightDir/brightness" 2>/dev/null || true)"
-    maximum="$("$headBin" -n 1 "$backlightDir/max_brightness" 2>/dev/null || true)"
-    [[ "$current" =~ ^[0-9]+$ ]] || exit 1
-    [[ "$maximum" =~ ^[0-9]+$ ]] || exit 1
-    [ "$maximum" -gt 0 ] || exit 1
-
-    percent=$((current * 100 / maximum))
-    icon="󰃟"
-    if [ "$percent" -lt 34 ]; then
-      icon="󰃞"
-    elif [ "$percent" -ge 67 ]; then
-      icon="󰃠"
-    fi
-
-    printf '{"text":"%s %s%%","class":"normal","tooltip":"Backlight: %s%%"}\n' "$icon" "$percent" "$percent"
-  '';
-  waybarBatteryStatus = pkgs.writeShellScriptBin "waybar-battery-status" ''
-    set -euo pipefail
-    headBin="${pkgs.coreutils}/bin/head"
-
-    pick_battery_dir() {
-      local dir=""
-      for dir in /sys/class/power_supply/BAT*; do
-        [ -d "$dir" ] || continue
-        [ -r "$dir/capacity" ] || continue
-        printf '%s\n' "$dir"
-        return 0
-      done
-      return 1
-    }
-
-    batteryDir="$(pick_battery_dir || true)"
-    [ -n "$batteryDir" ] || exit 1
-
-    capacity="$("$headBin" -n 1 "$batteryDir/capacity" 2>/dev/null || true)"
-    status="$("$headBin" -n 1 "$batteryDir/status" 2>/dev/null || true)"
-    [[ "$capacity" =~ ^[0-9]+$ ]] || exit 1
-    [ -n "$status" ] || status="Unknown"
-
-    class="normal"
-    icon=""
-    if [ "$status" = "Charging" ] || [ "$status" = "Full" ]; then
-      class="charging"
-      icon=""
-    else
-      if [ "$capacity" -le 10 ]; then
-        class="critical"
-      elif [ "$capacity" -le 20 ]; then
-        class="warning"
-      fi
-
-      if [ "$capacity" -lt 25 ]; then
-        icon=""
-      elif [ "$capacity" -lt 50 ]; then
-        icon=""
-      elif [ "$capacity" -lt 75 ]; then
-        icon=""
-      elif [ "$capacity" -lt 95 ]; then
-        icon=""
-      else
-        icon=""
-      fi
-    fi
-
-    printf '{"text":"%s %s%%","class":"%s","tooltip":"Battery: %s%%\\nStatus: %s"}\n' \
-      "$icon" "$capacity" "$class" "$capacity" "$status"
-  '';
-  waybarLauncher = pkgs.writeShellScript "waybar-launcher" ''
-    set -euo pipefail
-    runtimeDir="''${XDG_RUNTIME_DIR:-/run/user/$(${pkgs.coreutils}/bin/id -u)}"
-    waybarBin="${pkgs.waybar}/bin/waybar"
-    sleepBin="${pkgs.coreutils}/bin/sleep"
-    seqBin="${pkgs.coreutils}/bin/seq"
-    sedBin="${pkgs.gnused}/bin/sed"
-
-    launch_waybar() {
-      # 过滤 Waybar tray 在当前版本的已知启动期噪音，保留其余日志。
-      set +e
-      "$waybarBin" 2>&1 | "$sedBin" -u -E \
-        -e "/Item .*No icon name or pixmap given\\./d" \
-        -e "/Status Notifier Item with bus name '.*' and object path '\\/org\\/ayatana\\/NotificationItem\\/udiskie' is already registered/d" \
-        -e "/Unable to replace properties on 0: Error getting properties for ID/d" \
-        >&2
-      status="''${PIPESTATUS[0]}"
-      set -e
-      return "$status"
-    }
-
-    launch_if_wayland_ready() {
-      if [ -n "''${WAYLAND_DISPLAY:-}" ] && [ -S "$runtimeDir/$WAYLAND_DISPLAY" ]; then
-        launch_waybar
-      fi
-
-      for socket in "$runtimeDir"/wayland-*; do
-        [ -S "$socket" ] || continue
-        export WAYLAND_DISPLAY="''${socket##*/}"
-        launch_waybar
-      done
-
-      return 1
-    }
-
-    for _ in $("$seqBin" 1 100); do
-      launch_if_wayland_ready || true
-      "$sleepBin" 0.1
-    done
-
-    exit 1
-  '';
   mkLogFilteredLauncher =
     name: executable: filters:
     let
@@ -411,6 +283,11 @@ let
             set -e
             exit "$status"
     '';
+  waybarQuiet = mkLogFilteredLauncher "waybar-quiet" "${pkgs.waybar}/bin/waybar" [
+    "Item .*No icon name or pixmap given\\."
+    "Status Notifier Item with bus name '.*' and object path '/org/ayatana/NotificationItem/udiskie' is already registered"
+    "Unable to replace properties on 0: Error getting properties for ID"
+  ];
   nmAppletQuiet = mkLogFilteredLauncher "nm-applet-quiet" "${pkgs.networkmanagerapplet}/bin/nm-applet" [
     "gtk_widget_get_scale_factor: assertion 'GTK_IS_WIDGET \\(widget\\)' failed"
   ];
@@ -424,6 +301,41 @@ let
   udiskieQuiet = mkLogFilteredLauncher "udiskie-quiet" "${pkgs.udiskie}/bin/udiskie" [
     "gtk_widget_get_scale_factor: assertion 'GTK_IS_WIDGET \\(widget\\)' failed"
   ];
+  provider-appVpnQuiet = mkLogFilteredLauncher "provider-app-vpn-quiet" "${pkgs.provider-app-vpn}/bin/provider-app-vpn" [
+    "Gtk: gtk_widget_get_scale_factor: assertion 'GTK_IS_WIDGET \\(widget\\)' failed"
+  ];
+  waybarLauncher = pkgs.writeShellScript "waybar-launcher" ''
+    set -euo pipefail
+    runtimeDir="''${XDG_RUNTIME_DIR:-/run/user/$(${pkgs.coreutils}/bin/id -u)}"
+    waybarBin="${lib.getExe waybarQuiet}"
+    sleepBin="${pkgs.coreutils}/bin/sleep"
+    seqBin="${pkgs.coreutils}/bin/seq"
+
+    launch_waybar() {
+      "$waybarBin"
+    }
+
+    launch_if_wayland_ready() {
+      if [ -n "''${WAYLAND_DISPLAY:-}" ] && [ -S "$runtimeDir/$WAYLAND_DISPLAY" ]; then
+        launch_waybar
+      fi
+
+      for socket in "$runtimeDir"/wayland-*; do
+        [ -S "$socket" ] || continue
+        export WAYLAND_DISPLAY="''${socket##*/}"
+        launch_waybar
+      done
+
+      return 1
+    }
+
+    for _ in $("$seqBin" 1 100); do
+      launch_if_wayland_ready || true
+      "$sleepBin" 0.1
+    done
+
+    exit 1
+  '';
   publicIpStatus = pkgs.writeShellScriptBin "public-ip-status" ''
     set -euo pipefail
     wgetBin="${pkgs.wget}/bin/wget"
@@ -894,8 +806,6 @@ in
       pasystrayQuiet
       waybarClockCalendar
       waybarTemperatureStatus
-      waybarBacklightStatus
-      waybarBatteryStatus
       publicIpStatus
     ]
     ++ wpsWrappedBins; # WPS steam-run 包装器（覆盖原始二进制，修复启动问题）
@@ -1118,7 +1028,7 @@ in
               "LIBGL_DRIVERS_PATH=/run/opengl-driver/lib/dri"
               "GSETTINGS_SCHEMA_DIR=${pkgs.gsettings-desktop-schemas}/share/gsettings-schemas/${pkgs.gsettings-desktop-schemas.name}/glib-2.0/schemas"
             ];
-            ExecStart = "${pkgs.provider-app-vpn}/bin/provider-app-vpn";
+            ExecStart = "${lib.getExe provider-appVpnQuiet}";
             Restart = "on-failure";
             RestartSec = 2;
           };
@@ -1175,6 +1085,10 @@ in
           force = true;
         };
         "niri/config.kdl".source = ./configs/niri/config.kdl;
+        "niri/input.kdl".source = ./configs/niri/input.kdl;
+        "niri/layout.kdl".source = ./configs/niri/layout.kdl;
+        "niri/animations.kdl".source = ./configs/niri/animations.kdl;
+        "niri/output.kdl".source = ./configs/niri/output.kdl;
         "niri/keybindings.kdl".source = ./configs/niri/keybindings.kdl;
         "niri/windowrules.kdl".source = ./configs/niri/windowrules.kdl;
         "wlogout/layout".source = ./configs/wlogout/layout;

@@ -1,0 +1,19 @@
+// 动画设置。
+// 维基说明了如何配置单项动画：
+animations {
+    slowdown 0.9
+    workspace-switch {
+        spring damping-ratio=0.82 stiffness=523 epsilon=0.0001
+    }
+    horizontal-view-movement {
+        spring damping-ratio=0.86 stiffness=423 epsilon=0.0001
+    }
+}
+
+// 最近窗口切换器（Alt+Tab）样式
+recent-windows {
+    highlight {
+        active-color "#313244"
+        urgent-color "#f38ba8"
+    }
+}

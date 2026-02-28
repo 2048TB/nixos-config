@@ -18,8 +18,8 @@
     "memory",
     "custom/temperature",
     "custom/public-ip",
-    "custom/backlight",
-    "custom/battery",
+    "backlight",
+    "battery",
     "power-profiles-daemon",
     "idle_inhibitor",
     "custom/notification",
@@ -179,23 +179,25 @@
   },
 
   // device power
-  "custom/backlight": {
-    "format": "{}",
-    "return-type": "json",
-    "exec-if": "/run/current-system/sw/bin/ls /sys/class/backlight/*/brightness >/dev/null 2>&1",
-    "exec": "@USER_BIN@/waybar-backlight-status",
+  "backlight": {
+    "format": "{icon} {percent}%",
+    "format-icons": [ "󰃞", "󰃟", "󰃠" ],
     "interval": 30,
     "on-scroll-up": "@USER_BIN@/brightnessctl --class=backlight set 1%+",
     "on-scroll-down": "@USER_BIN@/brightnessctl --class=backlight set 1%-",
     "tooltip": false
   },
 
-  "custom/battery": {
-    "format": "{}",
-    "return-type": "json",
-    "exec-if": "/run/current-system/sw/bin/ls /sys/class/power_supply/BAT*/capacity >/dev/null 2>&1",
-    "exec": "@USER_BIN@/waybar-battery-status",
-    "interval": 30
+  "battery": {
+    "interval": 30,
+    "states": {
+      "warning": 20,
+      "critical": 10
+    },
+    "format": "{icon} {capacity}%",
+    "format-charging": " {capacity}%",
+    "format-full": " {capacity}%",
+    "format-icons": [ "", "", "", "", "" ]
   },
 
   "power-profiles-daemon": {
