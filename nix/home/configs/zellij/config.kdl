@@ -6,28 +6,43 @@ keybinds {
     tmux clear-defaults=true {
         bind "Ctrl b" { Write 2; SwitchToMode "Normal"; }
 
-        // Pane focus
-        bind "h" "Left" { MoveFocus "Left"; SwitchToMode "Normal"; }
-        bind "j" "Down" { MoveFocus "Down"; SwitchToMode "Normal"; }
-        bind "k" "Up" { MoveFocus "Up"; SwitchToMode "Normal"; }
-        bind "l" "Right" { MoveFocus "Right"; SwitchToMode "Normal"; }
+        // Pane focus (arrow keys, same as tmux)
+        bind "Left" { MoveFocus "Left"; SwitchToMode "Normal"; }
+        bind "Down" { MoveFocus "Down"; SwitchToMode "Normal"; }
+        bind "Up" { MoveFocus "Up"; SwitchToMode "Normal"; }
+        bind "Right" { MoveFocus "Right"; SwitchToMode "Normal"; }
 
-        // Pane resize
-        bind "a" { Resize "Increase Left"; SwitchToMode "Normal"; }
-        bind "d" { Resize "Increase Down"; SwitchToMode "Normal"; }
-        bind "e" { Resize "Increase Up"; SwitchToMode "Normal"; }
-        bind "f" { Resize "Increase Right"; SwitchToMode "Normal"; }
+        // Pane resize (h/j/k/l, aligned with tmux)
+        bind "h" { Resize "Increase Left"; SwitchToMode "Normal"; }
+        bind "j" { Resize "Increase Down"; SwitchToMode "Normal"; }
+        bind "k" { Resize "Increase Up"; SwitchToMode "Normal"; }
+        bind "l" { Resize "Increase Right"; SwitchToMode "Normal"; }
 
         // Pane and tab management
-        bind "s" { NewPane "Down"; SwitchToMode "Normal"; }
-        bind "v" { NewPane "Right"; SwitchToMode "Normal"; }
-        bind "x" { CloseFocus; SwitchToMode "Normal"; }
+        bind "w" { NewPane "Right"; SwitchToMode "Normal"; }
+        bind "e" { NewPane "Down"; SwitchToMode "Normal"; }
+        bind "q" { CloseFocus; SwitchToMode "Normal"; }
         bind "z" { ToggleFocusFullscreen; SwitchToMode "Normal"; }
         bind "c" { NewTab; SwitchToMode "Normal"; }
-        bind "w" { GoToNextTab; SwitchToMode "Normal"; }
-        bind "q" { GoToPreviousTab; SwitchToMode "Normal"; }
+        bind "d" { GoToNextTab; SwitchToMode "Normal"; }
+        bind "s" { GoToPreviousTab; SwitchToMode "Normal"; }
+        bind "Tab" { ToggleTab; SwitchToMode "Normal"; }
+        bind "t" { TogglePaneFrames; SwitchToMode "Normal"; }
+        bind "F" {
+            LaunchOrFocusPlugin "session-manager" {
+                floating true
+                move_to_focused_tab true
+            };
+            SwitchToMode "Normal";
+        }
+        bind "r" {
+            LaunchOrFocusPlugin "configuration" {
+                floating true
+                move_to_focused_tab true
+            };
+            SwitchToMode "Normal";
+        }
         bind "g" { Detach; SwitchToMode "Normal"; }
-        bind "r" { NextSwapLayout; SwitchToMode "Normal"; }
     }
 }
 
