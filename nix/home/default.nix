@@ -67,15 +67,17 @@ let
       esac
     }
   '';
-  mkHyprlandSessionService = description: serviceConfig: {
+  mkSessionService = target: description: serviceConfig: {
     Unit = {
       Description = description;
-      After = [ "hyprland-session.target" ];
-      PartOf = [ "hyprland-session.target" ];
+      After = [ target ];
+      PartOf = [ target ];
     };
-    Install.WantedBy = [ "hyprland-session.target" ];
+    Install.WantedBy = [ target ];
     Service = serviceConfig;
   };
+  mkHyprlandSessionService = mkSessionService "hyprland-session.target";
+  mkGraphicalSessionService = mkSessionService "graphical-session.target";
 
   # ===== 启动脚本与包装器 =====
   waylandSession = pkgs.writeScript "wayland-session" ''
@@ -147,7 +149,7 @@ let
       -C "${homeDir}/.config/wlogout/style.css" \
       "$@"
   '';
-  riverScreenshot = pkgs.writeShellScriptBin "river-screenshot" ''
+  screenshotTool = pkgs.writeShellScriptBin "screenshot-tool" ''
     set -euo pipefail
     mode="''${1:-full}"
     dir="''${XDG_SCREENSHOTS_DIR:-$HOME/Pictures/Screenshots}"
@@ -168,7 +170,7 @@ let
         ;;
     esac
   '';
-  riverCliphistMenu = pkgs.writeShellScriptBin "river-cliphist-menu" ''
+  cliphistMenu = pkgs.writeShellScriptBin "cliphist-menu" ''
     set -euo pipefail
     picked="$(${pkgs.cliphist}/bin/cliphist list | ${pkgs.fuzzel}/bin/fuzzel --dmenu || true)"
     [ -n "$picked" ] || exit 0
@@ -370,7 +372,7 @@ let
         "@HOME_DIR@"
         "@PROFILE_BIN@"
         "@PLAYERCTL_BIN@"
-        "@RIVER_SCREENSHOT_BIN@"
+        "@SCREENSHOT_BIN@"
         "@HYPR_PERSISTENT_WORKSPACES@"
         "@HYPR_FLOAT_WINDOW_RULE_TRIPLETS@"
         "@HYPR_WORKSPACE_SWITCH_BINDS@"
@@ -381,7 +383,7 @@ let
         homeDir
         userProfileBin
         "${pkgs.playerctl}/bin/playerctl"
-        "${riverScreenshot}/bin/river-screenshot"
+        "${screenshotTool}/bin/screenshot-tool"
         hyprGeneratedConfig.persistentWorkspaces
         hyprGeneratedConfig.floatWindowRuleTriplets
         hyprGeneratedConfig.workspaceSwitchBinds
@@ -1258,8 +1260,8 @@ in
     ++ hybridPackages
     ++ [
       wlogoutMenu
-      riverScreenshot
-      riverCliphistMenu
+      screenshotTool
+      cliphistMenu
       hyprlandSubmapCycle
       hyprlandLayoutToggle
       hyprlandLayoutDispatch
@@ -1392,35 +1394,20 @@ in
       {
         # Polkit 认证代理（图形会话自启）
         # 无此服务时，需要权限提升的操作（virt-manager、Nautilus 挂载等）会静默失败
-        polkit-gnome-authentication-agent-1 = {
-          Unit = {
-            Description = "polkit-gnome-authentication-agent-1";
-            After = [ "graphical-session.target" ];
-          };
-          Install.WantedBy = [ "graphical-session.target" ];
-          Service = {
-            Type = "simple";
-            ExecStart = "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1";
-            Restart = "on-failure";
-            RestartSec = 1;
-            TimeoutStopSec = 10;
-          };
+        polkit-gnome-authentication-agent-1 = mkGraphicalSessionService "polkit-gnome-authentication-agent-1" {
+          Type = "simple";
+          ExecStart = "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1";
+          Restart = "on-failure";
+          RestartSec = 1;
+          TimeoutStopSec = 10;
         };
 
         # Clipboard history
-        cliphist-daemon = {
-          Unit = {
-            Description = "cliphist clipboard history daemon";
-            After = [ "graphical-session.target" ];
-            PartOf = [ "graphical-session.target" ];
-          };
-          Install.WantedBy = [ "graphical-session.target" ];
-          Service = {
-            Type = "simple";
-            ExecStart = "${pkgs.wl-clipboard}/bin/wl-paste --watch ${pkgs.cliphist}/bin/cliphist store";
-            Restart = "always";
-            RestartSec = 2;
-          };
+        cliphist-daemon = mkGraphicalSessionService "cliphist clipboard history daemon" {
+          Type = "simple";
+          ExecStart = "${pkgs.wl-clipboard}/bin/wl-paste --watch ${pkgs.cliphist}/bin/cliphist store";
+          Restart = "always";
+          RestartSec = 2;
         };
 
         hypridle = mkHyprlandSessionService "Hypridle idle daemon" {
@@ -1450,34 +1437,18 @@ in
         };
 
         # 显式启动托盘来源进程，避免依赖 xdg-desktop-autostart.target 未激活时缺图标。
-        nm-applet = {
-          Unit = {
-            Description = "NetworkManager applet";
-            After = [ "graphical-session.target" ];
-            PartOf = [ "graphical-session.target" ];
-          };
-          Install.WantedBy = [ "graphical-session.target" ];
-          Service = {
-            Type = "simple";
-            ExecStart = "${profileCmd "nm-applet"} --indicator";
-            Restart = "on-failure";
-            RestartSec = 2;
-          };
+        nm-applet = mkGraphicalSessionService "NetworkManager applet" {
+          Type = "simple";
+          ExecStart = "${profileCmd "nm-applet"} --indicator";
+          Restart = "on-failure";
+          RestartSec = 2;
         };
 
-        blueman-applet = {
-          Unit = {
-            Description = "Blueman applet";
-            After = [ "graphical-session.target" ];
-            PartOf = [ "graphical-session.target" ];
-          };
-          Install.WantedBy = [ "graphical-session.target" ];
-          Service = {
-            Type = "simple";
-            ExecStart = "${pkgs.blueman}/bin/blueman-applet";
-            Restart = "on-failure";
-            RestartSec = 2;
-          };
+        blueman-applet = mkGraphicalSessionService "Blueman applet" {
+          Type = "simple";
+          ExecStart = "${pkgs.blueman}/bin/blueman-applet";
+          Restart = "on-failure";
+          RestartSec = 2;
         };
 
         # udiskie 在中文 locale 下会触发 Python logging format KeyError（'信息'）
@@ -1496,59 +1467,35 @@ in
           "~gtk_native_get_surface: assertion 'GTK_IS_NATIVE (self)' failed"
         ];
 
-        swaybg = {
-          Unit = {
-            Description = "Wallpaper daemon (swaybg)";
-            After = [ "graphical-session.target" ];
-            PartOf = [ "graphical-session.target" ];
-          };
-          Install.WantedBy = [ "graphical-session.target" ];
-          Service = {
-            Type = "simple";
-            ExecStart = "${swaybgLauncher}";
-            Restart = "on-failure";
-            RestartSec = 2;
-          };
+        swaybg = mkGraphicalSessionService "Wallpaper daemon (swaybg)" {
+          Type = "simple";
+          ExecStart = "${swaybgLauncher}";
+          Restart = "on-failure";
+          RestartSec = 2;
         };
 
         # 在 greetd + Hyprland 会话中显式拉起输入法，避免仅依赖 XDG autostart 导致未启动
-        fcitx5 = {
-          Unit = {
-            Description = "Fcitx5 input method daemon";
-            After = [ "graphical-session.target" ];
-            PartOf = [ "graphical-session.target" ];
-          };
-          Install.WantedBy = [ "graphical-session.target" ];
-          Service = {
-            Type = "simple";
-            # Use the system wrapper from i18n.inputMethod so selected addons
-            # (e.g. fcitx5-chinese-addons) are available at runtime.
-            ExecStart = "/run/current-system/sw/bin/fcitx5 --replace";
-            Restart = "on-failure";
-            RestartSec = 1;
-          };
+        fcitx5 = mkGraphicalSessionService "Fcitx5 input method daemon" {
+          Type = "simple";
+          # Use the system wrapper from i18n.inputMethod so selected addons
+          # (e.g. fcitx5-chinese-addons) are available at runtime.
+          ExecStart = "/run/current-system/sw/bin/fcitx5 --replace";
+          Restart = "on-failure";
+          RestartSec = 1;
         };
 
-        provider-app-vpn-ui = {
-          Unit = {
-            Description = "Provider app VPN GUI";
-            After = [ "graphical-session.target" ];
-            PartOf = [ "graphical-session.target" ];
-          };
-          Install.WantedBy = [ "graphical-session.target" ];
-          Service = {
-            Type = "simple";
-            Environment = [
-              # Provider app wrapper 仅注入 coreutils/grep PATH；补齐 gsettings 与图形库搜索路径
-              "PATH=${pkgs.glib}/bin:/run/current-system/sw/bin:${userProfileBin}"
-              "LD_LIBRARY_PATH=${pkgs.libglvnd}/lib:/run/opengl-driver/lib:/run/opengl-driver-32/lib:/run/current-system/sw/lib"
-              "LIBGL_DRIVERS_PATH=/run/opengl-driver/lib/dri"
-              "GSETTINGS_SCHEMA_DIR=${pkgs.gsettings-desktop-schemas}/share/gsettings-schemas/${pkgs.gsettings-desktop-schemas.name}/glib-2.0/schemas"
-            ];
-            ExecStart = "${pkgs.provider-app-vpn}/bin/provider-app-vpn";
-            Restart = "on-failure";
-            RestartSec = 2;
-          };
+        provider-app-vpn-ui = mkGraphicalSessionService "Provider app VPN GUI" {
+          Type = "simple";
+          Environment = [
+            # Provider app wrapper 仅注入 coreutils/grep PATH；补齐 gsettings 与图形库搜索路径
+            "PATH=${pkgs.glib}/bin:/run/current-system/sw/bin:${userProfileBin}"
+            "LD_LIBRARY_PATH=${pkgs.libglvnd}/lib:/run/opengl-driver/lib:/run/opengl-driver-32/lib:/run/current-system/sw/lib"
+            "LIBGL_DRIVERS_PATH=/run/opengl-driver/lib/dri"
+            "GSETTINGS_SCHEMA_DIR=${pkgs.gsettings-desktop-schemas}/share/gsettings-schemas/${pkgs.gsettings-desktop-schemas.name}/glib-2.0/schemas"
+          ];
+          ExecStart = "${pkgs.provider-app-vpn}/bin/provider-app-vpn";
+          Restart = "on-failure";
+          RestartSec = 2;
         };
       };
   };

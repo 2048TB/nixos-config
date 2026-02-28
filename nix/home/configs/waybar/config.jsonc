@@ -138,7 +138,7 @@
     "return-type": "json",
     "exec-if": "test -x @USER_BIN@/waybar-layout-mode",
     "exec": "@USER_BIN@/waybar-layout-mode",
-    "interval": 1,
+    "interval": 2,
     "on-click": "@USER_BIN@/hyprland-layout-toggle",
     "tooltip": true
   },
