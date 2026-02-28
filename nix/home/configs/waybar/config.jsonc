@@ -160,7 +160,8 @@
   "tray": {
     "spacing": 8,
     "icon-size": 16,
-    "show-passive-items": true,
+    // Waybar tray 仍是 beta；隐藏 passive 项可减少无 icon 项导致的报错噪音
+    "show-passive-items": false,
     "icons": {
       "chrome_status_icon_1": "provider-app-vpn"
     }
