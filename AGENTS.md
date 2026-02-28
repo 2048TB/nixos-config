@@ -3,7 +3,8 @@
 ## Project Structure & Module Organization
 This repository is a flake-based NixOS desktop configuration.
 - `flake.nix`: main entrypoint (`inputs`, `nixConfig`, `outputs`).
-- `hosts/vars/default.nix`: machine/user variables (host/user/GPU/password hash).
+- `hosts/nixos/<host>/vars.nix`: required per-host NixOS variables (user/GPU/password hash/etc.).
+- `hosts/darwin/<host>/vars.nix`: required per-host Darwin variables (at least username).
 - `hosts/outputs/`: multi-platform flake output composition.
 - `hosts/`: host-specific machine definitions (e.g. `nixos/zly/{hardware.nix,disko.nix}`, `darwin/zly-mac/default.nix`).
 - `lib/default.nix`: shared helper + system assembly entry (`nixosSystem`, `macosSystem`, `mk*Host`).
@@ -19,6 +20,7 @@ Use `just` as the primary command runner:
 - `just switch`: apply and activate the current config.
 - `just test`: activate temporarily (reboot reverts).
 - `just check`: dry-build validation without switching.
+- `just eval-tests`: fast eval checks for hostname/home mapping.
 - `just flake-check`: run `nix flake check` for flake-level validation.
 - `just fmt`: format Nix files with `nixpkgs-fmt`.
 - `just lint`: run `statix` checks.
@@ -52,5 +54,5 @@ There is no unit-test suite; verification is configuration-driven:
 - If docs are updated and user requests sync, push current branch with a Conventional Commit message.
 
 ## Security & Configuration Tips
-- Do not commit new secrets (tokens, private keys, plaintext credentials). If rotating password hashes in `hosts/vars/default.nix`, treat them as sensitive changes and review carefully.
+- Do not commit new secrets (tokens, private keys, plaintext credentials). If rotating password hashes in `hosts/nixos/<host>/vars.nix`, treat them as sensitive changes and review carefully.
 - Treat disk provisioning and install commands as destructive unless verified (disko-related flows).

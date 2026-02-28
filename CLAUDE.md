@@ -17,7 +17,8 @@
 ## 项目结构
 
 - `flake.nix` 入口（inputs/nixConfig/outputs）。
-- `hosts/vars/default.nix` 参数配置（username/hostname/gpu/password hash）。
+- `hosts/nixos/<host>/vars.nix` 参数配置（username/gpu/password hash 等，NixOS 必需）。
+- `hosts/darwin/<host>/vars.nix` 参数配置（至少含 username，Darwin 必需）。
 - `hosts/outputs/` 按平台聚合 flake outputs（自动发现主机）。
 - `hosts/` 主机配置（如 `hosts/nixos/zly/{hardware.nix,disko.nix}`、`hosts/darwin/zly-mac/default.nix`）。
 - `lib/default.nix` 公共工具与系统装配入口（`nixosSystem`/`macosSystem`/`mk*Host`）。
@@ -32,8 +33,9 @@
 
 ## 关键约定
 
-- GPU 驱动配置固定来自 `hosts/vars/default.nix` 的 `gpuMode`。
-- GPU 启动菜单切换默认关闭，需在 `hosts/vars/default.nix` 中设置 `enableGpuSpecialisation = true` 才启用。
+- GPU 驱动配置固定来自 `hosts/nixos/<host>/vars.nix` 的 `gpuMode`。
+- NixOS 服务开关默认由 `hosts/nixos/<host>/vars.nix` 的 `roles` 决定（仍可用 `enable*` 显式覆盖）。
+- GPU 启动菜单切换默认关闭，需在对应主机 `vars.nix` 中设置 `enableGpuSpecialisation = true` 才启用。
 - 会话管理器为 `Niri`（`programs.niri` + `~/.wayland-session -> niri-session`）。
 - `nix/home/configs/niri/*.kdl` 为 Niri 快捷键真源，文档需保持一致。
 - `nix/home/configs/tmux/tmux.conf` 与 `nix/home/configs/zellij/config.kdl` 为终端复用器快捷键真源，文档需保持一致。
@@ -45,7 +47,7 @@
 
 ## 密码与持久化
 
-- 密码以哈希写入 `hosts/vars/default.nix` 的 `userPasswordHash` / `rootPasswordHash`。
+- 密码以哈希写入对应主机 `hosts/nixos/<host>/vars.nix` 的 `userPasswordHash` / `rootPasswordHash`。
 - 不再依赖 `/etc/*-password` 等外部密码文件；安装统一使用命令流程。
 
 ---

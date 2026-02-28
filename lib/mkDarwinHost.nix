@@ -12,7 +12,7 @@
 }:
 let
   baseSpecialArgs = genSpecialArgs system;
-  resolvedMyvars = baseSpecialArgs.myvars // { hostname = name; } // hostMyvars;
+  resolvedMyvars = hostMyvars // { hostname = name; };
   mainUser = resolvedMyvars.username;
   hasNixHomebrew = builtins.hasAttr "nix-homebrew" inputs;
   nixHomebrewTaps =
@@ -50,6 +50,7 @@ let
   };
 
   sharedDarwinDefaults = {
+    system.primaryUser = mainUser;
     homebrew = {
       enable = true;
       onActivation = {
@@ -75,6 +76,7 @@ let
     config.allowUnfree = true;
   };
 in
+assert lib.assertMsg (hostMyvars != { }) "Missing or empty hosts/darwin/${name}/vars.nix";
 {
   inherit
     name

@@ -1,9 +1,2 @@
-{ hostNames, mainUser }:
-builtins.listToAttrs (
-  map
-    (name: {
-      inherit name;
-      value = "/Users/${mainUser}";
-    })
-    hostNames
-)
+{ mainUsers }:
+builtins.mapAttrs (_host: user: "/Users/${user}") mainUsers

@@ -9,14 +9,14 @@
 
 ```bash
 just hosts
-just install-live-check host=zly
-just install-live host=zly disk=/dev/nvme0n1
-just switch host=zly
+just host=zly install-live-check
+just host=zly disk=/dev/nvme0n1 install-live
+just host=zly switch
 
-just switch host=zky
+just host=zky switch
 
-just darwin-check darwin_host=zly-mac
-just darwin-switch darwin_host=zly-mac
+just darwin_host=zly-mac darwin-check
+just darwin_host=zly-mac darwin-switch
 ```
 
 ---
@@ -49,12 +49,12 @@ NIXOS_CONFIG_REPO=/persistent/nixos-config nix run .#build
 ## Live ISO 安装（NixOS）
 
 ```bash
-just install-live-check host=zly
-just install-live host=zly disk=/dev/nvme0n1
+just host=zly install-live-check
+just host=zly disk=/dev/nvme0n1 install-live
 
 # 另一台 x86
-just install-live-check host=zky
-just install-live host=zky disk=/dev/nvme0n1
+just host=zky install-live-check
+just host=zky disk=/dev/nvme0n1 install-live
 ```
 
 如不使用 `just`，可执行等价命令：
@@ -78,21 +78,21 @@ sudo env NIXOS_DISK_DEVICE=/dev/nvme0n1 \
 ## 系统重建
 
 ```bash
-sudo nixos-rebuild switch --flake /etc/nixos#zly
-sudo nixos-rebuild boot --flake /etc/nixos#zly
-sudo nixos-rebuild test --flake /etc/nixos#zly
-sudo nixos-rebuild dry-build --flake /etc/nixos#zly
-sudo nixos-rebuild switch --flake /etc/nixos#zly |& nom
+sudo nixos-rebuild switch --flake path:/persistent/nixos-config#zly
+sudo nixos-rebuild boot --flake path:/persistent/nixos-config#zly
+sudo nixos-rebuild test --flake path:/persistent/nixos-config#zly
+sudo nixos-rebuild dry-build --flake path:/persistent/nixos-config#zly
+sudo nixos-rebuild switch --flake path:/persistent/nixos-config#zly |& nom
 ```
 
 通过 `justfile` 可切换目标 NixOS 主机（默认 `host := "zly"`）：
 
 ```bash
-just switch host=zky
-just check host=zky
+just host=zky switch
+just host=zky check
 ```
 
-说明：GPU 使用 `hosts/vars/default.nix` 中的 `gpuMode` 固定配置。
+说明：GPU 使用对应主机 `hosts/nixos/<host>/vars.nix` 中的 `gpuMode` 固定配置。
 
 ---
 
@@ -106,10 +106,12 @@ just darwin-check
 just darwin-switch
 ```
 
+说明：`darwin-check` 在 Linux 上需要可用的 `aarch64-darwin` builder；否则请在 macOS 主机执行。
+
 说明：默认使用 `justfile` 里的 `darwin_host := "zly-mac"`，可临时覆盖：
 
 ```bash
-just darwin-switch darwin_host=<host>
+just darwin_host=<host> darwin-switch
 ```
 
 说明：Darwin 侧已启用 `nix-homebrew`，`darwin-switch` 会声明式确保 Homebrew 可用，并按配置安装 casks（如 `ghostty`）。
@@ -136,12 +138,14 @@ just lint
 just dead
 just flake-check
 just check
+just eval-tests
 
 # 可选：完整系统构建验证（不切换）
 nix build path:/persistent/nixos-config#nixosConfigurations.zly.config.system.build.toplevel --no-link
 ```
 
-说明：`just check` 依赖 `sudo nixos-rebuild dry-build`。在无交互密码环境下，可先用上面的 `nix build --no-link` 作为等价构建校验。
+说明：`just check` 当前等价于 `nix build --no-link path:/persistent/nixos-config#nixosConfigurations.<host>.config.system.build.toplevel`，不依赖 `sudo`。
+说明：`just eval-tests` 会快速执行 `checks.x86_64-linux.evaltest-*` 构建校验，并对 `checks.aarch64-darwin.evaltest-*` 做纯评估（不构建）。
 
 ---
 
@@ -193,7 +197,7 @@ nix-tree /run/current-system
 本项目 Home Manager 作为 NixOS module 集成，不支持独立运行。配置更改通过 `nixos-rebuild` 统一应用：
 
 ```bash
-sudo nixos-rebuild switch --flake /etc/nixos#zly
+sudo nixos-rebuild switch --flake path:/persistent/nixos-config#zly
 ```
 
 查看 HM 世代历史（无需 `home-manager` CLI）：
@@ -223,10 +227,10 @@ mkpasswd -m sha-512
 mkpasswd -m sha-512
 ```
 
-将两次输出分别写入 `hosts/vars/default.nix` 的 `userPasswordHash` 与 `rootPasswordHash`，然后执行：
+将两次输出分别写入目标主机 `hosts/nixos/<host>/vars.nix` 的 `userPasswordHash` 与 `rootPasswordHash`，然后执行：
 
 ```bash
-sudo nixos-rebuild switch --flake /etc/nixos#zly
+sudo nixos-rebuild switch --flake path:/persistent/nixos-config#zly
 ```
 
 ---
