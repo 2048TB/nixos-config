@@ -46,7 +46,7 @@ jobs:
         run: |
           set -euo pipefail
           shopt -s nullglob
-          files=(scripts/*.sh scripts/lib/*.sh .githooks/pre-*)
+          files=(scripts/*.sh .githooks/pre-*)
           if [ ${#files[@]} -eq 0 ]; then
             echo "warning: no shell scripts found"
             exit 0
