@@ -51,5 +51,5 @@ input {
 
     // 鼠标移入时自动聚焦窗口与输出。
     // 设置 max-scroll-amount="0%" 仅对完全在屏幕内的窗口生效。
-    // focus-follows-mouse max-scroll-amount="0%"
+    focus-follows-mouse max-scroll-amount="0%"
 }
