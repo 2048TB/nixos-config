@@ -119,6 +119,10 @@ let
   ageIdentityPath = "/persistent/keys/main.agekey";
   userPasswordSecretFile = ../../secrets/passwords/user-password.age;
   rootPasswordSecretFile = ../../secrets/passwords/root-password.age;
+  githubSshPrivateSecretFile = ../../secrets/ssh/github_id_ed25519.age;
+  githubSshPublicSecretFile = ../../secrets/ssh/github_id_ed25519.pub.age;
+  hasGithubSshPrivateSecret = builtins.pathExists githubSshPrivateSecretFile;
+  hasGithubSshPublicSecret = builtins.pathExists githubSshPublicSecretFile;
   # 仅在 VPN/libvirt NAT 场景使用 loose rpfilter，其余默认严格模式。
   requiresLooseReversePath = enableMullvadVpn || enableLibvirtd;
   tuigreetPackage = pkgs.tuigreet or pkgs.greetd.tuigreet;
@@ -424,20 +428,41 @@ in
 
   age = {
     identityPaths = [ ageIdentityPath ];
-    secrets = {
-      "passwords/user" = {
-        file = userPasswordSecretFile;
-        mode = "0400";
-        owner = "root";
-        group = "root";
+    secrets =
+      {
+        "passwords/user" = {
+          file = userPasswordSecretFile;
+          mode = "0400";
+          owner = "root";
+          group = "root";
+        };
+        "passwords/root" = {
+          file = rootPasswordSecretFile;
+          mode = "0400";
+          owner = "root";
+          group = "root";
+        };
+      }
+      // lib.optionalAttrs hasGithubSshPrivateSecret {
+        "ssh/github-private" = {
+          file = githubSshPrivateSecretFile;
+          path = "${homeDir}/.ssh/id_ed25519";
+          symlink = false;
+          mode = "0400";
+          owner = mainUser;
+          group = mainUser;
+        };
+      }
+      // lib.optionalAttrs hasGithubSshPublicSecret {
+        "ssh/github-public" = {
+          file = githubSshPublicSecretFile;
+          path = "${homeDir}/.ssh/id_ed25519.pub";
+          symlink = false;
+          mode = "0644";
+          owner = mainUser;
+          group = mainUser;
+        };
       };
-      "passwords/root" = {
-        file = rootPasswordSecretFile;
-        mode = "0400";
-        owner = "root";
-        group = "root";
-      };
-    };
   };
 
   # 配合 tmpfs 根分区，用户数据库由配置统一管理，避免 passwd 修改丢失
@@ -599,6 +624,15 @@ in
   # 说明：曾出现 create-swapfile.service 与 swap.target/run-wrappers 形成 ordering cycle，
   # 导致 suid-sgid-wrappers 被跳过，进而触发 greetd 的 pam_unix helper 缺失。
   system.activationScripts = {
+    ensureUserSshDir = {
+      text = ''
+        if id -u ${mainUser} >/dev/null 2>&1; then
+          install -d -m 0700 -o ${mainUser} -g ${mainUser} ${homeDir}/.ssh
+        fi
+      '';
+      deps = [ "users" ];
+    };
+
     createSwapfileIfMissing = {
       text = ''
         if [ -d /swap ] && [ ! -f /swap/swapfile ]; then

@@ -15,6 +15,7 @@ just hooks-enable
 just agenix-init
 just password-hashes
 just password-set-hash '<sha512-hash>'
+just ssh-key-set
 just switch-local
 just check-local
 just test-local
@@ -274,6 +275,20 @@ just host=zly switch
 ```
 
 说明：当前配置 `users.mutableUsers = false`，`passwd` 的修改不会长期保留；请以 `secrets/passwords/*.age` 为准。
+
+---
+
+## SSH Key 加密（agenix）
+
+```bash
+just ssh-key-set
+```
+
+将本地 `/.keys/github_id_ed25519(.pub)` 加密写入：
+- `secrets/ssh/github_id_ed25519.age`
+- `secrets/ssh/github_id_ed25519.pub.age`
+
+系统激活时会自动下发到 `~/.ssh/id_ed25519(.pub)`（若上述 secrets 存在）。
 
 ---
 
