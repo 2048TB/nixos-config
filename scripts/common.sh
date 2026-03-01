@@ -25,7 +25,7 @@ resolve_repo_path() {
     fi
   fi
 
-  script_repo="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd -P)"
+  script_repo="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd -P)"
   if [ -f "$script_repo/flake.nix" ]; then
     printf '%s\n' "$script_repo"
     return 0
@@ -64,4 +64,19 @@ run_ssh_keygen() {
   else
     nix shell nixpkgs#openssh -c ssh-keygen "$@"
   fi
+}
+
+# Non-interactive agenix encryption: write content from a source file to an .age secret.
+# Usage: run_agenix_encrypt <content-file> <secret-rel-path> <identity-file>
+run_agenix_encrypt() {
+  local content_file="$1"
+  local secret_rel="$2"
+  local identity="$3"
+  local editor
+  editor="$(mktemp)"
+  # shellcheck disable=SC2016
+  printf '#!/bin/sh\ncp "%s" "$1"\n' "$content_file" > "$editor"
+  chmod +x "$editor"
+  EDITOR="$editor" run_agenix -e "$secret_rel" -i "$identity"
+  rm -f "$editor"
 }

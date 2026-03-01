@@ -7,6 +7,7 @@
 ## 1. 目录怎么读
 
 - `hosts/nixos/<host>/`：NixOS 主机配置
+- `hosts/nixos/_shared/`：NixOS 共享模板（`hardware-common.nix`、`disko-common.nix`、`checks.nix`）
 - `hosts/darwin/<host>/`：macOS 主机配置
 
 当前已有主机：
