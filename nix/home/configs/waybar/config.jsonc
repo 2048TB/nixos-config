@@ -18,8 +18,7 @@
     "memory",
     "custom/temperature",
     "custom/public-ip",
-    "backlight",
-    "battery",
+    @WAYBAR_DEVICE_MODULES@
     "power-profiles-daemon",
     "idle_inhibitor",
     "custom/notification",

@@ -67,6 +67,9 @@ in
     docker.rootless = {
       enable = enableDocker && useRootlessDocker;
       setSocketVariable = true;
+      daemon.settings = lib.mkIf (enableDocker && useRootlessDocker) {
+        group = mainUser;
+      };
     };
   };
 

@@ -5,7 +5,7 @@
 default:
     @just --list
 
-host := ""
+host := "zly"
 darwin_host := ""
 disk := "/dev/nvme0n1"
 repo := env_var_or_default("NIXOS_CONFIG_REPO", justfile_directory())
