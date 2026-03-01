@@ -11,6 +11,7 @@
 , specialArgs ? { }
 , expectedTrustedUsers ? [ "root" ]
 , expectedTrustedSubstituters ? null
+, expectedKvmModules ? null
 , ...
 }:
 let
@@ -95,6 +96,7 @@ let
     then "rootful"
     else "disabled";
   hasExpectedDockerMode = if expectedDockerMode == null then true else actualDockerMode == expectedDockerMode;
+  actualKvmModules = builtins.filter (m: lib.hasPrefix "kvm-" m) cfg.boot.kernelModules;
   hasMullvadVpn = cfg.services.mullvad-vpn.enable or false;
   mullvadExecStartPre = cfg.systemd.services.mullvad-daemon.serviceConfig.ExecStartPre or null;
   mullvadExecStartPrePath = if mullvadExecStartPre == null then "" else toString mullvadExecStartPre;
@@ -178,6 +180,12 @@ in
 // lib.optionalAttrs (expectedDockerMode != null) {
   "eval-${name}-docker-mode" = pkgs.runCommand "eval-${name}-docker-mode" { } ''
     test "${if hasExpectedDockerMode then "1" else "0"}" = "1"
+    touch "$out"
+  '';
+}
+// lib.optionalAttrs (expectedKvmModules != null) {
+  "eval-${name}-kvm-modules" = pkgs.runCommand "eval-${name}-kvm-modules" { } ''
+    test "${builtins.toJSON actualKvmModules}" = "${builtins.toJSON expectedKvmModules}"
     touch "$out"
   '';
 }

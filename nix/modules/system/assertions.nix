@@ -9,6 +9,11 @@ let
     "modesetting"
     "amd-nvidia-hybrid"
   ];
+  allowedCpuVendors = [
+    "auto"
+    "amd"
+    "intel"
+  ];
   knownHostRoles = [
     "desktop"
     "gaming"
@@ -47,6 +52,10 @@ in
       message = "myvars.gpuMode must be one of: auto, none, amd, amdgpu, nvidia, modesetting, amd-nvidia-hybrid.";
     }
     {
+      assertion = builtins.elem (myvars.cpuVendor or "auto") allowedCpuVendors;
+      message = "myvars.cpuVendor must be one of: auto, amd, intel.";
+    }
+    {
       assertion = builtins.pathExists userPasswordSecretFile;
       message = "Missing secrets/passwords/user-password.age. Use agenix to create/update it.";
     }
@@ -57,11 +66,11 @@ in
     {
       assertion =
         (!enableHibernate)
-        || (
+          || (
           myvars ? resumeOffset
-          && myvars.resumeOffset != null
-          && builtins.isInt myvars.resumeOffset
-          && myvars.resumeOffset > 0
+            && myvars.resumeOffset != null
+            && builtins.isInt myvars.resumeOffset
+            && myvars.resumeOffset > 0
         );
       message = "When myvars.enableHibernate=true, set a positive integer myvars.resumeOffset (btrfs inspect-internal map-swapfile -r /swap/swapfile).";
     }

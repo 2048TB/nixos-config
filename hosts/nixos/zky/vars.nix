@@ -22,6 +22,7 @@
   journaldRuntimeMaxUse = "256M";
 
   # Hardware
+  cpuVendor = "amd";
   gpuMode = "amd";
   enableGpuSpecialisation = false;
   enableBluetoothRfkillUnblock = false;

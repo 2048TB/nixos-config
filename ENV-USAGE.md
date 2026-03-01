@@ -155,6 +155,8 @@ nix run .#build-switch
 DARWIN_HOST=zly-mac nix run .#build-switch
 ```
 
+说明：`build-switch` 会先执行 build/check，再执行 switch，避免直接切换未通过构建检查的配置。
+
 ---
 
 ## 4. 新手常见报错

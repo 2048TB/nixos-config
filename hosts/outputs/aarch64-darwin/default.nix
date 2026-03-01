@@ -82,6 +82,7 @@ let
     build-switch = mkApp "build-switch" "Build and switch Darwin host configuration" ''
       ${appRepoPreamble}
       ${resolveDarwinHostStrict}
+      ${pkgs.just}/bin/just darwin_host="$host" darwin-check
       exec ${pkgs.just}/bin/just darwin_host="$host" darwin-switch
     '';
     build = mkApp "build" "Build Darwin host configuration without switching" ''
