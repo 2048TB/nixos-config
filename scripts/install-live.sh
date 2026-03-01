@@ -57,19 +57,7 @@ sudo env NIXOS_DISK_DEVICE="$disk" "$disko_script"
 findmnt /mnt/boot
 findmnt /mnt/persistent
 
-# 3. Sync repo to target
-sudo rm -rf /mnt/persistent/nixos-config
-sudo mkdir -p /mnt/persistent/nixos-config
-if command -v rsync >/dev/null 2>&1; then
-  sudo rsync -a --delete --exclude='.git' --exclude="$key_dir_rel" "$repo/" /mnt/persistent/nixos-config/
-else
-  echo "warning: rsync not found, fallback to cp -a (temporary .git copy will be removed)"
-  sudo cp -a "$repo/." /mnt/persistent/nixos-config/
-  sudo rm -rf /mnt/persistent/nixos-config/.git
-  sudo rm -rf "/mnt/persistent/nixos-config/$key_dir_rel"
-fi
-
-# 4. Install agenix key
+# 3. Install agenix key
 age_key_src="$repo/$age_key_rel"
 if [ -f "$age_key_src" ]; then
   sudo install -D -m 0400 -o root -g root "$age_key_src" /mnt/persistent/keys/main.agekey
@@ -80,8 +68,42 @@ else
   exit 1
 fi
 
-# 5. Run nixos-install
-sudo env NIXOS_DISK_DEVICE="$disk" nixos-install --impure --flake "/mnt/persistent/nixos-config#$host"
+# 4. Run nixos-install (from source repo)
+sudo env NIXOS_DISK_DEVICE="$disk" nixos-install --impure --flake "path:${repo}#$host"
+
+# 5. Sync flake into target /persistent/nixos-config (atomic replace)
+TARGET_FLAKE_DIR="/mnt/persistent/nixos-config"
+TARGET_FLAKE_TMP="${TARGET_FLAKE_DIR}.tmp.$$"
+if ! sudo findmnt /mnt/persistent >/dev/null 2>&1; then
+  echo "error: /mnt/persistent is not mounted. refusing to sync flake" >&2
+  exit 1
+fi
+
+sudo rm -rf "$TARGET_FLAKE_TMP"
+sudo mkdir -p "$TARGET_FLAKE_TMP"
+sudo cp -a "$repo/." "$TARGET_FLAKE_TMP/"
+if [ ! -f "$TARGET_FLAKE_TMP/flake.nix" ]; then
+  echo "error: synced target flake is incomplete: missing flake.nix" >&2
+  exit 1
+fi
+
+target_owner="1000:1000"
+if sudo test -f /mnt/etc/passwd; then
+  target_owner="$(sudo awk -F: '$3 >= 1000 && $3 < 60000 {print $3 ":" $4; exit}' /mnt/etc/passwd || true)"
+  if [ -z "$target_owner" ]; then
+    target_owner="1000:1000"
+  fi
+fi
+sudo chown -R "$target_owner" "$TARGET_FLAKE_TMP"
+sudo rm -rf "$TARGET_FLAKE_DIR"
+sudo mv "$TARGET_FLAKE_TMP" "$TARGET_FLAKE_DIR"
+
+# 6. Ensure target /etc/nixos points to persistent repo
+sudo rm -rf /mnt/etc/nixos
+sudo ln -sfn /persistent/nixos-config /mnt/etc/nixos
+
+# 7. Verify target flake (dry-build)
+sudo nixos-rebuild dry-build --flake /mnt/persistent/nixos-config#"$host"
 
 echo ">>> github ssh key will be provisioned by agenix secrets on first boot/switch (if configured)"
 echo "done: reboot, then run: just host=$host switch"
