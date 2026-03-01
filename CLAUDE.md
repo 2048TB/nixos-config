@@ -22,7 +22,7 @@
 - `hosts/darwin/<host>/vars.nix` 参数配置（至少含 username，Darwin 必需）。
 - `hosts/outputs/` 按平台聚合 flake outputs（自动发现主机）。
 - `hosts/` 主机配置（如 `hosts/nixos/zly/{hardware.nix,disko.nix}`、`hosts/darwin/zly-mac/default.nix`）。
-- `scripts/resolve-host.sh` 主机自动解析（`NIXOS_HOST`/`DARWIN_HOST` > hostname > fallback）。
+- `scripts/resolve-host.sh` 主机自动解析（`NIXOS_HOST`/`DARWIN_HOST` > hostname > fallback，不可用时自动选可用主机）。
 - `scripts/new-host.sh` 主机脚手架（复制模板主机生成新目录）。
 - `lib/default.nix` 公共工具与系统装配入口（`nixosSystem`/`macosSystem`/`mk*Host`）。
 - `apps/README.md` flake apps 入口说明（`nix run .#build-switch` 等）。
@@ -47,6 +47,7 @@
 - 安装流程若依赖 `NIXOS_DISK_DEVICE` 覆盖目标盘，`nixos-install` 需使用 `--impure`。
 - 管理入口同时支持 `just` 与 flake `apps`（`nix run .#<app>`）。
 - 日常优先使用：`just switch-local` / `just check-local` / `just test-local` / `just darwin-*-local`。
+- 主机脚手架支持预览与强制覆盖：`just new-*-host-dry-run` / `just new-*-host-force`。
 
 ---
 
