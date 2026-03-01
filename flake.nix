@@ -2,14 +2,7 @@
   description = "Lean multi-host NixOS + nix-darwin + home-manager flake";
 
   # 仅影响 flake 自身（如 nix flake check / CI），不直接修改系统级 nix.conf。
-  nixConfig = {
-    # 默认留空，避免在 accept-flake-config = false 时引入交互确认或行为漂移。
-    # 如需启用 flake 级缓存，可按需填入：
-    # extra-substituters = [ "https://nix-community.cachix.org" ... ];
-    # extra-trusted-public-keys = [ "nix-community.cachix.org-1:..." ... ];
-    extra-substituters = [ ];
-    extra-trusted-public-keys = [ ];
-  };
+  nixConfig = { };
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-25.11";
