@@ -1,4 +1,4 @@
-{ mainUser, ... }:
+_:
 let
   hostname = "zly-mac";
 in
@@ -12,9 +12,6 @@ in
   homebrew = {
     casks = [ "ghostty" ];
   };
-
-  home-manager.users.${mainUser}.programs.ssh.matchBlocks."github.com".identityFile =
-    "/Users/${mainUser}/.ssh/zly-mac";
 
   system.stateVersion = 6;
 }

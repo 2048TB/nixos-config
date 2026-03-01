@@ -11,6 +11,17 @@
 , ...
 }:
 let
+  hostDir = "hosts/darwin/${name}";
+  hostModulesPath = mylib.relativeToRoot "${hostDir}/modules";
+  hostHomePath = mylib.relativeToRoot "${hostDir}/home.nix";
+  hostHomeModulesPath = mylib.relativeToRoot "${hostDir}/home-modules";
+  discoveredHostModules =
+    lib.optionals (builtins.pathExists hostModulesPath) (mylib.scanPaths hostModulesPath);
+  discoveredHostHomeModules =
+    (lib.optionals (builtins.pathExists hostHomePath) [ hostHomePath ])
+    ++ (lib.optionals (builtins.pathExists hostHomeModulesPath) (mylib.scanPaths hostHomeModulesPath));
+  resolvedHomeModules = homeModules ++ discoveredHostHomeModules;
+
   baseSpecialArgs = genSpecialArgs system;
   resolvedMyvars = hostMyvars // { hostname = name; };
   mainUser = resolvedMyvars.username;
@@ -49,17 +60,25 @@ let
     inherit mainUser;
   };
 
-  sharedDarwinDefaults = {
-    system.primaryUser = mainUser;
-    homebrew = {
-      enable = true;
-      onActivation = {
-        autoUpdate = false;
-        upgrade = false;
-        cleanup = "none";
+  sharedDarwinDefaults =
+    { pkgs, ... }:
+    {
+      system.primaryUser = mainUser;
+
+      # Keep login shell declarative and ensure zsh is listed in /etc/shells.
+      programs.zsh.enable = true;
+      users.users.${mainUser}.shell = lib.mkDefault pkgs.zsh;
+      environment.shells = lib.mkDefault [ pkgs.zsh ];
+
+      homebrew = {
+        enable = true;
+        onActivation = {
+          autoUpdate = false;
+          upgrade = false;
+          cleanup = "none";
+        };
       };
     };
-  };
 
   darwinSystem = mylib.macosSystem {
     inherit inputs system mainUser specialArgs;
@@ -67,8 +86,9 @@ let
       darwinBootstrapModules
       ++ [ sharedDarwinDefaults ]
       ++ lib.optionals (hostPath != null) [ hostPath ]
+      ++ discoveredHostModules
       ++ extraModules;
-    inherit homeModules;
+    homeModules = resolvedHomeModules;
   };
 
   pkgs = import inputs.nixpkgs-darwin {

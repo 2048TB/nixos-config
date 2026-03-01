@@ -1,6 +1,9 @@
-{ lib, pkgs, mainUser, ... }:
+{ lib, pkgs, mainUser, myvars, ... }:
 let
   homeDir = "/Users/${mainUser}";
+  localBinDir = "${homeDir}/.local/bin";
+  localShareDir = "${homeDir}/.local/share";
+  brewPath = "/opt/homebrew/bin:/usr/local/bin";
   sharedNames = [
     "git"
     "gh"
@@ -73,14 +76,40 @@ in
   ];
 
   home = {
-    enableNixpkgsReleaseCheck = false;
+    enableNixpkgsReleaseCheck = myvars.enableHmReleaseCheck or true;
     username = mainUser;
     homeDirectory = homeDir;
-    stateVersion = "25.11";
+    stateVersion = myvars.homeStateVersion or "25.11";
+
+    sessionVariables = {
+      NPM_CONFIG_PREFIX = "${homeDir}/.npm-global";
+      BUN_INSTALL = "${homeDir}/.bun";
+      BUN_INSTALL_BIN = "${homeDir}/.bun/bin";
+      BUN_INSTALL_GLOBAL_DIR = "${homeDir}/.bun/install/global";
+      BUN_INSTALL_CACHE_DIR = "${homeDir}/.bun/install/cache";
+      UV_TOOL_DIR = "${localShareDir}/uv/tools";
+      UV_TOOL_BIN_DIR = "${localShareDir}/uv/bin";
+      UV_PYTHON_DOWNLOADS = "never";
+      CARGO_HOME = "${homeDir}/.cargo";
+      GOPATH = "${homeDir}/go";
+      GOBIN = "${homeDir}/go/bin";
+      PYTHONUSERBASE = "${homeDir}/.local";
+      PIPX_HOME = "${localShareDir}/pipx";
+      PIPX_BIN_DIR = "${localShareDir}/pipx/bin";
+    };
 
     sessionPath = [
-      "${homeDir}/.local/bin"
+      "/opt/homebrew/bin"
+      "/usr/local/bin"
+      "${homeDir}/.npm-global/bin"
+      "${homeDir}/tools"
+      "${homeDir}/.bun/bin"
       "${homeDir}/.cargo/bin"
+      "${homeDir}/go/bin"
+      "${localShareDir}/pnpm/bin"
+      "${localShareDir}/pipx/bin"
+      "${localShareDir}/uv/bin"
+      localBinDir
     ];
 
     inherit (packageSelection) packages;
@@ -105,7 +134,17 @@ in
       enableCompletion = true;
       autosuggestion.enable = true;
       syntaxHighlighting.enable = true;
+      envExtra = ''
+        export PATH="$PATH:${brewPath}"
+      '';
       initContent = builtins.readFile ../configs/shell/zshrc;
+    };
+
+    bash = {
+      enable = true;
+      bashrcExtra = ''
+        export PATH="$PATH:${brewPath}"
+      '';
     };
 
     vim = {

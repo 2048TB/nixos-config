@@ -20,6 +20,22 @@ in
     touch "$out"
   '';
 
+  "eval-${name}-user-shell-zsh" = pkgs.runCommand "eval-${name}-user-shell-zsh" { } ''
+    test "${if cfg.users.users.${mainUser}.shell == pkgs.zsh then "1" else "0"}" = "1"
+    touch "$out"
+  '';
+
+  "eval-${name}-hm-zsh-enabled" = pkgs.runCommand "eval-${name}-hm-zsh-enabled" { } ''
+    test "${if hmCfg.programs.zsh.enable then "1" else "0"}" = "1"
+    touch "$out"
+  '';
+
+  "eval-${name}-hm-shell-env" = pkgs.runCommand "eval-${name}-hm-shell-env" { } ''
+    test "${if hmCfg.home.sessionVariables ? BUN_INSTALL then "1" else "0"}" = "1"
+    test "${if hmCfg.home.sessionVariables ? GOPATH then "1" else "0"}" = "1"
+    touch "$out"
+  '';
+
   "eval-${name}-ghostty-cask" = pkgs.runCommand "eval-${name}-ghostty-cask" { } ''
     test "${if builtins.elem "ghostty" cfg.homebrew.casks then "1" else "0"}" = "1"
     touch "$out"

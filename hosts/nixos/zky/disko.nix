@@ -2,7 +2,7 @@
 {
   disko.devices = {
     disk = {
-      disk0 = {
+      main = {
         type = "disk";
         device = myvars.diskDevice;
         content = {

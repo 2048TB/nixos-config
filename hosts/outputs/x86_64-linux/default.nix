@@ -70,7 +70,8 @@ let
         repo="/persistent/nixos-config"
       fi
       cd "$repo"
-      exec ${pkgs.just}/bin/just host="''${NIXOS_HOST:-zly}" switch
+      host="$("$repo/scripts/resolve-host.sh" nixos "$repo" "zly")"
+      exec ${pkgs.just}/bin/just host="$host" switch
     '';
     build-switch = mkApp "build-switch" "Build and switch Linux host configuration" ''
       set -euo pipefail
@@ -79,7 +80,8 @@ let
         repo="/persistent/nixos-config"
       fi
       cd "$repo"
-      exec ${pkgs.just}/bin/just host="''${NIXOS_HOST:-zly}" switch
+      host="$("$repo/scripts/resolve-host.sh" nixos "$repo" "zly")"
+      exec ${pkgs.just}/bin/just host="$host" switch
     '';
     build = mkApp "build" "Dry-build Linux host configuration" ''
       set -euo pipefail
@@ -88,7 +90,8 @@ let
         repo="/persistent/nixos-config"
       fi
       cd "$repo"
-      exec ${pkgs.just}/bin/just host="''${NIXOS_HOST:-zly}" check
+      host="$("$repo/scripts/resolve-host.sh" nixos "$repo" "zly")"
+      exec ${pkgs.just}/bin/just host="$host" check
     '';
     install = mkApp "install" "Install Linux host on Live ISO with disko+nixos-install" ''
       set -euo pipefail
@@ -97,7 +100,8 @@ let
         repo="/persistent/nixos-config"
       fi
       cd "$repo"
-      exec ${pkgs.just}/bin/just host="''${NIXOS_HOST:-zly}" disk="''${NIXOS_DISK_DEVICE:-/dev/nvme0n1}" install-live
+      host="$("$repo/scripts/resolve-host.sh" nixos "$repo" "zly")"
+      exec ${pkgs.just}/bin/just host="$host" disk="''${NIXOS_DISK_DEVICE:-/dev/nvme0n1}" install-live
     '';
     clean = mkApp "clean" "Clean old generations" ''
       set -euo pipefail

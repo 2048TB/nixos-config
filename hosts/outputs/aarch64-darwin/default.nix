@@ -67,7 +67,8 @@ let
         repo="/persistent/nixos-config"
       fi
       cd "$repo"
-      exec ${pkgs.just}/bin/just darwin_host="''${DARWIN_HOST:-zly-mac}" darwin-switch
+      host="$("$repo/scripts/resolve-host.sh" darwin "$repo" "zly-mac")"
+      exec ${pkgs.just}/bin/just darwin_host="$host" darwin-switch
     '';
     build-switch = mkApp "build-switch" "Build and switch Darwin host configuration" ''
       set -euo pipefail
@@ -76,7 +77,8 @@ let
         repo="/persistent/nixos-config"
       fi
       cd "$repo"
-      exec ${pkgs.just}/bin/just darwin_host="''${DARWIN_HOST:-zly-mac}" darwin-switch
+      host="$("$repo/scripts/resolve-host.sh" darwin "$repo" "zly-mac")"
+      exec ${pkgs.just}/bin/just darwin_host="$host" darwin-switch
     '';
     build = mkApp "build" "Build Darwin host configuration without switching" ''
       set -euo pipefail
@@ -85,7 +87,8 @@ let
         repo="/persistent/nixos-config"
       fi
       cd "$repo"
-      exec ${pkgs.just}/bin/just darwin_host="''${DARWIN_HOST:-zly-mac}" darwin-check
+      host="$("$repo/scripts/resolve-host.sh" darwin "$repo" "zly-mac")"
+      exec ${pkgs.just}/bin/just darwin_host="$host" darwin-check
     '';
     clean = mkApp "clean" "Clean old generations" ''
       set -euo pipefail

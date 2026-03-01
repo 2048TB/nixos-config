@@ -77,7 +77,7 @@ let
                 home = {
                   username = lib.mkDefault mainUser;
                   homeDirectory = lib.mkDefault "/Users/${mainUser}";
-                  stateVersion = lib.mkDefault "25.11";
+                  stateVersion = lib.mkDefault (specialArgs.myvars.homeStateVersion or "25.11");
                 };
               };
             };
@@ -99,7 +99,10 @@ in
         lib.attrsets.filterAttrs
           (
             name: type:
-            (type == "directory")
+            (
+              type == "directory"
+              && builtins.pathExists (path + "/${name}/default.nix")
+            )
             || (
               name != "default.nix"
               && lib.strings.hasSuffix ".nix" name

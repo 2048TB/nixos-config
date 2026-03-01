@@ -282,15 +282,15 @@ in
       experimental-features = [ "nix-command" "flakes" ];
 
       # 配置二进制缓存以加速包下载
-      substituters = cacheSubstituters;
+      substituters = lib.mkForce (lib.unique ([ "https://cache.nixos.org" ] ++ cacheSubstituters));
 
-      trusted-public-keys = [
+      trusted-public-keys = lib.mkForce (lib.unique ([
         "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
-      ] ++ cacheTrustedPublicKeys;
+      ] ++ cacheTrustedPublicKeys));
 
-      # 仅额外信任主用户，避免放开到整个 wheel 组。
-      # 用于允许 flake 提供受限 nix 配置（如 trusted-public-keys）。
-      trusted-users = lib.mkForce [ "root" mainUser ];
+      # 仅信任 root，避免放开到普通用户或 wheel 组。
+      # 用于限制可提升 Nix 守护进程权限的主体范围。
+      trusted-users = lib.mkForce [ "root" ];
 
       # 默认拒绝 flake 内嵌 nixConfig，按需在命令行显式 `--accept-flake-config`。
       accept-flake-config = false;
