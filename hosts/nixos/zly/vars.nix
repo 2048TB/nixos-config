@@ -25,7 +25,7 @@
   cpuVendor = "amd";
   gpuMode = "amd-nvidia-hybrid";
   enableGpuSpecialisation = false;
-  enableBluetoothRfkillUnblock = false;
+  enableBluetoothRfkillUnblock = true;
   enableAggressiveApparmorKill = false;
   dockerMode = "rootless";
   enableWaybarBacklight = false;

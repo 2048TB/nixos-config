@@ -72,15 +72,15 @@ in
     power-profiles-daemon.enable = true;
   };
 
-  # 兜底解除 rfkill soft block：避免蓝牙控制器在桌面会话中无法正常启用
+  # 兜底解除 rfkill soft block：避免蓝牙控制器在启动期无法上电。
   systemd.services.unblock-bluetooth-rfkill = lib.mkIf enableBluetoothRfkillUnblock {
     description = "Unblock Bluetooth rfkill state";
     wantedBy = [ "multi-user.target" ];
+    before = [ "bluetooth.service" ];
     after = [
       "systemd-rfkill.service"
-      "bluetooth.service"
     ];
-    wants = [ "bluetooth.service" ];
+    wants = [ "systemd-rfkill.service" ];
     serviceConfig = {
       Type = "oneshot";
       ExecStart = "${pkgs.util-linux}/bin/rfkill unblock bluetooth";
