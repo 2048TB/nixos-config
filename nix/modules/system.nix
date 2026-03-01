@@ -557,6 +557,11 @@ in
   # 说明：曾出现 create-swapfile.service 与 swap.target/run-wrappers 形成 ordering cycle，
   # 导致 suid-sgid-wrappers 被跳过，进而触发 greetd 的 pam_unix helper 缺失。
   system.activationScripts = {
+    # 确保在 agenix 生成与解密阶段前已准备好 identity key。
+    # 避免首次/迁移时出现 "no readable identities found"。
+    agenixNewGeneration.deps = lib.mkAfter [ "agenixKeyBootstrap" ];
+    agenixInstall.deps = lib.mkAfter [ "agenixKeyBootstrap" ];
+
     agenixKeyBootstrap = {
       text = ''
         target_key="${agenixMainKeyPath}"
