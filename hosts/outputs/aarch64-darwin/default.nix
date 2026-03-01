@@ -68,15 +68,16 @@ let
     cd "$repo"
   '';
   resolveDarwinHost = ''host="$("$repo/scripts/resolve-host.sh" darwin "$repo" "zly-mac")"'';
+  resolveDarwinHostStrict = ''host="$("$repo/scripts/resolve-host.sh" darwin "$repo" "zly-mac" --strict)"'';
   platformApps.${system} = {
     apply = mkApp "apply" "Apply Darwin host configuration (switch)" ''
       ${appRepoPreamble}
-      ${resolveDarwinHost}
+      ${resolveDarwinHostStrict}
       exec ${pkgs.just}/bin/just darwin_host="$host" darwin-switch
     '';
     build-switch = mkApp "build-switch" "Build and switch Darwin host configuration" ''
       ${appRepoPreamble}
-      ${resolveDarwinHost}
+      ${resolveDarwinHostStrict}
       exec ${pkgs.just}/bin/just darwin_host="$host" darwin-switch
     '';
     build = mkApp "build" "Build Darwin host configuration without switching" ''

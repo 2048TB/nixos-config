@@ -71,15 +71,16 @@ let
     cd "$repo"
   '';
   resolveNixosHost = ''host="$("$repo/scripts/resolve-host.sh" nixos "$repo" "zly")"'';
+  resolveNixosHostStrict = ''host="$("$repo/scripts/resolve-host.sh" nixos "$repo" "zly" --strict)"'';
   platformApps.${system} = {
     apply = mkApp "apply" "Apply Linux host configuration (switch)" ''
       ${appRepoPreamble}
-      ${resolveNixosHost}
+      ${resolveNixosHostStrict}
       exec ${pkgs.just}/bin/just host="$host" switch
     '';
     build-switch = mkApp "build-switch" "Build and switch Linux host configuration" ''
       ${appRepoPreamble}
-      ${resolveNixosHost}
+      ${resolveNixosHostStrict}
       exec ${pkgs.just}/bin/just host="$host" switch
     '';
     build = mkApp "build" "Dry-build Linux host configuration" ''
@@ -89,7 +90,7 @@ let
     '';
     install = mkApp "install" "Install Linux host on Live ISO with disko+nixos-install" ''
       ${appRepoPreamble}
-      ${resolveNixosHost}
+      ${resolveNixosHostStrict}
       exec ${pkgs.just}/bin/just host="$host" disk="''${NIXOS_DISK_DEVICE:-/dev/nvme0n1}" install-live
     '';
     clean = mkApp "clean" "Clean old generations" ''

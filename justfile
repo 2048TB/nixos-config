@@ -40,18 +40,32 @@ new-darwin-host-force name from="zly-mac":
 install-live-check:
     nix build --no-link .#nixosConfigurations.{{host}}.config.system.build.toplevel
 
+# Live ISO 本机自动识别主机后执行安装前构建校验（严格模式：不允许 fallback）
+install-live-check-local:
+    host="$({{repo}}/scripts/resolve-host.sh nixos {{repo}} {{host}} --strict)"; echo ">>> host=$host"; just host="$host" install-live-check
+
 # Live ISO 一键安装（危险：会清空 {{disk}}，并同步仓库到 /mnt/persistent/nixos-config）
 install-live:
     @echo ">>> host={{host}} disk={{disk}}"
-    sudo env NIXOS_DISK_DEVICE={{disk}} nix --extra-experimental-features "nix-command flakes" \
-      run github:nix-community/disko -- --mode disko --flake .#{{host}}
+    disko_script="$(env NIXOS_DISK_DEVICE={{disk}} nix build --impure --no-link --print-out-paths path:{{repo}}#nixosConfigurations.{{host}}.config.system.build.diskoScript)"; \
+      echo ">>> disko_script=$disko_script"; \
+      sudo env NIXOS_DISK_DEVICE={{disk}} "$disko_script"
     findmnt /mnt/boot
     findmnt /mnt/persistent
     sudo rm -rf /mnt/persistent/nixos-config
     sudo mkdir -p /mnt/persistent/nixos-config
-    sudo cp -a ./. /mnt/persistent/nixos-config/
+    if command -v rsync >/dev/null 2>&1; then \
+      sudo rsync -a --delete --exclude='.git' {{repo}}/ /mnt/persistent/nixos-config/; \
+    else \
+      echo "warning: rsync not found, fallback to cp -a (will include .git)"; \
+      sudo cp -a {{repo}}/. /mnt/persistent/nixos-config/; \
+    fi
     sudo env NIXOS_DISK_DEVICE={{disk}} nixos-install --impure --flake /mnt/persistent/nixos-config#{{host}}
     @echo "✓ 安装完成，重启后执行：just host={{host}} switch"
+
+# Live ISO 本机自动识别主机后一键安装（严格模式：不允许 fallback）
+install-live-local:
+    host="$({{repo}}/scripts/resolve-host.sh nixos {{repo}} {{host}} --strict)"; echo ">>> host=$host disk={{disk}}"; just host="$host" disk="{{disk}}" install-live
 
 # 应用配置并立即切换（常用）
 switch:

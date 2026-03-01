@@ -28,3 +28,4 @@
 - 实现位于各平台 `hosts/outputs/<system>/default.nix`，底层复用仓库 `just` 命令。
 - 主机选择优先级：环境变量（`NIXOS_HOST` / `DARWIN_HOST`）> 当前 hostname 自动匹配 > 默认回退主机。
 - 若默认回退主机不可用，会自动选择仓库内第一个可用主机并输出 warning。
+- 其中 `apply` / `build-switch` / `install` 使用 strict 主机解析：仅允许环境变量或 hostname 命中，未命中直接失败（不做 fallback）。
