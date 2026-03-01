@@ -9,12 +9,19 @@
 
 ```bash
 just hosts
+just new-nixos-host devbox
+just new-darwin-host mac-mini
+just switch-local
+just check-local
+just test-local
 just host=zly install-live-check
 just host=zly disk=/dev/nvme0n1 install-live
 just host=zly switch
 
 just host=zky switch
 
+just darwin-check-local
+just darwin-switch-local
 just darwin_host=zly-mac darwin-check
 just darwin_host=zly-mac darwin-switch
 ```
@@ -25,6 +32,7 @@ just darwin_host=zly-mac darwin-switch
 
 ```bash
 # Linux: 构建检查 / 切换 / 安装 / 清理
+# 默认自动按 hostname 解析主机
 nix run .#build
 nix run .#build-switch
 nix run .#install
@@ -42,6 +50,20 @@ NIXOS_HOST=zky nix run .#build-switch
 NIXOS_DISK_DEVICE=/dev/nvme0n1 nix run .#install
 DARWIN_HOST=zly-mac nix run .#build-switch
 NIXOS_CONFIG_REPO=/persistent/nixos-config nix run .#build
+```
+
+说明：自动主机解析由 `scripts/resolve-host.sh` 处理，优先级为：
+`NIXOS_HOST` / `DARWIN_HOST` > 当前 hostname > 回退默认主机。
+
+新增主机脚手架由 `scripts/new-host.sh` 处理：
+- 默认从 `zly`（NixOS）或 `zly-mac`（Darwin）复制结构与校验文件。
+- 可通过 `just new-*-host <host> <from-host>` 指定模板主机。
+
+直接调用脚本（不经过 `just`）：
+
+```bash
+./scripts/new-host.sh nixos devbox --from zly --repo /persistent/nixos-config
+./scripts/new-host.sh darwin macbook --from zly-mac --repo /persistent/nixos-config
 ```
 
 ---
