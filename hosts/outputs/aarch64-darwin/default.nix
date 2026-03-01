@@ -46,9 +46,12 @@ let
   hostnameExpected = import ./tests/hostname/expected.nix { hostNames = resolvedHostNames; };
   homeExpr = import ./tests/home/expr.nix { inherit lib darwinConfigurations; };
   homeExpected = import ./tests/home/expected.nix { inherit mainUsers; };
+  platformExpr = import ./tests/platform/expr.nix { inherit lib darwinConfigurations; };
+  platformExpected = import ./tests/platform/expected.nix { inherit system; hostNames = resolvedHostNames; };
   hostEvalTests = {
     hostname = hostnameExpr == hostnameExpected;
     home = homeExpr == homeExpected;
+    platform = platformExpr == platformExpected;
   };
   pkgs = import inputs.nixpkgs-darwin {
     inherit system;
@@ -62,12 +65,13 @@ let
   appRepoPreamble = ''
     set -euo pipefail
     repo="''${NIXOS_CONFIG_REPO:-$PWD}"
-    if [ ! -f "$repo/flake.nix" ] && [ -f "/persistent/nixos-config/flake.nix" ]; then
-      repo="/persistent/nixos-config"
+    if [ ! -f "$repo/flake.nix" ]; then
+      echo "error: flake.nix not found in repo: $repo" >&2
+      echo "hint: run from repo root or set NIXOS_CONFIG_REPO" >&2
+      exit 1
     fi
     cd "$repo"
   '';
-  resolveDarwinHost = ''host="$("$repo/scripts/resolve-host.sh" darwin "$repo" "zly-mac")"'';
   resolveDarwinHostStrict = ''host="$("$repo/scripts/resolve-host.sh" darwin "$repo" "zly-mac" --strict)"'';
   platformApps.${system} = {
     apply = mkApp "apply" "Apply Darwin host configuration (switch)" ''
@@ -82,7 +86,7 @@ let
     '';
     build = mkApp "build" "Build Darwin host configuration without switching" ''
       ${appRepoPreamble}
-      ${resolveDarwinHost}
+      ${resolveDarwinHostStrict}
       exec ${pkgs.just}/bin/just darwin_host="$host" darwin-check
     '';
     clean = mkApp "clean" "Clean old generations" ''
@@ -101,6 +105,13 @@ let
     evaltest-darwin-home = pkgs.runCommand "evaltest-darwin-home" { } ''
       if [ "${if hostEvalTests.home then "1" else "0"}" != "1" ]; then
         echo "darwin home eval test failed" >&2
+        exit 1
+      fi
+      touch "$out"
+    '';
+    evaltest-darwin-platform = pkgs.runCommand "evaltest-darwin-platform" { } ''
+      if [ "${if hostEvalTests.platform then "1" else "0"}" != "1" ]; then
+        echo "darwin platform eval test failed" >&2
         exit 1
       fi
       touch "$out"

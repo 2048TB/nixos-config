@@ -6,6 +6,11 @@
 , expectedVideoDrivers ? null
 , expectedResumeOffset ? null
 , expectedHostProfile ? name
+, expectedAcceptFlakeConfig ? false
+, expectedDockerMode ? null
+, specialArgs ? { }
+, expectedTrustedUsers ? [ "root" ]
+, expectedTrustedSubstituters ? null
 , ...
 }:
 let
@@ -64,6 +69,32 @@ let
     if expectedResumeOffset == null then null else "resume_offset=${toString expectedResumeOffset}";
   hasExpectedResumeKernelParam =
     if expectedResumeKernelParam == null then true else builtins.elem expectedResumeKernelParam cfg.boot.kernelParams;
+  hasExpectedAcceptFlakeConfig =
+    (cfg.nix.settings.accept-flake-config or false) == expectedAcceptFlakeConfig;
+  resolvedExpectedTrustedSubstituters =
+    if expectedTrustedSubstituters != null then
+      expectedTrustedSubstituters
+    else if specialArgs ? binaryCaches then
+      specialArgs.binaryCaches.substituters
+    else
+      null;
+  sortedTrustedUsers = builtins.sort builtins.lessThan (cfg.nix.settings.trusted-users or [ ]);
+  sortedExpectedTrustedUsers = builtins.sort builtins.lessThan expectedTrustedUsers;
+  hasExpectedTrustedUsers = sortedTrustedUsers == sortedExpectedTrustedUsers;
+  sortedTrustedSubstituters = builtins.sort builtins.lessThan (cfg.nix.settings.trusted-substituters or [ ]);
+  sortedExpectedTrustedSubstituters =
+    if resolvedExpectedTrustedSubstituters == null then [ ]
+    else builtins.sort builtins.lessThan resolvedExpectedTrustedSubstituters;
+  hasExpectedTrustedSubstituters =
+    if resolvedExpectedTrustedSubstituters == null then true
+    else sortedTrustedSubstituters == sortedExpectedTrustedSubstituters;
+  actualDockerMode =
+    if (cfg.virtualisation.docker.rootless.enable or false)
+    then "rootless"
+    else if (cfg.virtualisation.docker.enable or false)
+    then "rootful"
+    else "disabled";
+  hasExpectedDockerMode = if expectedDockerMode == null then true else actualDockerMode == expectedDockerMode;
   hasProvider appVpn = cfg.services.provider-app-vpn.enable or false;
   provider-appExecStartPre = cfg.systemd.services.provider-app-daemon.serviceConfig.ExecStartPre or null;
   provider-appExecStartPrePath = if provider-appExecStartPre == null then "" else toString provider-appExecStartPre;
@@ -90,6 +121,21 @@ in
 
   "eval-${name}-host-profile" = pkgs.runCommand "eval-${name}-host-profile" { } ''
     test "${hmCfg.home.sessionVariables.HOST_PROFILE or ""}" = "${expectedHostProfile}"
+    touch "$out"
+  '';
+
+  "eval-${name}-accept-flake-config" = pkgs.runCommand "eval-${name}-accept-flake-config" { } ''
+    test "${if hasExpectedAcceptFlakeConfig then "1" else "0"}" = "1"
+    touch "$out"
+  '';
+
+  "eval-${name}-trusted-users" = pkgs.runCommand "eval-${name}-trusted-users" { } ''
+    test "${if hasExpectedTrustedUsers then "1" else "0"}" = "1"
+    touch "$out"
+  '';
+
+  "eval-${name}-trusted-substituters" = pkgs.runCommand "eval-${name}-trusted-substituters" { } ''
+    test "${if hasExpectedTrustedSubstituters then "1" else "0"}" = "1"
     touch "$out"
   '';
 
@@ -126,6 +172,12 @@ in
 // lib.optionalAttrs (expectedVideoDrivers != null) {
   "eval-${name}-video-drivers" = pkgs.runCommand "eval-${name}-video-drivers" { } ''
     test "${builtins.toJSON cfg.services.xserver.videoDrivers}" = "${builtins.toJSON expectedVideoDrivers}"
+    touch "$out"
+  '';
+}
+// lib.optionalAttrs (expectedDockerMode != null) {
+  "eval-${name}-docker-mode" = pkgs.runCommand "eval-${name}-docker-mode" { } ''
+    test "${if hasExpectedDockerMode then "1" else "0"}" = "1"
     touch "$out"
   '';
 }

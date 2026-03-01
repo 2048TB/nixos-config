@@ -25,14 +25,13 @@ rec {
   gpuMode = "amd";
   enableGpuSpecialisation = false;
   enableBluetoothRfkillUnblock = false;
+  enableAggressiveApparmorKill = false;
+  dockerMode = "rootless";
 
   # Roles
   roles = [
     "desktop"
     "gaming"
-    "vpn"
-    "virt"
-    "container"
   ];
 
   # Credentials are managed by agenix secrets:

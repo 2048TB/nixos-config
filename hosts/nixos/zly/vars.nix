@@ -25,6 +25,8 @@ rec {
   gpuMode = "amd-nvidia-hybrid";
   enableGpuSpecialisation = false;
   enableBluetoothRfkillUnblock = false;
+  enableAggressiveApparmorKill = false;
+  dockerMode = "rootless";
 
   # Roles
   roles = [

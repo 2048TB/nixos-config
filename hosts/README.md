@@ -1,46 +1,92 @@
-# Hosts Layout
+# hosts 目录说明（新手版）
 
-当前仓库采用“精简但可扩展”的多主机结构：
+这个目录决定“每台机器用哪套配置”。
 
-- `hosts/nixos/<host>/`：NixOS 主机目录（必需：`hardware.nix` + `disko.nix` + `vars.nix`）
-- `hosts/darwin/<host>/`：Darwin 主机目录（必需：`default.nix` + `vars.nix`）
-- `hosts/<platform>/<host>/home.nix`：该主机专属 Home Manager 覆盖（可选）
-- `hosts/<platform>/<host>/checks.nix`：该主机专属 checks（可选，建议保留）
-- `hosts/<platform>/<host>/modules/`：主机额外 module（可选）
-- `hosts/<platform>/<host>/home-modules/`：主机额外 home module（可选）
+---
 
-与主机关联的 Home Manager 主机层位于：
+## 1. 目录怎么读
 
-- `hosts/nixos/zly/home.nix`
-- `hosts/nixos/zky/home.nix`
-- `hosts/darwin/zly-mac/home.nix`
+- `hosts/nixos/<host>/`：NixOS 主机配置
+- `hosts/darwin/<host>/`：macOS 主机配置
 
-主机维护策略（当前约定）：
+当前已有主机：
+- NixOS：`zly`、`zky`
+- Darwin：`zly-mac`
 
-- `zly` 与 `zky` 采用“独立文件”维护，不做 host-level 共享 import。
-- 即使现阶段配置接近，也保留各自主机文件，优先保证后续差异化可演进。
+---
 
-新增主机建议步骤（最小变更）：
+## 2. 每个主机目录里什么是必须的
 
-1. 用脚手架生成目录：
-   - `just new-nixos-host <host>`（默认模板 `zly`）
-   - `just new-darwin-host <host>`（默认模板 `zly-mac`）
-   - 预览：`just new-nixos-host-dry-run <host>` / `just new-darwin-host-dry-run <host>`
-   - 覆盖：`just new-nixos-host-force <host>` / `just new-darwin-host-force <host>`
-2. 按需调整 `vars.nix` / `disko.nix` / `hardware.nix` / `home.nix`。
-3. 运行：
-   - `nix eval .#nixosConfigurations --apply builtins.attrNames`
-   - `nix eval .#darwinConfigurations --apply builtins.attrNames`
-   - `just eval-tests`
+### NixOS 主机（`hosts/nixos/<host>/`）
 
-主机自动解析（`switch-local` / `check-local`）优先级：
+必须有：
+- `hardware.nix`
+- `disko.nix`
+- `vars.nix`
 
+可选：
+- `home.nix`
+- `checks.nix`
+- `modules/`
+- `home-modules/`
+
+### Darwin 主机（`hosts/darwin/<host>/`）
+
+必须有：
+- `default.nix`
+- `vars.nix`
+
+可选：
+- `home.nix`
+- `checks.nix`
+- `modules/`
+- `home-modules/`
+
+---
+
+## 3. 新增主机（推荐命令）
+
+```bash
+# 新增 NixOS 主机（默认从 zly 模板复制）
+just new-nixos-host devbox
+
+# 新增 Darwin 主机（默认从 zly-mac 模板复制）
+just new-darwin-host mac-mini
+```
+
+先预览不落盘：
+
+```bash
+just new-nixos-host-dry-run devbox
+just new-darwin-host-dry-run mac-mini
+```
+
+---
+
+## 4. 新增后你要改什么
+
+1. `vars.nix`：主机名、用户名、硬件参数
+   常见可调项：`roles`、`dockerMode`（`rootless`/`rootful`）、`enableAggressiveApparmorKill`
+2. `disko.nix`：磁盘布局（NixOS）
+3. `hardware.nix`：硬件探测结果（NixOS）
+
+---
+
+## 5. 新增后你要验证什么
+
+```bash
+just hosts
+just eval-tests
+just host=devbox check
+```
+
+---
+
+## 6. 主机自动识别规则
+
+当前仓库中，`*-local` 命令默认使用 strict 模式：
 1. `NIXOS_HOST` / `DARWIN_HOST`
-2. 当前 `hostname`
-3. 默认回退主机（若默认不可用则回退到仓库内首个可用主机）
+2. 当前 hostname
+如果 1/2 都不匹配，会直接报错，不再 fallback 到“第一个可用主机”。
 
-严格模式（用于危险/变更系统操作，如 `install-live-local` 与 flake apps 的 `apply/build-switch/install`）：
-
-1. `NIXOS_HOST` / `DARWIN_HOST`
-2. 当前 `hostname`
-3. 未命中直接失败（不使用 fallback）
+同样规则也适用于 `nix run .#build` / `.#build-switch` / `.#apply`。

@@ -3,7 +3,6 @@
 , lib
 , myvars
 , mainUser
-, binaryCaches
 , sharedPortalConfig
 , ...
 }:
@@ -11,7 +10,6 @@ let
   # 系统常量
   defaultUid = 1000;
   defaultGid = 1000;
-  gcRetentionDays = "7d";
   gnupgCacheTtlSeconds = 4 * 60 * 60; # 4 小时
   homeDir = "/home/${mainUser}";
   # 修复目录所有权的通用 activation script 生成器
@@ -64,16 +62,6 @@ let
     set -e
     exit "$status"
   '';
-  allowedGpuModes = [
-    "auto"
-    "none"
-    "amd"
-    "amdgpu"
-    "nvidia"
-    "modesetting"
-    "amd-nvidia-hybrid"
-  ];
-
   hasAmd = config.hardware.cpu.amd.updateMicrocode or false;
   hasIntel = config.hardware.cpu.intel.updateMicrocode or false;
   kvmModules =
@@ -95,26 +83,19 @@ let
     if enableHibernate && myvars ? resumeOffset && myvars.resumeOffset != null
     then [ "resume_offset=${toString myvars.resumeOffset}" ]
     else [ ];
-  knownHostRoles = [
-    "desktop"
-    "gaming"
-    "vpn"
-    "virt"
-    "container"
-  ];
   hostRoles = myvars.roles or [ "desktop" ];
   hasRole = role: builtins.elem role hostRoles;
-  # 服务开关默认由 roles 驱动，仍允许每台主机通过 enable* 显式覆盖。
-  enableSteam = myvars.enableSteam or (hasRole "gaming");
   enableProvider appVpn = myvars.enableProvider appVpn or (hasRole "vpn");
   enableLibvirtd = myvars.enableLibvirtd or (hasRole "virt");
   enableDocker = myvars.enableDocker or (hasRole "container");
   enableFlatpak = myvars.enableFlatpak or (hasRole "desktop");
+  dockerMode = myvars.dockerMode or "rootless";
+  useRootfulDocker = dockerMode == "rootful";
   rootTmpfsSize = myvars.rootTmpfsSize or "2G";
   journaldSystemMaxUse = myvars.journaldSystemMaxUse or "512M";
   journaldRuntimeMaxUse = myvars.journaldRuntimeMaxUse or "256M";
-  cacheSubstituters = binaryCaches.substituters;
-  cacheTrustedPublicKeys = binaryCaches.trustedPublicKeys;
+  configRepoPath = myvars.configRepoPath or "/persistent/nixos-config";
+  enableAggressiveApparmorKill = myvars.enableAggressiveApparmorKill or false;
   portalConfig = sharedPortalConfig;
   ageIdentityPaths = [
     "/persistent/keys/main.agekey"
@@ -127,8 +108,6 @@ let
   githubSshPublicSecretFile = ../../secrets/ssh/github_id_ed25519.pub.age;
   hasGithubSshPrivateSecret = builtins.pathExists githubSshPrivateSecretFile;
   hasGithubSshPublicSecret = builtins.pathExists githubSshPublicSecretFile;
-  # 仅在 VPN/libvirt NAT 场景使用 loose rpfilter，其余默认严格模式。
-  requiresLooseReversePath = enableProvider appVpn || enableLibvirtd;
   tuigreetPackage = pkgs.tuigreet or pkgs.greetd.tuigreet;
   # 参考 Catppuccin + ReGreet 常见高对比方案（tuigreet 仅支持 ANSI color name）。
   tuigreetTheme =
@@ -154,6 +133,12 @@ let
   '';
 in
 {
+  imports = [
+    ./system/nix-settings.nix
+    ./system/assertions.nix
+    ./system/role-services.nix
+  ];
+
   boot = {
     # 引导加载器
     loader = {
@@ -218,7 +203,7 @@ in
     ++ lib.optionals enableLibvirtd [
       "/var/lib/libvirt" # 虚拟机镜像和配置
     ]
-    ++ lib.optionals enableDocker [
+    ++ lib.optionals (enableDocker && useRootfulDocker) [
       "/var/lib/docker" # Docker 镜像、容器和卷
     ]
     ++ lib.optionals enableProvider appVpn [
@@ -288,58 +273,17 @@ in
     memoryPercent = 50;
   };
 
-  nix = {
-    settings = {
-      experimental-features = [ "nix-command" "flakes" ];
-
-      # 配置二进制缓存以加速包下载
-      substituters = lib.mkForce (lib.unique ([ "https://cache.nixos.org" ] ++ cacheSubstituters));
-
-      trusted-public-keys = lib.mkForce (lib.unique ([
-        "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
-      ] ++ cacheTrustedPublicKeys));
-
-      # 单用户主机保留 root + 主用户，便于本地日常维护。
-      trusted-users = lib.mkForce [ "root" mainUser ];
-
-      # 单用户主机场景默认接受 flake 内嵌 nixConfig。
-      accept-flake-config = true;
-
-      # 自动优化存储（硬链接重复文件）
-      auto-optimise-store = true;
-      builders-use-substitutes = true;
-    };
-
-    channel.enable = false;
-
-    # 自动垃圾回收配置
-    gc = {
-      automatic = true;
-      dates = "weekly"; # 每周执行一次
-      options = "--delete-older-than ${gcRetentionDays}"; # 删除 7 天前的旧世代
-    };
-
-    # 优化配置
-    optimise = {
-      automatic = true;
-      dates = [ "weekly" ]; # 每周优化存储
-    };
-  };
-
   networking = {
     hostName = myvars.hostname;
     networkmanager.enable = true;
-
-    # 仅在 VPN 或 libvirt NAT 场景放宽 rpfilter，减少误判同时保留默认安全性。
-    firewall.checkReversePath = if requiresLooseReversePath then "loose" else "strict";
   };
 
   security = {
     apparmor = {
       enable = true;
 
-      # 强制终止未被约束但已有配置文件的进程，避免部分程序绕过策略
-      killUnconfinedConfinables = true;
+      # 仅在主机显式开启时终止未被约束但已有配置文件的进程（偏安全、可能影响稳定性）
+      killUnconfinedConfinables = enableAggressiveApparmorKill;
       packages = with pkgs; [
         apparmor-utils
         apparmor-profiles
@@ -395,29 +339,6 @@ in
     };
 
     seahorse.enable = true;
-
-    # 游戏支持
-    steam = lib.mkIf enableSteam {
-      enable = true;
-      gamescopeSession.enable = true;
-      protontricks.enable = true;
-      extest.enable = true; # Wayland 下将 X11 输入事件转换为 uinput（Steam Input 控制器支持）
-      platformOptimizations.enable = true;
-      # 局域网传输与 Remote Play 使用时自动放行防火墙端口
-      remotePlay.openFirewall = true;
-      localNetworkGameTransfers.openFirewall = true;
-
-      # Proton-GE 配置：通过 Steam 的 extraCompatPackages 安装
-      # 注意：不能放在 environment.systemPackages（会导致 buildEnv 错误）
-      extraCompatPackages = with pkgs; [
-        proton-ge-bin
-      ];
-    };
-
-    gamemode.enable = enableSteam;
-
-    # KVM / libvirt 虚拟化管理
-    virt-manager.enable = enableLibvirtd;
 
     # 兼容通用 Linux 动态链接可执行文件（如第三方 CLI 安装器）
     nix-ld = {
@@ -491,8 +412,6 @@ in
         "audio"
         "video"
         "input"
-        "libvirtd"
-        "kvm"
       ];
       shell = pkgs.zsh;
       hashedPasswordFile = config.age.secrets."passwords/user".path;
@@ -560,14 +479,6 @@ in
 
     # GNOME 密钥环
     gnome.gnome-keyring.enable = true;
-
-    # Provider app VPN
-    provider-app-vpn.enable = enableProvider appVpn;
-
-    # Provider app 依赖 systemd-resolved 管理 DNS 分流（防止 VPN 连接后 DNS 泄漏）
-    resolved.enable = enableProvider appVpn;
-
-    flatpak.enable = enableFlatpak;
 
     journald.extraConfig = ''
       SystemMaxUse=${journaldSystemMaxUse}
@@ -700,7 +611,7 @@ in
     fixUserHomePerms = mkFixOwnershipScript homeDir;
 
     # 确保持久化配置仓库归属普通用户，避免 Git safe.directory/写权限问题
-    fixPersistentConfigRepoPerms = mkFixOwnershipScript "/persistent/nixos-config";
+    fixPersistentConfigRepoPerms = mkFixOwnershipScript configRepoPath;
   };
 
   # 时区
@@ -737,62 +648,6 @@ in
     uv
     # Niri 官方要求：xwayland-satellite 需在 PATH 中，供 XWayland 应用桥接。
     xwayland-satellite
-  ];
-
-  # KVM / libvirt 虚拟化
-  virtualisation = {
-    libvirtd = {
-      enable = enableLibvirtd;
-      qemu.swtpm.enable = true;
-    };
-
-    # Docker 容器
-    docker = {
-      enable = enableDocker;
-      enableOnBoot = false; # 按需 socket activation 启动（减少开机时间）
-      autoPrune = {
-        enable = true;
-        dates = "weekly";
-        flags = [ "--all" ]; # 清理所有未使用的镜像（不仅悬空镜像）
-      };
-    };
-  };
-
-  # 修复：防止锁定模式在重启后阻断网络
-  # 问题：tmpfs 根分区 + 持久化 /etc/provider-app-vpn 会保留锁定模式设置
-  # 解决：启动时强制禁用锁定模式，避免 VPN 连接失败时无网络
-  assertions = [
-    {
-      assertion = builtins.elem (myvars.gpuMode or "auto") allowedGpuModes;
-      message = "myvars.gpuMode must be one of: auto, none, amd, amdgpu, nvidia, modesetting, amd-nvidia-hybrid.";
-    }
-    {
-      assertion = builtins.pathExists userPasswordSecretFile;
-      message = "Missing secrets/passwords/user-password.age. Use agenix to create/update it.";
-    }
-    {
-      assertion = builtins.pathExists rootPasswordSecretFile;
-      message = "Missing secrets/passwords/root-password.age. Use agenix to create/update it.";
-    }
-    {
-      assertion =
-        (!enableHibernate)
-        || (
-          myvars ? resumeOffset
-          && myvars.resumeOffset != null
-          && builtins.isInt myvars.resumeOffset
-          && myvars.resumeOffset > 0
-        );
-      message = "When myvars.enableHibernate=true, set a positive integer myvars.resumeOffset (btrfs inspect-internal map-swapfile -r /swap/swapfile).";
-    }
-    {
-      assertion = builtins.isList hostRoles;
-      message = "myvars.roles must be a list (e.g. [ \"desktop\" \"container\" ]).";
-    }
-    {
-      assertion = lib.subtractLists knownHostRoles hostRoles == [ ];
-      message = "myvars.roles contains unknown values. allowed: desktop, gaming, vpn, virt, container.";
-    }
   ];
 
   systemd = {
@@ -859,10 +714,10 @@ in
       "d /no-such-path 0755 root root -"
       "L+ /usr/bin/gsettings - - - - ${gsettingsCompatWrapper}"
       "L+ /no-such-path/gsettings - - - - ${gsettingsCompatWrapper}"
-      "d /persistent/nixos-config 0755 ${mainUser} ${mainUser} -"
+      "d ${configRepoPath} 0755 ${mainUser} ${mainUser} -"
       # Keep a stable entrypoint; /etc/nixos is a symlink to persistent config.
       # This relies on /persistent being mounted early (neededForBoot=true).
-      "L+ /etc/nixos - - - - /persistent/nixos-config"
+      "L+ /etc/nixos - - - - ${configRepoPath}"
       # 30天清理缓存（浏览器/shader/包管理器缓存需要较长保留期）
       "e ${homeDir}/.cache - - - 30d"
       # 清理临时文件

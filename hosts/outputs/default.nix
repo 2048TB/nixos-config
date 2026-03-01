@@ -6,7 +6,7 @@ let
   mylib = import ../../lib { inherit lib; };
 
   # Runtime cache settings for NixOS module consumption.
-  # Keep in sync with flake.nix nixConfig for CLI users if needed.
+  # flake.nix nixConfig 默认留空；如需启用 flake 级缓存，再按需同步这里的值。
   binaryCaches = {
     substituters = [
       "https://nix-community.cachix.org"

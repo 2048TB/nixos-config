@@ -8,7 +8,7 @@ default:
 host := "zly"
 darwin_host := "zly-mac"
 disk := "/dev/nvme0n1"
-repo := "/persistent/nixos-config"
+repo := env_var_or_default("NIXOS_CONFIG_REPO", justfile_directory())
 key_dir_rel := ".keys"
 age_key_rel := "{{key_dir_rel}}/main.agekey"
 
@@ -87,7 +87,7 @@ switch:
 
 # 自动识别当前机器主机名并切换（优先使用 NIXOS_HOST 覆盖）
 switch-local:
-    host="$({{repo}}/scripts/resolve-host.sh nixos {{repo}} {{host}})"; echo ">>> host=$host"; just host="$host" switch
+    host="$({{repo}}/scripts/resolve-host.sh nixos {{repo}} {{host}} --strict)"; echo ">>> host=$host"; just host="$host" switch
 
 # 应用配置但下次启动生效
 boot:
@@ -99,7 +99,7 @@ test:
 
 # 自动识别当前机器主机名并 test
 test-local:
-    host="$({{repo}}/scripts/resolve-host.sh nixos {{repo}} {{host}})"; echo ">>> host=$host"; just host="$host" test
+    host="$({{repo}}/scripts/resolve-host.sh nixos {{repo}} {{host}} --strict)"; echo ">>> host=$host"; just host="$host" test
 
 # 检查配置但不应用（快速验证）
 check:
@@ -107,18 +107,21 @@ check:
 
 # 自动识别当前机器主机名并 check
 check-local:
-    host="$({{repo}}/scripts/resolve-host.sh nixos {{repo}} {{host}})"; echo ">>> host=$host"; just host="$host" check
+    host="$({{repo}}/scripts/resolve-host.sh nixos {{repo}} {{host}} --strict)"; echo ">>> host=$host"; just host="$host" check
 
 # 快速执行 eval tests（hostname/home 映射一致性）
 eval-tests:
     @echo "=== checks.x86_64-linux (eval tests) ==="
     nix build --no-link \
       path:{{repo}}#checks.x86_64-linux.evaltest-hostname \
-      path:{{repo}}#checks.x86_64-linux.evaltest-home
+      path:{{repo}}#checks.x86_64-linux.evaltest-home \
+      path:{{repo}}#checks.x86_64-linux.evaltest-kernel \
+      path:{{repo}}#checks.x86_64-linux.evaltest-platform
     @echo ""
     @echo "=== checks.aarch64-darwin (eval only) ==="
     nix eval path:{{repo}}#checks.aarch64-darwin.evaltest-darwin-hostname.drvPath >/dev/null
     nix eval path:{{repo}}#checks.aarch64-darwin.evaltest-darwin-home.drvPath >/dev/null
+    nix eval path:{{repo}}#checks.aarch64-darwin.evaltest-darwin-platform.drvPath >/dev/null
 
 # 回滚到上一个系统世代
 rollback:
@@ -132,7 +135,7 @@ darwin-switch:
 
 # 自动识别当前机器主机名并切换 Darwin（优先使用 DARWIN_HOST 覆盖）
 darwin-switch-local:
-    host="$({{repo}}/scripts/resolve-host.sh darwin {{repo}} {{darwin_host}})"; echo ">>> darwin_host=$host"; just darwin_host="$host" darwin-switch
+    host="$({{repo}}/scripts/resolve-host.sh darwin {{repo}} {{darwin_host}} --strict)"; echo ">>> darwin_host=$host"; just darwin_host="$host" darwin-switch
 
 # 构建 macOS 配置（不切换；需在 macOS 或配置了 aarch64-darwin remote builder 的环境执行）
 darwin-check:
@@ -140,7 +143,7 @@ darwin-check:
 
 # 自动识别当前机器主机名并构建 Darwin 配置
 darwin-check-local:
-    host="$({{repo}}/scripts/resolve-host.sh darwin {{repo}} {{darwin_host}})"; echo ">>> darwin_host=$host"; just darwin_host="$host" darwin-check
+    host="$({{repo}}/scripts/resolve-host.sh darwin {{repo}} {{darwin_host}} --strict)"; echo ">>> darwin_host=$host"; just darwin_host="$host" darwin-check
 
 # 列出可用 darwin 主机
 darwin-hosts:
@@ -349,7 +352,7 @@ commit MESSAGE:
 push MESSAGE:
     git add .
     @just guard-secrets
-    git commit -m "{{MESSAGE}}" -m "Co-Authored-By: Claude Sonnet 4.5 (1M context) <noreply@anthropic.com>"
+    git commit -m "{{MESSAGE}}"
     git push origin HEAD
     @echo "✓ 已推送到 GitHub（当前分支）"
 
@@ -365,19 +368,19 @@ log:
 # ========== 快速工作流 ==========
 
 # 快速应用配置（检查 + 应用）
-quick: check switch
+quick: check-local switch-local
     @echo "✓ 配置已应用"
 
 # 完整工作流（检查 + 应用 + 清理）
-full: check-all switch clean
+full: check-all switch-local clean
     @echo "✓ 完整流程执行完成"
 
 # 更新并应用配置
-upgrade: update switch
+upgrade: update switch-local
     @echo "✓ 系统已升级到最新版本"
 
 # 开发流程（格式化 + 检查 + 测试 + 提示提交）
-dev: fmt flake-check test
+dev: fmt flake-check test-local
     @echo ""
     @echo "✓ 开发检查完成"
     @echo "💡 使用 'just commit \"消息\"' 提交更改"

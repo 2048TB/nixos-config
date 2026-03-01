@@ -1,31 +1,45 @@
-# Outputs Layout
+# hosts/outputs 说明（新手版）
 
-此目录按平台聚合 flake outputs，管理方式参考 `dustinlyons/nixos-config`，并做了本仓库的最小化实现。
+这个目录负责把所有主机汇总成 flake outputs。
 
-## 目录约定
+你可以理解为：
+- `hosts/` 放“单机配置”
+- `hosts/outputs/` 放“聚合与导出规则”
 
-- `hosts/outputs/default.nix`：顶层聚合（`nixosConfigurations`、`darwinConfigurations`、`apps`、`checks`、`devShells`、`formatter`）
-- `hosts/outputs/<system>/default.nix`：平台聚合入口（自动发现 `hosts/<platform>/*`）
-- `hosts/outputs/<system>/tests/*`：平台 eval tests（hostname/home 等）
+---
 
-## 主机注册流程
+## 1. 关键文件
 
-1. NixOS：在 `hosts/nixos/<host>/` 下必须提供 `hardware.nix`、`disko.nix`、`vars.nix`（可选 `host.nix`）。
-2. Darwin：在 `hosts/darwin/<host>/` 下必须提供 `default.nix` 与 `vars.nix`。
-3. 按需添加 `home.nix`、`modules/`、`home-modules/`、`checks.nix`（建议保留，便于主机独立演进）。
-4. `hosts/outputs/<system>/default.nix` 会自动扫描 `hosts/<platform>/*` 聚合主机。
-5. `flake.nix` 统一通过 `outputs = inputs: import ./hosts/outputs inputs;` 接入该聚合层，无需手工注册主机名。
+- `hosts/outputs/default.nix`：总入口
+- `hosts/outputs/x86_64-linux/default.nix`：NixOS 聚合
+- `hosts/outputs/aarch64-darwin/default.nix`：Darwin 聚合
+- `hosts/outputs/*/tests/`：评估测试
 
-## 设计目标
+---
 
-- 多主机可扩展：新增主机只需新增 `hosts/<platform>/<name>/` 目录。
-- 平台聚合清晰：平台级 apps/checks/devShell/formatter 统一在 `hosts/outputs/<system>/default.nix`。
-- 行为可验证：通过 `nix flake check` 和 `nix eval .#checks.<system>` 做快速回归。
+## 2. 新增主机后为什么不用手工注册
 
-## Flake Apps
+因为聚合层会自动扫描：
+- `hosts/nixos/*`
+- `hosts/darwin/*`
 
-- `apps` 提供 `nix run .#<name>` 入口（如 `build` / `build-switch` / `install` / `clean`）。
-- 实现位于各平台 `hosts/outputs/<system>/default.nix`，底层复用仓库 `just` 命令。
-- 主机选择优先级：环境变量（`NIXOS_HOST` / `DARWIN_HOST`）> 当前 hostname 自动匹配 > 默认回退主机。
-- 若默认回退主机不可用，会自动选择仓库内第一个可用主机并输出 warning。
-- 其中 `apply` / `build-switch` / `install` 使用 strict 主机解析：仅允许环境变量或 hostname 命中，未命中直接失败（不做 fallback）。
+只要主机目录里的“必需文件”齐全，就会自动出现在：
+
+```bash
+just hosts
+```
+
+---
+
+## 3. 你通常不需要改这里
+
+新手场景下，通常只改：
+- `hosts/nixos/<host>/...`
+- `hosts/darwin/<host>/...`
+
+只有在你需要新增平台级逻辑（apps/checks/devShell）时，才改 `hosts/outputs/*`。
+
+补充：
+- `nix run .#build` / `.#build-switch` / `.#apply` 需要在仓库根目录执行；
+- 或者设置 `NIXOS_CONFIG_REPO=<repo-root>` 后再执行。
+- 以上命令的主机解析为 strict：仅接受环境变量或当前 hostname，不做 fallback。

@@ -48,9 +48,15 @@ let
   hostnameExpected = import ./tests/hostname/expected.nix { hostNames = resolvedHostNames; };
   homeExpr = import ./tests/home/expr.nix { inherit lib nixosConfigurations; };
   homeExpected = import ./tests/home/expected.nix { inherit mainUsers; };
+  kernelExpr = import ./tests/kernel/expr.nix { inherit lib nixosConfigurations; };
+  kernelExpected = import ./tests/kernel/expected.nix { inherit system; hostNames = resolvedHostNames; };
+  platformExpr = import ./tests/platform/expr.nix { inherit lib nixosConfigurations; };
+  platformExpected = import ./tests/platform/expected.nix { inherit system; hostNames = resolvedHostNames; };
   hostEvalTests = {
     hostname = hostnameExpr == hostnameExpected;
     home = homeExpr == homeExpected;
+    kernel = kernelExpr == kernelExpected;
+    platform = platformExpr == platformExpected;
   };
 
   pkgs = import inputs.nixpkgs {
@@ -65,12 +71,13 @@ let
   appRepoPreamble = ''
     set -euo pipefail
     repo="''${NIXOS_CONFIG_REPO:-$PWD}"
-    if [ ! -f "$repo/flake.nix" ] && [ -f "/persistent/nixos-config/flake.nix" ]; then
-      repo="/persistent/nixos-config"
+    if [ ! -f "$repo/flake.nix" ]; then
+      echo "error: flake.nix not found in repo: $repo" >&2
+      echo "hint: run from repo root or set NIXOS_CONFIG_REPO" >&2
+      exit 1
     fi
     cd "$repo"
   '';
-  resolveNixosHost = ''host="$("$repo/scripts/resolve-host.sh" nixos "$repo" "zly")"'';
   resolveNixosHostStrict = ''host="$("$repo/scripts/resolve-host.sh" nixos "$repo" "zly" --strict)"'';
   platformApps.${system} = {
     apply = mkApp "apply" "Apply Linux host configuration (switch)" ''
@@ -85,7 +92,7 @@ let
     '';
     build = mkApp "build" "Dry-build Linux host configuration" ''
       ${appRepoPreamble}
-      ${resolveNixosHost}
+      ${resolveNixosHostStrict}
       exec ${pkgs.just}/bin/just host="$host" check
     '';
     install = mkApp "install" "Install Linux host on Live ISO with disko+nixos-install" ''
@@ -109,6 +116,20 @@ let
     evaltest-home = pkgs.runCommand "evaltest-home" { } ''
       if [ "${if hostEvalTests.home then "1" else "0"}" != "1" ]; then
         echo "home eval test failed" >&2
+        exit 1
+      fi
+      touch "$out"
+    '';
+    evaltest-kernel = pkgs.runCommand "evaltest-kernel" { } ''
+      if [ "${if hostEvalTests.kernel then "1" else "0"}" != "1" ]; then
+        echo "kernel eval test failed" >&2
+        exit 1
+      fi
+      touch "$out"
+    '';
+    evaltest-platform = pkgs.runCommand "evaltest-platform" { } ''
+      if [ "${if hostEvalTests.platform then "1" else "0"}" != "1" ]; then
+        echo "platform eval test failed" >&2
         exit 1
       fi
       touch "$out"

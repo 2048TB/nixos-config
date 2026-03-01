@@ -97,6 +97,24 @@ let
   };
 in
 assert lib.assertMsg (hostMyvars != { }) "Missing or empty hosts/darwin/${name}/vars.nix";
+assert lib.assertMsg
+  (
+    builtins.hasAttr "username" hostMyvars
+    && builtins.isString hostMyvars.username
+      && hostMyvars.username != ""
+  ) "Invalid hosts/darwin/${name}/vars.nix: username must be a non-empty string";
+assert lib.assertMsg
+  (
+    builtins.hasAttr "homeStateVersion" hostMyvars
+    && builtins.isString hostMyvars.homeStateVersion
+      && hostMyvars.homeStateVersion != ""
+  ) "Invalid hosts/darwin/${name}/vars.nix: homeStateVersion must be a non-empty string";
+assert lib.assertMsg
+  (
+    builtins.hasAttr "timezone" hostMyvars
+    && builtins.isString hostMyvars.timezone
+      && hostMyvars.timezone != ""
+  ) "Invalid hosts/darwin/${name}/vars.nix: timezone must be a non-empty string";
 {
   inherit
     name
