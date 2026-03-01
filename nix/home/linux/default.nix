@@ -9,7 +9,7 @@
 }:
 let
   # ===== 基础常量 =====
-  homeStateVersion = "25.11";
+  homeStateVersion = myvars.homeStateVersion or "25.11";
 
   # 路径常量
   homeDir = config.home.homeDirectory;

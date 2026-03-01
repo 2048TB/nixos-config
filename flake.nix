@@ -1,5 +1,5 @@
-rec {
-  description = "NixOS desktop config";
+{
+  description = "Lean multi-host NixOS + nix-darwin + home-manager flake";
 
   # 仅影响 flake 自身（如 nix flake check / CI），不直接修改系统级 nix.conf。
   nixConfig = {
@@ -75,7 +75,6 @@ rec {
       url = "github:cachix/git-hooks.nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-
   };
 
   outputs = inputs: import ./hosts/outputs inputs;
