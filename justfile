@@ -59,8 +59,9 @@ install-live:
     if command -v rsync >/dev/null 2>&1; then \
       sudo rsync -a --delete --exclude='.git' --exclude='{{key_dir_rel}}' {{repo}}/ /mnt/persistent/nixos-config/; \
     else \
-      echo "warning: rsync not found, fallback to cp -a (will include .git)"; \
+      echo "warning: rsync not found, fallback to cp -a (temporary .git copy will be removed)"; \
       sudo cp -a {{repo}}/. /mnt/persistent/nixos-config/; \
+      sudo rm -rf /mnt/persistent/nixos-config/.git; \
       sudo rm -rf /mnt/persistent/nixos-config/{{key_dir_rel}}; \
     fi
     age_key_src="{{repo}}/{{age_key_rel}}"; \
@@ -285,9 +286,33 @@ hooks-enable:
 guard-secrets:
     @{{repo}}/scripts/guard-secrets.sh
 
-# 初始化 agenix 主密钥（本地 .keys + 仓库公钥）
+# 初始化 agenix 主密钥（默认只同步，不自动创建）
 agenix-init:
     @{{repo}}/scripts/bootstrap-age-key.sh
+
+# 首次初始化 agenix 主密钥（仅在 main.agekey 缺失时创建）
+agenix-init-create:
+    @{{repo}}/scripts/bootstrap-age-key.sh --create
+
+# 旋转 agenix 主密钥（危险：需要立即 rekey）
+agenix-init-rotate:
+    @{{repo}}/scripts/bootstrap-age-key.sh --rotate
+
+# 初始化/更新恢复密钥（本地 .keys/recovery.agekey + 仓库公钥）
+agenix-recovery-init:
+    @{{repo}}/scripts/manage-agenix-recipients.sh init-recovery
+
+# 添加主机 SSH host 公钥 recipient（默认读取 /etc/ssh/ssh_host_ed25519_key.pub）
+agenix-host-key-add HOST PUB="/etc/ssh/ssh_host_ed25519_key.pub":
+    @{{repo}}/scripts/manage-agenix-recipients.sh add-host '{{HOST}}' '{{PUB}}'
+
+# 列出 agenix recipients
+agenix-recipients:
+    @{{repo}}/scripts/manage-agenix-recipients.sh list
+
+# 按当前 recipients 重加密所有 secrets/*.age
+agenix-rekey:
+    @{{repo}}/scripts/manage-agenix-recipients.sh rekey
 
 # 生成 sha-512 密码哈希（交互输入密码）
 password-hash:

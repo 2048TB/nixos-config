@@ -13,6 +13,10 @@ just new-nixos-host devbox
 just new-darwin-host mac-mini
 just hooks-enable
 just agenix-init
+just agenix-init-create
+just agenix-recovery-init
+just agenix-host-key-add zly /etc/ssh/ssh_host_ed25519_key.pub
+just agenix-rekey
 just password-hashes
 just password-set-hash '<sha512-hash>'
 just ssh-key-set
@@ -289,6 +293,26 @@ just ssh-key-set
 - `secrets/ssh/github_id_ed25519.pub.age`
 
 系统激活时会自动下发到 `~/.ssh/id_ed25519(.pub)`（若上述 secrets 存在）。
+
+## agenix recipients 管理（推荐）
+
+```bash
+# 首次初始化主密钥（只做一次）
+just agenix-init-create
+
+# 日常校验/同步（不会自动创建）
+just agenix-init
+
+# 初始化离线恢复 key（本地 .keys/recovery.agekey + 仓库公钥）
+just agenix-recovery-init
+
+# 添加主机 SSH host 公钥为 recipient
+just agenix-host-key-add zly /etc/ssh/ssh_host_ed25519_key.pub
+just agenix-host-key-add zky /etc/ssh/ssh_host_ed25519_key.pub
+
+# 按 recipients 重加密所有 secrets
+just agenix-rekey
+```
 
 ---
 

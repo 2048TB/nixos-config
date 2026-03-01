@@ -37,6 +37,8 @@
 just hosts
 just hooks-enable
 just agenix-init
+just agenix-init-create
+just agenix-recovery-init
 just switch-local
 just check-local
 just test-local
@@ -73,6 +75,14 @@ just ssh-key-set
 ```
 
 会生成 `secrets/ssh/github_id_ed25519(.pub).age`，系统在激活时自动放到 `~/.ssh/id_ed25519(.pub)`。
+
+若要启用多 recipient（主密钥 + recovery + 主机 SSH host key）：
+
+```bash
+just agenix-recovery-init
+just agenix-host-key-add zly /etc/ssh/ssh_host_ed25519_key.pub
+just agenix-rekey
+```
 
 3. 克隆仓库（或直接进入 U 盘中的 `nixos-config` 目录）：
 
@@ -134,7 +144,8 @@ just disk=/dev/nvme0n1 install-live-local
 
 - `install-live` 会清空目标盘并执行分区/格式化。
 - 当前实现会使用仓库锁定输入生成 `diskoScript`，并在复制仓库时优先 `rsync --exclude .git`。
-- `{{repo}}/.keys/main.agekey` 为必需项，`install-live` 会自动导入为 `/mnt/persistent/keys/main.agekey`，缺失会直接失败。
+- `<repo-root>/.keys/main.agekey` 为必需项，`install-live` 会自动导入为 `/mnt/persistent/keys/main.agekey`，缺失会直接失败。
+- `just agenix-init` 默认不会创建新主密钥；首次初始化需用 `just agenix-init-create`。
 - GitHub SSH key 由 agenix secrets 在系统激活阶段下发（若 `secrets/ssh/github_id_ed25519(.pub).age` 存在）。
 
 ### 1.4 安装后

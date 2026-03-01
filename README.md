@@ -71,20 +71,30 @@ just disk=/dev/nvme0n1 install-live-local
 
 安装前准备密钥（必需）：
 
-- 在仓库根路径准备本地密钥目录 `{{repo}}/.keys/`（不提交到 Git）：
+- 在仓库根路径准备本地密钥目录 `<repo-root>/.keys/`（不提交到 Git，示例：`/persistent/nixos-config/.keys/`）：
   - `main.agekey`（agenix 私钥）
+  - `recovery.agekey`（可选，离线恢复私钥）
   - `github_id_ed25519`（可选，作为加密源）
   - `github_id_ed25519.pub`（可选，作为加密源）
 - `install-live` 会自动导入：
-  - `{{repo}}/.keys/main.agekey` -> `/mnt/persistent/keys/main.agekey`（`0400 root:root`）
-- 首次在新机器 clone 后建议先执行 `just agenix-init` 生成/同步本地 `main.agekey`。
+  - `<repo-root>/.keys/main.agekey` -> `/mnt/persistent/keys/main.agekey`（`0400 root:root`）
+- `just agenix-init` 现在默认只做“校验/同步”，不会自动新建主密钥。
+- 首次初始化才使用 `just agenix-init-create` 创建主密钥。
+- 推荐再执行一次：
+
+```bash
+just agenix-recovery-init
+just agenix-host-key-add zly /etc/ssh/ssh_host_ed25519_key.pub
+just agenix-rekey
+```
+
 - 若要把 GitHub SSH key 也加密托管到 agenix，执行：
 
 ```bash
 just ssh-key-set
 ```
 
-该命令会把 `{{repo}}/.keys/github_id_ed25519(.pub)` 加密为：
+该命令会把 `<repo-root>/.keys/github_id_ed25519(.pub)` 加密为：
 - `secrets/ssh/github_id_ed25519.age`
 - `secrets/ssh/github_id_ed25519.pub.age`
 - 建议首次 clone 后执行一次 `just hooks-enable`，启用 `pre-commit/pre-push` 密钥拦截。

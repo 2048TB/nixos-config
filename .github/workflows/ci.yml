@@ -33,6 +33,29 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  shell-and-secret-guard:
+    name: Shell And Secret Guard
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Shell Syntax Check
+        shell: bash
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          files=(scripts/*.sh scripts/lib/*.sh .githooks/pre-*)
+          if [ ${#files[@]} -eq 0 ]; then
+            echo "warning: no shell scripts found"
+            exit 0
+          fi
+          bash -n "${files[@]}"
+
+      - name: Secret Guard
+        run: scripts/guard-secrets.sh
+
   prepare-host-matrix:
     name: Prepare NixOS Host Matrix
     runs-on: ubuntu-latest
@@ -64,7 +87,9 @@ jobs:
     name: Eval And Flake Check
     runs-on: ubuntu-latest
     timeout-minutes: 90
-    needs: prepare-host-matrix
+    needs:
+      - shell-and-secret-guard
+      - prepare-host-matrix
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -90,7 +115,9 @@ jobs:
     name: NixOS Build (${{ matrix.host }})
     runs-on: ubuntu-latest
     timeout-minutes: 90
-    needs: prepare-host-matrix
+    needs:
+      - shell-and-secret-guard
+      - prepare-host-matrix
     strategy:
       fail-fast: false
       matrix:

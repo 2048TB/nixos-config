@@ -116,7 +116,11 @@ let
   cacheSubstituters = binaryCaches.substituters;
   cacheTrustedPublicKeys = binaryCaches.trustedPublicKeys;
   portalConfig = sharedPortalConfig;
-  ageIdentityPath = "/persistent/keys/main.agekey";
+  ageIdentityPaths = [
+    "/persistent/keys/main.agekey"
+    "/etc/ssh/ssh_host_ed25519_key"
+    "/persistent/etc/ssh/ssh_host_ed25519_key"
+  ];
   userPasswordSecretFile = ../../secrets/passwords/user-password.age;
   rootPasswordSecretFile = ../../secrets/passwords/root-password.age;
   githubSshPrivateSecretFile = ../../secrets/ssh/github_id_ed25519.age;
@@ -427,7 +431,7 @@ in
   };
 
   age = {
-    identityPaths = [ ageIdentityPath ];
+    identityPaths = ageIdentityPaths;
     secrets =
       {
         "passwords/user" = {
