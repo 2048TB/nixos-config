@@ -4,10 +4,20 @@ set -euo pipefail
 platform="${1:-}"
 repo="${2:-${NIXOS_CONFIG_REPO:-$PWD}}"
 fallback="${3:-}"
+strict_mode=0
+strict_flag="${4:-}"
 
 if [ -z "$platform" ] || [ -z "$fallback" ]; then
-  echo "usage: resolve-host.sh <nixos|darwin> <repo> <fallback-host>" >&2
+  echo "usage: resolve-host.sh <nixos|darwin> <repo> <fallback-host> [--strict]" >&2
   exit 2
+fi
+
+if [ -n "$strict_flag" ]; then
+  if [ "$strict_flag" != "--strict" ]; then
+    echo "error: unknown argument '$strict_flag' (only --strict is supported)" >&2
+    exit 2
+  fi
+  strict_mode=1
 fi
 
 if [ ! -f "$repo/flake.nix" ] && [ -f "/persistent/nixos-config/flake.nix" ]; then
@@ -110,6 +120,10 @@ if [ -n "${resolved_env:-}" ]; then
     exit 0
   fi
   echo "warning: ${platform} host from env not found in repo: '$resolved_env'" >&2
+  if [ "$strict_mode" -eq 1 ]; then
+    echo "error: strict mode requires a valid host from environment or current hostname" >&2
+    exit 1
+  fi
 fi
 
 if [ -n "$detected_candidate" ]; then
@@ -126,6 +140,15 @@ if [ -n "${resolved_detected:-}" ]; then
     exit 0
   fi
   echo "warning: ${platform} host from hostname not found in repo: '$resolved_detected'" >&2
+  if [ "$strict_mode" -eq 1 ]; then
+    echo "error: strict mode requires a valid host from environment or current hostname" >&2
+    exit 1
+  fi
+fi
+
+if [ "$strict_mode" -eq 1 ]; then
+  echo "error: strict mode requires a valid host from environment or current hostname" >&2
+  exit 1
 fi
 
 if ! is_valid_host_name "$fallback"; then

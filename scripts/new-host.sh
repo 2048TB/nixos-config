@@ -158,7 +158,14 @@ done
 if [ "$source_host" != "$host_name" ]; then
   source_pat="$(escape_sed_pattern "$source_host")"
   target_pat="$(escape_sed_pattern "$host_name")"
-  find "$target_dir" -type f -name '*.nix' -exec sed -i.bak "s/${source_pat}/${target_pat}/g" {} +
+
+  while IFS= read -r -d '' nix_file; do
+    sed -i.bak \
+      -e "s/\"${source_pat}\"/\"${target_pat}\"/g" \
+      -e "s#/\\.ssh/${source_pat}#/\\.ssh/${target_pat}#g" \
+      "$nix_file"
+  done < <(find "$target_dir" -type f -name '*.nix' -print0)
+
   find "$target_dir" -type f -name '*.bak' -delete
 fi
 

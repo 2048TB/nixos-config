@@ -47,6 +47,9 @@ mkpasswd -m sha-512
 ```bash
 just host=zly install-live-check
 just host=zky install-live-check
+
+# 或自动按当前 hostname 匹配（严格模式，不允许 fallback）
+just install-live-check-local
 ```
 
 3. 安装系统（危险：会清空目标盘）
@@ -55,6 +58,9 @@ just host=zky install-live-check
 just host=zly disk=/dev/nvme0n1 install-live
 # 或
 just host=zky disk=/dev/nvme0n1 install-live
+
+# 或自动按当前 hostname 匹配（严格模式，不允许 fallback）
+just disk=/dev/nvme0n1 install-live-local
 ```
 
 安装完成后：
@@ -311,6 +317,9 @@ just eval-tests
 
 `switch-local` / `check-local` / `test-local` 的主机解析优先级：
 `NIXOS_HOST` / `DARWIN_HOST` > 当前 hostname > 默认回退主机（若默认不可用则自动选择仓库内可用主机）。
+
+危险操作（`install-live-local`）与 flake apps 的 `apply` / `build-switch` / `install` 使用 strict 解析：
+仅允许 `NIXOS_HOST` / `DARWIN_HOST` 或当前 hostname 命中；未命中时直接失败，不做 fallback。
 
 ---
 

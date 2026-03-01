@@ -38,3 +38,9 @@
 1. `NIXOS_HOST` / `DARWIN_HOST`
 2. 当前 `hostname`
 3. 默认回退主机（若默认不可用则回退到仓库内首个可用主机）
+
+严格模式（用于危险/变更系统操作，如 `install-live-local` 与 flake apps 的 `apply/build-switch/install`）：
+
+1. `NIXOS_HOST` / `DARWIN_HOST`
+2. 当前 `hostname`
+3. 未命中直接失败（不使用 fallback）

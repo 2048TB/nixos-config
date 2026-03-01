@@ -16,6 +16,8 @@ just check-local
 just test-local
 just host=zly install-live-check
 just host=zly disk=/dev/nvme0n1 install-live
+just install-live-check-local
+just disk=/dev/nvme0n1 install-live-local
 just host=zly switch
 
 just host=zky switch
@@ -55,6 +57,11 @@ NIXOS_CONFIG_REPO=/persistent/nixos-config nix run .#build
 说明：自动主机解析由 `scripts/resolve-host.sh` 处理，优先级为：
 `NIXOS_HOST` / `DARWIN_HOST` > 当前 hostname > 回退默认主机（默认不可用时自动选择仓库内可用主机）。
 
+严格模式（用于危险/变更系统操作）：
+- `just install-live-check-local` / `just install-live-local`
+- `nix run .#apply` / `nix run .#build-switch` / `nix run .#install`
+- strict 仅允许环境变量或当前 hostname 命中；未命中直接失败，不做 fallback。
+
 新增主机脚手架由 `scripts/new-host.sh` 处理：
 - 默认从 `zly`（NixOS）或 `zly-mac`（Darwin）复制结构与校验文件。
 - 可通过 `just new-*-host <host> <from-host>` 指定模板主机。
@@ -78,6 +85,8 @@ NIXOS_CONFIG_REPO=/persistent/nixos-config nix run .#build
 ```bash
 just host=zly install-live-check
 just host=zly disk=/dev/nvme0n1 install-live
+just install-live-check-local
+just disk=/dev/nvme0n1 install-live-local
 
 # 另一台 x86
 just host=zky install-live-check
