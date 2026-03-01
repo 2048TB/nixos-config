@@ -79,23 +79,23 @@ just password-set-hash '<你的 sha512 哈希>'
 ### 1.4 安装前检查（建议）
 
 ```bash
-just host=zly install-live-check
+just host=zly install-check
 # 或目标是另一台
-just host=zky install-live-check
+just host=zky install-check
 ```
 
 ### 1.5 执行安装（危险，会清盘）
 
 ```bash
-just host=zly disk=/dev/nvme0n1 install-live
+just host=zly disk=/dev/nvme0n1 install
 # 或
-just host=zky disk=/dev/nvme0n1 install-live
+just host=zky disk=/dev/nvme0n1 install
 ```
 
 ### 1.6 重启后第一次切换
 
 ```bash
-just switch-local
+just switch
 ```
 
 ---
@@ -105,18 +105,16 @@ just switch-local
 推荐顺序：
 
 ```bash
-just check-local
-just test-local
-just switch-local
+just check
+just test
+just switch
 # 或只在下次启动生效
-just boot-local
+just boot
 ```
 
-说明：`*-local` 现在是 strict 模式，只接受：
-1. `NIXOS_HOST`（显式指定）
-2. 当前 hostname（可在仓库中匹配）
+说明：不指定 `host` 时自动检测当前主机（strict 模式：仅 `NIXOS_HOST` 或当前 hostname）。
 
-如果你要指定主机：
+手动指定主机：
 
 ```bash
 just host=zly switch
@@ -130,13 +128,13 @@ just host=zky switch
 在 macOS 主机执行：
 
 ```bash
-just darwin-check-local
-just darwin-switch-local
+just darwin-check
+just darwin-switch
 ```
 
-说明：Darwin 的 `*-local` 同样是 strict 模式；主机名不匹配时请先设置 `DARWIN_HOST`。
+说明：不指定 `darwin_host` 时自动检测（仅 `DARWIN_HOST` 或当前 hostname）。
 
-或显式指定：
+手动指定：
 
 ```bash
 just darwin_host=zly-mac darwin-check
@@ -151,7 +149,7 @@ just darwin_host=zly-mac darwin-switch
 
 ### Q1: `strict mode requires a valid host` 是什么？
 
-你在 strict 模式运行了命令，但 hostname 或环境变量没有匹配到仓库里的主机。
+自动检测未能匹配到仓库里的主机。
 
 处理：
 
@@ -169,7 +167,7 @@ just host=zly <command>
 ```bash
 just password-hashes
 just password-set-hash '<sha512-hash>'
-just switch-local
+just switch
 ```
 
 ### Q3: 安装时报找不到 `main.agekey`

@@ -1,6 +1,6 @@
 # hosts 目录说明（新手版）
 
-这个目录决定“每台机器用哪套配置”。
+这个目录决定"每台机器用哪套配置"。
 
 ---
 
@@ -83,11 +83,13 @@ just host=devbox check
 
 ---
 
-## 6. 主机自动识别规则
+## 6. 主机自动检测规则
 
-当前仓库中，`*-local` 命令默认使用 strict 模式：
-1. `NIXOS_HOST` / `DARWIN_HOST`
+`just switch` 等日常命令不指定 `host` 时自动检测（strict 模式）：
+1. `NIXOS_HOST` / `DARWIN_HOST` 环境变量
 2. 当前 hostname
-如果 1/2 都不匹配，会直接报错，不再 fallback 到“第一个可用主机”。
+如果 1/2 都不匹配，会直接报错，不再 fallback。
+
+安装命令（`install` / `install-check`）必须显式指定 `host`。
 
 同样规则也适用于 `nix run .#build` / `.#build-switch` / `.#apply`。

@@ -36,11 +36,11 @@ just lint
 ## 3. 常用命令（优先记这几个）
 
 ```bash
-just check-local
-just test-local
-just switch-local
-just darwin-check-local
-just darwin-switch-local
+just check
+just test
+just switch
+just darwin-check
+just darwin-switch
 ```
 
 新增主机：
