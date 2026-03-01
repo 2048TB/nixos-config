@@ -61,9 +61,12 @@ just host=zky disk=/dev/nvme0n1 install-live
 安装完成后：
 
 ```bash
+# 显式指定主机
 just host=zly switch
-# 或
 just host=zky switch
+
+# 或自动按当前 hostname 匹配（推荐）
+just switch-local
 ```
 
 4. macOS（M4 mini）切换配置
@@ -71,6 +74,10 @@ just host=zky switch
 ```bash
 just darwin_host=zly-mac darwin-check
 just darwin_host=zly-mac darwin-switch
+
+# 或自动按当前 hostname 匹配（推荐）
+just darwin-check-local
+just darwin-switch-local
 ```
 
 说明：`darwin-check` 需要在 macOS 主机执行，或在 Linux 上配置 `aarch64-darwin` remote builder 后执行。
@@ -78,8 +85,10 @@ just darwin_host=zly-mac darwin-switch
 5. 可选：使用 flake apps 管理（参考仓库方式）
 
 ```bash
+# 默认自动按当前 hostname 解析主机
 nix run .#build
 nix run .#build-switch
+nix run .#install
 
 # 指定主机
 NIXOS_HOST=zky nix run .#build-switch
@@ -236,6 +245,7 @@ sudo btrfs inspect-internal map-swapfile -r /swap/swapfile
 ```
 .
 ├── flake.nix                     # Flake 入口（inputs/nixConfig/outputs）
+├── apps/                         # flake app 使用说明
 ├── lib/                          # 构建器与辅助函数
 │   ├── default.nix               # lib 聚合入口（system/host 构建函数）
 │   ├── mkDarwinHost.nix
@@ -248,10 +258,10 @@ sudo btrfs inspect-internal map-swapfile -r /swap/swapfile
 │   │   ├── x86_64-linux/{default.nix,tests/{hostname,home}}
 │   │   └── aarch64-darwin/{default.nix,tests/{hostname,home}}
 │   ├── nixos/
-│   │   ├── zly/{disko.nix,hardware.nix,checks.nix,vars.nix}
-│   │   └── zky/{disko.nix,hardware.nix,checks.nix,vars.nix}
+│   │   ├── zly/{disko.nix,hardware.nix,vars.nix,home.nix,checks.nix}
+│   │   └── zky/{disko.nix,hardware.nix,vars.nix,home.nix,checks.nix}
 │   └── darwin/
-│       └── zly-mac/{default.nix,checks.nix,vars.nix}
+│       └── zly-mac/{default.nix,vars.nix,home.nix,checks.nix}
 ├── nix/
 │   ├── modules/                  # 系统公共模块
 │   └── home/
@@ -259,6 +269,9 @@ sudo btrfs inspect-internal map-swapfile -r /swap/swapfile
 │       ├── linux/default.nix     # Linux Home 配置（Niri/Waybar 等）
 │       ├── darwin/default.nix    # Darwin Home 配置模板
 │       └── configs/              # 应用配置素材
+├── scripts/
+│   ├── resolve-host.sh           # 按 hostname 自动解析主机
+│   └── new-host.sh               # 生成 NixOS/Darwin 主机目录脚手架
 ```
 
 ---
@@ -267,13 +280,32 @@ sudo btrfs inspect-internal map-swapfile -r /swap/swapfile
 
 新增主机不再需要修改 `hosts/outputs/<system>/default.nix`，只需新增 `hosts` 目录：
 
-1. NixOS：新增 `hosts/nixos/<host>/hardware.nix`、`hosts/nixos/<host>/disko.nix`、`hosts/nixos/<host>/vars.nix`（可选 `host.nix`）。
-2. Darwin：新增 `hosts/darwin/<host>/default.nix` 与 `hosts/darwin/<host>/vars.nix`。
+1. 用脚手架命令生成主机目录（推荐）：
+
+```bash
+# 从现有模板主机复制（默认 from=zly / zly-mac）
+just new-nixos-host <host>
+just new-darwin-host <host>
+
+# 或指定来源模板主机
+just new-nixos-host <host> <from-host>
+just new-darwin-host <host> <from-host>
+```
+
+2. 按需调整新主机 `vars.nix` / `disko.nix` / `hardware.nix` / `home.nix`。
 3. NixOS 必需：在 `vars.nix` 中填写完整主机变量（例如 `gpuMode`、`resumeOffset`、密码哈希等）。
 4. Darwin 必需：在 `vars.nix` 中至少填写 `username`（可按需扩展）。
-5. 可选：新增 `checks.nix` 做主机级 eval 校验。
-6. 验证自动发现：
+5. 验证自动发现：
 
 ```bash
 just hosts
+just eval-tests
 ```
+
+---
+
+## 主机目录约定（zly / zky）
+
+- `zly` 与 `zky` 保持“结构一致、文件独立”的维护方式。
+- 即使当前内容相同，也优先保留各自 `vars.nix` / `hardware.nix` / `disko.nix` / `checks.nix` / `home.nix`。
+- 这样后续出现硬件差异或策略差异时，可以直接在各自主机目录演进，无需再拆分共享层。

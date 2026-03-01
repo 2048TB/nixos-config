@@ -1,20 +1,30 @@
 # Hosts Layout
 
-当前仓库按平台分层组织（对齐参考仓库思路）：
+当前仓库采用“精简但可扩展”的多主机结构：
 
-- `hosts/outputs/<system>/default.nix`：按平台聚合 flake outputs（自动发现主机）
-- `hosts/nixos/<host>/hardware.nix`：NixOS 硬件相关配置
-- `hosts/nixos/<host>/disko.nix`：NixOS 磁盘/文件系统布局
-- `hosts/nixos/<host>/host.nix`：可选，NixOS 主机额外模块（仅在存在时加载）
-- `hosts/nixos/<host>/checks.nix`：可选，主机专属 checks（eval 级校验）
-- `hosts/nixos/<host>/vars.nix`：必需，NixOS 主机完整变量（如 `gpuMode`、`resumeOffset`、`roles`、密码哈希等）
-- `hosts/darwin/<host>/default.nix`：Darwin 主机入口
-- `hosts/darwin/<host>/checks.nix`：可选，Darwin 主机专属 checks
-- `hosts/darwin/<host>/vars.nix`：必需，Darwin 主机完整变量（至少包含 `username`）
+- `hosts/nixos/<host>/`：NixOS 主机目录（至少 `hardware.nix` + `disko.nix` + `vars.nix`）
+- `hosts/darwin/<host>/`：Darwin 主机目录（至少 `default.nix` + `vars.nix`）
+- `hosts/<platform>/<host>/home.nix`：该主机专属 Home Manager 覆盖（可选）
+- `hosts/<platform>/<host>/checks.nix`：该主机专属 checks（可选，建议保留）
 
-新增主机时的最小步骤：
+与主机关联的 Home Manager 主机层位于：
 
-1. NixOS：新建 `hosts/nixos/<host>/` 并提供 `hardware.nix`、`disko.nix`、`vars.nix`（可选 `host.nix`）。
-2. Darwin：新建 `hosts/darwin/<host>/default.nix` 与 `hosts/darwin/<host>/vars.nix`。
-3. 按需补充 `checks.nix`。
-4. 通过 `nix eval .#nixosConfigurations --apply builtins.attrNames` 或 `nix eval .#darwinConfigurations --apply builtins.attrNames` 验证自动发现结果。
+- `hosts/nixos/zly/home.nix`
+- `hosts/nixos/zky/home.nix`
+- `hosts/darwin/zly-mac/home.nix`
+
+主机维护策略（当前约定）：
+
+- `zly` 与 `zky` 采用“独立文件”维护，不做 host-level 共享 import。
+- 即使现阶段配置接近，也保留各自主机文件，优先保证后续差异化可演进。
+
+新增主机建议步骤（最小变更）：
+
+1. 用脚手架生成目录：
+   - `just new-nixos-host <host>`（默认模板 `zly`）
+   - `just new-darwin-host <host>`（默认模板 `zly-mac`）
+2. 按需调整 `vars.nix` / `disko.nix` / `hardware.nix` / `home.nix`。
+3. 运行：
+   - `nix eval .#nixosConfigurations --apply builtins.attrNames`
+   - `nix eval .#darwinConfigurations --apply builtins.attrNames`
+   - `just eval-tests`

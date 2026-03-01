@@ -12,8 +12,9 @@
 
 1. NixOS：在 `hosts/nixos/<host>/` 下必须提供 `hardware.nix`、`disko.nix`、`vars.nix`（可选 `host.nix`）。
 2. Darwin：在 `hosts/darwin/<host>/` 下必须提供 `default.nix` 与 `vars.nix`。
-3. 按需添加 `checks.nix`。
+3. 按需添加 `home.nix`、`home-modules/`、`checks.nix`（建议保留，便于主机独立演进）。
 4. `hosts/outputs/<system>/default.nix` 会自动扫描 `hosts/<platform>/*` 聚合主机。
+5. `flake.nix` 统一通过 `outputs = inputs: import ./hosts/outputs inputs;` 接入该聚合层，无需手工注册主机名。
 
 ## 设计目标
 
@@ -25,3 +26,4 @@
 
 - `apps` 提供 `nix run .#<name>` 入口（如 `build` / `build-switch` / `install` / `clean`）。
 - 实现位于各平台 `hosts/outputs/<system>/default.nix`，底层复用仓库 `just` 命令。
+- 主机选择优先级：环境变量（`NIXOS_HOST` / `DARWIN_HOST`）> 当前 hostname 自动匹配 > 默认回退主机。
