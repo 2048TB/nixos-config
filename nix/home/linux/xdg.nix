@@ -1,6 +1,7 @@
 { config
 , pkgs
 , lib
+, myvars
 , mainUser
 , sharedPortalConfig
 , ...
@@ -9,16 +10,25 @@ let
   homeDir = config.home.homeDirectory;
   localShareDir = "${homeDir}/.local/share";
   userProfileBin = "/etc/profiles/per-user/${mainUser}/bin";
+  enableWaybarBacklight = myvars.enableWaybarBacklight or false;
+  enableWaybarBattery = myvars.enableWaybarBattery or false;
+  waybarDeviceModules =
+    lib.concatStringsSep "\n" (
+      (lib.optionals enableWaybarBacklight [ "    \"backlight\"," ])
+      ++ (lib.optionals enableWaybarBattery [ "    \"battery\"," ])
+    );
 
   waybarConfig =
     builtins.replaceStrings
       [
         "@USER_BIN@"
         "@SYSTEM_BIN@"
+        "@WAYBAR_DEVICE_MODULES@"
       ]
       [
         userProfileBin
         "/run/current-system/sw/bin"
+        waybarDeviceModules
       ]
       (builtins.readFile ../configs/waybar/config.jsonc);
   waybarStyle =
