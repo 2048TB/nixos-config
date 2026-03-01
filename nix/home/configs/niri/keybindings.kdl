@@ -52,7 +52,7 @@ binds {
     // 打开/关闭概览：工作区与窗口的缩略视图。
     // 也可将鼠标移到左上角热区，
     // 或在触控板上四指上滑。
-    Mod+O repeat=false { toggle-overview; }
+    Mod+O { toggle-column-tabbed-display; }
 
     // 交换为：方向键聚焦，HJKL 移动窗口/列
     Mod+Left { focus-column-left; }
@@ -164,9 +164,9 @@ binds {
     Mod+BracketRight { consume-or-expel-window-right; }
 
     // 从右侧列吸入一个窗口到当前列底部。
-    Mod+Comma  { consume-window-into-column; }
+    Mod+D { consume-window-into-column; }
     // 将当前列底部窗口移到右侧。
-    Mod+Period { expel-window-from-column; }
+    Mod+F { expel-window-from-column; }
 
     Mod+R { switch-preset-column-width; }
     // 也可按反向顺序循环预设。
@@ -175,8 +175,6 @@ binds {
     Mod+Ctrl+R { reset-window-height; }
     Mod+Z { maximize-column; }
     Mod+Shift+M { maximize-window-to-edges; }
-    // 对齐 Hyprland：Mod+C 全屏，Mod+X 浮动切换。
-    Mod+C { fullscreen-window; }
     // 官方 Screencasting 推荐：应用“窗口化全屏”（fake fullscreen）
     Mod+Ctrl+Shift+F { toggle-windowed-fullscreen; }
 
@@ -203,16 +201,23 @@ binds {
     Mod+Shift+Minus { set-window-height "-10%"; }
     Mod+Shift+Equal { set-window-height "+10%"; }
 
-    // 在浮动与平铺布局间切换当前窗口（对齐 Hyprland: Mod+X）
-    Mod+X { toggle-window-floating; }
+    // 在浮动与平铺布局间切换当前窗口。
+    Mod+C { toggle-window-floating; }
 
     // 在浮动窗口与平铺窗口之间切换焦点。
-    Mod+G       { switch-focus-between-floating-and-tiling; }
+    Mod+V { switch-focus-between-floating-and-tiling; }
+
+    // 快速上下移动当前窗口。
+    Mod+S { move-window-down; }
+    Mod+G { move-window-up; }
+
+    // 全屏当前窗口。
+    Mod+X { fullscreen-window; }
 
     // 切换列的标签页显示模式。
     // 该列窗口将以纵向标签显示，
     // 而非堆叠在一起。
-    Mod+W { toggle-column-tabbed-display; }
+    Mod+W repeat=false { toggle-overview; }
 
     // 切换布局的动作。
     // 注意：若取消注释，请确保上面的 xkb 选项中没有相同快捷键。
