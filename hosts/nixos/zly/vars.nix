@@ -37,6 +37,13 @@
     "container"
   ];
 
+  # App toggles (zly)
+  enableWpsOffice = true;
+  enableZathura = true;
+  enableSplayer = true;
+  enableTelegramDesktop = true;
+  enableLocalSend = true;
+
   # Credentials are managed by agenix secrets:
   # - secrets/passwords/user-password.age
   # - secrets/passwords/root-password.age

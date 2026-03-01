@@ -18,6 +18,24 @@ let
   ];
   hostRoles = myvars.roles or [ "desktop" ];
   enableHibernate = myvars.enableHibernate or true;
+  appToggleNames = [
+    "enableWpsOffice"
+    "enableZathura"
+    "enableSplayer"
+    "enableTelegramDesktop"
+    "enableLocalSend"
+  ];
+  appToggleAssertions = map
+    (
+      optName:
+      {
+        assertion =
+          !(builtins.hasAttr optName myvars)
+          || builtins.isBool (builtins.getAttr optName myvars);
+        message = "myvars.${optName} must be a boolean (true/false).";
+      }
+    )
+    appToggleNames;
 
   userPasswordSecretFile = ../../../secrets/passwords/user-password.age;
   rootPasswordSecretFile = ../../../secrets/passwords/root-password.age;
@@ -55,5 +73,5 @@ in
       assertion = lib.subtractLists knownHostRoles hostRoles == [ ];
       message = "myvars.roles contains unknown values. allowed: desktop, gaming, vpn, virt, container.";
     }
-  ];
+  ] ++ appToggleAssertions;
 }

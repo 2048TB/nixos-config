@@ -31,11 +31,15 @@
   # Roles
   roles = [
     "desktop"
-    "gaming"
     "vpn"
-    "virt"
-    "container"
   ];
+
+  # App toggles (zky)
+  enableWpsOffice = false;
+  enableZathura = false;
+  enableSplayer = false;
+  enableTelegramDesktop = false;
+  enableLocalSend = false;
 
   # Credentials are managed by agenix secrets:
   # - secrets/passwords/user-password.age
