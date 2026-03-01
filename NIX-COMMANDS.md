@@ -8,20 +8,20 @@
 
 ```bash
 just hosts
-just check-local
-just test-local
-just switch-local
-just boot-local
+just check
+just test
+just switch
+just boot
 just rollback
 just scripts-check
 just eval-tests
 just flake-check
-just host=zly install-live-check
-just host=zly disk=/dev/nvme0n1 install-live
+just host=zly install-check
+just host=zly disk=/dev/nvme0n1 install
 ```
 
-说明：当前仓库的 `*-local` 命令均为 strict 模式。
-如果 hostname 不能匹配仓库主机，请先设置 `NIXOS_HOST` 或 `DARWIN_HOST`。
+说明：`switch`/`check`/`test`/`boot` 不指定 `host` 时自动检测当前主机（strict 模式）。
+如果 hostname 不能匹配仓库主机，请设置 `NIXOS_HOST` 或用 `just host=xxx` 指定。
 
 ---
 
@@ -29,30 +29,25 @@ just host=zly disk=/dev/nvme0n1 install-live
 
 ```bash
 # 目标主机 zly
-just host=zly install-live-check
-just host=zly disk=/dev/nvme0n1 install-live
+just host=zly install-check
+just host=zly disk=/dev/nvme0n1 install
 
 # 目标主机 zky
-just host=zky install-live-check
-just host=zky disk=/dev/nvme0n1 install-live
+just host=zky install-check
+just host=zky disk=/dev/nvme0n1 install
 ```
 
-自动识别主机（strict）：
-
-```bash
-just install-live-check-local
-just disk=/dev/nvme0n1 install-live-local
-```
+安装命令必须指定 `host`（Live ISO hostname 不匹配仓库主机）。
 
 ---
 
 ## 3. NixOS 日常维护
 
 ```bash
-just check-local
-just test-local
-just switch-local
-just boot-local
+just check
+just test
+just switch
+just boot
 
 just host=zly switch
 just host=zky switch
@@ -72,8 +67,8 @@ just optimize
 ## 4. macOS（nix-darwin）
 
 ```bash
-just darwin-check-local
-just darwin-switch-local
+just darwin-check
+just darwin-switch
 
 just darwin_host=zly-mac darwin-check
 just darwin_host=zly-mac darwin-switch
@@ -101,7 +96,7 @@ just agenix-init
 ```bash
 just password-hashes
 just password-set-hash '<sha512-hash>'
-just switch-local
+just switch
 ```
 
 托管 GitHub SSH key：
@@ -157,7 +152,7 @@ nix run .#clean
 ```
 
 说明：`build` / `build-switch` / `apply` 默认 strict 主机解析（仅环境变量或当前 hostname）。
-不再 fallback 到“第一个可用主机”。
+不再 fallback 到"第一个可用主机"。
 
 指定主机：
 

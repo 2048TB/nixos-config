@@ -16,15 +16,14 @@
 
 推荐仓库路径：`/persistent/nixos-config`
 
-主机自动识别优先级：
-1. 环境变量（`NIXOS_HOST` / `DARWIN_HOST`）
-2. 当前系统 hostname
-3. fallback（仅普通模式允许）
+主机解析优先级：
+1. 显式指定（`just host=xxx` 或 `just darwin_host=xxx`）
+2. 环境变量（`NIXOS_HOST` / `DARWIN_HOST`）
+3. 当前系统 hostname
 
-strict 模式（危险命令）不允许 fallback：
-- `install-live-check-local`
-- `install-live-local`
-- `nix run .#apply` / `.#build-switch` / `.#install`
+以上都不匹配时直接报错（strict 模式），不会 fallback。
+
+安装命令（`install` / `install-check`）必须显式指定 host。
 
 ---
 
@@ -72,17 +71,17 @@ just password-set-hash '<sha512-hash>'
 ### 1.4 安装前检查
 
 ```bash
-just host=zly install-live-check
+just host=zly install-check
 # 或
-just host=zky install-live-check
+just host=zky install-check
 ```
 
 ### 1.5 执行安装（清盘）
 
 ```bash
-just host=zly disk=/dev/nvme0n1 install-live
+just host=zly disk=/dev/nvme0n1 install
 # 或
-just host=zky disk=/dev/nvme0n1 install-live
+just host=zky disk=/dev/nvme0n1 install
 ```
 
 ### 1.6 安装后第一步
@@ -90,7 +89,7 @@ just host=zky disk=/dev/nvme0n1 install-live
 重启进入系统后：
 
 ```bash
-just switch-local
+just switch
 ```
 
 ---
@@ -100,9 +99,9 @@ just switch-local
 ### 2.1 日常更新推荐流程
 
 ```bash
-just check-local
-just test-local
-just switch-local
+just check
+just test
+just switch
 ```
 
 ### 2.2 指定主机
@@ -137,8 +136,8 @@ just clean-all
 ### 3.1 常用命令
 
 ```bash
-just darwin-check-local
-just darwin-switch-local
+just darwin-check
+just darwin-switch
 ```
 
 显式指定主机：
@@ -182,14 +181,14 @@ just host=zly <命令>
 
 ```bash
 just password-set-hash '<sha512-hash>'
-just switch-local
+just switch
 ```
 
 ---
 
 ## 5. 新手记忆版（只记这几个）
 
-- 安装前检查：`just host=zly install-live-check`
-- 安装系统：`just host=zly disk=/dev/nvme0n1 install-live`
-- 日常更新：`just check-local && just test-local && just switch-local`
+- 安装前检查：`just host=zly install-check`
+- 安装系统：`just host=zly disk=/dev/nvme0n1 install`
+- 日常更新：`just check && just test && just switch`
 - 查看主机：`just hosts`

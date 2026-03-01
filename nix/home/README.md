@@ -41,15 +41,15 @@
 ## 3. 修改后怎么生效
 
 ```bash
-just switch-local
+just switch
 ```
 
 先检查再应用：
 
 ```bash
-just check-local
-just test-local
-just switch-local
+just check
+just test
+just switch
 ```
 
 ---

@@ -5,8 +5,8 @@
 default:
     @just --list
 
-host := "zly"
-darwin_host := "zly-mac"
+host := ""
+darwin_host := ""
 disk := "/dev/nvme0n1"
 repo := env_var_or_default("NIXOS_CONFIG_REPO", justfile_directory())
 key_dir_rel := ".keys"
@@ -38,53 +38,31 @@ new-darwin-host-dry-run name from="zly-mac":
 new-darwin-host-force name from="zly-mac":
     {{repo}}/scripts/new-host.sh darwin {{name}} --from {{from}} --repo {{repo}} --force
 
-# Live ISO 安装前构建校验（不落盘）
-install-live-check:
+# 安装前构建校验（不落盘；需指定 host）
+install-check:
+    @if [ -z "{{host}}" ]; then echo "error: 需要指定主机. 用法: just host=zly install-check" >&2; exit 2; fi
     nix build --no-link .#nixosConfigurations.{{host}}.config.system.build.toplevel
 
-# Live ISO 本机自动识别主机后执行安装前构建校验（严格模式：不允许 fallback）
-install-live-check-local:
-    host="$({{repo}}/scripts/resolve-host.sh nixos {{repo}} {{host}} --strict)"; echo ">>> host=$host"; just host="$host" install-live-check
-
-# Live ISO 一键安装（危险：会清空 {{disk}}，并同步仓库到 /mnt/persistent/nixos-config）
-install-live:
+# 一键安装（危险：会清空 {{disk}}；需指定 host）
+install:
+    @if [ -z "{{host}}" ]; then echo "error: 需要指定主机. 用法: just host=zly disk=/dev/nvme0n1 install" >&2; exit 2; fi
     {{repo}}/scripts/install-live.sh --host {{host}} --disk {{disk}} --repo {{repo}}
 
-# Live ISO 本机自动识别主机后一键安装（严格模式：不允许 fallback）
-install-live-local:
-    host="$({{repo}}/scripts/resolve-host.sh nixos {{repo}} {{host}} --strict)"; echo ">>> host=$host disk={{disk}}"; just host="$host" disk="{{disk}}" install-live
-
-# 应用配置并立即切换（常用）
+# 应用配置并立即切换（不指定 host 则自动检测当前主机）
 switch:
-    sudo nixos-rebuild switch --flake path:{{repo}}#{{host}} |& nom
-
-# 自动识别当前机器主机名并切换（优先使用 NIXOS_HOST 覆盖）
-switch-local:
-    host="$({{repo}}/scripts/resolve-host.sh nixos {{repo}} {{host}} --strict)"; echo ">>> host=$host"; just host="$host" switch
+    h="{{host}}"; if [ -z "$h" ]; then h="$({{repo}}/scripts/resolve-host.sh nixos {{repo}} auto --strict)"; fi; echo ">>> host=$h"; sudo nixos-rebuild switch --flake "path:{{repo}}#$h" |& nom
 
 # 应用配置但下次启动生效
 boot:
-    sudo nixos-rebuild boot --flake path:{{repo}}#{{host}} |& nom
-
-# 自动识别当前机器主机名并 boot
-boot-local:
-    host="$({{repo}}/scripts/resolve-host.sh nixos {{repo}} {{host}} --strict)"; echo ">>> host=$host"; just host="$host" boot
+    h="{{host}}"; if [ -z "$h" ]; then h="$({{repo}}/scripts/resolve-host.sh nixos {{repo}} auto --strict)"; fi; echo ">>> host=$h"; sudo nixos-rebuild boot --flake "path:{{repo}}#$h" |& nom
 
 # 临时测试配置（重启后失效）
 test:
-    sudo nixos-rebuild test --flake path:{{repo}}#{{host}} |& nom
-
-# 自动识别当前机器主机名并 test
-test-local:
-    host="$({{repo}}/scripts/resolve-host.sh nixos {{repo}} {{host}} --strict)"; echo ">>> host=$host"; just host="$host" test
+    h="{{host}}"; if [ -z "$h" ]; then h="$({{repo}}/scripts/resolve-host.sh nixos {{repo}} auto --strict)"; fi; echo ">>> host=$h"; sudo nixos-rebuild test --flake "path:{{repo}}#$h" |& nom
 
 # 检查配置但不应用（快速验证）
 check:
-    nix build --no-link path:{{repo}}#nixosConfigurations.{{host}}.config.system.build.toplevel
-
-# 自动识别当前机器主机名并 check
-check-local:
-    host="$({{repo}}/scripts/resolve-host.sh nixos {{repo}} {{host}} --strict)"; echo ">>> host=$host"; just host="$host" check
+    h="{{host}}"; if [ -z "$h" ]; then h="$({{repo}}/scripts/resolve-host.sh nixos {{repo}} auto --strict)"; fi; echo ">>> host=$h"; nix build --no-link "path:{{repo}}#nixosConfigurations.$h.config.system.build.toplevel"
 
 # 快速执行 eval tests（hostname/home 映射一致性）
 eval-tests:
@@ -106,21 +84,13 @@ rollback:
 
 # ========== Darwin 管理 ==========
 
-# 应用 macOS 配置（在 macOS 主机执行）
+# 应用 macOS 配置（不指定 darwin_host 则自动检测）
 darwin-switch:
-    darwin-rebuild switch --flake path:{{repo}}#{{darwin_host}}
+    h="{{darwin_host}}"; if [ -z "$h" ]; then h="$({{repo}}/scripts/resolve-host.sh darwin {{repo}} auto --strict)"; fi; echo ">>> darwin_host=$h"; darwin-rebuild switch --flake "path:{{repo}}#$h"
 
-# 自动识别当前机器主机名并切换 Darwin（优先使用 DARWIN_HOST 覆盖）
-darwin-switch-local:
-    host="$({{repo}}/scripts/resolve-host.sh darwin {{repo}} {{darwin_host}} --strict)"; echo ">>> darwin_host=$host"; just darwin_host="$host" darwin-switch
-
-# 构建 macOS 配置（不切换；需在 macOS 或配置了 aarch64-darwin remote builder 的环境执行）
+# 构建 macOS 配置（不切换）
 darwin-check:
-    nix build --no-link path:{{repo}}#darwinConfigurations.{{darwin_host}}.system
-
-# 自动识别当前机器主机名并构建 Darwin 配置
-darwin-check-local:
-    host="$({{repo}}/scripts/resolve-host.sh darwin {{repo}} {{darwin_host}} --strict)"; echo ">>> darwin_host=$host"; just darwin_host="$host" darwin-check
+    h="{{darwin_host}}"; if [ -z "$h" ]; then h="$({{repo}}/scripts/resolve-host.sh darwin {{repo}} auto --strict)"; fi; echo ">>> darwin_host=$h"; nix build --no-link "path:{{repo}}#darwinConfigurations.$h.system"
 
 # 列出可用 darwin 主机
 darwin-hosts:
@@ -345,19 +315,19 @@ log:
 # ========== 快速工作流 ==========
 
 # 快速应用配置（检查 + 应用）
-quick: check-local switch-local
+quick: check switch
     @echo "✓ 配置已应用"
 
 # 完整工作流（检查 + 应用 + 清理）
-full: check-all switch-local clean
+full: check-all switch clean
     @echo "✓ 完整流程执行完成"
 
 # 更新并应用配置
-upgrade: update switch-local
+upgrade: update switch
     @echo "✓ 系统已升级到最新版本"
 
 # 开发流程（格式化 + 检查 + 测试 + 提示提交）
-dev: fmt flake-check test-local
+dev: fmt flake-check test
     @echo ""
     @echo "✓ 开发检查完成"
     @echo "tip: 使用 'just commit \"消息\"' 提交更改"
@@ -430,14 +400,15 @@ tmp PACKAGE:
 help:
     @echo "常用命令快速参考"
     @echo ""
-    @echo "[安装] Live ISO："
-    @echo "  just host=zly install-live-check"
-    @echo "  just host=zly disk=/dev/nvme0n1 install-live"
+    @echo "[安装] Live ISO（需指定 host）："
+    @echo "  just host=zly install-check"
+    @echo "  just host=zly disk=/dev/nvme0n1 install"
     @echo ""
-    @echo "[日常]："
-    @echo "  just switch-local - 应用配置"
-    @echo "  just quick        - 检查 + 应用"
-    @echo "  just clean        - 清理旧世代"
+    @echo "[日常]（自动检测主机，或 just host=xxx 指定）："
+    @echo "  just switch      - 应用配置"
+    @echo "  just boot        - 下次启动生效"
+    @echo "  just quick       - 检查 + 应用"
+    @echo "  just clean       - 清理旧世代"
     @echo ""
     @echo "[更新]："
     @echo "  just upgrade     - 更新并应用"
