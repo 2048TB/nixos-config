@@ -165,7 +165,9 @@ in
       enable = true;
       # 统一图片默认打开方式
       # 使用 genAttrs 保持行为一致，减少重复
-      defaultApplications = lib.genAttrs imageMimeTypes (_: imageApps);
+      defaultApplications = lib.genAttrs imageMimeTypes (_: imageApps) // {
+        "text/plain" = [ "org.gnome.TextEditor.desktop" ];
+      };
     };
   };
 }
