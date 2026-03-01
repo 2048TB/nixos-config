@@ -196,15 +196,31 @@ just flake-check
 ## 6. 目录速览（知道在哪改就够了）
 
 - `hosts/nixos/<host>/`：每台 NixOS 主机配置
+- `hosts/nixos/_shared/`：NixOS 共享硬件/磁盘模板
 - `hosts/darwin/<host>/`：每台 macOS 主机配置
+- `hosts/outputs/`：flake 输出聚合层
 - `nix/modules/`：共享系统模块
 - `nix/home/`：共享 Home Manager 配置
+- `scripts/`：安装、密钥、主机发现等脚本
+- `lib/`：Nix 辅助函数（mkNixosHost/mkDarwinHost/scanPaths）
 - `secrets/`：加密后的 secrets（可提交）
 - `.keys/`：本地私钥（不可提交）
 
 ---
 
-## 7. 进阶入口
+## 7. Binary Cache
+
+当前配置了 3 个二进制缓存（减少本地编译时间）：
+
+- `https://nix-community.cachix.org`
+- `https://nixpkgs-wayland.cachix.org`
+- `https://cache.garnix.io`
+
+配置位置：`hosts/outputs/default.nix` 中的 `binaryCaches`。
+
+---
+
+## 8. 进阶入口
 
 - 想按环境执行：看 `ENV-USAGE.md`
 - 想查命令：看 `NIX-COMMANDS.md`

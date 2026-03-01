@@ -4,7 +4,7 @@ set -euo pipefail
 # shellcheck disable=SC2034
 script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck disable=SC1091
-source "$script_dir/lib/common.sh"
+source "$script_dir/common.sh"
 
 usage() {
   cat <<'EOF'

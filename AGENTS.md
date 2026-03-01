@@ -55,7 +55,7 @@ just new-darwin-host <name>
 ## 4. 目录改动指引（改哪里）
 
 - 改某一台机器参数：`hosts/<platform>/<host>/vars.nix`
-- 改系统行为（服务/内核/持久化）：`nix/modules/system.nix`
+- 改系统行为（服务/内核/持久化）：`nix/modules/system.nix`（角色逻辑在 `system/role-flags.nix` 和 `system/role-services.nix`）
 - 改硬件与显卡：`nix/modules/hardware.nix`
 - 改用户应用与桌面：`nix/home/`
 - 改主机发现或脚手架脚本：`scripts/resolve-host.sh`、`scripts/new-host.sh`

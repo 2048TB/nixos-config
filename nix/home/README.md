@@ -10,8 +10,13 @@
 
 ## 1. 目录结构
 
-- `nix/home/base/default.nix`：Linux + macOS 共享
-- `nix/home/linux/default.nix`：Linux 专用
+- `nix/home/base/default.nix`：Linux + macOS 共享（session 变量、路径）
+- `nix/home/linux/`：Linux 专用
+  - `default.nix`：入口（session 变量、home.file、dconf）
+  - `packages.nix`：home.packages + WPS 包装 + 独立脚本包
+  - `programs.nix`：fzf/mpv/lutris/zsh/vim
+  - `desktop.nix`：systemd 用户服务 + quiet launcher + waybar/swaybg
+  - `xdg.nix`：xdg portal/mimeApps/configFile/userDirs
 - `nix/home/darwin/default.nix`：macOS 专用
 - `nix/home/configs/`：具体应用配置文件
 

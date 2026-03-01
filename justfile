@@ -48,34 +48,7 @@ install-live-check-local:
 
 # Live ISO 一键安装（危险：会清空 {{disk}}，并同步仓库到 /mnt/persistent/nixos-config）
 install-live:
-    @echo ">>> host={{host}} disk={{disk}}"
-    disko_script="$(env NIXOS_DISK_DEVICE={{disk}} nix build --impure --no-link --print-out-paths path:{{repo}}#nixosConfigurations.{{host}}.config.system.build.diskoScript)"; \
-      echo ">>> disko_script=$disko_script"; \
-      sudo env NIXOS_DISK_DEVICE={{disk}} "$disko_script"
-    findmnt /mnt/boot
-    findmnt /mnt/persistent
-    sudo rm -rf /mnt/persistent/nixos-config
-    sudo mkdir -p /mnt/persistent/nixos-config
-    if command -v rsync >/dev/null 2>&1; then \
-      sudo rsync -a --delete --exclude='.git' --exclude='{{key_dir_rel}}' {{repo}}/ /mnt/persistent/nixos-config/; \
-    else \
-      echo "warning: rsync not found, fallback to cp -a (temporary .git copy will be removed)"; \
-      sudo cp -a {{repo}}/. /mnt/persistent/nixos-config/; \
-      sudo rm -rf /mnt/persistent/nixos-config/.git; \
-      sudo rm -rf /mnt/persistent/nixos-config/{{key_dir_rel}}; \
-    fi
-    age_key_src="{{repo}}/{{age_key_rel}}"; \
-      if [ -f "$age_key_src" ]; then \
-        sudo install -D -m 0400 -o root -g root "$age_key_src" /mnt/persistent/keys/main.agekey; \
-        echo ">>> agenix key installed: $age_key_src -> /mnt/persistent/keys/main.agekey"; \
-      else \
-        echo "error: agenix key not found at $age_key_src"; \
-        echo "hint: put private key at {{repo}}/{{age_key_rel}} then retry"; \
-        exit 1; \
-      fi
-    sudo env NIXOS_DISK_DEVICE={{disk}} nixos-install --impure --flake /mnt/persistent/nixos-config#{{host}}
-    @echo ">>> github ssh key will be provisioned by agenix secrets on first boot/switch (if configured)"
-    @echo "✓ 安装完成，重启后执行：just host={{host}} switch"
+    {{repo}}/scripts/install-live.sh --host {{host}} --disk {{disk}} --repo {{repo}}
 
 # Live ISO 本机自动识别主机后一键安装（严格模式：不允许 fallback）
 install-live-local:
@@ -92,6 +65,10 @@ switch-local:
 # 应用配置但下次启动生效
 boot:
     sudo nixos-rebuild boot --flake path:{{repo}}#{{host}} |& nom
+
+# 自动识别当前机器主机名并 boot
+boot-local:
+    host="$({{repo}}/scripts/resolve-host.sh nixos {{repo}} {{host}} --strict)"; echo ">>> host=$host"; just host="$host" boot
 
 # 临时测试配置（重启后失效）
 test:
@@ -232,7 +209,7 @@ lint:
 
 # Shell 脚本语法/静态检查（shellcheck 可选）
 scripts-check:
-    @bash -lc 'set -euo pipefail; shopt -s nullglob; files=(scripts/*.sh scripts/lib/*.sh .githooks/pre-*); if [ ${#files[@]} -eq 0 ]; then echo "warning: no shell scripts found"; exit 0; fi; bash -n "${files[@]}"; if command -v shellcheck >/dev/null 2>&1; then shellcheck "${files[@]}"; else echo "warning: shellcheck not found, skipped"; fi'
+    @{{repo}}/scripts/check-scripts.sh
     @echo "✓ Shell 脚本检查通过"
 
 # 查找死代码
@@ -291,31 +268,31 @@ guard-secrets:
 
 # 初始化 agenix 主密钥（默认只同步，不自动创建）
 agenix-init:
-    @{{repo}}/scripts/bootstrap-age-key.sh
+    @{{repo}}/scripts/agenix.sh init
 
 # 首次初始化 agenix 主密钥（仅在 main.agekey 缺失时创建）
 agenix-init-create:
-    @{{repo}}/scripts/bootstrap-age-key.sh --create
+    @{{repo}}/scripts/agenix.sh init --create
 
 # 旋转 agenix 主密钥（危险：需要立即 rekey）
 agenix-init-rotate:
-    @{{repo}}/scripts/bootstrap-age-key.sh --rotate
+    @{{repo}}/scripts/agenix.sh init --rotate
 
 # 初始化/更新恢复密钥（本地 .keys/recovery.agekey + 仓库公钥）
 agenix-recovery-init:
-    @{{repo}}/scripts/manage-agenix-recipients.sh init-recovery
+    @{{repo}}/scripts/agenix.sh recovery-init
 
 # 添加主机 SSH host 公钥 recipient（默认读取 /etc/ssh/ssh_host_ed25519_key.pub）
 agenix-host-key-add HOST PUB="/etc/ssh/ssh_host_ed25519_key.pub":
-    @{{repo}}/scripts/manage-agenix-recipients.sh add-host '{{HOST}}' '{{PUB}}'
+    @{{repo}}/scripts/agenix.sh host-add '{{HOST}}' '{{PUB}}'
 
 # 列出 agenix recipients
 agenix-recipients:
-    @{{repo}}/scripts/manage-agenix-recipients.sh list
+    @{{repo}}/scripts/agenix.sh recipients
 
 # 按当前 recipients 重加密所有 secrets/*.age
 agenix-rekey:
-    @{{repo}}/scripts/manage-agenix-recipients.sh rekey
+    @{{repo}}/scripts/agenix.sh rekey
 
 # 生成 sha-512 密码哈希（交互输入密码）
 password-hash:
@@ -334,12 +311,12 @@ password-hashes:
     @just password-hash
 
 # 将同一个密码哈希写入 agenix（user/root）
-password-set-hash HASH: agenix-init
-    @{{repo}}/scripts/set-password-hash.sh '{{HASH}}'
+password-set-hash HASH:
+    @{{repo}}/scripts/agenix.sh password-set '{{HASH}}'
 
 # 将 .keys/github_id_ed25519(.pub) 加密写入 agenix secrets
-ssh-key-set: agenix-init
-    @{{repo}}/scripts/set-github-ssh-key.sh
+ssh-key-set:
+    @{{repo}}/scripts/agenix.sh ssh-key-set
 
 # 提交所有更改
 commit MESSAGE:
@@ -383,7 +360,7 @@ upgrade: update switch-local
 dev: fmt flake-check test-local
     @echo ""
     @echo "✓ 开发检查完成"
-    @echo "💡 使用 'just commit \"消息\"' 提交更改"
+    @echo "tip: 使用 'just commit \"消息\"' 提交更改"
 
 # ========== 构建和安装 ==========
 
@@ -402,17 +379,13 @@ keys:
 commands:
     @bat --style=plain NIX-COMMANDS.md || cat NIX-COMMANDS.md
 
-# 查看优化文档
-perf:
-    @bat --style=plain .github-optimization.md || cat .github-optimization.md
-
 # 查看所有文档
 docs:
     @echo "=== 可用文档 ==="
-    @echo "README.md            - 主文档"
+    @echo "README.md            - 主文档（含 Binary Cache 说明）"
     @echo "KEYBINDINGS.md       - 快捷键说明"
     @echo "NIX-COMMANDS.md      - Nix 命令速查"
-    @echo ".github-optimization.md - Binary Cache 优化"
+    @echo "ENV-USAGE.md         - 多环境使用手册"
 
 # ========== 故障排查 ==========
 
@@ -455,27 +428,27 @@ tmp PACKAGE:
 
 # 显示常用命令
 help:
-    @echo "📖 常用命令快速参考"
+    @echo "常用命令快速参考"
     @echo ""
-    @echo "💿 安装（Live ISO）："
+    @echo "[安装] Live ISO："
     @echo "  just host=zly install-live-check"
     @echo "  just host=zly disk=/dev/nvme0n1 install-live"
     @echo ""
-    @echo "🚀 日常使用："
-    @echo "  just switch      - 应用配置"
-    @echo "  just quick       - 检查 + 应用"
-    @echo "  just clean       - 清理旧世代"
+    @echo "[日常]："
+    @echo "  just switch-local - 应用配置"
+    @echo "  just quick        - 检查 + 应用"
+    @echo "  just clean        - 清理旧世代"
     @echo ""
-    @echo "🔄 更新系统："
+    @echo "[更新]："
     @echo "  just upgrade     - 更新并应用"
     @echo "  just update      - 只更新 flake.lock"
     @echo ""
-    @echo "📦 Git 操作："
+    @echo "[Git]："
     @echo "  just status      - 查看状态"
     @echo "  just push \"消息\" - 提交并推送"
     @echo ""
-    @echo "📚 查看文档："
+    @echo "[文档]："
     @echo "  just keys        - 快捷键说明"
     @echo "  just commands    - Nix 命令"
     @echo ""
-    @echo "💡 使用 'just' 查看所有命令"
+    @echo "tip: 使用 'just' 查看所有命令"
