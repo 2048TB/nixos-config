@@ -6,7 +6,7 @@ This repository is a flake-based NixOS desktop configuration.
 - `hosts/nixos/<host>/`: per-host NixOS definitions (`hardware.nix`, `disko.nix`, `vars.nix`; optional `home.nix`, `checks.nix`, `modules/`).
 - `hosts/darwin/<host>/`: per-host Darwin definitions (`default.nix`, `vars.nix`; optional `home.nix`, `checks.nix`, `modules/`).
 - `hosts/outputs/`: multi-platform flake output composition.
-- `scripts/resolve-host.sh`: host resolution helper for local commands/apps (`ENV > hostname > fallback`).
+- `scripts/resolve-host.sh`: host resolution helper for local commands/apps (`ENV > hostname > fallback`; if fallback is unavailable, auto-pick first valid host).
 - `scripts/new-host.sh`: host scaffolding helper for NixOS/Darwin host directories.
 - `lib/default.nix`: shared helper + system assembly entry (`nixosSystem`, `macosSystem`, `mk*Host`).
 - `apps/README.md`: flake app entrypoints (`nix run .#build-switch` etc.).
@@ -27,6 +27,8 @@ Use `just` as the primary command runner:
 - `just darwin-check-local` / `just darwin-switch-local`: Darwin local host variants.
 - `just new-nixos-host <name> [from]`: scaffold a new NixOS host from template.
 - `just new-darwin-host <name> [from]`: scaffold a new Darwin host from template.
+- `just new-nixos-host-dry-run <name> [from]` / `just new-darwin-host-dry-run <name> [from]`: preview scaffolding without writing files.
+- `just new-nixos-host-force <name> [from]` / `just new-darwin-host-force <name> [from]`: force-overwrite existing host directory.
 - `just eval-tests`: fast eval checks for hostname/home mapping.
 - `just flake-check`: run `nix flake check` for flake-level validation.
 - `just fmt`: format Nix files with `nixpkgs-fmt`.

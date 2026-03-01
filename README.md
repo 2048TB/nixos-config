@@ -290,6 +290,14 @@ just new-darwin-host <host>
 # 或指定来源模板主机
 just new-nixos-host <host> <from-host>
 just new-darwin-host <host> <from-host>
+
+# 仅预览脚手架行为（不改文件）
+just new-nixos-host-dry-run <host>
+just new-darwin-host-dry-run <host>
+
+# 强制覆盖同名主机目录
+just new-nixos-host-force <host>
+just new-darwin-host-force <host>
 ```
 
 2. 按需调整新主机 `vars.nix` / `disko.nix` / `hardware.nix` / `home.nix`。
@@ -301,6 +309,9 @@ just new-darwin-host <host> <from-host>
 just hosts
 just eval-tests
 ```
+
+`switch-local` / `check-local` / `test-local` 的主机解析优先级：
+`NIXOS_HOST` / `DARWIN_HOST` > 当前 hostname > 默认回退主机（若默认不可用则自动选择仓库内可用主机）。
 
 ---
 

@@ -53,11 +53,16 @@ NIXOS_CONFIG_REPO=/persistent/nixos-config nix run .#build
 ```
 
 说明：自动主机解析由 `scripts/resolve-host.sh` 处理，优先级为：
-`NIXOS_HOST` / `DARWIN_HOST` > 当前 hostname > 回退默认主机。
+`NIXOS_HOST` / `DARWIN_HOST` > 当前 hostname > 回退默认主机（默认不可用时自动选择仓库内可用主机）。
 
 新增主机脚手架由 `scripts/new-host.sh` 处理：
 - 默认从 `zly`（NixOS）或 `zly-mac`（Darwin）复制结构与校验文件。
 - 可通过 `just new-*-host <host> <from-host>` 指定模板主机。
+- 可使用封装命令：
+  - `just new-nixos-host-dry-run devbox`
+  - `just new-darwin-host-dry-run macbook`
+  - `just new-nixos-host-force devbox`
+  - `just new-darwin-host-force macbook`
 
 直接调用脚本（不经过 `just`）：
 
