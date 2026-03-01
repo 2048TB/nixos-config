@@ -1,68 +1,99 @@
-# Repository Guidelines
+# AGENTS.md（新手协作版）
 
-## Project Structure & Module Organization
-This repository is a flake-based NixOS desktop configuration.
-- `flake.nix`: main entrypoint (`inputs`, `nixConfig`, `outputs`).
-- `hosts/nixos/<host>/`: per-host NixOS definitions (`hardware.nix`, `disko.nix`, `vars.nix`; optional `home.nix`, `checks.nix`, `modules/`).
-- `hosts/darwin/<host>/`: per-host Darwin definitions (`default.nix`, `vars.nix`; optional `home.nix`, `checks.nix`, `modules/`).
-- `hosts/outputs/`: multi-platform flake output composition.
-- `scripts/resolve-host.sh`: host resolution helper for local commands/apps (`ENV > hostname > fallback`; if fallback is unavailable, auto-pick first valid host).
-- `scripts/new-host.sh`: host scaffolding helper for NixOS/Darwin host directories.
-- `lib/default.nix`: shared helper + system assembly entry (`nixosSystem`, `macosSystem`, `mk*Host`).
-- `nix/modules/`: shared system modules (`system.nix`, `hardware.nix`).
-- `nix/home/linux/default.nix`: Home Manager entrypoint for NixOS hosts.
-- `nix/home/base|linux|darwin`: layered Home modules.
-- `nix/home/configs/`: app configs — Ghostty, Foot, Tmux, Zellij, Waybar, Fuzzel, Wlogout, Yazi, shell, fcitx5, etc.
-- Docs: `README.md`, `KEYBINDINGS.md`, `NIX-COMMANDS.md`, `CLAUDE.md`, `AGENTS.md`, `nix/home/README.md`.
+本文件面向人类贡献者与自动化代理。
+目标：让第一次接触本仓库的人，也能安全地改动并验证。
 
-## Build, Test, and Development Commands
-Use `just` as the primary command runner:
-- `just switch`: apply and activate the current config.
-- `just switch-local`: resolve current host automatically and switch (preferred for daily use).
-- `just test`: activate temporarily (reboot reverts).
-- `just test-local`: resolve current host automatically and test.
-- `just check`: dry-build validation without switching.
-- `just check-local`: resolve current host automatically and check.
-- `just darwin-check-local` / `just darwin-switch-local`: Darwin local host variants.
-- `just new-nixos-host <name> [from]`: scaffold a new NixOS host from template.
-- `just new-darwin-host <name> [from]`: scaffold a new Darwin host from template.
-- `just new-nixos-host-dry-run <name> [from]` / `just new-darwin-host-dry-run <name> [from]`: preview scaffolding without writing files.
-- `just new-nixos-host-force <name> [from]` / `just new-darwin-host-force <name> [from]`: force-overwrite existing host directory.
-- `just eval-tests`: fast eval checks for hostname/home mapping.
-- `just flake-check`: run `nix flake check` for flake-level validation.
-- `just fmt`: format Nix files with `nixpkgs-fmt`.
-- `just lint`: run `statix` checks.
-- `just dead`: detect unused Nix code via `deadnix`.
-- `just dev`: common dev flow (`fmt + flake-check + test`).
-- Optional full build validation: `nix build --no-link path:/persistent/nixos-config#nixosConfigurations.zly.config.system.build.toplevel`.
-- Optional app-style management (reference-aligned): `nix run .#build`, `nix run .#build-switch`.
+---
 
-## Coding Style & Naming Conventions
-- Format Nix code with `nixpkgs-fmt` before review.
-- Keep module boundaries clear: host-specific logic in `hosts/`, reusable logic in `nix/modules`.
-- Follow existing naming patterns: lowercase kebab/camel mix already used in repo (e.g. `homeStateVersion`, `swapSizeGb`); keep new names consistent within the same file.
-- Prefer minimal diffs and reuse existing module patterns instead of refactoring unrelated areas.
+## 1. 先知道这是什么仓库
 
-## Testing Guidelines
-There is no unit-test suite; verification is configuration-driven:
-- Run at least: `just eval-tests`, `just flake-check`, and target `just check` / `just check-local`.
-- For Nix file edits, also run `just fmt` and `just lint`.
-- For behavior validation, use `just test` before `just switch`.
-- Include command outputs or a concise result summary in PR descriptions.
+这是一个 flake-based 多主机配置仓库：
+- NixOS 主机：`hosts/nixos/<host>/`
+- macOS 主机：`hosts/darwin/<host>/`
+- 聚合输出：`hosts/outputs/`
+- 共享系统模块：`nix/modules/`
+- 共享 Home Manager：`nix/home/`
 
-## Commit & Pull Request Guidelines
-- Commit history follows Conventional Commit style (`fix:`, `feat:`, `refactor:`, `style:`) with optional scopes (e.g. `fix(foot): ...`).
-- Write focused commits per concern (UI, module logic, docs).
-- PRs should include: purpose, changed paths, verification commands run, rollback notes, and screenshots for visible UI changes.
+---
 
-## Documentation Sync Rules
-- When behavior/commands/keybindings change, update related docs in the same change set.
-- For Niri/Waybar/Tmux/Zellij changes, keep `README.md`, `KEYBINDINGS.md`, and `NIX-COMMANDS.md` consistent.
-- If host discovery/scaffolding flow changes, sync `README.md`, `hosts/README.md`, `hosts/outputs/README.md`, and `NIX-COMMANDS.md`.
-- If terminal multiplexer keybindings change, treat `nix/home/configs/tmux/tmux.conf` and `nix/home/configs/zellij/config.kdl` as source of truth and sync docs accordingly.
-- If process rules change, sync `CLAUDE.md` and `AGENTS.md` together.
-- If docs are updated and user requests Git sync, use a Conventional Commit message and push current branch.
+## 2. 第一次贡献前，先跑这几个命令
 
-## Security & Configuration Tips
-- Do not commit new secrets (tokens, private keys, plaintext credentials). Password credentials are managed as encrypted agenix files under `secrets/passwords/*.age`; never commit `/.keys/main.agekey` or any private key material.
-- Treat disk provisioning and install commands as destructive unless verified (disko-related flows).
+```bash
+just hosts
+just eval-tests
+just flake-check
+```
+
+如果你改了 Nix 文件，再补：
+
+```bash
+just fmt
+just lint
+```
+
+---
+
+## 3. 常用命令（优先记这几个）
+
+```bash
+just check-local
+just test-local
+just switch-local
+just darwin-check-local
+just darwin-switch-local
+```
+
+新增主机：
+
+```bash
+just new-nixos-host <name>
+just new-darwin-host <name>
+```
+
+---
+
+## 4. 目录改动指引（改哪里）
+
+- 改某一台机器参数：`hosts/<platform>/<host>/vars.nix`
+- 改系统行为（服务/内核/持久化）：`nix/modules/system.nix`
+- 改硬件与显卡：`nix/modules/hardware.nix`
+- 改用户应用与桌面：`nix/home/`
+- 改主机发现或脚手架脚本：`scripts/resolve-host.sh`、`scripts/new-host.sh`
+
+---
+
+## 5. 文档同步硬规则
+
+出现以下情况，必须同一变更中同步文档：
+
+- 变更 Niri/Waybar/Tmux/Zellij 行为：同步 `README.md`、`KEYBINDINGS.md`、`NIX-COMMANDS.md`
+- 变更主机发现或脚手架：同步 `README.md`、`hosts/README.md`、`hosts/outputs/README.md`、`NIX-COMMANDS.md`
+- 变更流程规则：同步 `AGENTS.md` 与 `CLAUDE.md`
+
+---
+
+## 6. 提交规则
+
+- 使用 Conventional Commit：`feat:`、`fix:`、`docs:`、`refactor:` 等
+- 每次提交只做一个主题（例如“文档重写”不要混入系统逻辑变更）
+- 用户要求同步 GitHub 时，执行 `git push origin HEAD`
+
+---
+
+## 7. 安全红线（必须遵守）
+
+- 禁止提交任何私钥、token、明文密码
+- `secrets/*.age` 可以提交；`.keys/*` 私钥绝对不能提交
+- 涉及 `disko` / 安装流程命令，默认视为破坏性操作
+
+与密码相关：
+- 登录密码由 agenix secrets 管理：`secrets/passwords/user-password.age`、`secrets/passwords/root-password.age`
+
+---
+
+## 8. 变更原则
+
+- 最小改动优先，不做无关重构
+- 先保证正确性，再考虑性能与可维护性
+- 有现成模式就复用，不重复造轮子
+

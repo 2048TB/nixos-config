@@ -1,12 +1,51 @@
-# agenix Recipient Keys
+# secrets/keys 说明（新手版）
 
-此目录只存放用于加密的 **public keys**：
+这个目录只放 **public keys**（可以提交到 Git）。
 
-- `main.age.pub`：主运维 key（对应本地 `/.keys/main.agekey`）
-- `recovery.age.pub`：离线恢复 key（对应本地 `/.keys/recovery.agekey`）
-- `hosts/*.ssh_host_ed25519.pub`：各主机 SSH host public key
+---
 
-说明：
+## 1. 文件含义
 
-- 私钥永远不要放在 `secrets/` 下。
-- `secrets.nix` 会自动聚合以上 public keys 作为 recipients。
+- `main.age.pub`：主运维公钥
+- `recovery.age.pub`：恢复公钥
+- `hosts/*.ssh_host_ed25519.pub`：各主机 SSH host 公钥
+
+---
+
+## 2. 什么绝对不能放这里
+
+- 私钥（`*.agekey`）
+- 任意明文密码
+- 任意私有 token
+
+私钥只能放在本地仓库的 `./.keys/`（该目录被 `.gitignore` 忽略）。
+
+---
+
+## 3. 常用命令
+
+```bash
+# 初始化/同步主密钥（默认不创建）
+just agenix-init
+
+# 首次创建主密钥
+just agenix-init-create
+
+# 初始化 recovery key
+just agenix-recovery-init
+
+# 添加主机 host 公钥作为 recipient
+just agenix-host-key-add zly /etc/ssh/ssh_host_ed25519_key.pub
+
+# 重加密 secrets
+just agenix-rekey
+
+# 查看 recipients
+just agenix-recipients
+```
+
+---
+
+## 4. 工作原理（简版）
+
+`secrets.nix` 会自动读取本目录中的公钥集合，作为 `secrets/*.age` 的 recipients。

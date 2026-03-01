@@ -9,15 +9,30 @@ is_valid_host_name() {
 }
 
 resolve_repo_path() {
-  local candidate="${1:-$PWD}"
-  if [ ! -f "$candidate/flake.nix" ] && [ -f "/persistent/nixos-config/flake.nix" ]; then
-    candidate="/persistent/nixos-config"
+  local candidate="${1:-${NIXOS_CONFIG_REPO:-$PWD}}"
+  local repo_root=""
+  local script_repo=""
+
+  if [ -f "$candidate/flake.nix" ]; then
+    (cd "$candidate" && pwd -P)
+    return 0
   fi
-  if [ ! -f "$candidate/flake.nix" ]; then
-    echo "error: flake.nix not found in repo: $candidate" >&2
-    return 1
+
+  if repo_root="$(git -C "$candidate" rev-parse --show-toplevel 2>/dev/null)"; then
+    if [ -f "$repo_root/flake.nix" ]; then
+      printf '%s\n' "$repo_root"
+      return 0
+    fi
   fi
-  printf '%s\n' "$candidate"
+
+  script_repo="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd -P)"
+  if [ -f "$script_repo/flake.nix" ]; then
+    printf '%s\n' "$script_repo"
+    return 0
+  fi
+
+  echo "error: flake.nix not found in repo: $candidate" >&2
+  return 1
 }
 
 enter_repo_root() {

@@ -3,16 +3,12 @@
 
   # 仅影响 flake 自身（如 nix flake check / CI），不直接修改系统级 nix.conf。
   nixConfig = {
-    extra-substituters = [
-      "https://nix-community.cachix.org"
-      "https://nixpkgs-wayland.cachix.org"
-      "https://cache.garnix.io"
-    ];
-    extra-trusted-public-keys = [
-      "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
-      "nixpkgs-wayland.cachix.org-1:3lwxaILxMRkVhehr5StQprHdEo4IrE8sRho9R9HOLYA="
-      "cache.garnix.io:CTFPyKSLcx5RMJKfLo5EEPUObbA78b0YQ2DTCJXqr9g="
-    ];
+    # 默认留空，避免在 accept-flake-config = false 时引入交互确认或行为漂移。
+    # 如需启用 flake 级缓存，可按需填入：
+    # extra-substituters = [ "https://nix-community.cachix.org" ... ];
+    # extra-trusted-public-keys = [ "nix-community.cachix.org-1:..." ... ];
+    extra-substituters = [ ];
+    extra-trusted-public-keys = [ ];
   };
 
   inputs = {
