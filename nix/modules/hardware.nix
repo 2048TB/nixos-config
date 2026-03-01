@@ -77,13 +77,16 @@ in
     description = "Unblock Bluetooth rfkill state";
     wantedBy = [ "multi-user.target" ];
     before = [ "bluetooth.service" ];
-    after = [
-      "systemd-rfkill.service"
-    ];
-    wants = [ "systemd-rfkill.service" ];
+    # 仅等待 rfkill socket 就绪，避免直接拉起 systemd-rfkill.service
+    # 触发 “socket service already active” 时序告警。
+    after = [ "systemd-rfkill.socket" ];
     serviceConfig = {
       Type = "oneshot";
-      ExecStart = "${pkgs.util-linux}/bin/rfkill unblock bluetooth";
+      ExecStart = pkgs.writeShellScript "unblock-bluetooth-rfkill" ''
+        if ${pkgs.util-linux}/bin/rfkill list bluetooth | ${pkgs.gnugrep}/bin/grep -q "Soft blocked: yes"; then
+          ${pkgs.util-linux}/bin/rfkill unblock bluetooth
+        fi
+      '';
     };
   };
 
