@@ -46,6 +46,11 @@ normalize_host() {
   printf '%s' "${raw%%.*}"
 }
 
+is_valid_host_name() {
+  local name="${1:-}"
+  [[ "$name" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ ]]
+}
+
 case "$platform" in
   nixos)
     env_candidate="${NIXOS_HOST:-}"
@@ -68,7 +73,7 @@ esac
 host_exists() {
   local host="${1:-}"
   local file
-  if [ -z "$host" ] || [ ! -d "$hosts_root/$host" ]; then
+  if [ -z "$host" ] || ! is_valid_host_name "$host" || [ ! -d "$hosts_root/$host" ]; then
     return 1
   fi
   for file in "${required_files[@]}"; do
@@ -93,6 +98,13 @@ first_available_host() {
 
 if [ -n "$env_candidate" ]; then
   resolved_env="$(normalize_host "$env_candidate")"
+  if ! is_valid_host_name "$resolved_env"; then
+    echo "warning: ${platform} host from env is invalid: '$resolved_env'" >&2
+    resolved_env=""
+  fi
+fi
+
+if [ -n "${resolved_env:-}" ]; then
   if host_exists "$resolved_env"; then
     echo "$resolved_env"
     exit 0
@@ -102,11 +114,23 @@ fi
 
 if [ -n "$detected_candidate" ]; then
   resolved_detected="$(normalize_host "$detected_candidate")"
+  if ! is_valid_host_name "$resolved_detected"; then
+    echo "warning: ${platform} host from hostname is invalid: '$resolved_detected'" >&2
+    resolved_detected=""
+  fi
+fi
+
+if [ -n "${resolved_detected:-}" ]; then
   if host_exists "$resolved_detected"; then
     echo "$resolved_detected"
     exit 0
   fi
   echo "warning: ${platform} host from hostname not found in repo: '$resolved_detected'" >&2
+fi
+
+if ! is_valid_host_name "$fallback"; then
+  echo "error: invalid fallback host name '$fallback'" >&2
+  exit 2
 fi
 
 if host_exists "$fallback"; then
