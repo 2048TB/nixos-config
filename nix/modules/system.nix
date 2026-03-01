@@ -116,6 +116,9 @@ let
   cacheSubstituters = binaryCaches.substituters;
   cacheTrustedPublicKeys = binaryCaches.trustedPublicKeys;
   portalConfig = sharedPortalConfig;
+  ageIdentityPath = "/persistent/keys/main.agekey";
+  userPasswordSecretFile = ../../secrets/passwords/user-password.age;
+  rootPasswordSecretFile = ../../secrets/passwords/root-password.age;
   # 仅在 VPN/libvirt NAT 场景使用 loose rpfilter，其余默认严格模式。
   requiresLooseReversePath = enableProvider appVpn || enableLibvirtd;
   tuigreetPackage = pkgs.tuigreet or pkgs.greetd.tuigreet;
@@ -419,13 +422,31 @@ in
     };
   };
 
+  age = {
+    identityPaths = [ ageIdentityPath ];
+    secrets = {
+      "passwords/user" = {
+        file = userPasswordSecretFile;
+        mode = "0400";
+        owner = "root";
+        group = "root";
+      };
+      "passwords/root" = {
+        file = rootPasswordSecretFile;
+        mode = "0400";
+        owner = "root";
+        group = "root";
+      };
+    };
+  };
+
   # 配合 tmpfs 根分区，用户数据库由配置统一管理，避免 passwd 修改丢失
   users = {
     mutableUsers = false;
 
     # root 账户配置（用于紧急恢复和单用户模式）
     users.root = {
-      hashedPassword = myvars.rootPasswordHash;
+      hashedPasswordFile = config.age.secrets."passwords/root".path;
     };
 
     groups.${mainUser} = {
@@ -445,7 +466,7 @@ in
         "kvm"
       ];
       shell = pkgs.zsh;
-      hashedPassword = myvars.userPasswordHash;
+      hashedPasswordFile = config.age.secrets."passwords/user".path;
     };
 
     defaultUserShell = pkgs.zsh;
@@ -708,12 +729,12 @@ in
       message = "myvars.gpuMode must be one of: auto, none, amd, amdgpu, nvidia, modesetting, amd-nvidia-hybrid.";
     }
     {
-      assertion = myvars ? userPasswordHash && myvars.userPasswordHash != "CHANGE_ME";
-      message = "Set myvars.userPasswordHash in hosts/nixos/<host>/vars.nix (use mkpasswd -m sha-512).";
+      assertion = builtins.pathExists userPasswordSecretFile;
+      message = "Missing secrets/passwords/user-password.age. Use agenix to create/update it.";
     }
     {
-      assertion = myvars ? rootPasswordHash && myvars.rootPasswordHash != "CHANGE_ME";
-      message = "Set myvars.rootPasswordHash in hosts/nixos/<host>/vars.nix (use mkpasswd -m sha-512).";
+      assertion = builtins.pathExists rootPasswordSecretFile;
+      message = "Missing secrets/passwords/root-password.age. Use agenix to create/update it.";
     }
     {
       assertion =

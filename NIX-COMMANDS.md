@@ -11,6 +11,10 @@
 just hosts
 just new-nixos-host devbox
 just new-darwin-host mac-mini
+just hooks-enable
+just agenix-init
+just password-hashes
+just password-set-hash '<sha512-hash>'
 just switch-local
 just check-local
 just test-local
@@ -259,15 +263,17 @@ nautilus -q
 ## 密码哈希更新
 
 ```bash
-mkpasswd -m sha-512
-mkpasswd -m sha-512
+just password-hashes
+just password-set-hash '<sha512-hash>'
 ```
 
-将两次输出分别写入目标主机 `hosts/nixos/<host>/vars.nix` 的 `userPasswordHash` 与 `rootPasswordHash`，然后执行：
+将目标 hash 写入 agenix 的 `user/root` 密码 secret，然后执行：
 
 ```bash
-sudo nixos-rebuild switch --flake path:/persistent/nixos-config#zly
+just host=zly switch
 ```
+
+说明：当前配置 `users.mutableUsers = false`，`passwd` 的修改不会长期保留；请以 `secrets/passwords/*.age` 为准。
 
 ---
 

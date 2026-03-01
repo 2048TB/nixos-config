@@ -21,6 +21,7 @@ hosts/*/gpu-choice.txt
 *.pfx
 id_rsa*
 id_ed25519*
-secrets/
+*.agekey
+.keys/
 credentials.json
 token.json

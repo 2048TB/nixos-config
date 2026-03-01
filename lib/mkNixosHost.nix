@@ -19,6 +19,7 @@ let
     lanzaboote
     nix-gaming
     disko
+    agenix
     ;
 
   baseSpecialArgs = genSpecialArgs system;
@@ -59,6 +60,7 @@ let
     hostHardwarePath
     hostDiskoPath
     preservation.nixosModules.default
+    agenix.nixosModules.default
     lanzaboote.nixosModules.lanzaboote
     nix-gaming.nixosModules.pipewireLowLatency
     nix-gaming.nixosModules.platformOptimizations

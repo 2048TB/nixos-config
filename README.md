@@ -5,6 +5,7 @@
 相关文档：
 - `KEYBINDINGS.md` 快捷键说明（Niri / Tmux / Zellij）
 - `NIX-COMMANDS.md` 常用 Nix 命令速查
+- `ENV-USAGE.md` 按环境使用手册（ISO / 已安装 NixOS / macOS）
 - `nix/home/README.md` Home 配置结构与说明
 - `AGENTS.md` 贡献与协作约定
 - `justfile` 日常操作命令
@@ -36,11 +37,16 @@ cd ~/nixos
 1. 设置密码哈希（必须）
 
 ```bash
-mkpasswd -m sha-512
-mkpasswd -m sha-512
+just password-hashes
 ```
 
-把两次输出分别填入目标主机的 `hosts/nixos/<host>/vars.nix`（`userPasswordHash` / `rootPasswordHash`）。
+把目标 hash 写入 agenix（user/root 同步）：
+
+```bash
+just password-set-hash '<sha512-hash>'
+```
+
+说明：仓库设置了 `users.mutableUsers = false`，且密码来源为 `secrets/passwords/*.age`，`passwd` 只会临时生效。
 
 2. 安装前构建校验（推荐）
 
@@ -62,6 +68,18 @@ just host=zky disk=/dev/nvme0n1 install-live
 # 或自动按当前 hostname 匹配（严格模式，不允许 fallback）
 just disk=/dev/nvme0n1 install-live-local
 ```
+
+安装前准备密钥（必需）：
+
+- 在仓库根路径准备本地密钥目录 `{{repo}}/.keys/`（不提交到 Git）：
+  - `main.agekey`（agenix 私钥）
+  - `github_id_ed25519`（GitHub SSH 私钥）
+  - `github_id_ed25519.pub`（可选）
+- `install-live` 会自动导入：
+  - `{{repo}}/.keys/main.agekey` -> `/mnt/persistent/keys/main.agekey`（`0400 root:root`）
+  - `{{repo}}/.keys/github_id_ed25519(.pub)` -> `/mnt/home/<username>/.ssh/id_ed25519(.pub)`（自动设置 `.ssh` 权限）
+- 首次在新机器 clone 后建议先执行 `just agenix-init` 生成/同步本地 `main.agekey`。
+- 建议首次 clone 后执行一次 `just hooks-enable`，启用 `pre-commit/pre-push` 密钥拦截。
 
 安装完成后：
 
@@ -177,8 +195,10 @@ NixOS 主机变量集中在各自的 `hosts/nixos/<host>/vars.nix`：
 - `roles`（如 `["desktop" "container"]`，控制 Steam/VPN/libvirt/docker/flatpak 默认开关）
 - `swapSizeGb`
 - `resumeOffset`（hibernate 恢复偏移，swapfile 场景）
-- `userPasswordHash`
-- `rootPasswordHash`
+
+密码由 agenix 管理：
+- `secrets/passwords/user-password.age`
+- `secrets/passwords/root-password.age`
 
 ---
 
