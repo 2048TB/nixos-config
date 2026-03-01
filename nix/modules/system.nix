@@ -15,17 +15,17 @@ let
   # 修复目录所有权的通用 activation script 生成器
   mkFixOwnershipScript = targetDir: {
     text = ''
-      if [ -d ${targetDir} ] && id -u ${mainUser} >/dev/null 2>&1; then
+      if [ -d "${targetDir}" ] && id -u ${mainUser} >/dev/null 2>&1; then
         marker_root="/persistent/.nixos-activation/ownership-fix"
         marker_name="$(printf '%s' "${targetDir}" | tr '/ ' '__')"
-        current_uid=$(stat -c %u ${targetDir} 2>/dev/null || echo "")
-        current_gid=$(stat -c %g ${targetDir} 2>/dev/null || echo "")
+        current_uid=$(stat -c %u "${targetDir}" 2>/dev/null || echo "")
+        current_gid=$(stat -c %g "${targetDir}" 2>/dev/null || echo "")
         target_uid=$(id -u ${mainUser})
         target_gid=$(id -g ${mainUser})
         marker_file="$marker_root/$marker_name.uid$target_uid.gid$target_gid.done"
         if [ ! -f "$marker_file" ]; then
           if [ -n "$current_uid" ] && [ -n "$current_gid" ] && { [ "$current_uid" != "$target_uid" ] || [ "$current_gid" != "$target_gid" ]; }; then
-            find ${targetDir} -xdev \( -not -user ${mainUser} -o -not -group ${mainUser} \) \
+            find "${targetDir}" -xdev \( -not -user ${mainUser} -o -not -group ${mainUser} \) \
               -exec chown ${mainUser}:${mainUser} {} + || true
           fi
           mkdir -p "$marker_root"
@@ -47,21 +47,37 @@ let
     export GSETTINGS_SCHEMA_DIR="${pkgs.gsettings-desktop-schemas}/share/gsettings-schemas/${pkgs.gsettings-desktop-schemas.name}/glib-2.0/schemas"
     exec ${pkgs.glib}/bin/gsettings "$@"
   '';
-  wireplumberQuietLauncher = pkgs.writeShellScript "wireplumber-quiet-launcher" ''
-    set -euo pipefail
-    sedBin="${pkgs.gnused}/bin/sed"
+  mkLogFilteredScript =
+    name: executable: filters:
+    let
+      mkSedDeleteExpr = pattern:
+        let
+          escapedPattern = lib.replaceStrings [ "/" ] [ "\\/" ] pattern;
+        in
+        "/${escapedPattern}/d";
+      sedDeleteArgs =
+        lib.concatMapStringsSep " \\\n"
+          (pattern: "          -e ${lib.escapeShellArg (mkSedDeleteExpr pattern)}")
+          filters;
+    in
+    pkgs.writeShellScript name ''
+            set -euo pipefail
+            sedBin="${pkgs.gnused}/bin/sed"
 
-    set +e
-    ${pkgs.wireplumber}/bin/wireplumber "$@" 2>&1 \
-      | "$sedBin" -u -E \
-        -e "/wp_event_dispatcher_unregister_hook: assertion 'already_registered_dispatcher == self' failed/d" \
-        -e "/wp-event-dispatcher: wp_event_dispatcher_unregister_hook: assertion 'already_registered_dispatcher == self' failed/d" \
-        -e "/wp-event-dispatcher: <WpAsyncEventHook:.*> failed: failed to activate item: Object activation aborted: proxy destroyed/d" \
-        >&2
-    status="''${PIPESTATUS[0]}"
-    set -e
-    exit "$status"
-  '';
+            set +e
+            ${executable} "$@" 2>&1 \
+              | "$sedBin" -u -E \
+      ${sedDeleteArgs}
+              >&2
+            status="''${PIPESTATUS[0]}"
+            set -e
+            exit "$status"
+    '';
+  wireplumberQuietLauncher = mkLogFilteredScript "wireplumber-quiet-launcher" "${pkgs.wireplumber}/bin/wireplumber" [
+    "wp_event_dispatcher_unregister_hook: assertion 'already_registered_dispatcher == self' failed"
+    "wp-event-dispatcher: wp_event_dispatcher_unregister_hook: assertion 'already_registered_dispatcher == self' failed"
+    "wp-event-dispatcher: <WpAsyncEventHook:.*> failed: failed to activate item: Object activation aborted: proxy destroyed"
+  ];
   hasAmd = config.hardware.cpu.amd.updateMicrocode or false;
   hasIntel = config.hardware.cpu.intel.updateMicrocode or false;
   kvmModules =
@@ -83,14 +99,8 @@ let
     if enableHibernate && myvars ? resumeOffset && myvars.resumeOffset != null
     then [ "resume_offset=${toString myvars.resumeOffset}" ]
     else [ ];
-  hostRoles = myvars.roles or [ "desktop" ];
-  hasRole = role: builtins.elem role hostRoles;
-  enableProvider appVpn = myvars.enableProvider appVpn or (hasRole "vpn");
-  enableLibvirtd = myvars.enableLibvirtd or (hasRole "virt");
-  enableDocker = myvars.enableDocker or (hasRole "container");
-  enableFlatpak = myvars.enableFlatpak or (hasRole "desktop");
-  dockerMode = myvars.dockerMode or "rootless";
-  useRootfulDocker = dockerMode == "rootful";
+  roleFlags = import ./system/role-flags.nix { inherit myvars; };
+  inherit (roleFlags) enableProvider appVpn enableLibvirtd enableDocker enableFlatpak useRootfulDocker;
   rootTmpfsSize = myvars.rootTmpfsSize or "2G";
   journaldSystemMaxUse = myvars.journaldSystemMaxUse or "512M";
   journaldRuntimeMaxUse = myvars.journaldRuntimeMaxUse or "256M";
@@ -276,6 +286,7 @@ in
   networking = {
     hostName = myvars.hostname;
     networkmanager.enable = true;
+    firewall.enable = true;
   };
 
   security = {

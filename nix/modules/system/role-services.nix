@@ -1,19 +1,7 @@
 { lib, pkgs, myvars, mainUser, ... }:
 let
-  hostRoles = myvars.roles or [ "desktop" ];
-  hasRole = role: builtins.elem role hostRoles;
-
-  # 服务开关默认由 roles 驱动，仍允许每台主机通过 enable* 显式覆盖。
-  enableSteam = myvars.enableSteam or (hasRole "gaming");
-  enableProvider appVpn = myvars.enableProvider appVpn or (hasRole "vpn");
-  enableLibvirtd = myvars.enableLibvirtd or (hasRole "virt");
-  enableDocker = myvars.enableDocker or (hasRole "container");
-  enableFlatpak = myvars.enableFlatpak or (hasRole "desktop");
-
-  # rootful 拥有更高权限，默认改为 rootless；可在主机 vars.nix 里显式覆盖。
-  dockerMode = myvars.dockerMode or "rootless";
-  useRootlessDocker = dockerMode == "rootless";
-  useRootfulDocker = dockerMode == "rootful";
+  roleFlags = import ./role-flags.nix { inherit myvars; };
+  inherit (roleFlags) enableSteam enableProvider appVpn enableLibvirtd enableDocker enableFlatpak dockerMode useRootlessDocker useRootfulDocker;
 in
 {
   assertions = [

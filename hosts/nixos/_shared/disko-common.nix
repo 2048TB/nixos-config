@@ -28,6 +28,8 @@
                 settings = {
                   allowDiscards = true;
                 };
+                extraFormatArgs = [ "--type" "luks2" "--pbkdf" "argon2id" ];
+                extraOpenArgs = [ "--allow-discards" "--perf-no_read_workqueue" "--perf-no_write_workqueue" ];
                 content = {
                   type = "btrfs";
                   extraArgs = [ "-L" "crypted-nixos" ];

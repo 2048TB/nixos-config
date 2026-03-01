@@ -16,7 +16,11 @@
 
   # CPU platform and microcode.
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
+  hardware.enableRedistributableFirmware = lib.mkDefault true;
   hardware.cpu.amd.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
+
+  # 固件更新服务（BIOS/SSD/外设通过 LVFS 推送）
+  services.fwupd.enable = true;
 
   # Host-level tools.
   environment.systemPackages = with pkgs; [
