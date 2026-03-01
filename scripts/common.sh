@@ -72,11 +72,7 @@ run_agenix_encrypt() {
   local content_file="$1"
   local secret_rel="$2"
   local identity="$3"
-  local editor
-  editor="$(mktemp)"
-  # shellcheck disable=SC2016
-  printf '#!/bin/sh\ncp "%s" "$1"\n' "$content_file" > "$editor"
-  chmod +x "$editor"
-  EDITOR="$editor" run_agenix -e "$secret_rel" -i "$identity"
-  rm -f "$editor"
+  # agenix 在非交互 stdin 下会忽略外部 EDITOR 并强制走 "cp /dev/stdin"。
+  # 直接通过 stdin 注入内容，避免写入空 secret。
+  cat "$content_file" | run_agenix -e "$secret_rel" -i "$identity"
 }

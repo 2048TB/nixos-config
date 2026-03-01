@@ -2,11 +2,14 @@
 , pkgs
 , lib
 , mainUser
+, myvars
 , ...
 }:
 let
   homeDir = config.home.homeDirectory;
   userProfileBin = "/etc/profiles/per-user/${mainUser}/bin";
+  roleFlags = import ../../modules/system/role-flags.nix { inherit myvars; };
+  inherit (roleFlags) enableProvider appVpn;
 
   # ===== 日志过滤启动器工厂 =====
   mkLogFilteredLauncher =
@@ -355,7 +358,7 @@ in
           };
         };
 
-        provider-app-vpn-ui = {
+        provider-app-vpn-ui = lib.mkIf enableProvider appVpn {
           Unit = {
             Description = "Provider app VPN GUI";
             After = [ "graphical-session.target" ];

@@ -8,6 +8,8 @@
 let
   homeDir = config.home.homeDirectory;
   fractionalScale = "1.25";
+  roleFlags = import ../../modules/system/role-flags.nix { inherit myvars; };
+  inherit (roleFlags) enableProvider appVpn;
 
   # 仅在混合显卡（amd-nvidia-hybrid）时安装 GPU 加速相关软件
   gpuChoice = myvars.gpuMode or "auto";
@@ -439,7 +441,6 @@ in
       docker-compose # Docker 编排工具
       dive # Docker 镜像分析
       lazydocker # Docker TUI 管理器
-      provider-app-vpn
 
       # 通讯软件
       telegram-desktop # 使用官方二进制包（原 nixpaks.telegram-desktop 会触发 30 分钟编译）
@@ -450,6 +451,7 @@ in
       pipx
     ]
     ++ hybridPackages
+    ++ lib.optional enableProvider appVpn pkgs.provider-app-vpn
     ++ [
       wlogoutMenu
       lockScreen

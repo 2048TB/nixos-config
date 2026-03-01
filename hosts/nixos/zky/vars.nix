@@ -32,6 +32,9 @@
   roles = [
     "desktop"
     "gaming"
+    "vpn"
+    "virt"
+    "container"
   ];
 
   # Credentials are managed by agenix secrets:

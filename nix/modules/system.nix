@@ -107,8 +107,15 @@ let
   configRepoPath = myvars.configRepoPath or "/persistent/nixos-config";
   enableAggressiveApparmorKill = myvars.enableAggressiveApparmorKill or false;
   portalConfig = sharedPortalConfig;
+  agenixMainKeyPath = "/persistent/keys/main.agekey";
+  expectedAgenixMainPub = builtins.replaceStrings [ "\n" "\r" ] [ "" "" ] (builtins.readFile ../../secrets/keys/main.age.pub);
+  agenixBootstrapSourcePaths = [
+    "${configRepoPath}/.keys/main.agekey"
+    "/etc/nixos/.keys/main.agekey"
+    "/home/${mainUser}/nixos/.keys/main.agekey"
+  ];
   ageIdentityPaths = [
-    "/persistent/keys/main.agekey"
+    agenixMainKeyPath
     "/etc/ssh/ssh_host_ed25519_key"
     "/persistent/etc/ssh/ssh_host_ed25519_key"
   ];
@@ -550,6 +557,45 @@ in
   # 说明：曾出现 create-swapfile.service 与 swap.target/run-wrappers 形成 ordering cycle，
   # 导致 suid-sgid-wrappers 被跳过，进而触发 greetd 的 pam_unix helper 缺失。
   system.activationScripts = {
+    agenixKeyBootstrap = {
+      text = ''
+        target_key="${agenixMainKeyPath}"
+        if [ ! -r "$target_key" ]; then
+          age_keygen_bin="${pkgs.age}/bin/age-keygen"
+          install_bin="${pkgs.coreutils}/bin/install"
+          mkdir_bin="${pkgs.coreutils}/bin/mkdir"
+          src=""
+
+          for candidate in ${lib.concatMapStringsSep " " lib.escapeShellArg agenixBootstrapSourcePaths}; do
+            [ -r "$candidate" ] || continue
+            candidate_pub="$("$age_keygen_bin" -y "$candidate" 2>/dev/null || true)"
+            [ "$candidate_pub" = "${expectedAgenixMainPub}" ] || continue
+            src="$candidate"
+            break
+          done
+
+          if [ -z "$src" ]; then
+            for candidate in /home/*/nixos/.keys/main.agekey; do
+              [ -r "$candidate" ] || continue
+              candidate_pub="$("$age_keygen_bin" -y "$candidate" 2>/dev/null || true)"
+              [ "$candidate_pub" = "${expectedAgenixMainPub}" ] || continue
+              src="$candidate"
+              break
+            done
+          fi
+
+          if [ -n "$src" ]; then
+            "$mkdir_bin" -p /persistent/keys
+            "$install_bin" -D -m 0400 -o root -g root "$src" "$target_key"
+            echo "[agenix] bootstrapped main identity key: $src -> $target_key"
+          else
+            echo "[agenix] WARNING: main identity key missing at $target_key and no bootstrap source found." >&2
+          fi
+        fi
+      '';
+      deps = [ "specialfs" ];
+    };
+
     ensureUserSshDir = {
       text = ''
         if id -u ${mainUser} >/dev/null 2>&1; then
