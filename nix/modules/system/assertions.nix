@@ -23,6 +23,8 @@ let
   ];
   hostRoles = myvars.roles or [ "desktop" ];
   enableHibernate = myvars.enableHibernate or true;
+  extraTrustedUsers = myvars.extraTrustedUsers or [ ];
+  trustedUserAllowlist = [ myvars.username ];
   appToggleNames = [
     "enableWpsOffice"
     "enableZathura"
@@ -81,6 +83,18 @@ in
     {
       assertion = lib.subtractLists knownHostRoles hostRoles == [ ];
       message = "myvars.roles contains unknown values. allowed: desktop, gaming, vpn, virt, container.";
+    }
+    {
+      assertion = builtins.isList extraTrustedUsers;
+      message = "myvars.extraTrustedUsers must be a list (e.g. [ \"z\" ]).";
+    }
+    {
+      assertion = builtins.all builtins.isString extraTrustedUsers;
+      message = "myvars.extraTrustedUsers must contain only strings.";
+    }
+    {
+      assertion = lib.subtractLists trustedUserAllowlist extraTrustedUsers == [ ];
+      message = "myvars.extraTrustedUsers contains disallowed users. allowed: only myvars.username.";
     }
   ] ++ appToggleAssertions;
 }
