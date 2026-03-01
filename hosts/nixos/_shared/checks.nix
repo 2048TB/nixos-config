@@ -64,6 +64,9 @@ let
     if expectedResumeOffset == null then null else "resume_offset=${toString expectedResumeOffset}";
   hasExpectedResumeKernelParam =
     if expectedResumeKernelParam == null then true else builtins.elem expectedResumeKernelParam cfg.boot.kernelParams;
+  hasProvider appVpn = cfg.services.provider-app-vpn.enable or false;
+  provider-appExecStartPre = cfg.systemd.services.provider-app-daemon.serviceConfig.ExecStartPre or null;
+  provider-appExecStartPrePath = if provider-appExecStartPre == null then "" else toString provider-appExecStartPre;
 
   mkNonEmptyCheck = name': items: msg:
     pkgs.runCommand name' { } ''
@@ -87,6 +90,21 @@ in
 
   "eval-${name}-host-profile" = pkgs.runCommand "eval-${name}-host-profile" { } ''
     test "${hmCfg.home.sessionVariables.HOST_PROFILE or ""}" = "${expectedHostProfile}"
+    touch "$out"
+  '';
+
+  "eval-${name}-provider-app-prestart-script" = pkgs.runCommand "eval-${name}-provider-app-prestart-script" { } ''
+    if [ "${if hasProvider appVpn then "1" else "0"}" != "1" ]; then
+      touch "$out"
+      exit 0
+    fi
+
+    script_path="${provider-appExecStartPrePath}"
+    test -n "$script_path"
+    test -f "$script_path"
+
+    grep -F 'settings_dir="/etc/provider-app-vpn"' "$script_path" >/dev/null
+    grep -F 'settings_file="$settings_dir/settings.json"' "$script_path" >/dev/null
     touch "$out"
   '';
 
