@@ -155,6 +155,7 @@ nix run .#clean
 
 说明：`build` / `build-switch` / `apply` 默认 strict 主机解析（仅环境变量或当前 hostname）。
 不再 fallback 到"第一个可用主机"。
+其中 `build-switch` 会先执行构建检查（NixOS: `just check`；Darwin: `just darwin-check`），成功后再执行 switch。
 
 指定主机：
 

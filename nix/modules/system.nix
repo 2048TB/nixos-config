@@ -78,8 +78,9 @@ let
     "wp-event-dispatcher: wp_event_dispatcher_unregister_hook: assertion 'already_registered_dispatcher == self' failed"
     "wp-event-dispatcher: <WpAsyncEventHook:.*> failed: failed to activate item: Object activation aborted: proxy destroyed"
   ];
-  hasAmd = config.hardware.cpu.amd.updateMicrocode or false;
-  hasIntel = config.hardware.cpu.intel.updateMicrocode or false;
+  cpuVendor = myvars.cpuVendor or "auto";
+  hasAmd = cpuVendor != "intel";
+  hasIntel = cpuVendor != "amd";
   kvmModules =
     if hasAmd || hasIntel
     then

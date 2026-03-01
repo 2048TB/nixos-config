@@ -88,6 +88,7 @@ let
     build-switch = mkApp "build-switch" "Build and switch Linux host configuration" ''
       ${appRepoPreamble}
       ${resolveNixosHostStrict}
+      ${pkgs.just}/bin/just host="$host" check
       exec ${pkgs.just}/bin/just host="$host" switch
     '';
     build = mkApp "build" "Dry-build Linux host configuration" ''

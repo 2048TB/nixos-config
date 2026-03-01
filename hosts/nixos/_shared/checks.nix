@@ -11,6 +11,7 @@
 , specialArgs ? { }
 , expectedTrustedUsers ? [ "root" ]
 , expectedTrustedSubstituters ? null
+, expectedKvmModules ? null
 , ...
 }:
 let
@@ -95,6 +96,7 @@ let
     then "rootful"
     else "disabled";
   hasExpectedDockerMode = if expectedDockerMode == null then true else actualDockerMode == expectedDockerMode;
+  actualKvmModules = builtins.filter (m: lib.hasPrefix "kvm-" m) cfg.boot.kernelModules;
   hasProvider appVpn = cfg.services.provider-app-vpn.enable or false;
   provider-appExecStartPre = cfg.systemd.services.provider-app-daemon.serviceConfig.ExecStartPre or null;
   provider-appExecStartPrePath = if provider-appExecStartPre == null then "" else toString provider-appExecStartPre;
@@ -178,6 +180,12 @@ in
 // lib.optionalAttrs (expectedDockerMode != null) {
   "eval-${name}-docker-mode" = pkgs.runCommand "eval-${name}-docker-mode" { } ''
     test "${if hasExpectedDockerMode then "1" else "0"}" = "1"
+    touch "$out"
+  '';
+}
+// lib.optionalAttrs (expectedKvmModules != null) {
+  "eval-${name}-kvm-modules" = pkgs.runCommand "eval-${name}-kvm-modules" { } ''
+    test "${builtins.toJSON actualKvmModules}" = "${builtins.toJSON expectedKvmModules}"
     touch "$out"
   '';
 }
