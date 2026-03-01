@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# shellcheck disable=SC2034
+script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck disable=SC1091
+source "$script_dir/lib/common.sh"
+
 platform="${1:-}"
 repo="${2:-${NIXOS_CONFIG_REPO:-$PWD}}"
 fallback="${3:-}"
@@ -20,14 +25,7 @@ if [ -n "$strict_flag" ]; then
   strict_mode=1
 fi
 
-if [ ! -f "$repo/flake.nix" ] && [ -f "/persistent/nixos-config/flake.nix" ]; then
-  repo="/persistent/nixos-config"
-fi
-
-if [ ! -f "$repo/flake.nix" ]; then
-  echo "error: flake.nix not found in repo: $repo" >&2
-  exit 1
-fi
+repo="$(resolve_repo_path "$repo")"
 
 detect_nixos_host() {
   if [ "$(uname -s)" != "Linux" ]; then
@@ -54,11 +52,6 @@ detect_darwin_host() {
 normalize_host() {
   local raw="${1:-}"
   printf '%s' "${raw%%.*}"
-}
-
-is_valid_host_name() {
-  local name="${1:-}"
-  [[ "$name" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ ]]
 }
 
 case "$platform" in

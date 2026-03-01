@@ -26,10 +26,10 @@ fi
 # 内容级阻断：拦截常见私钥内容（仅检查暂存内容）
 if git diff --cached --name-only | grep -q .; then
   while IFS= read -r file; do
-    if [ "$file" = "scripts/guard-secrets.sh" ]; then
+    if [ "$file" = "scripts/guard-secrets.sh" ] || [ "$file" = "scripts/lib/common.sh" ]; then
       continue
     fi
-    if git show ":$file" | rg -n --ignore-case 'BEGIN (OPENSSH|RSA|EC|DSA|PGP) PRIVATE KEY|AGE-SECRET-KEY-1' >/dev/null; then
+    if git show ":$file" 2>/dev/null | rg -n --ignore-case 'BEGIN (OPENSSH|RSA|EC|DSA|PGP) PRIVATE KEY|AGE-SECRET-KEY-1' >/dev/null; then
       echo "ERROR: staged file contains private key material: $file"
       echo "Fix: git restore --staged \"$file\" and remove secret content."
       exit 1
