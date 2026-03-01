@@ -1,4 +1,8 @@
-{ pkgs, ... }:
+{ pkgs, lib, myvars, ... }:
+let
+  roleFlags = import ../../modules/system/role-flags.nix { inherit myvars; };
+  inherit (roleFlags) enableSteam;
+in
 {
   programs = {
     fzf = {
@@ -22,7 +26,7 @@
     };
 
     # 由 Home Manager 管理 Lutris，统一 runner 与依赖集合
-    lutris = {
+    lutris = lib.mkIf enableSteam {
       enable = true;
       defaultWinePackage = pkgs.proton-ge-bin;
       protonPackages = [ pkgs.proton-ge-bin ];

@@ -1,7 +1,6 @@
 { config
 , pkgs
 , lib
-, mylib
 , myvars
 , mainUser
 , ...
@@ -35,7 +34,11 @@ in
 {
   imports = [
     ../base
-  ] ++ mylib.scanPaths ./.;
+    ./desktop.nix
+    ./packages.nix
+    ./programs.nix
+    ./xdg.nix
+  ];
 
   home = {
     username = mainUser;

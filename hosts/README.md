@@ -67,7 +67,7 @@ just new-darwin-host-dry-run mac-mini
 ## 4. 新增后你要改什么
 
 1. `vars.nix`：主机名、用户名、硬件参数
-   常见可调项：`roles`、`dockerMode`（`rootless`/`rootful`）、`enableAggressiveApparmorKill`
+   常见可调项：`roles`、`dockerMode`（`rootless`/`rootful`）、`enableAggressiveApparmorKill`、`enableWpsOffice`、`enableZathura`、`enableSplayer`、`enableTelegramDesktop`、`enableLocalSend`
 2. `disko.nix`：磁盘布局（NixOS）
 3. `hardware.nix`：硬件探测结果（NixOS）
 

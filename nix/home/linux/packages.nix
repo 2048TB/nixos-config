@@ -9,7 +9,13 @@ let
   homeDir = config.home.homeDirectory;
   fractionalScale = "1.25";
   roleFlags = import ../../modules/system/role-flags.nix { inherit myvars; };
-  inherit (roleFlags) enableMullvadVpn;
+  inherit (roleFlags) enableMullvadVpn enableSteam enableLibvirtd enableDocker;
+  # App toggles (flat host vars, default true)
+  enableWpsOffice = myvars.enableWpsOffice or true;
+  enableZathura = myvars.enableZathura or true;
+  enableSplayer = myvars.enableSplayer or true;
+  enableTelegramDesktop = myvars.enableTelegramDesktop or true;
+  enableLocalSend = myvars.enableLocalSend or true;
 
   # 仅在混合显卡（amd-nvidia-hybrid）时安装 GPU 加速相关软件
   gpuChoice = myvars.gpuMode or "auto";
@@ -296,6 +302,24 @@ let
   '';
 
   cherryStudioPackage = pkgsUnstable.cherry-studio;
+  gamingPackages = with pkgs; [
+    mangohud
+    umu-launcher
+    bbe
+    wineWowPackages.stable # 原：stagingFull（避免触发本地编译）
+    winetricks
+    protonplus
+  ];
+  virtualisationPackages = with pkgs; [
+    virt-viewer
+    spice-gtk
+    qemu_kvm
+  ];
+  dockerPackages = with pkgs; [
+    docker-compose # Docker 编排工具
+    dive # Docker 镜像分析
+    lazydocker # Docker TUI 管理器
+  ];
 in
 {
   home = {
@@ -368,9 +392,6 @@ in
       google-chrome
       vscode
       remmina
-      virt-viewer
-      spice-gtk
-      localsend
       nomacs
       nautilus # GNOME 文件管理器（Wayland 原生，简洁现代）
       file-roller # GNOME 压缩管理器（Nautilus 集成必需）
@@ -387,9 +408,7 @@ in
       wl-screenrec
 
       # === 基础图形工具 ===
-      zathura
       gnome-text-editor
-      wpsoffice # WPS Office 办公套件（.desktop 文件和图标由此包提供）
 
       # 压缩/解压工具（命令行 + Nautilus file-roller 集成）
       p7zip-rar # 包含 7-Zip + RAR 支持（非自由许可）
@@ -417,18 +436,9 @@ in
       networkmanagerapplet # nm-connection-editor（WiFi GUI 管理入口）
       pasystray # 托盘音量控制（恢复托盘区声音管理）
 
-      # === 游戏工具 ===
-      mangohud
-      umu-launcher
-      bbe
-      wineWowPackages.stable # 原：stagingFull（避免触发本地编译）
-      winetricks
-      protonplus
-
       # 媒体 / 图形
       pavucontrol
       pulsemixer
-      splayer # 网易云音乐播放器（支持本地音乐、流媒体、逐字歌词）
       imv
       libva-utils
       vdpauinfo
@@ -436,21 +446,20 @@ in
       mesa-demos
       nvitop
 
-      # 虚拟化工具
-      qemu_kvm
-      docker-compose # Docker 编排工具
-      dive # Docker 镜像分析
-      lazydocker # Docker TUI 管理器
-
-      # 通讯软件
-      telegram-desktop # 使用官方二进制包（原 nixpaks.telegram-desktop 会触发 30 分钟编译）
-
       # === 语言/包管理补齐 ===
       bun
       pnpm
       pipx
     ]
     ++ hybridPackages
+    ++ lib.optional enableLocalSend pkgs.localsend
+    ++ lib.optional enableZathura pkgs.zathura
+    ++ lib.optional enableSplayer pkgs.splayer
+    ++ lib.optional enableTelegramDesktop pkgs.telegram-desktop
+    ++ lib.optional enableWpsOffice pkgs.wpsoffice
+    ++ lib.optionals enableSteam gamingPackages
+    ++ lib.optionals enableLibvirtd virtualisationPackages
+    ++ lib.optionals enableDocker dockerPackages
     ++ lib.optional enableMullvadVpn pkgs.mullvad-vpn
     ++ [
       wlogoutMenu
@@ -461,9 +470,9 @@ in
       waybarTemperatureStatus
       publicIpStatus
     ]
-    ++ wpsWrappedBins; # WPS steam-run 包装器（覆盖原始二进制，修复启动问题）
+    ++ lib.optionals enableWpsOffice wpsWrappedBins; # WPS steam-run 包装器（覆盖原始二进制，修复启动问题）
 
-    file = {
+    file = lib.optionalAttrs enableWpsOffice {
       ".local/share/applications/wps-office-wps.desktop".source =
         wpsDesktopOverride "wps-office-wps.desktop" "wps";
       ".local/share/applications/wps-office-et.desktop".source =
