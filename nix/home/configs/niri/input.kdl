@@ -50,6 +50,7 @@ input {
     // warp-mouse-to-focus
 
     // 鼠标移入时自动聚焦窗口与输出。
-    // 设置 max-scroll-amount="0%" 仅对完全在屏幕内的窗口生效。
-    focus-follows-mouse max-scroll-amount="0%"
+    // 官方文档说明 0% 仅允许“零滚动”聚焦，常导致看似不生效；
+    // 这里放宽到 25%，允许轻微滚动时也触发聚焦。
+    focus-follows-mouse max-scroll-amount="25%"
 }

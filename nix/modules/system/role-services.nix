@@ -73,6 +73,17 @@ in
     };
   };
 
+  # greetd 的 greeter 用户也会拉起一个 user manager；
+  # 将仅主用户需要的 user services 绑定到 mainUser，避免 greeter 会话产生误报失败日志。
+  systemd.user = lib.mkMerge [
+    (lib.mkIf (enableDocker && useRootlessDocker) {
+      services.docker.unitConfig.ConditionUser = lib.mkForce mainUser;
+    })
+    (lib.mkIf enableSteam {
+      services.gamemoded.unitConfig.ConditionUser = mainUser;
+    })
+  ];
+
   users.users.${mainUser}.extraGroups = lib.mkAfter (
     (lib.optionals enableLibvirtd [
       "libvirtd"
