@@ -99,11 +99,11 @@ cmd_password_set() {
 
   local tmp
   tmp="$(mktemp)"
-  trap 'rm -f "$tmp"' EXIT
   printf '%s\n' "$password_hash" > "$tmp"
 
   run_agenix_encrypt "$tmp" "$user_secret_rel" "$main_key"
   run_agenix_encrypt "$tmp" "$root_secret_rel" "$main_key"
+  rm -f "$tmp"
 
   echo "updated agenix password secrets:"
   echo "- $user_secret"
