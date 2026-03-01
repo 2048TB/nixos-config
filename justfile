@@ -11,7 +11,6 @@ disk := "/dev/nvme0n1"
 repo := "/persistent/nixos-config"
 key_dir_rel := ".keys"
 age_key_rel := "{{key_dir_rel}}/main.agekey"
-github_key_rel := "{{key_dir_rel}}/github_id_ed25519"
 
 # ========== 系统管理 ==========
 
@@ -74,25 +73,7 @@ install-live:
         exit 1; \
       fi
     sudo env NIXOS_DISK_DEVICE={{disk}} nixos-install --impure --flake /mnt/persistent/nixos-config#{{host}}
-    github_key_src="{{repo}}/{{github_key_rel}}"; \
-      github_pub_src="{{repo}}/{{github_key_rel}}.pub"; \
-      main_user="$(sed -n 's/^[[:space:]]*username[[:space:]]*=[[:space:]]*\"\\([^\"]\\+\\)\".*/\\1/p' {{repo}}/hosts/nixos/{{host}}/vars.nix | head -n1)"; \
-      if [ -n "$main_user" ] && [ -f "$github_key_src" ]; then \
-        sudo install -d -m 0700 "/mnt/home/$main_user/.ssh"; \
-        sudo install -m 0600 "$github_key_src" "/mnt/home/$main_user/.ssh/id_ed25519"; \
-        if [ -f "$github_pub_src" ]; then \
-          sudo install -m 0644 "$github_pub_src" "/mnt/home/$main_user/.ssh/id_ed25519.pub"; \
-        fi; \
-        owner_ids="$(awk -F: -v u="$main_user" '$1 == u { print $3 ":" $4 }' /mnt/etc/passwd | head -n1)"; \
-        if [ -n "$owner_ids" ]; then \
-          sudo chown -R "$owner_ids" "/mnt/home/$main_user/.ssh"; \
-        else \
-          echo "warning: cannot resolve uid:gid for $main_user from /mnt/etc/passwd; keep root ownership"; \
-        fi; \
-        echo ">>> github ssh key installed: $github_key_src -> /mnt/home/$main_user/.ssh/id_ed25519"; \
-      else \
-        echo ">>> github ssh key not found at $github_key_src or username missing (skip)"; \
-      fi
+    @echo ">>> github ssh key will be provisioned by agenix secrets on first boot/switch (if configured)"
     @echo "✓ 安装完成，重启后执行：just host={{host}} switch"
 
 # Live ISO 本机自动识别主机后一键安装（严格模式：不允许 fallback）
@@ -322,6 +303,10 @@ password-hashes:
 # 将同一个密码哈希写入 agenix（user/root）
 password-set-hash HASH: agenix-init
     @{{repo}}/scripts/set-password-hash.sh '{{HASH}}'
+
+# 将 .keys/github_id_ed25519(.pub) 加密写入 agenix secrets
+ssh-key-set: agenix-init
+    @{{repo}}/scripts/set-github-ssh-key.sh
 
 # 提交所有更改
 commit MESSAGE:

@@ -73,12 +73,20 @@ just disk=/dev/nvme0n1 install-live-local
 
 - 在仓库根路径准备本地密钥目录 `{{repo}}/.keys/`（不提交到 Git）：
   - `main.agekey`（agenix 私钥）
-  - `github_id_ed25519`（GitHub SSH 私钥）
-  - `github_id_ed25519.pub`（可选）
+  - `github_id_ed25519`（可选，作为加密源）
+  - `github_id_ed25519.pub`（可选，作为加密源）
 - `install-live` 会自动导入：
   - `{{repo}}/.keys/main.agekey` -> `/mnt/persistent/keys/main.agekey`（`0400 root:root`）
-  - `{{repo}}/.keys/github_id_ed25519(.pub)` -> `/mnt/home/<username>/.ssh/id_ed25519(.pub)`（自动设置 `.ssh` 权限）
 - 首次在新机器 clone 后建议先执行 `just agenix-init` 生成/同步本地 `main.agekey`。
+- 若要把 GitHub SSH key 也加密托管到 agenix，执行：
+
+```bash
+just ssh-key-set
+```
+
+该命令会把 `{{repo}}/.keys/github_id_ed25519(.pub)` 加密为：
+- `secrets/ssh/github_id_ed25519.age`
+- `secrets/ssh/github_id_ed25519.pub.age`
 - 建议首次 clone 后执行一次 `just hooks-enable`，启用 `pre-commit/pre-push` 密钥拦截。
 
 安装完成后：
@@ -326,7 +334,7 @@ just new-darwin-host-force <host>
 ```
 
 2. 按需调整新主机 `vars.nix` / `disko.nix` / `hardware.nix` / `home.nix`。
-3. NixOS 必需：在 `vars.nix` 中填写完整主机变量（例如 `gpuMode`、`resumeOffset`、密码哈希等）。
+3. NixOS 必需：在 `vars.nix` 中填写完整主机变量（例如 `gpuMode`、`resumeOffset` 等；密码由 agenix secrets 管理）。
 4. Darwin 必需：在 `vars.nix` 中至少填写 `username`（可按需扩展）。
 5. 验证自动发现：
 

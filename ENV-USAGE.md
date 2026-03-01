@@ -56,8 +56,8 @@ just test-local
   nixos-config/
     .keys/
       main.agekey
-      github_id_ed25519
-      github_id_ed25519.pub   # 可选
+      github_id_ed25519       # 可选（仅用于加密后写入 secrets）
+      github_id_ed25519.pub   # 可选（仅用于加密后写入 secrets）
 ```
 
 说明：
@@ -66,7 +66,13 @@ just test-local
 - `.keys/` 是本地密钥目录（建议放在 U 盘里的仓库目录中，不提交到 Git）。
 - 执行 `install-live` 时会自动导入：
   - `nixos-config/.keys/main.agekey` -> `/mnt/persistent/keys/main.agekey`（`0400 root:root`）
-  - `nixos-config/.keys/github_id_ed25519(.pub)` -> `/mnt/home/<username>/.ssh/id_ed25519(.pub)`（自动设置 `.ssh` 权限）
+- 若希望把 GitHub SSH key 也加密托管，先执行：
+
+```bash
+just ssh-key-set
+```
+
+会生成 `secrets/ssh/github_id_ed25519(.pub).age`，系统在激活时自动放到 `~/.ssh/id_ed25519(.pub)`。
 
 3. 克隆仓库（或直接进入 U 盘中的 `nixos-config` 目录）：
 
@@ -129,7 +135,7 @@ just disk=/dev/nvme0n1 install-live-local
 - `install-live` 会清空目标盘并执行分区/格式化。
 - 当前实现会使用仓库锁定输入生成 `diskoScript`，并在复制仓库时优先 `rsync --exclude .git`。
 - `{{repo}}/.keys/main.agekey` 为必需项，`install-live` 会自动导入为 `/mnt/persistent/keys/main.agekey`，缺失会直接失败。
-- 若存在 `{{repo}}/.keys/github_id_ed25519(.pub)`，会自动导入目标用户的 SSH key 到 `/mnt/home/<username>/.ssh/`。
+- GitHub SSH key 由 agenix secrets 在系统激活阶段下发（若 `secrets/ssh/github_id_ed25519(.pub).age` 存在）。
 
 ### 1.4 安装后
 
