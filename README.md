@@ -108,6 +108,8 @@ just switch-local
 just check-local
 just test-local
 just switch-local
+# 或只在下次启动生效
+just boot-local
 ```
 
 说明：`*-local` 现在是 strict 模式，只接受：

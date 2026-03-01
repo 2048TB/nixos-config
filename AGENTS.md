@@ -55,10 +55,18 @@ just new-darwin-host <name>
 ## 4. 目录改动指引（改哪里）
 
 - 改某一台机器参数：`hosts/<platform>/<host>/vars.nix`
-- 改系统行为（服务/内核/持久化）：`nix/modules/system.nix`（角色逻辑在 `system/role-flags.nix` 和 `system/role-services.nix`）
+- 改系统行为（服务/内核/持久化）：`nix/modules/system.nix`
+- 改角色逻辑（哪些功能按角色启用）：`nix/modules/system/role-flags.nix` + `role-services.nix`
 - 改硬件与显卡：`nix/modules/hardware.nix`
-- 改用户应用与桌面：`nix/home/`
-- 改主机发现或脚手架脚本：`scripts/resolve-host.sh`、`scripts/new-host.sh`
+- 改用户软件包：`nix/home/linux/packages.nix`
+- 改桌面服务（waybar/swaybg/systemd user services）：`nix/home/linux/desktop.nix`
+- 改程序配置（fzf/mpv/zsh/vim）：`nix/home/linux/programs.nix`
+- 改 XDG（portal/mimeApps/configFile）：`nix/home/linux/xdg.nix`
+- 改跨平台共享配置（session 变量/PATH）：`nix/home/base/default.nix`
+- 改 macOS 用户配置：`nix/home/darwin/default.nix`
+- 改密钥/密码管理：`scripts/agenix.sh`
+- 改安装流程：`scripts/install-live.sh`
+- 改主机发现或脚手架：`scripts/resolve-host.sh`、`scripts/new-host.sh`
 
 ---
 
@@ -66,8 +74,9 @@ just new-darwin-host <name>
 
 出现以下情况，必须同一变更中同步文档：
 
-- 变更 Niri/Waybar/Tmux/Zellij 行为：同步 `README.md`、`KEYBINDINGS.md`、`NIX-COMMANDS.md`
-- 变更主机发现或脚手架：同步 `README.md`、`hosts/README.md`、`hosts/outputs/README.md`、`NIX-COMMANDS.md`
+- 变更快捷键行为（Niri/Tmux/Zellij）：同步 `KEYBINDINGS.md`
+- 变更主机发现/脚手架/安装流程：同步 `README.md`、`hosts/README.md`、`NIX-COMMANDS.md`
+- 变更 justfile 命令或 flake apps：同步 `NIX-COMMANDS.md`、`ENV-USAGE.md`
 - 变更流程规则：同步 `AGENTS.md` 与 `CLAUDE.md`
 
 ---

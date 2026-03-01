@@ -4,13 +4,14 @@
 
 ---
 
-## 1. 先会这 10 个
+## 1. 先会这几个
 
 ```bash
 just hosts
 just check-local
 just test-local
 just switch-local
+just boot-local
 just rollback
 just scripts-check
 just eval-tests
@@ -51,6 +52,7 @@ just disk=/dev/nvme0n1 install-live-local
 just check-local
 just test-local
 just switch-local
+just boot-local
 
 just host=zly switch
 just host=zky switch
@@ -147,6 +149,7 @@ just new-darwin-host-dry-run mac-mini
 ## 8. flake apps（可选）
 
 ```bash
+nix run .#apply
 nix run .#build
 nix run .#build-switch
 nix run .#install
