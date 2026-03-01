@@ -591,6 +591,10 @@ let
   '';
 in
 {
+  imports = [
+    ../base
+  ];
+
   home = {
     username = mainUser;
     homeDirectory = "/home/${mainUser}";
