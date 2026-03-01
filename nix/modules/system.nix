@@ -288,12 +288,11 @@ in
         "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
       ] ++ cacheTrustedPublicKeys));
 
-      # 仅信任 root，避免放开到普通用户或 wheel 组。
-      # 用于限制可提升 Nix 守护进程权限的主体范围。
-      trusted-users = lib.mkForce [ "root" ];
+      # 单用户主机保留 root + 主用户，便于本地日常维护。
+      trusted-users = lib.mkForce [ "root" mainUser ];
 
-      # 默认拒绝 flake 内嵌 nixConfig，按需在命令行显式 `--accept-flake-config`。
-      accept-flake-config = false;
+      # 单用户主机场景默认接受 flake 内嵌 nixConfig。
+      accept-flake-config = true;
 
       # 自动优化存储（硬链接重复文件）
       auto-optimise-store = true;
@@ -338,7 +337,7 @@ in
 
     polkit = {
       enable = true;
-      # wheel 组执行 UDisks 操作时仍要求管理员认证并缓存一次会话。
+      # 恢复单用户桌面体验：wheel 组对 UDisks 挂载类操作直接放行。
       extraConfig = ''
         polkit.addRule(function(action, subject) {
           var guardedActions = [
@@ -352,7 +351,7 @@ in
             "org.freedesktop.udisks2.power-off-drive"
           ];
           if (subject.isInGroup("wheel") && guardedActions.indexOf(action.id) >= 0) {
-            return polkit.Result.AUTH_ADMIN_KEEP;
+            return polkit.Result.YES;
           }
         });
       '';
@@ -618,6 +617,28 @@ in
       deps = [ "specialfs" ];
     };
 
+    warnResumeOffsetMismatch = {
+      text = ''
+          configured_resume_offset="${if myvars ? resumeOffset && myvars.resumeOffset != null then toString myvars.resumeOffset else ""}"
+          if [ "${if enableHibernate then "1" else "0"}" = "1" ] && [ -f /swap/swapfile ] && [ -n "$configured_resume_offset" ]; then
+            btrfs_bin="${pkgs.btrfs-progs}/bin/btrfs"
+            head_bin="${pkgs.coreutils}/bin/head"
+            actual_resume_offset="$("$btrfs_bin" inspect-internal map-swapfile -r /swap/swapfile 2>/dev/null | "$head_bin" -n 1 || true)"
+            case "$actual_resume_offset" in
+              ""|*[!0-9]*)
+                ;;
+              *)
+                if [ "$actual_resume_offset" != "$configured_resume_offset" ]; then
+                  echo "WARNING: myvars.resumeOffset ($configured_resume_offset) != actual swapfile resume offset ($actual_resume_offset) on host ${myvars.hostname}." >&2
+                  echo "WARNING: update hosts/nixos/${myvars.hostname}/vars.nix: resumeOffset = $actual_resume_offset;" >&2
+                fi
+                ;;
+            esac
+        fi
+      '';
+      deps = [ "specialfs" ];
+    };
+
     fixUserHomePerms = mkFixOwnershipScript homeDir;
 
     # 确保持久化配置仓库归属普通用户，避免 Git safe.directory/写权限问题
@@ -727,19 +748,21 @@ in
       mullvad-daemon = lib.mkIf enableMullvadVpn {
         serviceConfig = {
           ExecStartPre = pkgs.writeShellScript "disable-mullvad-lockdown" ''
-            settings_dir="/etc/mullvad-vpn"
-            settings_file="$settings_dir/settings.json"
+            settings_dir = "/etc/mullvad-vpn"
+              settings_file="$settings_dir/settings.json"
             mkdir -p "$settings_dir"
-            if [ ! -f "$settings_file" ]; then
-              echo '{}' > "$settings_file"
+            if [ ! -f "$settings_file" ];
+            then
+            echo '{}' > "$settings_file"
             fi
 
-            if ${pkgs.jq}/bin/jq '.block_when_disconnected = false | .auto_connect = true' "$settings_file" > "$settings_file.tmp"; then
-              mv "$settings_file.tmp" "$settings_file"
-              echo "Mullvad autoconnect 已启用，lockdown mode 已禁用"
+            if ${pkgs.jq}/bin/jq '.block_when_disconnected = false |.auto_connect = true' "$settings_file" > "$settings_file.tmp";
+            then
+            mv "$settings_file.tmp" "$settings_file"
+            echo "Mullvad autoconnect 已启用，lockdown mode 已禁用"
             else
-              rm -f "$settings_file.tmp"
-              echo "WARNING: Failed to update Mullvad settings (invalid JSON). Keeping existing file." >&2
+            rm -f "$settings_file.tmp"
+            echo "WARNING: Failed to update Mullvad settings (invalid JSON). Keeping existing file." >&2
             fi
           '';
         };
