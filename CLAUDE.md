@@ -18,7 +18,7 @@
 ## 项目结构
 
 - `flake.nix` 入口（inputs/nixConfig/outputs）。
-- `hosts/nixos/<host>/vars.nix` 参数配置（username/gpu/password hash 等，NixOS 必需）。
+- `hosts/nixos/<host>/vars.nix` 参数配置（username/gpu/roles 等，NixOS 必需；密码由 agenix 管理）。
 - `hosts/darwin/<host>/vars.nix` 参数配置（至少含 username，Darwin 必需）。
 - `hosts/outputs/` 按平台聚合 flake outputs（自动发现主机）。
 - `hosts/` 主机配置（如 `hosts/nixos/zly/{hardware.nix,disko.nix}`、`hosts/darwin/zly-mac/default.nix`）。
@@ -52,7 +52,8 @@
 
 ## 密码与持久化
 
-- 密码以哈希写入对应主机 `hosts/nixos/<host>/vars.nix` 的 `userPasswordHash` / `rootPasswordHash`。
+- 密码通过 agenix 管理：`secrets/passwords/user-password.age` / `secrets/passwords/root-password.age`。
+- 本地私钥使用 `/.keys/main.agekey`，安装阶段导入到 `/persistent/keys/main.agekey`。
 - 不再依赖 `/etc/*-password` 等外部密码文件；安装统一使用命令流程。
 
 ---

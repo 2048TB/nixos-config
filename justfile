@@ -9,6 +9,9 @@ host := "zly"
 darwin_host := "zly-mac"
 disk := "/dev/nvme0n1"
 repo := "/persistent/nixos-config"
+key_dir_rel := ".keys"
+age_key_rel := "{{key_dir_rel}}/main.agekey"
+github_key_rel := "{{key_dir_rel}}/github_id_ed25519"
 
 # ========== 系统管理 ==========
 
@@ -55,12 +58,41 @@ install-live:
     sudo rm -rf /mnt/persistent/nixos-config
     sudo mkdir -p /mnt/persistent/nixos-config
     if command -v rsync >/dev/null 2>&1; then \
-      sudo rsync -a --delete --exclude='.git' {{repo}}/ /mnt/persistent/nixos-config/; \
+      sudo rsync -a --delete --exclude='.git' --exclude='{{key_dir_rel}}' {{repo}}/ /mnt/persistent/nixos-config/; \
     else \
       echo "warning: rsync not found, fallback to cp -a (will include .git)"; \
       sudo cp -a {{repo}}/. /mnt/persistent/nixos-config/; \
+      sudo rm -rf /mnt/persistent/nixos-config/{{key_dir_rel}}; \
     fi
+    age_key_src="{{repo}}/{{age_key_rel}}"; \
+      if [ -f "$age_key_src" ]; then \
+        sudo install -D -m 0400 -o root -g root "$age_key_src" /mnt/persistent/keys/main.agekey; \
+        echo ">>> agenix key installed: $age_key_src -> /mnt/persistent/keys/main.agekey"; \
+      else \
+        echo "error: agenix key not found at $age_key_src"; \
+        echo "hint: put private key at {{repo}}/{{age_key_rel}} then retry"; \
+        exit 1; \
+      fi
     sudo env NIXOS_DISK_DEVICE={{disk}} nixos-install --impure --flake /mnt/persistent/nixos-config#{{host}}
+    github_key_src="{{repo}}/{{github_key_rel}}"; \
+      github_pub_src="{{repo}}/{{github_key_rel}}.pub"; \
+      main_user="$(sed -n 's/^[[:space:]]*username[[:space:]]*=[[:space:]]*\"\\([^\"]\\+\\)\".*/\\1/p' {{repo}}/hosts/nixos/{{host}}/vars.nix | head -n1)"; \
+      if [ -n "$main_user" ] && [ -f "$github_key_src" ]; then \
+        sudo install -d -m 0700 "/mnt/home/$main_user/.ssh"; \
+        sudo install -m 0600 "$github_key_src" "/mnt/home/$main_user/.ssh/id_ed25519"; \
+        if [ -f "$github_pub_src" ]; then \
+          sudo install -m 0644 "$github_pub_src" "/mnt/home/$main_user/.ssh/id_ed25519.pub"; \
+        fi; \
+        owner_ids="$(awk -F: -v u="$main_user" '$1 == u { print $3 ":" $4 }' /mnt/etc/passwd | head -n1)"; \
+        if [ -n "$owner_ids" ]; then \
+          sudo chown -R "$owner_ids" "/mnt/home/$main_user/.ssh"; \
+        else \
+          echo "warning: cannot resolve uid:gid for $main_user from /mnt/etc/passwd; keep root ownership"; \
+        fi; \
+        echo ">>> github ssh key installed: $github_key_src -> /mnt/home/$main_user/.ssh/id_ed25519"; \
+      else \
+        echo ">>> github ssh key not found at $github_key_src or username missing (skip)"; \
+      fi
     @echo "✓ 安装完成，重启后执行：just host={{host}} switch"
 
 # Live ISO 本机自动识别主机后一键安装（严格模式：不允许 fallback）
@@ -258,15 +290,50 @@ version:
 status:
     @git status
 
+# 启用仓库内 git hooks（pre-commit / pre-push）
+hooks-enable:
+    git config core.hooksPath .githooks
+    @echo "✓ 已启用 .githooks"
+
+# 密钥泄露保护（阻止提交/推送敏感文件）
+guard-secrets:
+    @{{repo}}/scripts/guard-secrets.sh
+
+# 初始化 agenix 主密钥（本地 .keys + 仓库公钥）
+agenix-init:
+    @{{repo}}/scripts/bootstrap-age-key.sh
+
+# 生成 sha-512 密码哈希（交互输入密码）
+password-hash:
+    if command -v mkpasswd >/dev/null 2>&1; then \
+      mkpasswd -m sha-512; \
+    else \
+      nix shell nixpkgs#mkpasswd -c mkpasswd -m sha-512; \
+    fi
+
+# 连续生成用户与 root 的密码哈希
+password-hashes:
+    @echo ">>> userPasswordHash"
+    @just password-hash
+    @echo ""
+    @echo ">>> rootPasswordHash"
+    @just password-hash
+
+# 将同一个密码哈希写入 agenix（user/root）
+password-set-hash HASH: agenix-init
+    @{{repo}}/scripts/set-password-hash.sh '{{HASH}}'
+
 # 提交所有更改
 commit MESSAGE:
     git add .
+    @{{repo}}/scripts/guard-secrets.sh
     git commit -m "{{MESSAGE}}"
     @echo "✓ 已提交：{{MESSAGE}}"
 
 # 提交并推送
 push MESSAGE:
     git add .
+    @{{repo}}/scripts/guard-secrets.sh
     git commit -m "{{MESSAGE}}" -m "Co-Authored-By: Claude Sonnet 4.5 (1M context) <noreply@anthropic.com>"
     git push origin HEAD
     @echo "✓ 已推送到 GitHub（当前分支）"

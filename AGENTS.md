@@ -64,5 +64,5 @@ There is no unit-test suite; verification is configuration-driven:
 - If docs are updated and user requests Git sync, use a Conventional Commit message and push current branch.
 
 ## Security & Configuration Tips
-- Do not commit new secrets (tokens, private keys, plaintext credentials). If rotating password hashes in `hosts/nixos/<host>/vars.nix`, treat them as sensitive changes and review carefully.
+- Do not commit new secrets (tokens, private keys, plaintext credentials). Password credentials are managed as encrypted agenix files under `secrets/passwords/*.age`; never commit `/.keys/main.agekey` or any private key material.
 - Treat disk provisioning and install commands as destructive unless verified (disko-related flows).
