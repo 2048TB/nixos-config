@@ -64,6 +64,9 @@ let
     if expectedResumeOffset == null then null else "resume_offset=${toString expectedResumeOffset}";
   hasExpectedResumeKernelParam =
     if expectedResumeKernelParam == null then true else builtins.elem expectedResumeKernelParam cfg.boot.kernelParams;
+  hasMullvadVpn = cfg.services.mullvad-vpn.enable or false;
+  mullvadExecStartPre = cfg.systemd.services.mullvad-daemon.serviceConfig.ExecStartPre or null;
+  mullvadExecStartPrePath = if mullvadExecStartPre == null then "" else toString mullvadExecStartPre;
 
   mkNonEmptyCheck = name': items: msg:
     pkgs.runCommand name' { } ''
@@ -87,6 +90,21 @@ in
 
   "eval-${name}-host-profile" = pkgs.runCommand "eval-${name}-host-profile" { } ''
     test "${hmCfg.home.sessionVariables.HOST_PROFILE or ""}" = "${expectedHostProfile}"
+    touch "$out"
+  '';
+
+  "eval-${name}-mullvad-prestart-script" = pkgs.runCommand "eval-${name}-mullvad-prestart-script" { } ''
+    if [ "${if hasMullvadVpn then "1" else "0"}" != "1" ]; then
+      touch "$out"
+      exit 0
+    fi
+
+    script_path="${mullvadExecStartPrePath}"
+    test -n "$script_path"
+    test -f "$script_path"
+
+    grep -F 'settings_dir="/etc/mullvad-vpn"' "$script_path" >/dev/null
+    grep -F 'settings_file="$settings_dir/settings.json"' "$script_path" >/dev/null
     touch "$out"
   '';
 

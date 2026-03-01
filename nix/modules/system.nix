@@ -747,21 +747,19 @@ in
       mullvad-daemon = lib.mkIf enableMullvadVpn {
         serviceConfig = {
           ExecStartPre = pkgs.writeShellScript "disable-mullvad-lockdown" ''
-            settings_dir = "/etc/mullvad-vpn"
-              settings_file="$settings_dir/settings.json"
+            settings_dir="/etc/mullvad-vpn"
+            settings_file="$settings_dir/settings.json"
             mkdir -p "$settings_dir"
-            if [ ! -f "$settings_file" ];
-            then
-            echo '{}' > "$settings_file"
+            if [ ! -f "$settings_file" ]; then
+              echo '{}' > "$settings_file"
             fi
 
-            if ${pkgs.jq}/bin/jq '.block_when_disconnected = false |.auto_connect = true' "$settings_file" > "$settings_file.tmp";
-            then
-            mv "$settings_file.tmp" "$settings_file"
-            echo "Mullvad autoconnect 已启用，lockdown mode 已禁用"
+            if ${pkgs.jq}/bin/jq '.block_when_disconnected = false | .auto_connect = true' "$settings_file" > "$settings_file.tmp"; then
+              mv "$settings_file.tmp" "$settings_file"
+              echo "Mullvad autoconnect 已启用，lockdown mode 已禁用"
             else
-            rm -f "$settings_file.tmp"
-            echo "WARNING: Failed to update Mullvad settings (invalid JSON). Keeping existing file." >&2
+              rm -f "$settings_file.tmp"
+              echo "WARNING: Failed to update Mullvad settings (invalid JSON). Keeping existing file." >&2
             fi
           '';
         };
