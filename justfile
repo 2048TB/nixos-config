@@ -226,6 +226,11 @@ lint:
     statix check .
     @echo "✓ 静态检查通过"
 
+# Shell 脚本语法/静态检查（shellcheck 可选）
+scripts-check:
+    @bash -lc 'set -euo pipefail; shopt -s nullglob; files=(scripts/*.sh scripts/lib/*.sh .githooks/pre-*); if [ ${#files[@]} -eq 0 ]; then echo "warning: no shell scripts found"; exit 0; fi; bash -n "${files[@]}"; if command -v shellcheck >/dev/null 2>&1; then shellcheck "${files[@]}"; else echo "warning: shellcheck not found, skipped"; fi'
+    @echo "✓ Shell 脚本检查通过"
+
 # 查找死代码
 dead:
     deadnix .
@@ -235,8 +240,8 @@ fix:
     statix fix .
     @echo "✓ 自动修复完成"
 
-# 完整代码检查（格式化 + 检查 + 死代码）
-check-all: fmt lint dead
+# 完整代码检查（格式化 + 检查 + 死代码 + Shell）
+check-all: fmt lint dead scripts-check
     @echo "✓ 完整代码检查完成"
 
 # ========== 查看信息 ==========
@@ -311,14 +316,14 @@ ssh-key-set: agenix-init
 # 提交所有更改
 commit MESSAGE:
     git add .
-    @{{repo}}/scripts/guard-secrets.sh
+    @just guard-secrets
     git commit -m "{{MESSAGE}}"
     @echo "✓ 已提交：{{MESSAGE}}"
 
 # 提交并推送
 push MESSAGE:
     git add .
-    @{{repo}}/scripts/guard-secrets.sh
+    @just guard-secrets
     git commit -m "{{MESSAGE}}" -m "Co-Authored-By: Claude Sonnet 4.5 (1M context) <noreply@anthropic.com>"
     git push origin HEAD
     @echo "✓ 已推送到 GitHub（当前分支）"

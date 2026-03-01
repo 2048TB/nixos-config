@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# shellcheck disable=SC2034
+script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck disable=SC1091
+source "$script_dir/lib/common.sh"
+
 usage() {
   cat <<'EOF'
 usage:
@@ -11,11 +16,6 @@ examples:
   new-host.sh darwin mbp14 --from zly-mac
   new-host.sh nixos devbox --dry-run
 EOF
-}
-
-is_valid_host_name() {
-  local name="${1:-}"
-  [[ "$name" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ ]]
 }
 
 escape_sed_pattern() {
@@ -72,9 +72,7 @@ if ! is_valid_host_name "$host_name"; then
   exit 2
 fi
 
-if [ ! -f "$repo/flake.nix" ] && [ -f "/persistent/nixos-config/flake.nix" ]; then
-  repo="/persistent/nixos-config"
-fi
+repo="$(resolve_repo_path "$repo")"
 
 case "$platform" in
   nixos)
