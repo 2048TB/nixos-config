@@ -25,7 +25,6 @@
 - `scripts/resolve-host.sh` 主机自动解析（`NIXOS_HOST`/`DARWIN_HOST` > hostname > fallback，不可用时自动选可用主机）。
 - `scripts/new-host.sh` 主机脚手架（复制模板主机生成新目录）。
 - `lib/default.nix` 公共工具与系统装配入口（`nixosSystem`/`macosSystem`/`mk*Host`）。
-- `apps/README.md` flake apps 入口说明（`nix run .#build-switch` 等）。
 - `nix/modules/system.nix` 系统配置。
 - `nix/modules/hardware.nix` GPU 选择与驱动配置。
 - `nix/home/linux/default.nix` Linux Home Manager 入口。
