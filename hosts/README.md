@@ -93,3 +93,10 @@ just host=devbox check
 安装命令（`install` / `install-check`）必须显式指定 `host`。
 
 同样规则也适用于 `nix run .#build` / `.#build-switch` / `.#apply`。
+
+---
+
+## 7. 安装后配置目录约定
+
+Live ISO 安装流程会把仓库同步到 `/persistent/nixos-config`，并把 `/etc/nixos` 链接到该路径。  
+主目录中的 `~/nixos` 入口默认也指向这个持久化目录。

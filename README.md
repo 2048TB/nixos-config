@@ -92,6 +92,14 @@ just host=zly disk=/dev/nvme0n1 install
 just host=zky disk=/dev/nvme0n1 install
 ```
 
+安装脚本会在 `nixos-install` 后将当前仓库原子同步到 `/persistent/nixos-config`，并将 `/etc/nixos` 链接到该目录。
+如果你看到 `~/nixos` 内容异常，先检查：
+
+```bash
+readlink -f ~/nixos
+ls -la /persistent/nixos-config
+```
+
 ### 1.6 重启后第一次切换
 
 ```bash
