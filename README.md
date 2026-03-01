@@ -244,7 +244,7 @@ sudo btrfs inspect-internal map-swapfile -r /swap/swapfile
 ```
 .
 ├── flake.nix                     # Flake 入口（inputs/nixConfig/outputs）
-├── apps/                         # flake app 使用说明
+├── (flake apps outputs)          # 通过 flake outputs 提供，定义位于 hosts/outputs/*
 ├── lib/                          # 构建器与辅助函数
 │   ├── default.nix               # lib 聚合入口（system/host 构建函数）
 │   ├── mkDarwinHost.nix

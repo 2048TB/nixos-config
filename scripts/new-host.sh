@@ -13,7 +13,13 @@ examples:
 EOF
 }
 
+is_valid_host_name() {
+  local name="${1:-}"
+  [[ "$name" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ ]]
+}
+
 escape_sed_pattern() {
+  # shellcheck disable=SC2016
   printf '%s' "$1" | sed -e 's/[\/&.[\*^$()+?{}|]/\\&/g'
 }
 
@@ -61,6 +67,11 @@ if [ -z "$platform" ] || [ -z "$host_name" ]; then
   exit 2
 fi
 
+if ! is_valid_host_name "$host_name"; then
+  echo "error: invalid host name '$host_name' (allowed: [A-Za-z0-9][A-Za-z0-9._-]*)" >&2
+  exit 2
+fi
+
 if [ ! -f "$repo/flake.nix" ] && [ -f "/persistent/nixos-config/flake.nix" ]; then
   repo="/persistent/nixos-config"
 fi
@@ -85,6 +96,11 @@ case "$platform" in
     exit 2
     ;;
 esac
+
+if ! is_valid_host_name "$source_host"; then
+  echo "error: invalid source host name '$source_host' (allowed: [A-Za-z0-9][A-Za-z0-9._-]*)" >&2
+  exit 2
+fi
 
 source_dir="$root_dir/$source_host"
 target_dir="$root_dir/$host_name"

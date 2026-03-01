@@ -62,54 +62,38 @@ let
     program = "${(pkgs.writeShellScriptBin scriptName scriptBody)}/bin/${scriptName}";
     meta.description = description;
   };
+  appRepoPreamble = ''
+    set -euo pipefail
+    repo="''${NIXOS_CONFIG_REPO:-$PWD}"
+    if [ ! -f "$repo/flake.nix" ] && [ -f "/persistent/nixos-config/flake.nix" ]; then
+      repo="/persistent/nixos-config"
+    fi
+    cd "$repo"
+  '';
+  resolveNixosHost = ''host="$("$repo/scripts/resolve-host.sh" nixos "$repo" "zly")"'';
   platformApps.${system} = {
     apply = mkApp "apply" "Apply Linux host configuration (switch)" ''
-      set -euo pipefail
-      repo="''${NIXOS_CONFIG_REPO:-$PWD}"
-      if [ ! -f "$repo/flake.nix" ] && [ -f "/persistent/nixos-config/flake.nix" ]; then
-        repo="/persistent/nixos-config"
-      fi
-      cd "$repo"
-      host="$("$repo/scripts/resolve-host.sh" nixos "$repo" "zly")"
+      ${appRepoPreamble}
+      ${resolveNixosHost}
       exec ${pkgs.just}/bin/just host="$host" switch
     '';
     build-switch = mkApp "build-switch" "Build and switch Linux host configuration" ''
-      set -euo pipefail
-      repo="''${NIXOS_CONFIG_REPO:-$PWD}"
-      if [ ! -f "$repo/flake.nix" ] && [ -f "/persistent/nixos-config/flake.nix" ]; then
-        repo="/persistent/nixos-config"
-      fi
-      cd "$repo"
-      host="$("$repo/scripts/resolve-host.sh" nixos "$repo" "zly")"
+      ${appRepoPreamble}
+      ${resolveNixosHost}
       exec ${pkgs.just}/bin/just host="$host" switch
     '';
     build = mkApp "build" "Dry-build Linux host configuration" ''
-      set -euo pipefail
-      repo="''${NIXOS_CONFIG_REPO:-$PWD}"
-      if [ ! -f "$repo/flake.nix" ] && [ -f "/persistent/nixos-config/flake.nix" ]; then
-        repo="/persistent/nixos-config"
-      fi
-      cd "$repo"
-      host="$("$repo/scripts/resolve-host.sh" nixos "$repo" "zly")"
+      ${appRepoPreamble}
+      ${resolveNixosHost}
       exec ${pkgs.just}/bin/just host="$host" check
     '';
     install = mkApp "install" "Install Linux host on Live ISO with disko+nixos-install" ''
-      set -euo pipefail
-      repo="''${NIXOS_CONFIG_REPO:-$PWD}"
-      if [ ! -f "$repo/flake.nix" ] && [ -f "/persistent/nixos-config/flake.nix" ]; then
-        repo="/persistent/nixos-config"
-      fi
-      cd "$repo"
-      host="$("$repo/scripts/resolve-host.sh" nixos "$repo" "zly")"
+      ${appRepoPreamble}
+      ${resolveNixosHost}
       exec ${pkgs.just}/bin/just host="$host" disk="''${NIXOS_DISK_DEVICE:-/dev/nvme0n1}" install-live
     '';
     clean = mkApp "clean" "Clean old generations" ''
-      set -euo pipefail
-      repo="''${NIXOS_CONFIG_REPO:-$PWD}"
-      if [ ! -f "$repo/flake.nix" ] && [ -f "/persistent/nixos-config/flake.nix" ]; then
-        repo="/persistent/nixos-config"
-      fi
-      cd "$repo"
+      ${appRepoPreamble}
       exec ${pkgs.just}/bin/just clean
     '';
   };

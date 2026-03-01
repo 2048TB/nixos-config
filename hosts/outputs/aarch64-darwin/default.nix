@@ -59,44 +59,33 @@ let
     program = "${(pkgs.writeShellScriptBin scriptName scriptBody)}/bin/${scriptName}";
     meta.description = description;
   };
+  appRepoPreamble = ''
+    set -euo pipefail
+    repo="''${NIXOS_CONFIG_REPO:-$PWD}"
+    if [ ! -f "$repo/flake.nix" ] && [ -f "/persistent/nixos-config/flake.nix" ]; then
+      repo="/persistent/nixos-config"
+    fi
+    cd "$repo"
+  '';
+  resolveDarwinHost = ''host="$("$repo/scripts/resolve-host.sh" darwin "$repo" "zly-mac")"'';
   platformApps.${system} = {
     apply = mkApp "apply" "Apply Darwin host configuration (switch)" ''
-      set -euo pipefail
-      repo="''${NIXOS_CONFIG_REPO:-$PWD}"
-      if [ ! -f "$repo/flake.nix" ] && [ -f "/persistent/nixos-config/flake.nix" ]; then
-        repo="/persistent/nixos-config"
-      fi
-      cd "$repo"
-      host="$("$repo/scripts/resolve-host.sh" darwin "$repo" "zly-mac")"
+      ${appRepoPreamble}
+      ${resolveDarwinHost}
       exec ${pkgs.just}/bin/just darwin_host="$host" darwin-switch
     '';
     build-switch = mkApp "build-switch" "Build and switch Darwin host configuration" ''
-      set -euo pipefail
-      repo="''${NIXOS_CONFIG_REPO:-$PWD}"
-      if [ ! -f "$repo/flake.nix" ] && [ -f "/persistent/nixos-config/flake.nix" ]; then
-        repo="/persistent/nixos-config"
-      fi
-      cd "$repo"
-      host="$("$repo/scripts/resolve-host.sh" darwin "$repo" "zly-mac")"
+      ${appRepoPreamble}
+      ${resolveDarwinHost}
       exec ${pkgs.just}/bin/just darwin_host="$host" darwin-switch
     '';
     build = mkApp "build" "Build Darwin host configuration without switching" ''
-      set -euo pipefail
-      repo="''${NIXOS_CONFIG_REPO:-$PWD}"
-      if [ ! -f "$repo/flake.nix" ] && [ -f "/persistent/nixos-config/flake.nix" ]; then
-        repo="/persistent/nixos-config"
-      fi
-      cd "$repo"
-      host="$("$repo/scripts/resolve-host.sh" darwin "$repo" "zly-mac")"
+      ${appRepoPreamble}
+      ${resolveDarwinHost}
       exec ${pkgs.just}/bin/just darwin_host="$host" darwin-check
     '';
     clean = mkApp "clean" "Clean old generations" ''
-      set -euo pipefail
-      repo="''${NIXOS_CONFIG_REPO:-$PWD}"
-      if [ ! -f "$repo/flake.nix" ] && [ -f "/persistent/nixos-config/flake.nix" ]; then
-        repo="/persistent/nixos-config"
-      fi
-      cd "$repo"
+      ${appRepoPreamble}
       exec ${pkgs.just}/bin/just clean
     '';
   };
