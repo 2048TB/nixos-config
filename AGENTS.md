@@ -9,7 +9,6 @@ This repository is a flake-based NixOS desktop configuration.
 - `scripts/resolve-host.sh`: host resolution helper for local commands/apps (`ENV > hostname > fallback`; if fallback is unavailable, auto-pick first valid host).
 - `scripts/new-host.sh`: host scaffolding helper for NixOS/Darwin host directories.
 - `lib/default.nix`: shared helper + system assembly entry (`nixosSystem`, `macosSystem`, `mk*Host`).
-- `apps/README.md`: flake app entrypoints (`nix run .#build-switch` etc.).
 - `nix/modules/`: shared system modules (`system.nix`, `hardware.nix`).
 - `nix/home/linux/default.nix`: Home Manager entrypoint for NixOS hosts.
 - `nix/home/base|linux|darwin`: layered Home modules.
@@ -59,7 +58,7 @@ There is no unit-test suite; verification is configuration-driven:
 ## Documentation Sync Rules
 - When behavior/commands/keybindings change, update related docs in the same change set.
 - For Niri/Waybar/Tmux/Zellij changes, keep `README.md`, `KEYBINDINGS.md`, and `NIX-COMMANDS.md` consistent.
-- If host discovery/scaffolding flow changes, sync `README.md`, `hosts/README.md`, `hosts/outputs/README.md`, and `apps/README.md`.
+- If host discovery/scaffolding flow changes, sync `README.md`, `hosts/README.md`, `hosts/outputs/README.md`, and `NIX-COMMANDS.md`.
 - If terminal multiplexer keybindings change, treat `nix/home/configs/tmux/tmux.conf` and `nix/home/configs/zellij/config.kdl` as source of truth and sync docs accordingly.
 - If process rules change, sync `CLAUDE.md` and `AGENTS.md` together.
 - If docs are updated and user requests Git sync, use a Conventional Commit message and push current branch.

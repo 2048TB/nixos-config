@@ -6,7 +6,6 @@
 - `KEYBINDINGS.md` 快捷键说明（Niri / Tmux / Zellij）
 - `NIX-COMMANDS.md` 常用 Nix 命令速查
 - `nix/home/README.md` Home 配置结构与说明
-- `apps/README.md` flake apps 命令入口说明
 - `AGENTS.md` 贡献与协作约定
 - `justfile` 日常操作命令
 - `CLAUDE.md` 项目维护约定（给 AI/自动化工具）
