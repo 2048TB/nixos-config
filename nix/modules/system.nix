@@ -446,10 +446,7 @@ in
   ];
 
   services = {
-    xserver = {
-      enable = false;
-      desktopManager.runXdgAutostartIfNone = true; # 启用 XDG 自启动（fcitx5 等）
-    };
+    xserver.enable = false;
 
     greetd = {
       enable = true;
@@ -777,6 +774,8 @@ in
       "d /no-such-path 0755 root root -"
       "L+ /usr/bin/gsettings - - - - ${gsettingsCompatWrapper}"
       "L+ /no-such-path/gsettings - - - - ${gsettingsCompatWrapper}"
+      # Docker rootless containerd 需要 /opt 存在（tmpfs root 下默认不存在）
+      "d /opt 0755 root root -"
       "d ${configRepoPath} 0755 ${mainUser} ${mainUser} -"
       # Keep a stable entrypoint; /etc/nixos is a symlink to persistent config.
       # This relies on /persistent being mounted early (neededForBoot=true).

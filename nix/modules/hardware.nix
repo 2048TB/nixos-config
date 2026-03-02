@@ -42,8 +42,10 @@ let
   enableBluetoothRfkillUnblock = myvars.enableBluetoothRfkillUnblock or false;
 in
 {
-  # 图形基础设置（Wayland + Xwayland）
   hardware = {
+    # Wi-Fi/蓝牙/GPU 等硬件所需的可再分发固件（实体机推荐开启）
+    enableRedistributableFirmware = true;
+
     graphics = {
       enable = true;
       enable32Bit = true;

@@ -40,10 +40,5 @@ in
       options = "--delete-older-than ${gcRetentionDays}";
     };
 
-    # 优化配置
-    optimise = {
-      automatic = true;
-      dates = [ "weekly" ];
-    };
   };
 }
