@@ -37,6 +37,17 @@ cd ~/nixos
 just hooks-enable
 ```
 
+### 1.1.1 若提示需启用实验性功能（nix-command / flakes）
+
+```bash
+export NIX_CONFIG="experimental-features = nix-command flakes"
+
+# 然后再执行你的命令，比如：
+nix shell nixpkgs#just -c just hosts
+# 或
+/persistent/nixos-config/scripts/install-live.sh --host zky --disk /dev/nvme0n1 --repo /persistent/nixos-config
+```
+
 ### 1.2 密钥准备
 
 情况 A：你是第一次部署（没有旧密钥）
