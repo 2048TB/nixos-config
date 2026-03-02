@@ -93,9 +93,9 @@ binds {
     "Mod+Page_Up" { focus-workspace-up; }
     "Mod+Ctrl+Page_Down" { move-column-to-workspace-down; }
     "Mod+Ctrl+Page_Up" { move-column-to-workspace-up; }
-    // N/M 发送当前窗口到上/下一个工作区
-    Mod+N { move-window-to-workspace-up; }
-    Mod+M { move-window-to-workspace-down; }
+    // X/B 发送当前窗口到上/下一个工作区
+    Mod+X { move-window-to-workspace-up; }
+    Mod+B { move-window-to-workspace-down; }
     "Mod+Shift+Page_Down" { move-workspace-down; }
     "Mod+Shift+Page_Up" { move-workspace-up; }
     Mod+Alt+Left  { focus-workspace-up; }
@@ -160,8 +160,8 @@ binds {
     // 以下绑定用于在列内/列外移动焦点窗口。
     // 如果窗口独立存在，将其并入旁边的列；
     // 若已在列内，则将其移出。
-    Mod+Comma { consume-or-expel-window-left; }
-    Mod+Period { consume-or-expel-window-right; }
+    Mod+C { consume-or-expel-window-left; }
+    Mod+V { consume-or-expel-window-right; }
 
     // 从右侧列吸入一个窗口到当前列底部。
     Mod+D { consume-window-into-column; }
@@ -202,17 +202,17 @@ binds {
     Mod+Shift+Equal { set-window-height "+10%"; }
 
     // 在浮动与平铺布局间切换当前窗口。
-    Mod+C { toggle-window-floating; }
+    Mod+Comma { toggle-window-floating; }
 
     // 在浮动窗口与平铺窗口之间切换焦点。
-    Mod+V { switch-focus-between-floating-and-tiling; }
+    Mod+Period { switch-focus-between-floating-and-tiling; }
 
     // 快速上下移动当前窗口。
     Mod+S { move-window-down; }
     Mod+G { move-window-up; }
 
     // 全屏当前窗口。
-    Mod+X { fullscreen-window; }
+    Mod+T { fullscreen-window; }
 
     // 打开/关闭概览：工作区与窗口的缩略视图。
     // 也可将鼠标移到左上角热区，
