@@ -25,11 +25,26 @@ age_key_rel="$key_dir_rel/main.agekey"
 
 is_age_private_key_file() {
   local path="${1:-}"
+  local first_data_line=""
   [ -r "$path" ] || return 1
-  head -n 1 "$path" | grep -q "^AGE-SECRET-KEY-"
+  first_data_line="$(
+    awk '
+      {
+        line = $0
+        gsub(/^[[:space:]]+|[[:space:]]+$/, "", line)
+        if (line == "" || line ~ /^#/) {
+          next
+        }
+        print line
+        exit
+      }
+    ' "$path"
+  )"
+  [[ "$first_data_line" == AGE-SECRET-KEY-* ]]
 }
 
 resolve_age_key_src() {
+  declare -A seen=()
   local candidates=(
     "$PWD/$age_key_rel"
     "$repo/$age_key_rel"
@@ -38,6 +53,10 @@ resolve_age_key_src() {
   local candidate
   for candidate in "${candidates[@]}"; do
     [ -n "$candidate" ] || continue
+    if [ -n "${seen[$candidate]:-}" ]; then
+      continue
+    fi
+    seen[$candidate]=1
     [ -f "$candidate" ] || continue
     if is_age_private_key_file "$candidate"; then
       printf '%s\n' "$candidate"
