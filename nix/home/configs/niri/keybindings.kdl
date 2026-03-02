@@ -18,8 +18,8 @@ binds {
     Mod+Space { spawn "fuzzel"; }
     XF86Search { spawn "fuzzel"; }
 
-    // 文件管理器（对齐 Hyprland: Mod+E）
-    Mod+E { spawn "nautilus"; }
+    // 在浮动窗口与平铺窗口之间切换焦点。
+    Mod+E { switch-focus-between-floating-and-tiling; }
 
     // 手动锁屏（对齐 Hyprland: Mod+Shift+L）
     Mod+Shift+L { spawn "lock-screen"; }
@@ -160,13 +160,13 @@ binds {
     // 以下绑定用于在列内/列外移动焦点窗口。
     // 如果窗口独立存在，将其并入旁边的列；
     // 若已在列内，则将其移出。
-    Mod+C { consume-or-expel-window-left; }
-    Mod+V { consume-or-expel-window-right; }
+    Mod+D { consume-or-expel-window-left; }
+    Mod+F { consume-or-expel-window-right; }
 
     // 从右侧列吸入一个窗口到当前列底部。
-    Mod+D { consume-window-into-column; }
+    Mod+C { consume-window-into-column; }
     // 将当前列底部窗口移到右侧。
-    Mod+F { expel-window-from-column; }
+    Mod+V { expel-window-from-column; }
 
     Mod+R { switch-preset-column-width; }
     // 也可按反向顺序循环预设。
@@ -202,10 +202,7 @@ binds {
     Mod+Shift+Equal { set-window-height "+10%"; }
 
     // 在浮动与平铺布局间切换当前窗口。
-    Mod+Comma { toggle-window-floating; }
-
-    // 在浮动窗口与平铺窗口之间切换焦点。
-    Mod+Period { switch-focus-between-floating-and-tiling; }
+    Mod+W repeat=false { toggle-window-floating; }
 
     // 快速上下移动当前窗口。
     Mod+S { move-window-down; }
@@ -217,7 +214,10 @@ binds {
     // 打开/关闭概览：工作区与窗口的缩略视图。
     // 也可将鼠标移到左上角热区，
     // 或在触控板上四指上滑。
-    Mod+W repeat=false { toggle-overview; }
+    Mod+Comma { toggle-overview; }
+
+    // 文件管理器（对齐 Hyprland: Mod+E）
+    Mod+Period { spawn "nautilus"; }
 
     // 切换布局的动作。
     // 注意：若取消注释，请确保上面的 xkb 选项中没有相同快捷键。
