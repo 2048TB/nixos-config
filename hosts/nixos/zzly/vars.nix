@@ -1,8 +1,8 @@
 {
-  # zky 独立主机变量（保持与 zly 同结构，便于对比与后续分化）
+  # zzly 独立主机变量（保持与 zly 同结构，便于对比与后续分化）
 
   # Identity
-  username = "zky";
+  username = "z";
   timezone = "Asia/Shanghai";
   systemStateVersion = "25.11";
   homeStateVersion = "25.11";
@@ -15,15 +15,15 @@
     if envDiskDevice != "" then envDiskDevice else "/dev/nvme0n1";
   swapSizeGb = 32;
 
-  enableHibernate = false;
-  resumeOffset = null;
+  enableHibernate = true;
+  resumeOffset = 533760;
   rootTmpfsSize = "2G";
   journaldSystemMaxUse = "512M";
   journaldRuntimeMaxUse = "256M";
 
   # Hardware
-  cpuVendor = "intel";
-  gpuMode = "nvidia";
+  cpuVendor = "amd";
+  gpuMode = "amd";
   enableGpuSpecialisation = false;
   enableBluetoothRfkillUnblock = false;
   enableAggressiveApparmorKill = false;
@@ -37,7 +37,7 @@
     "vpn"
   ];
 
-  # App toggles (zky)
+  # App toggles (zzly)
   enableWpsOffice = false;
   enableZathura = false;
   enableSplayer = false;
