@@ -48,6 +48,8 @@ nix shell nixpkgs#just -c just hosts
 /persistent/nixos-config/scripts/install-live.sh --host zky --disk /dev/nvme0n1 --repo /persistent/nixos-config
 ```
 
+说明：安装脚本查找 `main.agekey` 的顺序是 `./.keys/main.agekey` → `<repo>/.keys/main.agekey` → `~/.keys/main.agekey`，并要求文件内容是 `AGE-SECRET-KEY-*` 私钥。
+
 ### 1.2 密钥准备
 
 情况 A：你是第一次部署（没有旧密钥）
@@ -185,7 +187,7 @@ just host=zly <命令>
 
 处理：
 1. 确认你在仓库根目录
-2. 把私钥放到 `./.keys/main.agekey`
+2. 把私钥放到以下任一位置：`./.keys/main.agekey`、`<repo-root>/.keys/main.agekey`、`~/.keys/main.agekey`
 3. 重新运行命令
 
 ### 报错：密码不生效
