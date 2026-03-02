@@ -1,7 +1,7 @@
 # NixOS 多主机配置（新手版）
 
 这是一个可复现的多主机配置仓库：
-- Linux 主机：`zly`、`zky`（NixOS + Home Manager）
+- Linux 主机：`zly`、`zky`、`zzly`（NixOS + Home Manager）
 - macOS 主机：`zly-mac`（nix-darwin + Home Manager）
 
 如果你是第一次接触 NixOS，请先看这份文档，再按命令一步步执行。

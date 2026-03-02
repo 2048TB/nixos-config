@@ -11,7 +11,7 @@
 - `hosts/darwin/<host>/`：macOS 主机配置
 
 当前已有主机：
-- NixOS：`zly`、`zky`
+- NixOS：`zly`、`zky`、`zzly`
 - Darwin：`zly-mac`
 
 ---
