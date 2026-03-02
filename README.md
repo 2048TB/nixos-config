@@ -93,6 +93,7 @@ just host=zky disk=/dev/nvme0n1 install
 ```
 
 安装脚本会在 `nixos-install` 后将当前仓库原子同步到 `/persistent/nixos-config`，并将 `/etc/nixos` 链接到该目录。
+安装时用于解密 secrets 的 `main.agekey` 会按顺序查找：`./.keys/main.agekey` → `<repo>/.keys/main.agekey` → `~/.keys/main.agekey`（必须是 `AGE-SECRET-KEY-*` 私钥文件）。
 如果你看到 `~/nixos` 内容异常，先检查：
 
 ```bash
@@ -180,7 +181,7 @@ just switch
 
 ### Q3: 安装时报找不到 `main.agekey`
 
-把私钥放到 `<repo-root>/.keys/main.agekey`，再重试安装命令。
+把私钥放到以下任一位置（按此顺序查找）：`./.keys/main.agekey`、`<repo-root>/.keys/main.agekey`、`~/.keys/main.agekey`，再重试安装命令。
 
 ### Q4: 怎么避免把密钥提交到 GitHub？
 

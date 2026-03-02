@@ -23,6 +23,31 @@ repo="${NIXOS_CONFIG_REPO:-$PWD}"
 key_dir_rel=".keys"
 age_key_rel="$key_dir_rel/main.agekey"
 
+is_age_private_key_file() {
+  local path="${1:-}"
+  [ -r "$path" ] || return 1
+  head -n 1 "$path" | grep -q "^AGE-SECRET-KEY-"
+}
+
+resolve_age_key_src() {
+  local candidates=(
+    "$PWD/$age_key_rel"
+    "$repo/$age_key_rel"
+    "${HOME:-}/$age_key_rel"
+  )
+  local candidate
+  for candidate in "${candidates[@]}"; do
+    [ -n "$candidate" ] || continue
+    [ -f "$candidate" ] || continue
+    if is_age_private_key_file "$candidate"; then
+      printf '%s\n' "$candidate"
+      return 0
+    fi
+    echo "warning: ignore invalid age key file (expected AGE-SECRET-KEY-*): $candidate" >&2
+  done
+  return 1
+}
+
 while [ "$#" -gt 0 ]; do
   case "$1" in
     --host) host="${2:-}"; shift 2 ;;
@@ -58,13 +83,15 @@ findmnt /mnt/boot
 findmnt /mnt/persistent
 
 # 3. Install agenix key
-age_key_src="$repo/$age_key_rel"
-if [ -f "$age_key_src" ]; then
+if age_key_src="$(resolve_age_key_src)"; then
   sudo install -D -m 0400 -o root -g root "$age_key_src" /mnt/persistent/keys/main.agekey
   echo ">>> agenix key installed: $age_key_src -> /mnt/persistent/keys/main.agekey"
 else
-  echo "error: agenix key not found at $age_key_src" >&2
-  echo "hint: put private key at $repo/$age_key_rel then retry" >&2
+  echo "error: agenix key not found (or invalid) in search paths below:" >&2
+  echo "  - $PWD/$age_key_rel" >&2
+  echo "  - $repo/$age_key_rel" >&2
+  echo "  - ${HOME:-}/$age_key_rel" >&2
+  echo "hint: place AGE private key 'main.agekey' into one of these paths, then retry." >&2
   exit 1
 fi
 

@@ -40,6 +40,7 @@ just host=zky disk=/dev/nvme0n1 install
 安装命令必须指定 `host`（Live ISO hostname 不匹配仓库主机）。
 
 说明：安装脚本会在 `nixos-install` 后把仓库同步到 `/persistent/nixos-config`，并修复 `/etc/nixos -> /persistent/nixos-config` 链接。
+说明：安装脚本会按顺序查找 `main.agekey`：`./.keys/main.agekey` → `<repo>/.keys/main.agekey` → `~/.keys/main.agekey`（需为 `AGE-SECRET-KEY-*` 私钥）。
 
 ---
 

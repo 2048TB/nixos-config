@@ -100,3 +100,4 @@ just host=devbox check
 
 Live ISO 安装流程会把仓库同步到 `/persistent/nixos-config`，并把 `/etc/nixos` 链接到该路径。  
 主目录中的 `~/nixos` 入口默认也指向这个持久化目录。
+安装脚本读取 `main.agekey` 的顺序是：当前目录 `./.keys/main.agekey`、`--repo` 对应目录、`~/.keys/main.agekey`（必须是 `AGE-SECRET-KEY-*` 私钥）。
