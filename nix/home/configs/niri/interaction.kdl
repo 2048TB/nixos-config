@@ -151,9 +151,9 @@ binds {
     "Mod+Page_Up" { focus-workspace-up; }
     "Mod+Ctrl+Page_Down" { move-column-to-workspace-down; }
     "Mod+Ctrl+Page_Up" { move-column-to-workspace-up; }
-    // X/B 发送当前窗口到上/下一个工作区
-    Mod+X { move-window-to-workspace-up; }
-    Mod+B { move-window-to-workspace-down; }
+    // X/B 发送当前窗口到下/上一个工作区（对齐 Sofle：S/X=down，G/B=up）
+    Mod+X { move-window-to-workspace-down; }
+    Mod+B { move-window-to-workspace-up; }
     "Mod+Shift+Page_Down" { move-workspace-down; }
     "Mod+Shift+Page_Up" { move-workspace-up; }
     Mod+Alt+Left  { focus-workspace-up; }
@@ -218,13 +218,13 @@ binds {
     // 以下绑定用于在列内/列外移动焦点窗口。
     // 如果窗口独立存在，将其并入旁边的列；
     // 若已在列内，则将其移出。
-    Mod+D { consume-or-expel-window-left; }
-    Mod+F { consume-or-expel-window-right; }
+    Mod+S { consume-or-expel-window-left; }
+    Mod+G { consume-or-expel-window-right; }
 
     // 从右侧列吸入一个窗口到当前列底部。
-    Mod+C { consume-window-into-column; }
+    Mod+D { consume-window-into-column; }
     // 将当前列底部窗口移到右侧。
-    Mod+V { expel-window-from-column; }
+    Mod+F { expel-window-from-column; }
 
     Mod+R { switch-preset-column-width; }
     // 也可按反向顺序循环预设。
@@ -263,8 +263,8 @@ binds {
     Mod+W repeat=false { toggle-window-floating; }
 
     // 快速上下移动当前窗口。
-    Mod+S { move-window-down; }
-    Mod+G { move-window-up; }
+    Mod+C { move-window-down; }
+    Mod+V { move-window-up; }
 
     // 全屏当前窗口。
     Mod+T { fullscreen-window; }
