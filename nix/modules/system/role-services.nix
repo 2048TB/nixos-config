@@ -73,6 +73,12 @@ in
     };
   };
 
+  # Docker rootless containerd 需要 /opt/containerd 可写（tmpfs root 下不存在）
+  systemd.tmpfiles.rules = lib.mkIf (enableDocker && useRootlessDocker) [
+    "d /opt 0755 root root -"
+    "d /opt/containerd 0755 ${mainUser} ${mainUser} -"
+  ];
+
   # greetd 的 greeter 用户也会拉起一个 user manager；
   # 将仅主用户需要的 user services 绑定到 mainUser，避免 greeter 会话产生误报失败日志。
   systemd.user = lib.mkMerge [
