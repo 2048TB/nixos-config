@@ -49,9 +49,9 @@ binds {
     XF86KbdBrightnessUp allow-when-locked=true { spawn "brightnessctl" "--device=kbd_backlight" "set" "10%+"; }
     XF86KbdBrightnessDown allow-when-locked=true { spawn "brightnessctl" "--device=kbd_backlight" "set" "10%-"; }
 
-    // 打开/关闭概览：工作区与窗口的缩略视图。
-    // 也可将鼠标移到左上角热区，
-    // 或在触控板上四指上滑。
+    // 切换列的标签页显示模式。
+    // 该列窗口将以纵向标签显示，
+    // 而非堆叠在一起。
     Mod+O { toggle-column-tabbed-display; }
 
     // 交换为：方向键聚焦，HJKL 移动窗口/列
@@ -93,9 +93,9 @@ binds {
     "Mod+Page_Up" { focus-workspace-up; }
     "Mod+Ctrl+Page_Down" { move-column-to-workspace-down; }
     "Mod+Ctrl+Page_Up" { move-column-to-workspace-up; }
-    // 对齐 Hyprland：B/N 发送当前窗口到上/下一个工作区
-    Mod+B { move-window-to-workspace-up; }
-    Mod+N { move-window-to-workspace-down; }
+    // N/M 发送当前窗口到上/下一个工作区
+    Mod+N { move-window-to-workspace-up; }
+    Mod+M { move-window-to-workspace-down; }
     "Mod+Shift+Page_Down" { move-workspace-down; }
     "Mod+Shift+Page_Up" { move-workspace-up; }
     Mod+Alt+Left  { focus-workspace-up; }
@@ -160,8 +160,8 @@ binds {
     // 以下绑定用于在列内/列外移动焦点窗口。
     // 如果窗口独立存在，将其并入旁边的列；
     // 若已在列内，则将其移出。
-    Mod+BracketLeft  { consume-or-expel-window-left; }
-    Mod+BracketRight { consume-or-expel-window-right; }
+    Mod+Comma { consume-or-expel-window-left; }
+    Mod+Period { consume-or-expel-window-right; }
 
     // 从右侧列吸入一个窗口到当前列底部。
     Mod+D { consume-window-into-column; }
@@ -214,9 +214,9 @@ binds {
     // 全屏当前窗口。
     Mod+X { fullscreen-window; }
 
-    // 切换列的标签页显示模式。
-    // 该列窗口将以纵向标签显示，
-    // 而非堆叠在一起。
+    // 打开/关闭概览：工作区与窗口的缩略视图。
+    // 也可将鼠标移到左上角热区，
+    // 或在触控板上四指上滑。
     Mod+W repeat=false { toggle-overview; }
 
     // 切换布局的动作。

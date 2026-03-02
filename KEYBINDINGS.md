@@ -1,12 +1,12 @@
 # 快捷键说明（新手版）
 
-如果你刚开始用这套桌面，先记住“必会 12 个”，其余按需查表。
+如果你刚开始用这套桌面，先记住“必会 13 个”，其余按需查表。
 
-`Mod` = `Super`（Windows 键）。
+`Mod` 在本仓库的 Niri 会话中等同 `Super`（Windows 键）；在 winit 窗口环境中等同 `Alt`。
 
 ---
 
-## 1. 先记这 12 个
+## 1. 先记这 13 个
 
 | 快捷键 | 功能 |
 |---|---|
@@ -41,6 +41,7 @@
 | `Mod + Shift + L` | 锁屏 |
 | `Mod + O` | 列 tabbed 显示切换 |
 | `Mod + Ctrl + E` | 打开会话菜单（wlogout） |
+| `Mod + Shift + E` | 退出 Niri（有确认） |
 | `Ctrl + Alt + Delete` | 退出 Niri（有确认） |
 
 ### 窗口导航与移动
@@ -52,7 +53,7 @@
 | `Mod + Ctrl + Left/Down/Up/Right` | 同上（方向键版本） |
 | `Mod + Home/End` | 聚焦最左/最右列 |
 | `Mod + Ctrl + Home/End` | 将当前列移动到最左/最右 |
-| `Mod + [ / ]` | 在列内/列外切换（并入或移出窗口） |
+| `Mod + ,/.` | 在列内/列外切换（并入或移出窗口） |
 | `Mod + D/F` | 吸入右侧窗口到当前列 / 将当前列底部窗口移到右侧列 |
 | `Mod + C` | 浮动/平铺切换 |
 | `Mod + V` | 在浮动窗口与平铺窗口间切换焦点 |
@@ -81,8 +82,7 @@
 | `Mod + 1..9` | 直达工作区 1..9 |
 | `Mod + Ctrl + 1..9` | 将当前列移动到工作区 1..9 |
 | `Mod + Alt + 1..9` | 将当前窗口移动到工作区 1..9 |
-| `Mod + B` | 将当前窗口移动到上一个工作区 |
-| `Mod + N` | 将当前窗口移动到下一个工作区 |
+| `Mod + N/M` | 将当前窗口移动到上一个/下一个工作区 |
 | `Mod + Ctrl + Page_Down/Page_Up` | 将当前列移动到下一个/上一个工作区 |
 | `Mod + Shift + N` | 跳到最底部空工作区（新工作区入口） |
 | `Mod + Ctrl + Shift + N` | 同上（备用组合） |
@@ -125,12 +125,12 @@
 
 | 按键 | 功能 |
 |---|---|
-| `XF86AudioRaiseVolume/LowerVolume` | 音量增减 |
-| `XF86AudioMute` | 静音 |
-| `XF86AudioMicMute` | 麦克风静音 |
-| `XF86AudioPlay/Stop/Prev/Next` | 媒体控制 |
-| `XF86MonBrightnessUp/Down` | 屏幕亮度 |
-| `XF86KbdBrightnessUp/Down` | 键盘背光亮度 |
+| `XF86AudioRaiseVolume/LowerVolume` | 音量增减（锁屏可用） |
+| `XF86AudioMute` | 静音（锁屏可用） |
+| `XF86AudioMicMute` | 麦克风静音（锁屏可用） |
+| `XF86AudioPlay/Stop/Prev/Next` | 媒体控制（锁屏可用） |
+| `XF86MonBrightnessUp/Down` | 屏幕亮度（锁屏可用） |
+| `XF86KbdBrightnessUp/Down` | 键盘背光亮度（锁屏可用） |
 
 ### 会话控制与安全
 
