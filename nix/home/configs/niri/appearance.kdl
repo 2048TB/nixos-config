@@ -3,7 +3,7 @@
 // 影响窗口位置与尺寸的设置。
 layout {
     // 设置窗口外边距（逻辑像素）。
-    gaps 8
+    gaps 10
 
     // 切换焦点时是否居中列，选项：
     // - "never"：默认行为，聚焦屏幕外列时保持在屏幕左/右边缘。
@@ -15,9 +15,9 @@ layout {
     preset-column-widths {
         // proportion 以输出宽度的比例设置列宽，并考虑 gaps。
         // 例如 proportion 0.25 可在一个输出上正好放下四个窗口。
-        // 预设宽度：50%、75%、100%。
+        // 预设宽度：50%、80%、100%。
         proportion 0.500000
-        proportion 0.850000
+        proportion 0.800000
         proportion 1.000000
 
         // fixed 以逻辑像素设置固定宽度。
@@ -25,8 +25,8 @@ layout {
     }
 
     // 可以修改新窗口的默认宽度。
-    // 默认 75%，通过 Mod+R 快捷键在 50%, 75%, 100% 之间切换
-    default-column-width { proportion 0.85; }
+    // 默认 80%，通过 Mod+R 快捷键在 50%, 80%, 100% 之间切换
+    default-column-width { proportion 0.80; }
     // 若花括号留空，由窗口自身决定初始宽度。
     // default-column-width {}
 
@@ -41,6 +41,7 @@ layout {
 
     // 可以调整焦点环外观。
     focus-ring {
+        off
         width 4
         active-gradient from="#89b4facc" to="#cba6f7cc" angle=135
         inactive-color "#585b70"
@@ -81,29 +82,29 @@ layout {
 
     // 窗口阴影用于增强层次感
     shadow {
-        softness 30
-        spread 5
-        offset x=0 y=5
-        color "#0008"
+        softness 24
+        spread 3
+        offset x=0 y=0
+        color "#0006"
     }
 }
 
 // 动画设置。
 // 维基说明了如何配置单项动画：
 animations {
-    slowdown 0.9
+    slowdown 1.0
     workspace-switch {
-        spring damping-ratio=0.82 stiffness=523 epsilon=0.0001
+        spring damping-ratio=0.88 stiffness=420 epsilon=0.0001
     }
     horizontal-view-movement {
-        spring damping-ratio=0.86 stiffness=423 epsilon=0.0001
+        spring damping-ratio=0.90 stiffness=360 epsilon=0.0001
     }
 }
 
 // 最近窗口切换器（Alt+Tab）样式
 recent-windows {
     highlight {
-        active-color "#313244"
+        active-color "#89b4fa33"
         urgent-color "#f38ba8"
     }
 }

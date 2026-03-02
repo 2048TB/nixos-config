@@ -319,6 +319,12 @@ binds {
 // 更多信息见维基：
 // https://yalter.github.io/niri/Configuration:-Window-Rules
 
+// 全局圆角：对所有窗口生效。
+window-rule {
+    geometry-corner-radius 12
+    clip-to-geometry true
+}
+
 // 浮动窗口规则：对话框/查看器类应用默认浮动
 window-rule {
     match app-id="org.gnome.FileRoller"
