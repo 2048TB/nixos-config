@@ -174,6 +174,6 @@
 ## 5. 以配置文件为准
 
 若文档与实际行为不一致，以以下文件为准：
-- `nix/home/configs/niri/keybindings.kdl`
+- `nix/home/configs/niri/interaction.kdl`
 - `nix/home/configs/tmux/tmux.conf`
 - `nix/home/configs/zellij/config.kdl`

@@ -1,3 +1,5 @@
+// 外观与显示配置：布局、动画、输出。
+
 // 影响窗口位置与尺寸的设置。
 layout {
     // 设置窗口外边距（逻辑像素）。
@@ -15,7 +17,7 @@ layout {
         // 例如 proportion 0.25 可在一个输出上正好放下四个窗口。
         // 预设宽度：50%、75%、100%。
         proportion 0.500000
-        proportion 0.750000
+        proportion 0.850000
         proportion 1.000000
 
         // fixed 以逻辑像素设置固定宽度。
@@ -24,7 +26,7 @@ layout {
 
     // 可以修改新窗口的默认宽度。
     // 默认 75%，通过 Mod+R 快捷键在 50%, 75%, 100% 之间切换
-    default-column-width { proportion 0.75; }
+    default-column-width { proportion 0.85; }
     // 若花括号留空，由窗口自身决定初始宽度。
     // default-column-width {}
 
@@ -84,4 +86,31 @@ layout {
         offset x=0 y=5
         color "#0008"
     }
+}
+
+// 动画设置。
+// 维基说明了如何配置单项动画：
+animations {
+    slowdown 0.9
+    workspace-switch {
+        spring damping-ratio=0.82 stiffness=523 epsilon=0.0001
+    }
+    horizontal-view-movement {
+        spring damping-ratio=0.86 stiffness=423 epsilon=0.0001
+    }
+}
+
+// 最近窗口切换器（Alt+Tab）样式
+recent-windows {
+    highlight {
+        active-color "#313244"
+        urgent-color "#f38ba8"
+    }
+}
+
+// 输出缩放（百分比 = scale * 100）
+// 使用 niri msg outputs 中的“厂商 型号 序列号”匹配，避免 DP-1/DP-2 端口号切换导致重复配置。
+output "HKC OVERSEAS LIMITED MG27Q 0000000000001" {
+    mode "2560x1440@180.000"
+    scale 1.20
 }

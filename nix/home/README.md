@@ -33,7 +33,8 @@
 
 - 改终端行为：`configs/shell/`、`configs/ghostty/`、`configs/foot/`
 - 改桌面栏：`configs/waybar/`
-- 改窗口快捷键：`configs/niri/keybindings.kdl`
+- 改窗口交互（输入/快捷键/窗口规则）：`configs/niri/interaction.kdl`
+- 改窗口外观（布局/动画/输出）：`configs/niri/appearance.kdl`
 - 改 tmux 快捷键：`configs/tmux/tmux.conf`
 
 ---

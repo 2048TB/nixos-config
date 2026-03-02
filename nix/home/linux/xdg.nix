@@ -115,12 +115,8 @@ in
           force = true;
         };
         "niri/config.kdl".source = ../configs/niri/config.kdl;
-        "niri/input.kdl".source = ../configs/niri/input.kdl;
-        "niri/layout.kdl".source = ../configs/niri/layout.kdl;
-        "niri/animations.kdl".source = ../configs/niri/animations.kdl;
-        "niri/output.kdl".source = ../configs/niri/output.kdl;
-        "niri/keybindings.kdl".source = ../configs/niri/keybindings.kdl;
-        "niri/windowrules.kdl".source = ../configs/niri/windowrules.kdl;
+        "niri/interaction.kdl".source = ../configs/niri/interaction.kdl;
+        "niri/appearance.kdl".source = ../configs/niri/appearance.kdl;
         "wlogout/layout".source = ../configs/wlogout/layout;
         "wlogout/style.css".source = ../configs/wlogout/style.css;
 

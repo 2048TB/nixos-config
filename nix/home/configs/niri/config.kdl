@@ -1,13 +1,11 @@
 // 此配置使用 KDL 格式：https://kdl.dev
 // "/-" 用于注释掉后续节点。
 
-// 这是主配置文件，负责包含其他配置文件
-include "./keybindings.kdl"
-include "./windowrules.kdl"
-include "./input.kdl"
-include "./layout.kdl"
-include "./animations.kdl"
-include "./output.kdl"
+// 这是主配置文件，负责包含分类后的子配置文件。
+// 交互：输入设备、快捷键、窗口规则。
+include "./interaction.kdl"
+// 外观与显示：布局、动画、输出。
+include "./appearance.kdl"
 
 // Waybar 由 Home Manager 的 systemd --user 服务管理。
 
