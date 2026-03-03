@@ -175,7 +175,7 @@ window#waybar {
 }
 
 #tray {
-  padding: 0 4px;
+  padding: 0 5px;
 }
 
 #tray > .passive {
@@ -188,6 +188,8 @@ window#waybar {
 
 #custom-public-ip {
   color: #9ec5ff;
+  padding: 0 7px;
+  font-feature-settings: "tnum";
 }
 
 #custom-public-ip.offline {
@@ -225,14 +227,12 @@ window#waybar {
 
 #power-profiles-daemon {
   color: #f1eeea;
-  min-width: 0;
-  padding: 0 3px;
+  padding: 0 5px;
 }
 
 #idle_inhibitor {
   color: #bcc2d2;
-  min-width: 0;
-  padding: 0 3px;
+  padding: 0 5px;
 }
 
 #idle_inhibitor.activated {
@@ -260,8 +260,7 @@ window#waybar {
 
 #custom-notification {
   color: #9ec5ff;
-  min-width: 0;
-  padding: 0 3px;
+  padding: 0 5px;
 }
 
 #custom-notification.none,
