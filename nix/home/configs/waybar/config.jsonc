@@ -63,20 +63,7 @@
 
   // niri state
   "niri/workspaces": {
-    "format": "{icon}",
-    "format-icons": {
-      "1": "①",
-      "2": "②",
-      "3": "③",
-      "4": "④",
-      "5": "⑤",
-      "6": "⑥",
-      "7": "⑦",
-      "8": "⑧",
-      "9": "⑨",
-      "10": "⑩",
-      "default": "•"
-    },
+    "format": "{index}",
     "all-outputs": false,
     "swap-icon-label": false
   },
