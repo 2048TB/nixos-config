@@ -394,6 +394,7 @@ in
       remmina
       nomacs
       nautilus # GNOME 文件管理器（Wayland 原生，简洁现代）
+      wsdd # 提供 gvfs-wsdd-wrapper 依赖，避免 Nautilus 网络发现报错
       file-roller # GNOME 压缩管理器（Nautilus 集成必需）
       ghostty
       foot # 轻量 Wayland 终端（备用）
