@@ -106,6 +106,11 @@ in
     };
   };
 
+  # 避免 Fcitx5 首次启动时因目录尚未创建导致拼音历史文件读写报错。
+  home.activation.ensureFcitxPinyinDir = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    mkdir -p "${homeDir}/.local/share/fcitx5/pinyin"
+  '';
+
   # 质量守护：防止 home.packages 出现重复 derivation（同 outPath）
   assertions = [
     {

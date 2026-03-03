@@ -25,7 +25,7 @@
   cpuVendor = "intel";
   gpuMode = "nvidia";
   enableGpuSpecialisation = false;
-  enableBluetoothRfkillUnblock = false;
+  enableBluetoothRfkillUnblock = true;
   enableAggressiveApparmorKill = false;
   dockerMode = "rootless";
   enableWaybarBacklight = false;

@@ -11,7 +11,7 @@ let
     ];
 in
 import ../_shared/checks.nix (args // {
-  expectedVideoDrivers = [ "amdgpu" ];
+  expectedVideoDrivers = [ "nvidia" ];
   expectedResumeOffset = hostVars.resumeOffset or null;
   expectedHostProfile = "zky";
   expectedAcceptFlakeConfig = hostVars.acceptFlakeConfig or false;
