@@ -69,7 +69,6 @@ in
   xdg = {
     configFile =
       {
-        "qt6ct/qt6ct.conf".source = ../configs/qt6ct/qt6ct.conf;
         "qt6ct/colors/darker.conf".source = "${pkgs.qt6Packages.qt6ct}/share/qt6ct/colors/darker.conf";
         # 覆盖上游桌面自启动：避免与 mullvad-vpn-ui.service 双启动导致日志噪音与崩溃。
         "autostart/mullvad-vpn.desktop" = {
