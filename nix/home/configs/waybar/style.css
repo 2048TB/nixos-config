@@ -175,7 +175,8 @@ window#waybar {
 }
 
 #tray {
-  padding: 0 5px;
+  margin: 0 1px;
+  padding: 0 6px;
 }
 
 #tray > .passive {
@@ -227,12 +228,14 @@ window#waybar {
 
 #power-profiles-daemon {
   color: #f1eeea;
-  padding: 0 5px;
+  margin: 0 1px;
+  padding: 0 6px;
 }
 
 #idle_inhibitor {
   color: #bcc2d2;
-  padding: 0 5px;
+  margin: 0 1px;
+  padding: 0 6px;
 }
 
 #idle_inhibitor.activated {
@@ -260,7 +263,8 @@ window#waybar {
 
 #custom-notification {
   color: #9ec5ff;
-  padding: 0 5px;
+  margin: 0 1px;
+  padding: 0 6px;
 }
 
 #custom-notification.none,
