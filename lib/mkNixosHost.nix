@@ -24,7 +24,10 @@ let
     ;
 
   baseSpecialArgs = genSpecialArgs system;
-  resolvedMyvars = hostMyvars // { hostname = name; };
+  resolvedMyvars = hostMyvars // {
+    hostname = name;
+    configRepoPath = hostMyvars.configRepoPath or "/persistent/nixos-config";
+  };
   mainUser = resolvedMyvars.username;
 
   cpuVendor = resolvedMyvars.cpuVendor or "auto";
@@ -129,6 +132,11 @@ assert lib.assertMsg
     && builtins.isInt hostMyvars.swapSizeGb
       && hostMyvars.swapSizeGb > 0
   ) "Invalid ${hostDir}/vars.nix: swapSizeGb must be a positive integer";
+assert lib.assertMsg
+  (
+    builtins.isString resolvedMyvars.configRepoPath
+      && resolvedMyvars.configRepoPath != ""
+  ) "Invalid ${hostDir}/vars.nix: configRepoPath must be a non-empty string";
 {
   inherit
     name

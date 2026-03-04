@@ -100,7 +100,7 @@ first_available_host() {
 }
 
 if [ -n "$env_candidate" ]; then
-  resolved_env="$(normalize_host "$env_candidate")"
+  resolved_env="$env_candidate"
   if ! is_valid_host_name "$resolved_env"; then
     echo "warning: ${platform} host from env is invalid: '$resolved_env'" >&2
     resolved_env=""

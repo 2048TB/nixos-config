@@ -6,7 +6,7 @@
 }:
 let
   homeDir = "/home/${mainUser}";
-  configRepoPath = myvars.configRepoPath or "/persistent/nixos-config";
+  inherit (myvars) configRepoPath;
   agenixMainKeyPath = "/persistent/keys/main.agekey";
   expectedAgenixMainPub = builtins.replaceStrings [ "\n" "\r" ] [ "" "" ] (builtins.readFile ../../../secrets/keys/main.age.pub);
   agenixBootstrapSourcePaths = [

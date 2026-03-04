@@ -5,6 +5,8 @@ let
     "default.nix"
     "vars.nix"
   ];
+  hostNamePattern = "^[A-Za-z0-9][A-Za-z0-9_-]*$";
+  invalidHostNames = builtins.filter (name: builtins.match hostNamePattern name == null) hostNames;
 
   mkHostData =
     name:
@@ -105,6 +107,9 @@ let
     '';
   };
 in
+assert lib.assertMsg
+  (invalidHostNames == [ ])
+  "Invalid Darwin host names under hosts/darwin: ${lib.concatStringsSep ", " invalidHostNames}. Allowed pattern: ${hostNamePattern}";
 assert lib.assertMsg (hostNames != [ ]) "No hosts found under hosts/darwin";
 {
   inherit data;

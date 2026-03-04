@@ -68,7 +68,7 @@ if [ -z "$platform" ] || [ -z "$host_name" ]; then
 fi
 
 if ! is_valid_host_name "$host_name"; then
-  echo "error: invalid host name '$host_name' (allowed: [A-Za-z0-9][A-Za-z0-9._-]*)" >&2
+  echo "error: invalid host name '$host_name' (allowed: [A-Za-z0-9][A-Za-z0-9_-]*)" >&2
   exit 2
 fi
 
@@ -96,7 +96,7 @@ case "$platform" in
 esac
 
 if ! is_valid_host_name "$source_host"; then
-  echo "error: invalid source host name '$source_host' (allowed: [A-Za-z0-9][A-Za-z0-9._-]*)" >&2
+  echo "error: invalid source host name '$source_host' (allowed: [A-Za-z0-9][A-Za-z0-9_-]*)" >&2
   exit 2
 fi
 
