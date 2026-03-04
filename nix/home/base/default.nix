@@ -1,4 +1,4 @@
-{ config, ... }:
+{ config, myvars, ... }:
 let
   homeDir = config.home.homeDirectory;
   localShareDir = "${homeDir}/.local/share";
@@ -49,6 +49,7 @@ in
   };
 
   home.sessionVariables = {
+    HOST_PROFILE = myvars.hostname;
     NPM_CONFIG_PREFIX = "${homeDir}/.npm-global";
     BUN_INSTALL = "${homeDir}/.bun";
     BUN_INSTALL_BIN = "${homeDir}/.bun/bin";

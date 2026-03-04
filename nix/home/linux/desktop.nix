@@ -1,12 +1,11 @@
 { pkgs
 , lib
 , mylib
-, mainUser
 , myvars
+, userProfileBin
 , ...
 }:
 let
-  userProfileBin = "/etc/profiles/per-user/${mainUser}/bin";
   roleFlags = mylib.roleFlags myvars;
   inherit (roleFlags) enableMullvadVpn;
 

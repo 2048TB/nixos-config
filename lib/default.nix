@@ -147,6 +147,11 @@ in
       useRootlessDocker = dockerMode == "rootless";
     };
 
+  kvmModulesForVendor = vendor:
+    if vendor == "amd" then [ "kvm-amd" ]
+    else if vendor == "intel" then [ "kvm-intel" ]
+    else [ "kvm-amd" "kvm-intel" ];
+
   mkLogFilteredLauncher =
     pkgs: name: executable: filters:
     let

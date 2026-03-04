@@ -21,7 +21,7 @@ let
       });
       hostChecks =
         if builtins.pathExists hostChecksPath
-        then import hostChecksPath (hostCtx // { inherit (args) lib; })
+        then import hostChecksPath (hostCtx // { inherit (args) lib mylib; })
         else { };
     in
     {
@@ -64,7 +64,7 @@ let
     config.allowUnfree = true;
   };
   mkAppLocal = mkApp pkgs;
-  resolveNixosHostStrict = ''host="$("$repo/scripts/resolve-host.sh" nixos "$repo" "zly" --strict)"'';
+  resolveNixosHostStrict = ''host="$("$repo/scripts/resolve-host.sh" nixos "$repo" "${builtins.head resolvedHostNames}" --strict)"'';
   platformApps.${system} = {
     apply = mkAppLocal "apply" "Apply Linux host configuration (switch)" ''
       ${appRepoPreamble}
@@ -85,7 +85,7 @@ let
     install = mkAppLocal "install" "Install Linux host on Live ISO with disko+nixos-install" ''
       ${appRepoPreamble}
       ${resolveNixosHostStrict}
-      exec ${pkgs.just}/bin/just host="$host" disk="''${NIXOS_DISK_DEVICE:-/dev/nvme0n1}" install-live
+      exec ${pkgs.just}/bin/just host="$host" disk="''${NIXOS_DISK_DEVICE:-/dev/nvme0n1}" install
     '';
     clean = mkAppLocal "clean" "Clean old generations" ''
       ${appRepoPreamble}
@@ -134,7 +134,7 @@ let
 
   platformChecks.${system}.pre-commit-check = preCommitCheck;
 
-  defaultHost = if resolvedHostNames == [ ] then "zly" else builtins.head resolvedHostNames;
+  defaultHost = builtins.head resolvedHostNames;
   platformDevShells.${system}.default = pkgs.mkShell {
     name = "nixos-config-dev";
     packages = with pkgs; [

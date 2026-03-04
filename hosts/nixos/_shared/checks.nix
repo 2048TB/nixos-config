@@ -1,4 +1,5 @@
 { lib
+, mylib
 , pkgs
 , name
 , mainUser
@@ -17,13 +18,9 @@
 let
   cfg = nixosSystem.config;
 
-  kvmModulesForVendor = vendor:
-    if vendor == "amd" then [ "kvm-amd" ]
-    else if vendor == "intel" then [ "kvm-intel" ]
-    else [ "kvm-amd" "kvm-intel" ];
   resolvedExpectedKvmModules =
     if expectedKvmModules != null then expectedKvmModules
-    else if cpuVendor != null then kvmModulesForVendor cpuVendor
+    else if cpuVendor != null then mylib.kvmModulesForVendor cpuVendor
     else null;
   hmCfg = cfg.home-manager.users.${mainUser};
   expectedHome = "/home/${mainUser}";
