@@ -29,81 +29,19 @@
 
 ## 1. Live ISO 环境（安装 NixOS）
 
-### 1.1 最小步骤（推荐按顺序）
+完整安装流程见 `README.md` §1–§3。以下仅列出 Live ISO 环境的特有补充。
 
-```bash
-git clone https://github.com/2048TB/nixos.git ~/nixos
-cd ~/nixos
-just hooks-enable
-```
+### 1.1 启用实验性功能
 
-### 1.1.1 若提示需启用实验性功能（nix-command / flakes）
+Live ISO 默认未开启 `nix-command` / `flakes`，需手动设置：
 
 ```bash
 export NIX_CONFIG="experimental-features = nix-command flakes"
-
-# 然后再执行你的命令，比如：
-nix shell nixpkgs#just -c just hosts
-# 或
-/persistent/nixos-config/scripts/install-live.sh --host zky --disk /dev/nvme0n1 --repo /persistent/nixos-config
 ```
 
-说明：安装脚本查找 `main.agekey` 的顺序是 `./.keys/main.agekey` → `<repo>/.keys/main.agekey` → `~/.keys/main.agekey`，并要求文件内容是 `AGE-SECRET-KEY-*` 私钥。
+### 1.2 密钥搜索路径
 
-### 1.2 密钥准备
-
-情况 A：你是第一次部署（没有旧密钥）
-
-```bash
-just agenix-init-create
-just agenix-recovery-init
-```
-
-情况 B：你已有旧密钥（U 盘/旧机器）
-
-1. 把旧的 `main.agekey` 复制到 `./.keys/main.agekey`
-2. 执行：
-
-```bash
-just agenix-init
-```
-
-可选：把 GitHub SSH key 也托管进 agenix
-
-```bash
-just ssh-key-set
-```
-
-### 1.3 设置登录密码（必须）
-
-```bash
-just password-hashes
-just password-set-hash '<sha512-hash>'
-```
-
-### 1.4 安装前检查
-
-```bash
-just host=zly install-check
-# 或
-just host=zky install-check
-```
-
-### 1.5 执行安装（清盘）
-
-```bash
-just host=zly disk=/dev/nvme0n1 install
-# 或
-just host=zky disk=/dev/nvme0n1 install
-```
-
-### 1.6 安装后第一步
-
-重启进入系统后：
-
-```bash
-just switch
-```
+安装脚本查找 `main.agekey` 的顺序：`./.keys/main.agekey` → `<repo>/.keys/main.agekey` → `~/.keys/main.agekey`，并要求文件内容是 `AGE-SECRET-KEY-*` 私钥。
 
 ---
 

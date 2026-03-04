@@ -23,8 +23,8 @@
 - `hosts/outputs/`：flake 输出聚合层（自动发现主机，无需手动注册）
 
 共享模块：
-- `nix/modules/system.nix`：系统核心（boot/users/services/activation）
-- `nix/modules/system/role-flags.nix`：角色标志（desktop/gaming/vpn/virt/container）
+- `nix/modules/system/`：系统核心（入口 `default.nix`；含 boot/services/desktop/security/storage 等子模块）
+- `lib/default.nix` 中的 `roleFlags`：角色标志（desktop/gaming/vpn/virt/container）
 - `nix/modules/system/role-services.nix`：角色服务（Steam/Docker/Provider app/libvirt）
 - `nix/modules/hardware.nix`：GPU/蓝牙/固件
 - `nix/home/base/`：跨平台共享（session 变量 + PATH）
