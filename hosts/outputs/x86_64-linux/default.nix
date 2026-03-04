@@ -6,6 +6,8 @@ let
     "disko.nix"
     "vars.nix"
   ];
+  hostNamePattern = "^[A-Za-z0-9][A-Za-z0-9_-]*$";
+  invalidHostNames = builtins.filter (name: builtins.match hostNamePattern name == null) hostNames;
 
   mkHostData =
     name:
@@ -153,6 +155,9 @@ let
 
   platformFormatter.${system} = pkgs.nixpkgs-fmt;
 in
+assert lib.assertMsg
+  (invalidHostNames == [ ])
+  "Invalid NixOS host names under hosts/nixos: ${lib.concatStringsSep ", " invalidHostNames}. Allowed pattern: ${hostNamePattern}";
 assert lib.assertMsg (hostNames != [ ]) "No hosts found under hosts/nixos";
 {
   inherit data;

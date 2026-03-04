@@ -8,10 +8,10 @@
 }:
 let
   homeDir = "/home/${mainUser}";
+  inherit (myvars) configRepoPath;
   roleFlags = mylib.roleFlags myvars;
   inherit (roleFlags) enableProvider appVpn enableLibvirtd enableDocker enableFlatpak useRootfulDocker;
   rootTmpfsSize = myvars.rootTmpfsSize or "2G";
-  configRepoPath = myvars.configRepoPath or "/persistent/nixos-config";
   enableHibernate = myvars.enableHibernate or true;
 
   mkFixOwnershipScript = targetDir: {

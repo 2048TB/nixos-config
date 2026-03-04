@@ -8,6 +8,7 @@
 let
   homeStateVersion = myvars.homeStateVersion or "25.11";
   homeDir = config.home.homeDirectory;
+  inherit (myvars) configRepoPath;
 
   waylandSession = pkgs.writeScript "wayland-session" ''
     #!/usr/bin/env bash
@@ -71,7 +72,7 @@ in
 
     file = {
       # 便捷入口：保持 /etc/nixos 作为系统入口，同时在主目录提供快速访问路径
-      "nixos".source = config.lib.file.mkOutOfStoreSymlink "/persistent/nixos-config";
+      "nixos".source = config.lib.file.mkOutOfStoreSymlink configRepoPath;
 
       ".wayland-session" = {
         source = waylandSession;

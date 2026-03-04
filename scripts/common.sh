@@ -5,7 +5,7 @@
 
 is_valid_host_name() {
   local name="${1:-}"
-  [[ "$name" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ ]]
+  [[ "$name" =~ ^[A-Za-z0-9][A-Za-z0-9_-]*$ ]]
 }
 
 resolve_repo_path() {

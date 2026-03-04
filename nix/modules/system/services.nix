@@ -7,7 +7,7 @@
 }:
 let
   homeDir = "/home/${mainUser}";
-  configRepoPath = myvars.configRepoPath or "/persistent/nixos-config";
+  inherit (myvars) configRepoPath;
   roleFlags = mylib.roleFlags myvars;
   inherit (roleFlags) enableProvider appVpn;
   journaldSystemMaxUse = myvars.journaldSystemMaxUse or "512M";
