@@ -114,19 +114,6 @@ in
 
   mergeRecursiveAttrsList = attrsList: lib.foldl' lib.recursiveUpdate { } attrsList;
 
-  discoverHostNames =
-    hostsRoot:
-    let
-      hostsDir = builtins.readDir hostsRoot;
-    in
-    builtins.filter
-      (
-        name:
-        hostsDir.${name} == "directory"
-        && builtins.pathExists (hostsRoot + "/${name}/default.nix")
-      )
-      (builtins.attrNames hostsDir);
-
   discoverHostNamesBy =
     hostsRoot: requiredFiles:
     let

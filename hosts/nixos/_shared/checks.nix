@@ -11,10 +11,20 @@
 , expectedTrustedUsers ? [ "root" ]
 , expectedTrustedSubstituters ? null
 , expectedKvmModules ? null
+, cpuVendor ? null
 , ...
 }:
 let
   cfg = nixosSystem.config;
+
+  kvmModulesForVendor = vendor:
+    if vendor == "amd" then [ "kvm-amd" ]
+    else if vendor == "intel" then [ "kvm-intel" ]
+    else [ "kvm-amd" "kvm-intel" ];
+  resolvedExpectedKvmModules =
+    if expectedKvmModules != null then expectedKvmModules
+    else if cpuVendor != null then kvmModulesForVendor cpuVendor
+    else null;
   hmCfg = cfg.home-manager.users.${mainUser};
   expectedHome = "/home/${mainUser}";
 
@@ -184,9 +194,9 @@ in
     touch "$out"
   '';
 }
-// lib.optionalAttrs (expectedKvmModules != null) {
+// lib.optionalAttrs (resolvedExpectedKvmModules != null) {
   "eval-${name}-kvm-modules" = pkgs.runCommand "eval-${name}-kvm-modules" { } ''
-    test "${builtins.toJSON actualKvmModules}" = "${builtins.toJSON expectedKvmModules}"
+    test "${builtins.toJSON actualKvmModules}" = "${builtins.toJSON resolvedExpectedKvmModules}"
     touch "$out"
   '';
 }

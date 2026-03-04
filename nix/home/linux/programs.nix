@@ -5,19 +5,9 @@ let
 in
 {
   programs = {
-    fzf = {
-      enable = true;
-      enableZshIntegration = true;
-      defaultCommand = "fd --type f --hidden --follow --exclude .git";
-      fileWidgetCommand = "fd --type f --hidden --follow --exclude .git";
-      changeDirWidgetCommand = "fd --type d --hidden --follow --exclude .git";
-      defaultOptions = [
-        "--height=40%"
-        "--layout=reverse"
-        "--border"
-        "--preview='bat --style=numbers --color=always --line-range=:200 {}'"
-      ];
-    };
+    fzf.defaultOptions = [
+      "--preview='bat --style=numbers --color=always --line-range=:200 {}'"
+    ];
 
     mpv = {
       enable = true;
@@ -42,21 +32,8 @@ in
       ];
     };
 
-    # 终端 Shell 配置（必需，用于加载会话变量）
-    zsh = {
-      enable = true;
-      enableCompletion = true;
-      autosuggestion.enable = true;
-      syntaxHighlighting.enable = true;
-      envExtra = ''
-        export PKG_CONFIG_PATH="${pkgs.openssl.dev}/lib/pkgconfig''${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
-      '';
-      initContent = builtins.readFile ../configs/shell/zshrc;
-    };
-
-    vim = {
-      enable = true;
-      extraConfig = builtins.readFile ../configs/shell/vimrc;
-    };
+    zsh.envExtra = ''
+      export PKG_CONFIG_PATH="${pkgs.openssl.dev}/lib/pkgconfig''${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+    '';
   };
 }
