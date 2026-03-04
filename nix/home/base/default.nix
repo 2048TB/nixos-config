@@ -20,6 +20,32 @@ in
       enable = true;
       nix-direnv.enable = true;
     };
+
+    fzf = {
+      enable = true;
+      enableZshIntegration = true;
+      defaultCommand = "fd --type f --hidden --follow --exclude .git";
+      fileWidgetCommand = "fd --type f --hidden --follow --exclude .git";
+      changeDirWidgetCommand = "fd --type d --hidden --follow --exclude .git";
+      defaultOptions = [
+        "--height=40%"
+        "--layout=reverse"
+        "--border"
+      ];
+    };
+
+    zsh = {
+      enable = true;
+      enableCompletion = true;
+      autosuggestion.enable = true;
+      syntaxHighlighting.enable = true;
+      initContent = builtins.readFile ../configs/shell/zshrc;
+    };
+
+    vim = {
+      enable = true;
+      extraConfig = builtins.readFile ../configs/shell/vimrc;
+    };
   };
 
   home.sessionVariables = {

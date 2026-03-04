@@ -1,4 +1,4 @@
-{ lib, mylib, inputs, system, ... }@args:
+{ lib, mylib, inputs, system, mkApp, appRepoPreamble, ... }@args:
 let
   hostsRoot = mylib.relativeToRoot "hosts/darwin";
   hostNames = mylib.discoverHostNamesBy hostsRoot [
@@ -57,40 +57,26 @@ let
     inherit system;
     config.allowUnfree = true;
   };
-  mkApp = scriptName: description: scriptBody: {
-    type = "app";
-    program = "${(pkgs.writeShellScriptBin scriptName scriptBody)}/bin/${scriptName}";
-    meta.description = description;
-  };
-  appRepoPreamble = ''
-    set -euo pipefail
-    repo="''${NIXOS_CONFIG_REPO:-$PWD}"
-    if [ ! -f "$repo/flake.nix" ]; then
-      echo "error: flake.nix not found in repo: $repo" >&2
-      echo "hint: run from repo root or set NIXOS_CONFIG_REPO" >&2
-      exit 1
-    fi
-    cd "$repo"
-  '';
+  mkAppLocal = mkApp pkgs;
   resolveDarwinHostStrict = ''host="$("$repo/scripts/resolve-host.sh" darwin "$repo" "zly-mac" --strict)"'';
   platformApps.${system} = {
-    apply = mkApp "apply" "Apply Darwin host configuration (switch)" ''
+    apply = mkAppLocal "apply" "Apply Darwin host configuration (switch)" ''
       ${appRepoPreamble}
       ${resolveDarwinHostStrict}
       exec ${pkgs.just}/bin/just darwin_host="$host" darwin-switch
     '';
-    build-switch = mkApp "build-switch" "Build and switch Darwin host configuration" ''
+    build-switch = mkAppLocal "build-switch" "Build and switch Darwin host configuration" ''
       ${appRepoPreamble}
       ${resolveDarwinHostStrict}
       ${pkgs.just}/bin/just darwin_host="$host" darwin-check
       exec ${pkgs.just}/bin/just darwin_host="$host" darwin-switch
     '';
-    build = mkApp "build" "Build Darwin host configuration without switching" ''
+    build = mkAppLocal "build" "Build Darwin host configuration without switching" ''
       ${appRepoPreamble}
       ${resolveDarwinHostStrict}
       exec ${pkgs.just}/bin/just darwin_host="$host" darwin-check
     '';
-    clean = mkApp "clean" "Clean old generations" ''
+    clean = mkAppLocal "clean" "Clean old generations" ''
       ${appRepoPreamble}
       exec ${pkgs.just}/bin/just clean
     '';

@@ -1,4 +1,4 @@
-{ lib, mylib, inputs, system, ... }@args:
+{ lib, mylib, inputs, system, mkApp, appRepoPreamble, ... }@args:
 let
   hostsRoot = mylib.relativeToRoot "hosts/nixos";
   hostNames = mylib.discoverHostNamesBy hostsRoot [
@@ -63,45 +63,31 @@ let
     inherit system;
     config.allowUnfree = true;
   };
-  mkApp = scriptName: description: scriptBody: {
-    type = "app";
-    program = "${(pkgs.writeShellScriptBin scriptName scriptBody)}/bin/${scriptName}";
-    meta.description = description;
-  };
-  appRepoPreamble = ''
-    set -euo pipefail
-    repo="''${NIXOS_CONFIG_REPO:-$PWD}"
-    if [ ! -f "$repo/flake.nix" ]; then
-      echo "error: flake.nix not found in repo: $repo" >&2
-      echo "hint: run from repo root or set NIXOS_CONFIG_REPO" >&2
-      exit 1
-    fi
-    cd "$repo"
-  '';
+  mkAppLocal = mkApp pkgs;
   resolveNixosHostStrict = ''host="$("$repo/scripts/resolve-host.sh" nixos "$repo" "zly" --strict)"'';
   platformApps.${system} = {
-    apply = mkApp "apply" "Apply Linux host configuration (switch)" ''
+    apply = mkAppLocal "apply" "Apply Linux host configuration (switch)" ''
       ${appRepoPreamble}
       ${resolveNixosHostStrict}
       exec ${pkgs.just}/bin/just host="$host" switch
     '';
-    build-switch = mkApp "build-switch" "Build and switch Linux host configuration" ''
+    build-switch = mkAppLocal "build-switch" "Build and switch Linux host configuration" ''
       ${appRepoPreamble}
       ${resolveNixosHostStrict}
       ${pkgs.just}/bin/just host="$host" check
       exec ${pkgs.just}/bin/just host="$host" switch
     '';
-    build = mkApp "build" "Dry-build Linux host configuration" ''
+    build = mkAppLocal "build" "Dry-build Linux host configuration" ''
       ${appRepoPreamble}
       ${resolveNixosHostStrict}
       exec ${pkgs.just}/bin/just host="$host" check
     '';
-    install = mkApp "install" "Install Linux host on Live ISO with disko+nixos-install" ''
+    install = mkAppLocal "install" "Install Linux host on Live ISO with disko+nixos-install" ''
       ${appRepoPreamble}
       ${resolveNixosHostStrict}
       exec ${pkgs.just}/bin/just host="$host" disk="''${NIXOS_DISK_DEVICE:-/dev/nvme0n1}" install-live
     '';
-    clean = mkApp "clean" "Clean old generations" ''
+    clean = mkAppLocal "clean" "Clean old generations" ''
       ${appRepoPreamble}
       exec ${pkgs.just}/bin/just clean
     '';
