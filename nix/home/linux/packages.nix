@@ -346,6 +346,9 @@ in
       # === 文本处理 ===
       jq # JSON 处理器（查询、格式化）
       yq # YAML 处理器（查询、格式化、校验）
+      yamllint # YAML lint/语法检查
+      taplo # TOML 工具（fmt/lint/validate）
+      check-jsonschema # JSON/YAML 的 JSON Schema 校验
       sd # 查找替换（替代 `sed`）
       tealdeer # 命令示例（`tldr`，简化版 `man` 页面）
 
