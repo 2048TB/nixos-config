@@ -15,6 +15,7 @@
 let
   inherit (inputs)
     nixpkgs
+    nixos-hardware
     preservation
     lanzaboote
     nix-gaming
@@ -25,6 +26,12 @@ let
   baseSpecialArgs = genSpecialArgs system;
   resolvedMyvars = hostMyvars // { hostname = name; };
   mainUser = resolvedMyvars.username;
+
+  cpuVendor = resolvedMyvars.cpuVendor or "auto";
+  nixosHardwareModules =
+    [ nixos-hardware.nixosModules.common-pc-ssd ]
+    ++ lib.optionals (cpuVendor == "amd") [ nixos-hardware.nixosModules.common-cpu-amd ]
+    ++ lib.optionals (cpuVendor == "intel") [ nixos-hardware.nixosModules.common-cpu-intel ];
 
   specialArgs = baseSpecialArgs // {
     myvars = resolvedMyvars;
@@ -66,6 +73,7 @@ let
     nix-gaming.nixosModules.platformOptimizations
     disko.nixosModules.disko
   ]
+  ++ nixosHardwareModules
   ++ lib.optionals (hostPath != null) [ hostPath ]
   ++ discoveredHostModules
   ++ extraModules;
