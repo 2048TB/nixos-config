@@ -1,14 +1,13 @@
-{ config
-, pkgs
+{ pkgs
 , pkgsUnstable
 , lib
+, mylib
 , myvars
 , ...
 }:
 let
-  homeDir = config.home.homeDirectory;
   fractionalScale = "1.25";
-  roleFlags = import ../../modules/system/role-flags.nix { inherit myvars; };
+  roleFlags = mylib.roleFlags myvars;
   inherit (roleFlags) enableMullvadVpn enableSteam enableLibvirtd enableDocker;
   # App toggles (flat host vars, default true)
   enableWpsOffice = myvars.enableWpsOffice or true;
@@ -55,251 +54,41 @@ let
     '';
 
   # 统一 Wlogout 调用入口，避免 Waybar/Niri 参数漂移
-  wlogoutMenu = pkgs.writeShellScriptBin "wlogout-menu" ''
-    exec ${pkgs.wlogout}/bin/wlogout \
-      --protocol layer-shell \
-      --no-span \
-      --buttons-per-row 3 \
-      --column-spacing 18 \
-      --row-spacing 18 \
-      -l "${homeDir}/.config/wlogout/layout" \
-      -C "${homeDir}/.config/wlogout/style.css" \
-      "$@"
-  '';
-  lockScreen = pkgs.writeShellScriptBin "lock-screen" ''
-    set -euo pipefail
-
-    wallpaper="$HOME/.config/wallpapers/1.png"
-    if [ ! -f "$wallpaper" ]; then
-      wallpaper=""
-    fi
-
-    args=(
-      --font "Maple Mono NF CN"
-      --font-size 22
-      --indicator-idle-visible
-      --indicator-caps-lock
-      --indicator-radius 110
-      --indicator-thickness 10
-      --line-color 00000000
-      --separator-color 00000000
-      --inside-color 313244ee
-      --ring-color 89b4faff
-      --text-color cdd6f4ff
-      --inside-clear-color 313244ee
-      --ring-clear-color f9e2afff
-      --text-clear-color cdd6f4ff
-      --inside-ver-color 313244ee
-      --ring-ver-color a6e3a1ff
-      --text-ver-color cdd6f4ff
-      --inside-wrong-color 313244ee
-      --ring-wrong-color f38ba8ff
-      --text-wrong-color cdd6f4ff
-      --key-hl-color a6e3a1ff
-      --bs-hl-color f38ba8ff
-      --show-failed-attempts
-      --show-keyboard-layout
-      --scaling fill
-    )
-
-    if [ -n "$wallpaper" ]; then
-      args+=(--image "$wallpaper")
-    else
-      args+=(--color 1e1e2eff)
-    fi
-
-    exec ${pkgs.swaylock}/bin/swaylock -f "''${args[@]}" "$@"
-  '';
-  riverScreenshot = pkgs.writeShellScriptBin "river-screenshot" ''
-    set -euo pipefail
-    mode="''${1:-full}"
-    dir="''${XDG_SCREENSHOTS_DIR:-$HOME/Pictures/Screenshots}"
-    mkdir -p "$dir"
-    path="$dir/Screenshot from $(date '+%Y-%m-%d %H-%M-%S').png"
-
-    case "$mode" in
-      full)
-        ${pkgs.grim}/bin/grim - | tee "$path" | ${pkgs.wl-clipboard}/bin/wl-copy --type image/png
-        ;;
-      area)
-        region="$(${pkgs.slurp}/bin/slurp)" || exit 0
-        [ -n "$region" ] || exit 0
-        ${pkgs.grim}/bin/grim -g "$region" - | tee "$path" | ${pkgs.wl-clipboard}/bin/wl-copy --type image/png
-        ;;
-      *)
-        exit 1
-        ;;
-    esac
-  '';
-  riverCliphistMenu = pkgs.writeShellScriptBin "river-cliphist-menu" ''
-    set -euo pipefail
-    picked="$(${pkgs.cliphist}/bin/cliphist list | ${pkgs.fuzzel}/bin/fuzzel --dmenu || true)"
-    [ -n "$picked" ] || exit 0
-    printf '%s' "$picked" | ${pkgs.cliphist}/bin/cliphist decode | ${pkgs.wl-clipboard}/bin/wl-copy
-  '';
-  waybarClockCalendar = pkgs.writeShellScriptBin "waybar-clock-calendar" ''
-    set -euo pipefail
-    calBin="/run/current-system/sw/bin/cal"
-    fuzzel="${pkgs.fuzzel}/bin/fuzzel"
-    dateBin="/run/current-system/sw/bin/date"
-
-    monthTitle="$("$dateBin" '+%Y-%m')"
-    {
-      printf '%s\n' "Calendar $monthTitle"
-      "$calBin"
-    } | "$fuzzel" --dmenu --prompt 'Date > ' --lines 10 >/dev/null || true
-  '';
-  waybarTemperatureStatus = pkgs.writeShellScriptBin "waybar-temperature-status" ''
-    set -euo pipefail
-    headBin="${pkgs.coreutils}/bin/head"
-
-    pick_temp_input() {
-      local preferred="" hwmon="" input="" name=""
-      for preferred in k10temp coretemp cpu_thermal x86_pkg_temp zenpower; do
-        for hwmon in /sys/class/hwmon/hwmon*; do
-          [ -d "$hwmon" ] || continue
-          [ -r "$hwmon/name" ] || continue
-          name="$("$headBin" -n 1 "$hwmon/name" 2>/dev/null || true)"
-          [ "$name" = "$preferred" ] || continue
-          for input in "$hwmon"/temp*_input; do
-            [ -r "$input" ] || continue
-            printf '%s\n' "$input"
-            return 0
-          done
-        done
-      done
-
-      for input in /sys/class/hwmon/hwmon*/temp*_input; do
-        [ -r "$input" ] || continue
-        printf '%s\n' "$input"
-        return 0
-      done
-      return 1
-    }
-
-    inputFile="$(pick_temp_input || true)"
-    [ -n "$inputFile" ] || exit 1
-
-    raw="$("$headBin" -n 1 "$inputFile" 2>/dev/null || true)"
-    [[ "$raw" =~ ^[0-9]+$ ]] || exit 1
-
-    tempC=$((raw / 1000))
-    class="normal"
-    icon="󰔄"
-    if [ "$tempC" -ge 85 ]; then
-      class="critical"
-      icon=""
-    elif [ "$tempC" -ge 75 ]; then
-      class="warning"
-      icon=""
-    fi
-
-    printf '{"text":"%s %s°C","class":"%s","tooltip":"Temperature: %s°C\\nSensor: %s"}\n' \
-      "$icon" "$tempC" "$class" "$tempC" "''${inputFile%/*}"
-  '';
-  publicIpStatus = pkgs.writeShellScriptBin "public-ip-status" ''
-    set -euo pipefail
-    wgetBin="${pkgs.wget}/bin/wget"
-    trBin="/run/current-system/sw/bin/tr"
-    sedBin="/run/current-system/sw/bin/sed"
-    mkdirBin="${pkgs.coreutils}/bin/mkdir"
-    headBin="${pkgs.coreutils}/bin/head"
-    dateBin="${pkgs.coreutils}/bin/date"
-    cacheDir="${homeDir}/.cache/waybar"
-    cacheFile="$cacheDir/public-ip"
-    now="$("$dateBin" +%s)"
-    ip=""
-    sourceLabel=""
-
-    fetch_plain_ip() {
-      local url="$1"
-      "$wgetBin" -q --tries=1 -T 3 -O- "$url" 2>/dev/null | "$headBin" -n 1 | "$trBin" -d '\r\n[:space:]' || true
-    }
-
-    fetch_trace_ip() {
-      local url="$1"
-      "$wgetBin" -q --tries=1 -T 3 -O- "$url" 2>/dev/null \
-        | "$sedBin" -n 's/^ip=//p' \
-        | "$headBin" -n 1 \
-        | "$trBin" -d '\r\n[:space:]' || true
-    }
-
-    is_valid_ipv4() {
-      local ip="$1"
-      local o1="" o2="" o3="" o4="" extra="" octet=""
-
-      IFS='.' read -r o1 o2 o3 o4 extra <<< "$ip"
-      [ -z "$extra" ] || return 1
-
-      for octet in "$o1" "$o2" "$o3" "$o4"; do
-        [[ "$octet" =~ ^[0-9]{1,3}$ ]] || return 1
-        [ "$octet" -le 255 ] || return 1
-      done
-    }
-
-    is_valid_ip() {
-      local ip="$1"
-      if is_valid_ipv4 "$ip"; then
-        return 0
-      fi
-
-      [[ "$ip" == *:* ]] || return 1
-      [[ "$ip" =~ ^[0-9A-Fa-f:]+$ ]] || return 1
-      return 0
-    }
-
-    for entry in \
-      "https://api.ipify.org|ipify|plain" \
-      "https://ifconfig.me/ip|ifconfig.me|plain" \
-      "https://www.cloudflare.com/cdn-cgi/trace|cloudflare-trace|trace"; do
-      url="''${entry%%|*}"
-      rest="''${entry#*|}"
-      label="''${rest%%|*}"
-      parser="''${rest#*|}"
-
-      case "$parser" in
-        plain) candidate="$(fetch_plain_ip "$url")" ;;
-        trace) candidate="$(fetch_trace_ip "$url")" ;;
-        *) candidate="" ;;
-      esac
-
-      if [ -n "$candidate" ] && is_valid_ip "$candidate"; then
-        ip="$candidate"
-        sourceLabel="$label"
-        break
-      fi
-    done
-
-    if [ -n "$ip" ]; then
-      "$mkdirBin" -p "$cacheDir"
-      printf '%s|%s|%s\n' "$now" "$ip" "$sourceLabel" > "$cacheFile"
-      printf '{"text":"󰩠 %s","tooltip":"Public IP: %s\\nSource: %s\\nLeft: Connections GUI\\nRight: nmtui","class":"online"}\n' "$ip" "$ip" "$sourceLabel"
-      exit 0
-    fi
-
-    if [ -r "$cacheFile" ]; then
-      cachedLine="$("$headBin" -n 1 "$cacheFile" || true)"
-      cachedTs="''${cachedLine%%|*}"
-      cachedRest="''${cachedLine#*|}"
-      cachedIp="''${cachedRest%%|*}"
-      cachedSrc="''${cachedRest#*|}"
-
-      if ! [[ "$cachedTs" =~ ^[0-9]+$ ]]; then
-        cachedTs=0
-      fi
-
-      if [ "$cachedTs" -gt 0 ] && [ -n "$cachedIp" ] && is_valid_ip "$cachedIp"; then
-        age=$((now - cachedTs))
-        if [ "$age" -ge 0 ] && [ "$age" -le 1800 ]; then
-          ageMin=$((age / 60))
-          printf '{"text":"󰩠 %s","tooltip":"Public IP (cached %sm): %s\\nSource: %s\\nLeft: Connections GUI\\nRight: nmtui","class":"online"}\n' "$cachedIp" "$ageMin" "$cachedIp" "''${cachedSrc:-cache}"
-          exit 0
-        fi
-      fi
-    fi
-
-    printf '{"text":"IP N/A","tooltip":"Public IP unavailable\\nLeft: Connections GUI\\nRight: nmtui","class":"offline"}\n'
-  '';
+  wlogoutMenu = pkgs.writeShellApplication {
+    name = "wlogout-menu";
+    runtimeInputs = with pkgs; [ wlogout ];
+    text = builtins.readFile ../scripts/wlogout-menu.sh;
+  };
+  lockScreen = pkgs.writeShellApplication {
+    name = "lock-screen";
+    runtimeInputs = with pkgs; [ swaylock ];
+    text = builtins.readFile ../scripts/lock-screen.sh;
+  };
+  riverScreenshot = pkgs.writeShellApplication {
+    name = "river-screenshot";
+    runtimeInputs = with pkgs; [ grim slurp wl-clipboard coreutils ];
+    text = builtins.readFile ../scripts/screenshot.sh;
+  };
+  riverCliphistMenu = pkgs.writeShellApplication {
+    name = "river-cliphist-menu";
+    runtimeInputs = with pkgs; [ cliphist fuzzel wl-clipboard ];
+    text = builtins.readFile ../scripts/cliphist-menu.sh;
+  };
+  waybarClockCalendar = pkgs.writeShellApplication {
+    name = "waybar-clock-calendar";
+    runtimeInputs = with pkgs; [ fuzzel coreutils ];
+    text = builtins.readFile ../scripts/waybar-clock-calendar.sh;
+  };
+  waybarTemperatureStatus = pkgs.writeShellApplication {
+    name = "waybar-temperature-status";
+    runtimeInputs = with pkgs; [ coreutils ];
+    text = builtins.readFile ../scripts/waybar-temperature.sh;
+  };
+  publicIpStatus = pkgs.writeShellApplication {
+    name = "public-ip-status";
+    runtimeInputs = with pkgs; [ wget coreutils gnused ];
+    text = builtins.readFile ../scripts/public-ip-status.sh;
+  };
 
   cherryStudioPackage = pkgsUnstable.cherry-studio;
   gamingPackages = with pkgs; [
