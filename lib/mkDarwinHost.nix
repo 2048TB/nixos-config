@@ -60,31 +60,11 @@ let
     inherit mainUser;
   };
 
-  sharedDarwinDefaults =
-    { pkgs, ... }:
-    {
-      system.primaryUser = mainUser;
-
-      # Keep login shell declarative and ensure zsh is listed in /etc/shells.
-      programs.zsh.enable = true;
-      users.users.${mainUser}.shell = lib.mkDefault pkgs.zsh;
-      environment.shells = lib.mkDefault [ pkgs.zsh ];
-
-      homebrew = {
-        enable = true;
-        onActivation = {
-          autoUpdate = false;
-          upgrade = false;
-          cleanup = "none";
-        };
-      };
-    };
-
   darwinSystem = mylib.macosSystem {
     inherit inputs system mainUser specialArgs;
     modules =
       darwinBootstrapModules
-      ++ [ sharedDarwinDefaults ]
+      ++ [ (mylib.relativeToRoot "nix/modules/darwin") ]
       ++ lib.optionals (hostPath != null) [ hostPath ]
       ++ discoveredHostModules
       ++ extraModules;

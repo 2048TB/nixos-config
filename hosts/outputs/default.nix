@@ -5,40 +5,11 @@ let
   inherit (nixpkgs) lib;
   mylib = import ../../lib { inherit lib; };
 
-  # Runtime cache settings for NixOS module consumption.
-  # flake.nix nixConfig 默认留空；如需启用 flake 级缓存，再按需同步这里的值。
-  binaryCaches = {
-    substituters = [
-      "https://nix-community.cachix.org"
-      "https://nixpkgs-wayland.cachix.org"
-      "https://cache.garnix.io"
-    ];
-    trustedPublicKeys = [
-      "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
-      "nixpkgs-wayland.cachix.org-1:3lwxaILxMRkVhehr5StQprHdEo4IrE8sRho9R9HOLYA="
-      "cache.garnix.io:CTFPyKSLcx5RMJKfLo5EEPUObbA78b0YQ2DTCJXqr9g="
-    ];
-  };
-
-  sharedPortalConfig = {
-    common = {
-      default = [ "gnome" "gtk" ];
-      "org.freedesktop.impl.portal.Settings" = [ "gtk" ];
-      "org.freedesktop.impl.portal.FileChooser" = [ "gtk" ];
-    };
-    niri = {
-      default = [ "gnome" "gtk" ];
-      "org.freedesktop.impl.portal.Settings" = [ "gtk" ];
-      "org.freedesktop.impl.portal.FileChooser" = [ "gtk" ];
-      "org.freedesktop.impl.portal.Inhibit" = [ "gtk" ];
-    };
-  };
-
   genSpecialArgs =
     system:
     inputs
     // {
-      inherit mylib binaryCaches sharedPortalConfig;
+      inherit mylib;
       pkgsUnstable = import inputs.nixpkgs-unstable {
         inherit system;
         config.allowUnfree = true;

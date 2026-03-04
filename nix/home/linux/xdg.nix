@@ -3,7 +3,6 @@
 , lib
 , myvars
 , mainUser
-, sharedPortalConfig
 , ...
 }:
 let
@@ -63,7 +62,7 @@ let
     "image/tiff"
   ];
   imageApps = [ "org.nomacs.ImageLounge.desktop" "nomacs.desktop" ];
-  portalConfig = sharedPortalConfig;
+  portalConfig = import ../../portal-config.nix;
 in
 {
   xdg = {

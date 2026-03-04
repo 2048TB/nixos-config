@@ -8,7 +8,6 @@
 , expectedHostProfile ? name
 , expectedAcceptFlakeConfig ? false
 , expectedDockerMode ? null
-, specialArgs ? { }
 , expectedTrustedUsers ? [ "root" ]
 , expectedTrustedSubstituters ? null
 , expectedKvmModules ? null
@@ -75,10 +74,12 @@ let
   resolvedExpectedTrustedSubstituters =
     if expectedTrustedSubstituters != null then
       expectedTrustedSubstituters
-    else if specialArgs ? binaryCaches then
-      specialArgs.binaryCaches.substituters
     else
-      null;
+      [
+        "https://nix-community.cachix.org"
+        "https://nixpkgs-wayland.cachix.org"
+        "https://cache.garnix.io"
+      ];
   sortedTrustedUsers = builtins.sort builtins.lessThan (cfg.nix.settings.trusted-users or [ ]);
   sortedExpectedTrustedUsers = builtins.sort builtins.lessThan expectedTrustedUsers;
   hasExpectedTrustedUsers = sortedTrustedUsers == sortedExpectedTrustedUsers;

@@ -1,6 +1,6 @@
-{ pkgs, lib, myvars, ... }:
+{ pkgs, lib, mylib, myvars, ... }:
 let
-  roleFlags = import ../../modules/system/role-flags.nix { inherit myvars; };
+  roleFlags = mylib.roleFlags myvars;
   inherit (roleFlags) enableSteam;
 in
 {

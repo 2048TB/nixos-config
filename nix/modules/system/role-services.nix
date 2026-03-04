@@ -1,6 +1,6 @@
-{ lib, pkgs, myvars, mainUser, ... }:
+{ lib, pkgs, mylib, myvars, mainUser, ... }:
 let
-  roleFlags = import ./role-flags.nix { inherit myvars; };
+  roleFlags = mylib.roleFlags myvars;
   inherit (roleFlags) enableSteam enableProvider appVpn enableLibvirtd enableDocker enableFlatpak dockerMode useRootlessDocker useRootfulDocker;
 in
 {

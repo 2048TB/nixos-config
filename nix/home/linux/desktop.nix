@@ -1,44 +1,16 @@
-{ config
-, pkgs
+{ pkgs
 , lib
+, mylib
 , mainUser
 , myvars
 , ...
 }:
 let
-  homeDir = config.home.homeDirectory;
   userProfileBin = "/etc/profiles/per-user/${mainUser}/bin";
-  roleFlags = import ../../modules/system/role-flags.nix { inherit myvars; };
+  roleFlags = mylib.roleFlags myvars;
   inherit (roleFlags) enableProvider appVpn;
 
-  # ===== 日志过滤启动器工厂 =====
-  mkLogFilteredLauncher =
-    name: executable: filters:
-    let
-      mkSedDeleteExpr = pattern:
-        let
-          # sed 地址默认使用 `/.../` 分隔，先转义 `/` 避免表达式截断。
-          escapedPattern = lib.replaceStrings [ "/" ] [ "\\/" ] pattern;
-        in
-        "/${escapedPattern}/d";
-      sedDeleteArgs =
-        lib.concatMapStringsSep " \\\n"
-          (pattern: "          -e ${lib.escapeShellArg (mkSedDeleteExpr pattern)}")
-          filters;
-    in
-    pkgs.writeShellScriptBin name ''
-            set -euo pipefail
-            sedBin="${pkgs.gnused}/bin/sed"
-
-            set +e
-            ${executable} "$@" 2>&1 \
-              | "$sedBin" -u -E \
-      ${sedDeleteArgs}
-              >&2
-            status="''${PIPESTATUS[0]}"
-            set -e
-            exit "$status"
-    '';
+  mkLogFilteredLauncher = mylib.mkLogFilteredLauncher pkgs;
 
   # ===== Quiet launcher 定义 =====
   waybarQuiet = mkLogFilteredLauncher "waybar-quiet" "${pkgs.waybar}/bin/waybar" [
@@ -64,60 +36,18 @@ let
   ];
 
   # ===== Waybar 启动器（Fix 2: 修复重复启动 bug） =====
-  waybarLauncher = pkgs.writeShellScript "waybar-launcher" ''
-    set -euo pipefail
-    runtimeDir="''${XDG_RUNTIME_DIR:-/run/user/$(${pkgs.coreutils}/bin/id -u)}"
-    waybarBin="${lib.getExe waybarQuiet}"
-    sleepBin="${pkgs.coreutils}/bin/sleep"
-    seqBin="${pkgs.coreutils}/bin/seq"
-
-    launch_waybar() {
-      "$waybarBin"
-    }
-
-    launch_if_wayland_ready() {
-      if [ -n "''${WAYLAND_DISPLAY:-}" ] && [ -S "$runtimeDir/$WAYLAND_DISPLAY" ]; then
-        launch_waybar
-        return 0
-      fi
-
-      for socket in "$runtimeDir"/wayland-*; do
-        [ -S "$socket" ] || continue
-        export WAYLAND_DISPLAY="''${socket##*/}"
-        launch_waybar
-        return 0
-      done
-
-      return 1
-    }
-
-    for _ in $("$seqBin" 1 100); do
-      launch_if_wayland_ready || true
-      "$sleepBin" 0.1
-    done
-
-    exit 1
-  '';
+  waybarLauncher = pkgs.writeShellApplication {
+    name = "waybar-launcher";
+    runtimeInputs = [ pkgs.coreutils waybarQuiet ];
+    text = builtins.readFile ../scripts/waybar-launcher.sh;
+  };
 
   # ===== Swaybg 启动器 =====
-  swaybgLauncher = pkgs.writeShellScript "swaybg-launcher" ''
-    set -euo pipefail
-    wallpaperDir="${homeDir}/.config/wallpapers"
-    wallpaper="$wallpaperDir/1.png"
-
-    randomWallpaper="$(
-      ${pkgs.findutils}/bin/find "$wallpaperDir" -maxdepth 1 \
-        \( -type f -o -type l \) \
-        \( -iname '*.png' -o -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.webp' -o -iname '*.bmp' -o -iname '*.gif' \) \
-      | ${pkgs.coreutils}/bin/shuf \
-      | ${pkgs.coreutils}/bin/head -n 1
-    )"
-    if [ -n "$randomWallpaper" ]; then
-      wallpaper="$randomWallpaper"
-    fi
-
-    exec ${pkgs.swaybg}/bin/swaybg -i "$wallpaper" -m fill
-  '';
+  swaybgLauncher = pkgs.writeShellApplication {
+    name = "swaybg-launcher";
+    runtimeInputs = with pkgs; [ swaybg findutils coreutils ];
+    text = builtins.readFile ../scripts/swaybg-launcher.sh;
+  };
 
   # ===== SwayNC 配置 =====
   swayncSettings = {
@@ -327,7 +257,7 @@ in
               "LC_ALL=zh_CN.UTF-8"
               "LC_TIME=zh_CN.UTF-8"
             ];
-            ExecStart = "${waybarLauncher}";
+            ExecStart = lib.getExe waybarLauncher;
             Restart = "always";
             RestartSec = 2;
           };
@@ -352,7 +282,7 @@ in
           Install.WantedBy = [ "graphical-session.target" ];
           Service = {
             Type = "simple";
-            ExecStart = "${swaybgLauncher}";
+            ExecStart = lib.getExe swaybgLauncher;
             Restart = "on-failure";
             RestartSec = 2;
           };

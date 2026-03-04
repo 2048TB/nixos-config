@@ -143,7 +143,47 @@ in
   # Use paths relative to the repository root.
   relativeToRoot = lib.path.append ../.;
 
-  # backward-compatible aliases
-  mkNixosSystem = nixosSystem;
-  mkMacosSystem = macosSystem;
+  roleFlags = myvars:
+    let
+      hostRoles = myvars.roles or [ "desktop" ];
+      hasRole = role: builtins.elem role hostRoles;
+      dockerMode = myvars.dockerMode or "rootless";
+    in
+    {
+      inherit hostRoles hasRole dockerMode;
+      enableProvider appVpn = myvars.enableProvider appVpn or (hasRole "vpn");
+      enableLibvirtd = myvars.enableLibvirtd or (hasRole "virt");
+      enableDocker = myvars.enableDocker or (hasRole "container");
+      enableFlatpak = myvars.enableFlatpak or (hasRole "desktop");
+      enableSteam = myvars.enableSteam or (hasRole "gaming");
+      useRootfulDocker = dockerMode == "rootful";
+      useRootlessDocker = dockerMode == "rootless";
+    };
+
+  mkLogFilteredLauncher =
+    pkgs: name: executable: filters:
+    let
+      mkSedDeleteExpr = pattern:
+        let
+          escapedPattern = lib.replaceStrings [ "/" ] [ "\\/" ] pattern;
+        in
+        "/${escapedPattern}/d";
+      sedDeleteArgs =
+        lib.concatMapStringsSep " \\\n"
+          (pattern: "          -e ${lib.escapeShellArg (mkSedDeleteExpr pattern)}")
+          filters;
+    in
+    pkgs.writeShellScriptBin name ''
+            set -euo pipefail
+            sedBin="${pkgs.gnused}/bin/sed"
+
+            set +e
+            ${executable} "$@" 2>&1 \
+              | "$sedBin" -u -E \
+      ${sedDeleteArgs}
+              >&2
+            status="''${PIPESTATUS[0]}"
+            set -e
+            exit "$status"
+    '';
 }
