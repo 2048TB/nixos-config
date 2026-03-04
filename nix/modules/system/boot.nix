@@ -1,5 +1,6 @@
 { config
 , lib
+, mylib
 , myvars
 , ...
 }:
@@ -7,12 +8,7 @@ let
   cpuVendor = myvars.cpuVendor or "auto";
   hasAmd = cpuVendor != "intel";
   hasIntel = cpuVendor != "amd";
-  kvmModules =
-    if hasAmd || hasIntel
-    then
-      (lib.optionals hasAmd [ "kvm-amd" ])
-      ++ (lib.optionals hasIntel [ "kvm-intel" ])
-    else [ "kvm-amd" "kvm-intel" ];
+  kvmModules = mylib.kvmModulesForVendor cpuVendor;
   kvmExtraModprobeConfig = lib.concatStringsSep "\n" (lib.flatten [
     (lib.optional hasAmd "options kvm_amd nested=1")
     (lib.optional hasIntel "options kvm_intel nested=1")

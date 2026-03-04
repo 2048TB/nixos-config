@@ -334,7 +334,6 @@ dev: fmt flake-check test
 
 # ========== 构建和安装 ==========
 
-# 构建 ISO 镜像
 # 进入开发环境
 shell:
     nix develop

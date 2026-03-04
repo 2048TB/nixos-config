@@ -2,13 +2,12 @@
 , pkgs
 , lib
 , myvars
-, mainUser
+, userProfileBin
 , ...
 }:
 let
   homeDir = config.home.homeDirectory;
   localShareDir = "${homeDir}/.local/share";
-  userProfileBin = "/etc/profiles/per-user/${mainUser}/bin";
   enableWaybarBacklight = myvars.enableWaybarBacklight or false;
   enableWaybarBattery = myvars.enableWaybarBattery or false;
   waybarDeviceModules =

@@ -58,7 +58,7 @@ let
     config.allowUnfree = true;
   };
   mkAppLocal = mkApp pkgs;
-  resolveDarwinHostStrict = ''host="$("$repo/scripts/resolve-host.sh" darwin "$repo" "zly-mac" --strict)"'';
+  resolveDarwinHostStrict = ''host="$("$repo/scripts/resolve-host.sh" darwin "$repo" "${builtins.head resolvedHostNames}" --strict)"'';
   platformApps.${system} = {
     apply = mkAppLocal "apply" "Apply Darwin host configuration (switch)" ''
       ${appRepoPreamble}

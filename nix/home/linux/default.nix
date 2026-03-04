@@ -32,6 +32,8 @@ let
   '';
 in
 {
+  _module.args.userProfileBin = "/etc/profiles/per-user/${mainUser}/bin";
+
   imports = [
     ../base
     ./desktop.nix
