@@ -225,7 +225,7 @@ just flake-check
 - `https://nixpkgs-wayland.cachix.org`
 - `https://cache.garnix.io`
 
-配置位置：`hosts/outputs/default.nix` 中的 `binaryCaches`。
+配置位置：`nix/modules/system/nix-settings.nix` 中的 `cacheSubstituters`。
 
 ---
 

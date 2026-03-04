@@ -55,8 +55,8 @@ just new-darwin-host <name>
 ## 4. 目录改动指引（改哪里）
 
 - 改某一台机器参数：`hosts/<platform>/<host>/vars.nix`
-- 改系统行为（服务/内核/持久化）：`nix/modules/system.nix`
-- 改角色逻辑（哪些功能按角色启用）：`nix/modules/system/role-flags.nix` + `role-services.nix`
+- 改系统行为（服务/内核/持久化）：`nix/modules/system/`（入口 `default.nix`）
+- 改角色逻辑（哪些功能按角色启用）：`lib/default.nix` 中的 `roleFlags` + `nix/modules/system/role-services.nix`
 - 改硬件与显卡：`nix/modules/hardware.nix`
 - 改用户软件包：`nix/home/linux/packages.nix`
 - 改桌面服务（waybar/swaybg/systemd user services）：`nix/home/linux/desktop.nix`
@@ -72,12 +72,7 @@ just new-darwin-host <name>
 
 ## 5. 文档同步硬规则
 
-出现以下情况，必须同一变更中同步文档：
-
-- 变更快捷键行为（Niri/Tmux/Zellij）：同步 `KEYBINDINGS.md`
-- 变更主机发现/脚手架/安装流程：同步 `README.md`、`hosts/README.md`、`NIX-COMMANDS.md`
-- 变更 justfile 命令或 flake apps：同步 `NIX-COMMANDS.md`、`ENV-USAGE.md`
-- 变更流程规则：同步 `AGENTS.md` 与 `CLAUDE.md`
+详见 `CLAUDE.md` §3（必须保持的一致性）。
 
 ---
 
@@ -91,12 +86,7 @@ just new-darwin-host <name>
 
 ## 7. 安全红线（必须遵守）
 
-- 禁止提交任何私钥、token、明文密码
-- `secrets/*.age` 可以提交；`.keys/*` 私钥绝对不能提交
-- 涉及 `disko` / 安装流程命令，默认视为破坏性操作
-
-与密码相关：
-- 登录密码由 agenix secrets 管理：`secrets/passwords/user-password.age`、`secrets/passwords/root-password.age`
+详见 `CLAUDE.md` §4（安全规则）。
 
 ---
 
