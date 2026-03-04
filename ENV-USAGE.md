@@ -37,6 +37,11 @@ Live ISO 默认未开启 `nix-command` / `flakes`，需手动设置：
 
 ```bash
 export NIX_CONFIG="experimental-features = nix-command flakes"
+
+# 然后再执行你的命令，比如：
+nix shell nixpkgs#just -c just hosts
+# 或
+/persistent/nixos-config/scripts/install-live.sh --host zky --disk /dev/nvme0n1 --repo /persistent/nixos-config
 ```
 
 ### 1.2 密钥搜索路径
