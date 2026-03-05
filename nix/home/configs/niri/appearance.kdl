@@ -15,10 +15,8 @@ layout {
     preset-column-widths {
         // proportion 以输出宽度的比例设置列宽，并考虑 gaps。
         // 例如 proportion 0.25 可在一个输出上正好放下四个窗口。
-        // 预设宽度：42%、50%、67%、83%、100%（适配 2560x1440）。
-        proportion 0.420000
+        // 预设宽度：50%、83%、100%（适配 2560x1440）。
         proportion 0.500000
-        proportion 0.670000
         proportion 0.830000
         proportion 1.000000
 
@@ -27,8 +25,8 @@ layout {
     }
 
     // 可以修改新窗口的默认宽度。
-    // 默认 67%，通过 Mod+R 快捷键在 42%, 50%, 67%, 83%, 100% 之间切换
-    default-column-width { proportion 0.67; }
+    // 默认 83%，通过 Mod+R 快捷键在 50%, 83%, 100% 之间切换
+    default-column-width { proportion 0.83; }
     // 若花括号留空，由窗口自身决定初始宽度。
     // default-column-width {}
 
