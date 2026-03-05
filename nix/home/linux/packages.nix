@@ -58,37 +58,37 @@ let
   wlogoutMenu = pkgs.writeShellApplication {
     name = "wlogout-menu";
     runtimeInputs = with pkgs; [ wlogout ];
-    text = builtins.readFile ../scripts/wlogout-menu.sh;
+    text = builtins.readFile ../../scripts/session/wlogout-menu.sh;
   };
   lockScreen = pkgs.writeShellApplication {
     name = "lock-screen";
     runtimeInputs = with pkgs; [ swaylock ];
-    text = mytheme.apply (builtins.readFile ../scripts/lock-screen.sh);
+    text = mytheme.apply (builtins.readFile ../../scripts/session/lock-screen.sh);
   };
   riverScreenshot = pkgs.writeShellApplication {
     name = "river-screenshot";
     runtimeInputs = with pkgs; [ grim slurp wl-clipboard coreutils ];
-    text = builtins.readFile ../scripts/screenshot.sh;
+    text = builtins.readFile ../../scripts/session/screenshot.sh;
   };
   riverCliphistMenu = pkgs.writeShellApplication {
     name = "river-cliphist-menu";
     runtimeInputs = with pkgs; [ cliphist fuzzel wl-clipboard ];
-    text = builtins.readFile ../scripts/cliphist-menu.sh;
+    text = builtins.readFile ../../scripts/session/cliphist-menu.sh;
   };
   waybarClockCalendar = pkgs.writeShellApplication {
     name = "waybar-clock-calendar";
     runtimeInputs = with pkgs; [ fuzzel coreutils ];
-    text = builtins.readFile ../scripts/waybar-clock-calendar.sh;
+    text = builtins.readFile ../../scripts/session/waybar-clock-calendar.sh;
   };
   waybarTemperatureStatus = pkgs.writeShellApplication {
     name = "waybar-temperature-status";
     runtimeInputs = with pkgs; [ coreutils ];
-    text = builtins.readFile ../scripts/waybar-temperature.sh;
+    text = builtins.readFile ../../scripts/session/waybar-temperature.sh;
   };
   publicIpStatus = pkgs.writeShellApplication {
     name = "public-ip-status";
     runtimeInputs = with pkgs; [ wget coreutils gnused ];
-    text = builtins.readFile ../scripts/public-ip-status.sh;
+    text = builtins.readFile ../../scripts/session/public-ip-status.sh;
   };
 
   cherryStudioPackage = pkgsUnstable.cherry-studio;

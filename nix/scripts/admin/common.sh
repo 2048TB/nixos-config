@@ -25,7 +25,7 @@ resolve_repo_path() {
     fi
   fi
 
-  script_repo="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd -P)"
+  script_repo="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../../.." && pwd -P)"
   if [ -f "$script_repo/flake.nix" ]; then
     printf '%s\n' "$script_repo"
     return 0

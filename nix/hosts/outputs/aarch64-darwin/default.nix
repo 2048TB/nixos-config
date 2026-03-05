@@ -1,6 +1,6 @@
 { lib, mylib, inputs, system, mkApp, appRepoPreamble, ... }@args:
 let
-  hostsRoot = mylib.relativeToRoot "hosts/darwin";
+  hostsRoot = mylib.relativeToRoot "nix/hosts/darwin";
   hostNames = mylib.discoverHostNamesBy hostsRoot [
     "default.nix"
     "vars.nix"
@@ -11,7 +11,7 @@ let
   mkHostData =
     name:
     let
-      hostDir = "hosts/darwin/${name}";
+      hostDir = "nix/hosts/darwin/${name}";
       hostPath = mylib.relativeToRoot "${hostDir}/default.nix";
       hostVarsPath = mylib.relativeToRoot "${hostDir}/vars.nix";
       hostChecksPath = mylib.relativeToRoot "${hostDir}/checks.nix";
@@ -60,7 +60,7 @@ let
     config.allowUnfree = true;
   };
   mkAppLocal = mkApp pkgs;
-  resolveDarwinHostStrict = ''host="$("$repo/scripts/resolve-host.sh" darwin "$repo" "${builtins.head resolvedHostNames}" --strict)"'';
+  resolveDarwinHostStrict = ''host="$("$repo/nix/scripts/admin/resolve-host.sh" darwin "$repo" "${builtins.head resolvedHostNames}" --strict)"'';
   platformApps.${system} = {
     apply = mkAppLocal "apply" "Apply Darwin host configuration (switch)" ''
       ${appRepoPreamble}
@@ -109,8 +109,8 @@ let
 in
 assert lib.assertMsg
   (invalidHostNames == [ ])
-  "Invalid Darwin host names under hosts/darwin: ${lib.concatStringsSep ", " invalidHostNames}. Allowed pattern: ${hostNamePattern}";
-assert lib.assertMsg (hostNames != [ ]) "No hosts found under hosts/darwin";
+  "Invalid Darwin host names under nix/hosts/darwin: ${lib.concatStringsSep ", " invalidHostNames}. Allowed pattern: ${hostNamePattern}";
+assert lib.assertMsg (hostNames != [ ]) "No hosts found under nix/hosts/darwin";
 {
   inherit data;
   registeredHosts = resolvedHostNames;

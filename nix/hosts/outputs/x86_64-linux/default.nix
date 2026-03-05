@@ -1,6 +1,6 @@
 { lib, mylib, inputs, system, mkApp, appRepoPreamble, ... }@args:
 let
-  hostsRoot = mylib.relativeToRoot "hosts/nixos";
+  hostsRoot = mylib.relativeToRoot "nix/hosts/nixos";
   hostNames = mylib.discoverHostNamesBy hostsRoot [
     "hardware.nix"
     "disko.nix"
@@ -12,7 +12,7 @@ let
   mkHostData =
     name:
     let
-      hostDir = "hosts/nixos/${name}";
+      hostDir = "nix/hosts/nixos/${name}";
       hostPath = mylib.relativeToRoot "${hostDir}/host.nix";
       hostVarsPath = mylib.relativeToRoot "${hostDir}/vars.nix";
       hostChecksPath = mylib.relativeToRoot "${hostDir}/checks.nix";
@@ -66,7 +66,7 @@ let
     config.allowUnfree = true;
   };
   mkAppLocal = mkApp pkgs;
-  resolveNixosHostStrict = ''host="$("$repo/scripts/resolve-host.sh" nixos "$repo" "${builtins.head resolvedHostNames}" --strict)"'';
+  resolveNixosHostStrict = ''host="$("$repo/nix/scripts/admin/resolve-host.sh" nixos "$repo" "${builtins.head resolvedHostNames}" --strict)"'';
   platformApps.${system} = {
     apply = mkAppLocal "apply" "Apply Linux host configuration (switch)" ''
       ${appRepoPreamble}
@@ -157,8 +157,8 @@ let
 in
 assert lib.assertMsg
   (invalidHostNames == [ ])
-  "Invalid NixOS host names under hosts/nixos: ${lib.concatStringsSep ", " invalidHostNames}. Allowed pattern: ${hostNamePattern}";
-assert lib.assertMsg (hostNames != [ ]) "No hosts found under hosts/nixos";
+  "Invalid NixOS host names under nix/hosts/nixos: ${lib.concatStringsSep ", " invalidHostNames}. Allowed pattern: ${hostNamePattern}";
+assert lib.assertMsg (hostNames != [ ]) "No hosts found under nix/hosts/nixos";
 {
   inherit data;
   registeredHosts = resolvedHostNames;

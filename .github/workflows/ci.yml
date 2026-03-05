@@ -6,10 +6,7 @@ on:
     paths:
       - "flake.nix"
       - "flake.lock"
-      - "hosts/**"
       - "nix/**"
-      - "lib/**"
-      - "scripts/**"
       - "secrets/**"
       - "justfile"
       - ".github/workflows/**"
@@ -17,10 +14,7 @@ on:
     paths:
       - "flake.nix"
       - "flake.lock"
-      - "hosts/**"
       - "nix/**"
-      - "lib/**"
-      - "scripts/**"
       - "secrets/**"
       - "justfile"
       - ".github/workflows/**"
@@ -46,7 +40,7 @@ jobs:
         run: |
           set -euo pipefail
           shopt -s nullglob
-          files=(scripts/*.sh .githooks/pre-*)
+          files=(nix/scripts/admin/*.sh nix/scripts/session/*.sh .githooks/pre-*)
           if [ ${#files[@]} -eq 0 ]; then
             echo "warning: no shell scripts found"
             exit 0
@@ -54,7 +48,7 @@ jobs:
           bash -n "${files[@]}"
 
       - name: Secret Guard
-        run: scripts/guard-secrets.sh
+        run: nix/scripts/admin/guard-secrets.sh
 
   prepare-host-matrix:
     name: Prepare NixOS Host Matrix
