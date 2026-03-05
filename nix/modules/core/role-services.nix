@@ -56,6 +56,7 @@ in
     libvirtd = {
       enable = enableLibvirtd;
       qemu.swtpm.enable = true;
+      onBoot = "ignore"; # 不自动恢复 VM，按需 virsh start
     };
 
     # Docker 容器（rootful/rootless 可切换）

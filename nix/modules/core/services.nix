@@ -14,7 +14,7 @@ let
   journaldSystemMaxUse = myvars.journaldSystemMaxUse or "512M";
   journaldRuntimeMaxUse = myvars.journaldRuntimeMaxUse or "256M";
 
-  tuigreetPackage = pkgs.tuigreet or pkgs.greetd.tuigreet;
+  tuigreetPackage = pkgs.tuigreet or pkgs.greetd.tuigreet or (throw "tuigreet package not found in pkgs.tuigreet or pkgs.greetd.tuigreet");
   tuigreetTheme = let p = mytheme.palette; in
     "border=#${p.bg3.hex};text=#${p.fg.hex};prompt=#${p.blue.hex};time=#${p.fg.hex};action=#${p.blue.hex};"
     + "button=#${p.green.hex};container=#${p.bg.hex};input=#${p.yellow.hex};greet=#${p.cyan.hex};title=#${p.deep.hex}";
