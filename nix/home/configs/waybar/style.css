@@ -10,7 +10,7 @@
 
 window#waybar {
   background: transparent;
-  color: #cdd6f4;
+  color: #d8dee9;
   margin: 2px 10px 0 10px;
   border: none;
   box-shadow: none;
@@ -22,8 +22,8 @@ window#waybar {
   margin-top: 3px;
   padding: 0 5px;
   border-radius: 999px;
-  background: linear-gradient(145deg, rgba(30, 30, 46, 0.94), rgba(49, 50, 68, 0.9));
-  border: 1px solid rgba(69, 71, 90, 0.6);
+  background: linear-gradient(145deg, rgba(46, 52, 64, 0.94), rgba(59, 66, 82, 0.9));
+  border: 1px solid rgba(76, 86, 106, 0.5);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03), 0 8px 18px rgba(0, 0, 0, 0.38);
 }
 
@@ -54,7 +54,7 @@ window#waybar {
 #custom-launcher,
 #custom-power {
   background: transparent;
-  color: #cdd6f4;
+  color: #d8dee9;
   margin: 0;
   padding: 0 5px;
   border-radius: 0;
@@ -76,25 +76,25 @@ window#waybar {
 }
 
 #workspaces button {
-  color: #cdd6f4;
-  background: rgba(69, 71, 90, 0.55);
+  color: #d8dee9;
+  background: rgba(76, 86, 106, 0.55);
   background-image: none;
   margin: 0 2px;
   padding: 0;
   min-width: 24px;
   min-height: 24px;
   border-radius: 999px;
-  border: 1px solid rgba(88, 91, 112, 0.6);
+  border: 1px solid rgba(76, 86, 106, 0.6);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
   transition: all 0.2s ease;
 }
 
 #workspaces button.active,
 #workspaces button.focused {
-  background: #89b4fa;
-  color: #1e1e2e;
-  border-color: rgba(137, 180, 250, 0.9);
-  box-shadow: 0 0 0 1px rgba(137, 180, 250, 0.45), 0 2px 7px rgba(137, 180, 250, 0.22);
+  background: #81a1c1;
+  color: #2e3440;
+  border-color: rgba(129, 161, 193, 0.9);
+  box-shadow: 0 0 0 1px rgba(129, 161, 193, 0.45), 0 2px 7px rgba(129, 161, 193, 0.22);
   background-image: url("@WAYBAR_PACMAN_ICON@");
   background-repeat: no-repeat;
   background-position: center;
@@ -103,31 +103,31 @@ window#waybar {
 
 #workspaces button.visible:not(.active):not(.focused),
 #workspaces button.current_output:not(.active):not(.focused) {
-  background: linear-gradient(125deg, #585b70, #6c7086);
-  color: #cdd6f4;
-  border-color: rgba(108, 112, 134, 0.8);
-  box-shadow: 0 0 0 1px rgba(108, 112, 134, 0.42), 0 2px 7px rgba(69, 71, 90, 0.3);
+  background: linear-gradient(125deg, #434c5e, #4c566a);
+  color: #d8dee9;
+  border-color: rgba(76, 86, 106, 0.8);
+  box-shadow: 0 0 0 1px rgba(76, 86, 106, 0.42), 0 2px 7px rgba(59, 66, 82, 0.3);
 }
 
 #workspaces button.urgent {
-  background: rgba(243, 139, 168, 0.35);
-  color: #cdd6f4;
-  box-shadow: 0 0 0 1px rgba(243, 139, 168, 0.58);
+  background: rgba(191, 97, 106, 0.35);
+  color: #eceff4;
+  box-shadow: 0 0 0 1px rgba(191, 97, 106, 0.58);
 }
 
 #workspaces button.special {
-  background: rgba(137, 180, 250, 0.3);
-  border-color: rgba(137, 180, 250, 0.6);
+  background: rgba(129, 161, 193, 0.3);
+  border-color: rgba(129, 161, 193, 0.6);
 }
 
 #workspaces button:hover {
-  background-color: rgba(137, 180, 250, 0.3);
-  color: #cdd6f4;
-  border-color: rgba(137, 180, 250, 0.5);
+  background-color: rgba(129, 161, 193, 0.3);
+  color: #eceff4;
+  border-color: rgba(129, 161, 193, 0.5);
 }
 
 #workspaces button label {
-  color: #cdd6f4;
+  color: #d8dee9;
   font-size: 14px;
   font-weight: 900;
 }
@@ -140,36 +140,36 @@ window#waybar {
 
 #workspaces button.visible:not(.active):not(.focused) label,
 #workspaces button.current_output:not(.active):not(.focused) label {
-  color: #cdd6f4;
+  color: #d8dee9;
 }
 
 #window {
-  color: #cdd6f4;
+  color: #d8dee9;
   font-weight: 600;
 }
 
 #mpris {
-  color: #a6adc8;
+  color: #8fbcbb;
   font-style: italic;
 }
 
 #clock {
-  color: #cdd6f4;
+  color: #eceff4;
   letter-spacing: 0.7px;
   font-feature-settings: "tnum";
   padding: 0 13px;
 }
 
 #submap {
-  color: #cdd6f4;
+  color: #eceff4;
 }
 
 #submap.normal {
-  color: #a6adc8;
+  color: #d8dee9;
 }
 
 #submap.passthrough {
-  color: #f38ba8;
+  color: #bf616a;
 }
 
 #tray {
@@ -186,58 +186,58 @@ window#waybar {
 }
 
 #custom-public-ip {
-  color: #89b4fa;
+  color: #88c0d0;
   padding: 0 7px;
   font-feature-settings: "tnum";
 }
 
 #custom-public-ip.offline {
-  color: #f38ba8;
+  color: #bf616a;
 }
 
 #backlight {
-  color: #cdd6f4;
+  color: #d8dee9;
 }
 
 #cpu.warning,
 #memory.warning,
 #custom-temperature.warning {
-  color: #f9e2af;
+  color: #ebcb8b;
 }
 
 #cpu.critical,
 #memory.critical,
 #custom-temperature.critical {
-  color: #f38ba8;
+  color: #bf616a;
 }
 
 #battery.charging,
 #battery.full {
-  color: #a6e3a1;
+  color: #a3be8c;
 }
 
 #battery.warning:not(.charging):not(.full) {
-  color: #f9e2af;
+  color: #ebcb8b;
 }
 
 #battery.critical:not(.charging):not(.full) {
-  color: #f38ba8;
+  color: #bf616a;
 }
 
 #custom-notification {
-  color: #89b4fa;
+  color: #81a1c1;
   margin: 0 1px;
   padding: 0 6px;
 }
 
 #custom-notification.none,
 #custom-notification.inhibited-none {
-  color: #a6adc8;
+  color: #4c566a;
 }
 
 #custom-notification.notification,
 #custom-notification.inhibited-notification {
-  color: #cdd6f4;
+  color: #eceff4;
   animation: notify-pulse 1.2s ease-in-out infinite alternate;
 }
 
@@ -245,30 +245,30 @@ window#waybar {
 #custom-notification.dnd-notification,
 #custom-notification.dnd-inhibited-none,
 #custom-notification.dnd-inhibited-notification {
-  color: #f38ba8;
+  color: #bf616a;
 }
 
 #custom-power {
-  color: #f38ba8;
+  color: #bf616a;
 }
 
 tooltip {
-  background: linear-gradient(180deg, rgba(49, 50, 68, 0.97), rgba(30, 30, 46, 0.97));
-  border: 1px solid rgba(69, 71, 90, 0.7);
+  background: linear-gradient(180deg, rgba(59, 66, 82, 0.97), rgba(46, 52, 64, 0.97));
+  border: 1px solid rgba(76, 86, 106, 0.7);
   border-radius: 12px;
   box-shadow: 0 10px 22px rgba(0, 0, 0, 0.34);
 }
 
 tooltip label {
-  color: #cdd6f4;
+  color: #d8dee9;
   padding: 8px 10px;
 }
 
 @keyframes notify-pulse {
   from {
-    text-shadow: 0 0 0 rgba(137, 180, 250, 0);
+    text-shadow: 0 0 0 rgba(129, 161, 193, 0);
   }
   to {
-    text-shadow: 0 0 10px rgba(137, 180, 250, 0.42);
+    text-shadow: 0 0 10px rgba(129, 161, 193, 0.42);
   }
 }

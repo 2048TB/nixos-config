@@ -1,5 +1,5 @@
 /* ============================================
- * Catppuccin Mocha - Unified Dark Theme
+ * Nord - Unified Dark Theme
  * ============================================ */
 
 /* Reset */
@@ -11,19 +11,19 @@
 
 /* Fullscreen backdrop */
 window {
-  background-color: rgba(17, 17, 27, 0.82);
+  background-color: rgba(46, 52, 64, 0.85);
 }
 
 /* Button base */
 button {
   margin: 14px;
   border-radius: 28px;
-  border: 2px solid rgba(205, 214, 244, 0.06);
-  background-color: rgba(30, 30, 46, 0.65);
+  border: 2px solid rgba(76, 86, 106, 0.3);
+  background-color: rgba(59, 66, 82, 0.65);
   background-repeat: no-repeat;
   background-position: center 38%;
   background-size: 28%;
-  color: #a6adc8;
+  color: #d8dee9;
   font-size: 14px;
   font-weight: 600;
   letter-spacing: 0.5px;
@@ -36,51 +36,51 @@ button:active,
 button:hover {
   background-size: 32%;
   outline-style: none;
-  color: #cdd6f4;
+  color: #eceff4;
 }
 
-/* ---- Per-button accent colors ---- */
+/* ---- Per-button accent colors (Nord Frost + Aurora) ---- */
 
 #lock:focus, #lock:active, #lock:hover {
-  background-color: rgba(137, 180, 250, 0.12);
-  border-color: rgba(137, 180, 250, 0.5);
-  box-shadow: 0 0 24px rgba(137, 180, 250, 0.12), inset 0 0 12px rgba(137, 180, 250, 0.04);
-  color: #89b4fa;
+  background-color: rgba(129, 161, 193, 0.15);
+  border-color: rgba(129, 161, 193, 0.55);
+  box-shadow: 0 0 24px rgba(129, 161, 193, 0.12), inset 0 0 12px rgba(129, 161, 193, 0.04);
+  color: #81a1c1;
 }
 
 #logout:focus, #logout:active, #logout:hover {
-  background-color: rgba(166, 227, 161, 0.12);
-  border-color: rgba(166, 227, 161, 0.5);
-  box-shadow: 0 0 24px rgba(166, 227, 161, 0.12), inset 0 0 12px rgba(166, 227, 161, 0.04);
-  color: #a6e3a1;
+  background-color: rgba(163, 190, 140, 0.15);
+  border-color: rgba(163, 190, 140, 0.55);
+  box-shadow: 0 0 24px rgba(163, 190, 140, 0.12), inset 0 0 12px rgba(163, 190, 140, 0.04);
+  color: #a3be8c;
 }
 
 #suspend:focus, #suspend:active, #suspend:hover {
-  background-color: rgba(180, 190, 254, 0.12);
-  border-color: rgba(180, 190, 254, 0.5);
-  box-shadow: 0 0 24px rgba(180, 190, 254, 0.12), inset 0 0 12px rgba(180, 190, 254, 0.04);
-  color: #b4befe;
+  background-color: rgba(136, 192, 208, 0.15);
+  border-color: rgba(136, 192, 208, 0.55);
+  box-shadow: 0 0 24px rgba(136, 192, 208, 0.12), inset 0 0 12px rgba(136, 192, 208, 0.04);
+  color: #88c0d0;
 }
 
 #hibernate:focus, #hibernate:active, #hibernate:hover {
-  background-color: rgba(203, 166, 247, 0.12);
-  border-color: rgba(203, 166, 247, 0.5);
-  box-shadow: 0 0 24px rgba(203, 166, 247, 0.12), inset 0 0 12px rgba(203, 166, 247, 0.04);
-  color: #cba6f7;
+  background-color: rgba(180, 142, 173, 0.15);
+  border-color: rgba(180, 142, 173, 0.55);
+  box-shadow: 0 0 24px rgba(180, 142, 173, 0.12), inset 0 0 12px rgba(180, 142, 173, 0.04);
+  color: #b48ead;
 }
 
 #reboot:focus, #reboot:active, #reboot:hover {
-  background-color: rgba(250, 179, 135, 0.12);
-  border-color: rgba(250, 179, 135, 0.5);
-  box-shadow: 0 0 24px rgba(250, 179, 135, 0.12), inset 0 0 12px rgba(250, 179, 135, 0.04);
-  color: #fab387;
+  background-color: rgba(208, 135, 112, 0.15);
+  border-color: rgba(208, 135, 112, 0.55);
+  box-shadow: 0 0 24px rgba(208, 135, 112, 0.12), inset 0 0 12px rgba(208, 135, 112, 0.04);
+  color: #d08770;
 }
 
 #shutdown:focus, #shutdown:active, #shutdown:hover {
-  background-color: rgba(243, 139, 168, 0.12);
-  border-color: rgba(243, 139, 168, 0.5);
-  box-shadow: 0 0 24px rgba(243, 139, 168, 0.12), inset 0 0 12px rgba(243, 139, 168, 0.04);
-  color: #f38ba8;
+  background-color: rgba(191, 97, 106, 0.15);
+  border-color: rgba(191, 97, 106, 0.55);
+  box-shadow: 0 0 24px rgba(191, 97, 106, 0.12), inset 0 0 12px rgba(191, 97, 106, 0.04);
+  color: #bf616a;
 }
 
 /* ---- Icon bindings ---- */
