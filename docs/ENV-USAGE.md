@@ -32,6 +32,12 @@ nix shell nixpkgs#just -c just hosts
 just host=zly disk=/dev/nvme0n1 install
 ```
 
+或直接调用脚本（无需 just）：
+
+```bash
+/persistent/nixos-config/nix/scripts/admin/install-live.sh --host zky --disk /dev/nvme0n1 --repo /persistent/nixos-config
+```
+
 ### 密钥搜索路径
 
 `./.keys/main.agekey` → `<repo>/.keys/main.agekey` → `~/.keys/main.agekey`（需为 `AGE-SECRET-KEY-*` 私钥）
