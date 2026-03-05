@@ -6,11 +6,14 @@ fi
 
 args=(
   --font "Maple Mono NF CN"
-  --font-size 24
-  --indicator-idle-visible
+  --font-size 26
+  --indicator
   --indicator-caps-lock
-  --indicator-radius 130
-  --indicator-thickness 12
+  --indicator-radius 120
+  --indicator-thickness 10
+  --clock
+  --timestr "%H:%M"
+  --datestr ""
   --line-color 00000000
   --separator-color 00000000
   --inside-color @THEME_BG@cc
