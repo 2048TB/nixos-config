@@ -19,8 +19,6 @@
     "custom/temperature",
     "custom/public-ip",
     @WAYBAR_DEVICE_MODULES@
-    "power-profiles-daemon",
-    "idle_inhibitor",
     "custom/notification",
     "tray",
     "custom/power"
@@ -186,24 +184,5 @@
     "format-icons": [ "", "", "", "", "" ]
   },
 
-  "power-profiles-daemon": {
-    "format": "{icon}",
-    "tooltip-format": "电源模式: {profile}\n驱动: {driver}",
-    "format-icons": {
-      "default": "B",
-      "performance": "P",
-      "balanced": "B",
-      "power-saver": "S"
-    }
-  },
-
   // misc
-  "idle_inhibitor": {
-    "format": "{icon}",
-    "format-icons": {
-      "activated": "",
-      "deactivated": ""
-    },
-    "tooltip": true
-  }
 }

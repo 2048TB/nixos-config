@@ -50,9 +50,7 @@ window#waybar {
 #submap,
 #backlight,
 #battery,
-#power-profiles-daemon,
 #custom-notification,
-#idle_inhibitor,
 #custom-launcher,
 #custom-power {
   background: transparent;
@@ -224,41 +222,6 @@ window#waybar {
 
 #battery.critical:not(.charging):not(.full) {
   color: #d68b8b;
-}
-
-#power-profiles-daemon {
-  color: #f1eeea;
-  margin: 0 1px;
-  padding: 0 6px;
-}
-
-#idle_inhibitor {
-  color: #bcc2d2;
-  margin: 0 1px;
-  padding: 0 6px;
-}
-
-#idle_inhibitor.activated {
-  color: #9ec5ff;
-}
-
-#power-profiles-daemon label {
-  color: inherit;
-  background: transparent;
-  padding: 0;
-  margin: 0;
-}
-
-#power-profiles-daemon.performance {
-  color: #d68b8b;
-}
-
-#power-profiles-daemon.balanced {
-  color: #a4bde0;
-}
-
-#power-profiles-daemon.power-saver {
-  color: #bcc2d2;
 }
 
 #custom-notification {
