@@ -41,7 +41,7 @@ let
     inherit mainUser;
   };
 
-  hostDir = "hosts/nixos/${name}";
+  hostDir = "nix/hosts/nixos/${name}";
   hostHardwarePath = mylib.relativeToRoot "${hostDir}/hardware.nix";
   hostDiskoPath = mylib.relativeToRoot "${hostDir}/disko.nix";
   hostModulesPath = mylib.relativeToRoot "${hostDir}/modules";
@@ -64,7 +64,7 @@ let
 
   hostModules = [
     nixpkgsModule
-    (mylib.relativeToRoot "nix/modules/system")
+    (mylib.relativeToRoot "nix/modules/core")
     (mylib.relativeToRoot "nix/modules/hardware.nix")
     ({ modulesPath, ... }: { imports = [ (modulesPath + "/installer/scan/not-detected.nix") ]; })
     hostHardwarePath

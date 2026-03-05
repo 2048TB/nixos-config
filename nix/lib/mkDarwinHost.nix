@@ -11,7 +11,7 @@
 , ...
 }:
 let
-  hostDir = "hosts/darwin/${name}";
+  hostDir = "nix/hosts/darwin/${name}";
   hostModulesPath = mylib.relativeToRoot "${hostDir}/modules";
   hostHomePath = mylib.relativeToRoot "${hostDir}/home.nix";
   hostHomeModulesPath = mylib.relativeToRoot "${hostDir}/home-modules";
@@ -76,25 +76,25 @@ let
     config.allowUnfree = true;
   };
 in
-assert lib.assertMsg (hostMyvars != { }) "Missing or empty hosts/darwin/${name}/vars.nix";
+assert lib.assertMsg (hostMyvars != { }) "Missing or empty nix/hosts/darwin/${name}/vars.nix";
 assert lib.assertMsg
   (
     builtins.hasAttr "username" hostMyvars
     && builtins.isString hostMyvars.username
       && hostMyvars.username != ""
-  ) "Invalid hosts/darwin/${name}/vars.nix: username must be a non-empty string";
+  ) "Invalid nix/hosts/darwin/${name}/vars.nix: username must be a non-empty string";
 assert lib.assertMsg
   (
     builtins.hasAttr "homeStateVersion" hostMyvars
     && builtins.isString hostMyvars.homeStateVersion
       && hostMyvars.homeStateVersion != ""
-  ) "Invalid hosts/darwin/${name}/vars.nix: homeStateVersion must be a non-empty string";
+  ) "Invalid nix/hosts/darwin/${name}/vars.nix: homeStateVersion must be a non-empty string";
 assert lib.assertMsg
   (
     builtins.hasAttr "timezone" hostMyvars
     && builtins.isString hostMyvars.timezone
       && hostMyvars.timezone != ""
-  ) "Invalid hosts/darwin/${name}/vars.nix: timezone must be a non-empty string";
+  ) "Invalid nix/hosts/darwin/${name}/vars.nix: timezone must be a non-empty string";
 {
   inherit
     name

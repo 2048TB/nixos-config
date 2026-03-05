@@ -77,14 +77,14 @@ repo="$(resolve_repo_path "$repo")"
 case "$platform" in
   nixos)
     source_host="${source_host:-zly}"
-    root_dir="$repo/hosts/nixos"
+    root_dir="$repo/nix/hosts/nixos"
     required_files=(hardware.nix disko.nix vars.nix)
     optional_files=(host.nix home.nix checks.nix)
     optional_dirs=(modules home-modules)
     ;;
   darwin)
     source_host="${source_host:-zly-mac}"
-    root_dir="$repo/hosts/darwin"
+    root_dir="$repo/nix/hosts/darwin"
     required_files=(default.nix vars.nix)
     optional_files=(home.nix checks.nix)
     optional_dirs=(modules home-modules)

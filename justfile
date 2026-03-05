@@ -16,27 +16,27 @@ age_key_rel := "{{key_dir_rel}}/main.agekey"
 
 # 新建 NixOS 主机目录（复制现有模板主机，默认来自 zly）
 new-nixos-host name from="zly":
-    {{repo}}/scripts/new-host.sh nixos {{name}} --from {{from}} --repo {{repo}}
+    {{repo}}/nix/scripts/admin/new-host.sh nixos {{name}} --from {{from}} --repo {{repo}}
 
 # 预览 NixOS 主机脚手架（不写入文件）
 new-nixos-host-dry-run name from="zly":
-    {{repo}}/scripts/new-host.sh nixos {{name}} --from {{from}} --repo {{repo}} --dry-run
+    {{repo}}/nix/scripts/admin/new-host.sh nixos {{name}} --from {{from}} --repo {{repo}} --dry-run
 
 # 强制覆盖 NixOS 主机目录
 new-nixos-host-force name from="zly":
-    {{repo}}/scripts/new-host.sh nixos {{name}} --from {{from}} --repo {{repo}} --force
+    {{repo}}/nix/scripts/admin/new-host.sh nixos {{name}} --from {{from}} --repo {{repo}} --force
 
 # 新建 Darwin 主机目录（复制现有模板主机，默认来自 zly-mac）
 new-darwin-host name from="zly-mac":
-    {{repo}}/scripts/new-host.sh darwin {{name}} --from {{from}} --repo {{repo}}
+    {{repo}}/nix/scripts/admin/new-host.sh darwin {{name}} --from {{from}} --repo {{repo}}
 
 # 预览 Darwin 主机脚手架（不写入文件）
 new-darwin-host-dry-run name from="zly-mac":
-    {{repo}}/scripts/new-host.sh darwin {{name}} --from {{from}} --repo {{repo}} --dry-run
+    {{repo}}/nix/scripts/admin/new-host.sh darwin {{name}} --from {{from}} --repo {{repo}} --dry-run
 
 # 强制覆盖 Darwin 主机目录
 new-darwin-host-force name from="zly-mac":
-    {{repo}}/scripts/new-host.sh darwin {{name}} --from {{from}} --repo {{repo}} --force
+    {{repo}}/nix/scripts/admin/new-host.sh darwin {{name}} --from {{from}} --repo {{repo}} --force
 
 # 安装前构建校验（不落盘；需指定 host）
 install-check:
@@ -46,23 +46,23 @@ install-check:
 # 一键安装（危险：会清空 {{disk}}；需指定 host）
 install:
     @if [ -z "{{host}}" ]; then echo "error: 需要指定主机. 用法: just host=zly disk=/dev/nvme0n1 install" >&2; exit 2; fi
-    {{repo}}/scripts/install-live.sh --host {{host}} --disk {{disk}} --repo {{repo}}
+    {{repo}}/nix/scripts/admin/install-live.sh --host {{host}} --disk {{disk}} --repo {{repo}}
 
 # 应用配置并立即切换（不指定 host 则自动检测当前主机）
 switch:
-    h="{{host}}"; if [ -z "$h" ]; then h="$({{repo}}/scripts/resolve-host.sh nixos {{repo}} auto --strict)"; fi; echo ">>> host=$h"; sudo nixos-rebuild switch --flake "path:{{repo}}#$h" |& nom
+    h="{{host}}"; if [ -z "$h" ]; then h="$({{repo}}/nix/scripts/admin/resolve-host.sh nixos {{repo}} auto --strict)"; fi; echo ">>> host=$h"; sudo nixos-rebuild switch --flake "path:{{repo}}#$h" |& nom
 
 # 应用配置但下次启动生效
 boot:
-    h="{{host}}"; if [ -z "$h" ]; then h="$({{repo}}/scripts/resolve-host.sh nixos {{repo}} auto --strict)"; fi; echo ">>> host=$h"; sudo nixos-rebuild boot --flake "path:{{repo}}#$h" |& nom
+    h="{{host}}"; if [ -z "$h" ]; then h="$({{repo}}/nix/scripts/admin/resolve-host.sh nixos {{repo}} auto --strict)"; fi; echo ">>> host=$h"; sudo nixos-rebuild boot --flake "path:{{repo}}#$h" |& nom
 
 # 临时测试配置（重启后失效）
 test:
-    h="{{host}}"; if [ -z "$h" ]; then h="$({{repo}}/scripts/resolve-host.sh nixos {{repo}} auto --strict)"; fi; echo ">>> host=$h"; sudo nixos-rebuild test --flake "path:{{repo}}#$h" |& nom
+    h="{{host}}"; if [ -z "$h" ]; then h="$({{repo}}/nix/scripts/admin/resolve-host.sh nixos {{repo}} auto --strict)"; fi; echo ">>> host=$h"; sudo nixos-rebuild test --flake "path:{{repo}}#$h" |& nom
 
 # 检查配置但不应用（快速验证）
 check:
-    h="{{host}}"; if [ -z "$h" ]; then h="$({{repo}}/scripts/resolve-host.sh nixos {{repo}} auto --strict)"; fi; echo ">>> host=$h"; nix build --no-link "path:{{repo}}#nixosConfigurations.$h.config.system.build.toplevel"
+    h="{{host}}"; if [ -z "$h" ]; then h="$({{repo}}/nix/scripts/admin/resolve-host.sh nixos {{repo}} auto --strict)"; fi; echo ">>> host=$h"; nix build --no-link "path:{{repo}}#nixosConfigurations.$h.config.system.build.toplevel"
 
 # 快速执行 eval tests（hostname/home 映射一致性）
 eval-tests:
@@ -86,11 +86,11 @@ rollback:
 
 # 应用 macOS 配置（不指定 darwin_host 则自动检测）
 darwin-switch:
-    h="{{darwin_host}}"; if [ -z "$h" ]; then h="$({{repo}}/scripts/resolve-host.sh darwin {{repo}} auto --strict)"; fi; echo ">>> darwin_host=$h"; darwin-rebuild switch --flake "path:{{repo}}#$h"
+    h="{{darwin_host}}"; if [ -z "$h" ]; then h="$({{repo}}/nix/scripts/admin/resolve-host.sh darwin {{repo}} auto --strict)"; fi; echo ">>> darwin_host=$h"; darwin-rebuild switch --flake "path:{{repo}}#$h"
 
 # 构建 macOS 配置（不切换）
 darwin-check:
-    h="{{darwin_host}}"; if [ -z "$h" ]; then h="$({{repo}}/scripts/resolve-host.sh darwin {{repo}} auto --strict)"; fi; echo ">>> darwin_host=$h"; nix build --no-link "path:{{repo}}#darwinConfigurations.$h.system"
+    h="{{darwin_host}}"; if [ -z "$h" ]; then h="$({{repo}}/nix/scripts/admin/resolve-host.sh darwin {{repo}} auto --strict)"; fi; echo ">>> darwin_host=$h"; nix build --no-link "path:{{repo}}#darwinConfigurations.$h.system"
 
 # 列出可用 darwin 主机
 darwin-hosts:
@@ -179,7 +179,7 @@ lint:
 
 # Shell 脚本语法/静态检查（shellcheck 可选）
 scripts-check:
-    @{{repo}}/scripts/check-scripts.sh
+    @{{repo}}/nix/scripts/admin/check-scripts.sh
     @echo "✓ Shell 脚本检查通过"
 
 # 查找死代码
@@ -234,35 +234,35 @@ hooks-enable:
 
 # 密钥泄露保护（阻止提交/推送敏感文件）
 guard-secrets:
-    @{{repo}}/scripts/guard-secrets.sh
+    @{{repo}}/nix/scripts/admin/guard-secrets.sh
 
 # 初始化 agenix 主密钥（默认只同步，不自动创建）
 agenix-init:
-    @{{repo}}/scripts/agenix.sh init
+    @{{repo}}/nix/scripts/admin/agenix.sh init
 
 # 首次初始化 agenix 主密钥（仅在 main.agekey 缺失时创建）
 agenix-init-create:
-    @{{repo}}/scripts/agenix.sh init --create
+    @{{repo}}/nix/scripts/admin/agenix.sh init --create
 
 # 旋转 agenix 主密钥（危险：需要立即 rekey）
 agenix-init-rotate:
-    @{{repo}}/scripts/agenix.sh init --rotate
+    @{{repo}}/nix/scripts/admin/agenix.sh init --rotate
 
 # 初始化/更新恢复密钥（本地 .keys/recovery.agekey + 仓库公钥）
 agenix-recovery-init:
-    @{{repo}}/scripts/agenix.sh recovery-init
+    @{{repo}}/nix/scripts/admin/agenix.sh recovery-init
 
 # 添加主机 SSH host 公钥 recipient（默认读取 /etc/ssh/ssh_host_ed25519_key.pub）
 agenix-host-key-add HOST PUB="/etc/ssh/ssh_host_ed25519_key.pub":
-    @{{repo}}/scripts/agenix.sh host-add '{{HOST}}' '{{PUB}}'
+    @{{repo}}/nix/scripts/admin/agenix.sh host-add '{{HOST}}' '{{PUB}}'
 
 # 列出 agenix recipients
 agenix-recipients:
-    @{{repo}}/scripts/agenix.sh recipients
+    @{{repo}}/nix/scripts/admin/agenix.sh recipients
 
 # 按当前 recipients 重加密所有 secrets/*.age
 agenix-rekey:
-    @{{repo}}/scripts/agenix.sh rekey
+    @{{repo}}/nix/scripts/admin/agenix.sh rekey
 
 # 生成 sha-512 密码哈希（交互输入密码）
 password-hash:
@@ -282,11 +282,11 @@ password-hashes:
 
 # 将同一个密码哈希写入 agenix（user/root）
 password-set-hash HASH:
-    @{{repo}}/scripts/agenix.sh password-set '{{HASH}}'
+    @{{repo}}/nix/scripts/admin/agenix.sh password-set '{{HASH}}'
 
 # 将 .keys/github_id_ed25519(.pub) 加密写入 agenix secrets
 ssh-key-set:
-    @{{repo}}/scripts/agenix.sh ssh-key-set
+    @{{repo}}/nix/scripts/admin/agenix.sh ssh-key-set
 
 # 提交所有更改
 commit MESSAGE:
@@ -342,19 +342,19 @@ shell:
 
 # 查看快捷键文档
 keys:
-    @bat --style=plain KEYBINDINGS.md || cat KEYBINDINGS.md
+    @bat --style=plain docs/KEYBINDINGS.md || cat docs/KEYBINDINGS.md
 
 # 查看 Nix 命令文档
 commands:
-    @bat --style=plain NIX-COMMANDS.md || cat NIX-COMMANDS.md
+    @bat --style=plain docs/NIX-COMMANDS.md || cat docs/NIX-COMMANDS.md
 
 # 查看所有文档
 docs:
     @echo "=== 可用文档 ==="
-    @echo "README.md            - 主文档（含 Binary Cache 说明）"
-    @echo "KEYBINDINGS.md       - 快捷键说明"
-    @echo "NIX-COMMANDS.md      - Nix 命令速查"
-    @echo "ENV-USAGE.md         - 多环境使用手册"
+    @echo "docs/README.md            - 主文档（含 Binary Cache 说明）"
+    @echo "docs/KEYBINDINGS.md       - 快捷键说明"
+    @echo "docs/NIX-COMMANDS.md      - Nix 命令速查"
+    @echo "docs/ENV-USAGE.md         - 多环境使用手册"
 
 # ========== 故障排查 ==========
 

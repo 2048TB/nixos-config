@@ -128,7 +128,7 @@ in
       (builtins.attrNames hostsDir);
 
   # Use paths relative to the repository root.
-  relativeToRoot = lib.path.append ../.;
+  relativeToRoot = lib.path.append ../../.;
 
   roleFlags = myvars:
     let

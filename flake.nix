@@ -73,5 +73,5 @@
     };
   };
 
-  outputs = inputs: import ./hosts/outputs inputs;
+  outputs = inputs: import ./nix/hosts/outputs inputs;
 }

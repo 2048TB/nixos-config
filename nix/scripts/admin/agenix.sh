@@ -21,14 +21,14 @@ recovery_pub="$secrets_key_dir/recovery.age.pub"
 require_main_key() {
   if [ ! -f "$main_key" ]; then
     echo "error: missing $main_key" >&2
-    echo "hint: import your existing main key, or run: scripts/agenix.sh init --create" >&2
+    echo "hint: import your existing main key, or run: nix/scripts/admin/agenix.sh init --create" >&2
     exit 1
   fi
 }
 
 require_main_pub() {
   if [ ! -f "$main_pub" ]; then
-    echo "error: missing $main_pub; run: scripts/agenix.sh init" >&2
+    echo "error: missing $main_pub; run: nix/scripts/admin/agenix.sh init" >&2
     exit 1
   fi
   if [ -z "$(tr -d '\n' < "$main_pub")" ]; then
@@ -69,7 +69,7 @@ cmd_init() {
     rotate)
       run_age_keygen -o "$main_key" >/dev/null
       echo "rotated main key: $main_key"
-      echo "warning: run 'scripts/agenix.sh rekey' before next deployment."
+      echo "warning: run 'nix/scripts/admin/agenix.sh rekey' before next deployment."
       ;;
   esac
 

@@ -5,7 +5,7 @@ repo_root="$(git rev-parse --show-toplevel)"
 cd "$repo_root"
 
 shopt -s nullglob
-files=(scripts/*.sh .githooks/pre-*)
+files=(nix/scripts/admin/*.sh nix/scripts/session/*.sh .githooks/pre-*)
 shopt -u nullglob
 
 if [ "${#files[@]}" -eq 0 ]; then

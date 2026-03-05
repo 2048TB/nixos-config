@@ -62,7 +62,7 @@ let
     "image/tiff"
   ];
   imageApps = [ "org.nomacs.ImageLounge.desktop" "nomacs.desktop" ];
-  portalConfig = import ../../portal-config.nix;
+  portalConfig = import ../../modules/core/portal-config.nix;
 in
 {
   xdg = {
@@ -132,7 +132,7 @@ in
         "zellij/config.kdl".text = mytheme.apply (builtins.readFile ../configs/zellij/config.kdl);
         "tmux/tmux.conf".text = mytheme.apply (builtins.readFile ../configs/tmux/tmux.conf);
         "wallpapers" = {
-          source = ../configs/wallpapers;
+          source = ../../../wallpapers;
           recursive = true;
         };
 

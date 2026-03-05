@@ -1,71 +1,56 @@
-# nix/home 目录说明（新手版）
+# home 目录
 
-这里放的是 Home Manager 配置（用户级配置）。
+Home Manager 配置（用户级）。
 
-如果你不知道改哪里，先看这条：
-- 改系统级（服务、内核、磁盘）去 `nix/modules/` 或 `hosts/...`
-- 改用户级（终端、主题、快捷键）来 `nix/home/`
-
----
-
-## 1. 目录结构
-
-- `nix/home/base/default.nix`：Linux + macOS 共享（session 变量、路径）
-- `nix/home/linux/`：Linux 专用
-  - `default.nix`：入口（session 变量、home.file、dconf）
-  - `packages.nix`：home.packages + WPS 包装 + 独立脚本包
-  - `programs.nix`：fzf/mpv/lutris/zsh/vim
-  - `desktop.nix`：systemd 用户服务 + quiet launcher + waybar/swaybg
-  - `xdg.nix`：xdg portal/mimeApps/configFile/userDirs
-- `nix/home/darwin/default.nix`：macOS 专用
-- `nix/home/configs/`：具体应用配置文件
-
-常用子目录：
-- `configs/niri/`：Niri
-- `configs/waybar/`：Waybar
-- `configs/shell/`：zsh/vim
-- `configs/tmux/`：tmux
-- `configs/zellij/`：zellij
+- 改系统级（服务/内核/磁盘）→ `nix/modules/` 或 `nix/hosts/`
+- 改用户级（终端/主题/快捷键）→ 本目录
 
 ---
 
-## 2. 常见修改路径
+## 结构
 
-- 改终端行为：`configs/shell/`、`configs/ghostty/`、`configs/foot/`
-- 改桌面栏：`configs/waybar/`
-- 改窗口交互（输入/快捷键/窗口规则）：`configs/niri/interaction.kdl`
-- 改窗口外观（布局/动画/输出）：`configs/niri/appearance.kdl`
-- 改 tmux 快捷键：`configs/tmux/tmux.conf`
-
----
-
-## 3. 修改后怎么生效
-
-```bash
-just switch
 ```
-
-先检查再应用：
-
-```bash
-just check
-just test
-just switch
+nix/home/
+├── base/default.nix    # 跨平台共享（session 变量、PATH、zsh/vim）
+├── linux/
+│   ├── default.nix     # 入口（session vars、home.file、dconf）
+│   ├── packages.nix    # home.packages + 脚本包
+│   ├── programs.nix    # fzf/mpv/lutris
+│   ├── desktop.nix     # systemd 用户服务（waybar/swaybg/swaync）
+│   └── xdg.nix         # portal/mimeApps/configFile
+├── darwin/default.nix  # macOS 专用
+└── configs/            # 应用配置文件
+    ├── niri/           # 窗口管理器
+    ├── waybar/         # 状态栏
+    ├── shell/          # zsh/vim
+    ├── tmux/           # tmux
+    ├── zellij/         # zellij
+    ├── ghostty/        # 终端
+    ├── foot/           # 备用终端
+    ├── fuzzel/         # 启动器
+    ├── wlogout/        # 电源菜单
+    └── ...
 ```
 
 ---
 
-## 4. 排查（桌面/状态栏）
+## 常见修改
 
-```bash
-systemctl --user status waybar.service --no-pager
-journalctl --user -b -u waybar.service -u xdg-desktop-portal.service --no-pager
-```
+| 目标 | 文件 |
+|------|------|
+| 终端 | `configs/ghostty/`、`configs/foot/`、`configs/shell/` |
+| 状态栏 | `configs/waybar/` |
+| 窗口快捷键 | `configs/niri/interaction.kdl` |
+| 窗口外观 | `configs/niri/appearance.kdl` |
+| Tmux | `configs/tmux/tmux.conf` |
+
+改完后 `just switch` 生效。
 
 ---
 
-## 5. 文档同步规则
+## 文档同步
 
-如果你改了下面两个文件，记得同步更新 `KEYBINDINGS.md`：
-- `nix/home/configs/tmux/tmux.conf`
-- `nix/home/configs/zellij/config.kdl`
+改了以下文件需同步 `docs/KEYBINDINGS.md`：
+- `configs/niri/interaction.kdl`
+- `configs/tmux/tmux.conf`
+- `configs/zellij/config.kdl`

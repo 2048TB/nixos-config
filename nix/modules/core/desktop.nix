@@ -4,7 +4,7 @@
 }:
 let
   gnupgCacheTtlSeconds = 4 * 60 * 60; # 4 小时
-  portalConfig = import ../../portal-config.nix;
+  portalConfig = import ./portal-config.nix;
   # 仅将 MinGW 交叉编译器的可执行文件加入 system path，避免与本机 gcc 的文档路径冲突告警。
   mingwToolchainBinOnly = pkgs.buildEnv {
     name = "mingw-w64-toolchain-bin-only";

@@ -39,14 +39,14 @@ let
   waybarLauncher = pkgs.writeShellApplication {
     name = "waybar-launcher";
     runtimeInputs = [ pkgs.coreutils waybarQuiet ];
-    text = builtins.readFile ../scripts/waybar-launcher.sh;
+    text = builtins.readFile ../../scripts/session/waybar-launcher.sh;
   };
 
   # ===== Swaybg 启动器 =====
   swaybgLauncher = pkgs.writeShellApplication {
     name = "swaybg-launcher";
     runtimeInputs = with pkgs; [ swaybg findutils coreutils ];
-    text = builtins.readFile ../scripts/swaybg-launcher.sh;
+    text = builtins.readFile ../../scripts/session/swaybg-launcher.sh;
   };
 
   # ===== SwayNC 配置 =====

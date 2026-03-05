@@ -58,13 +58,13 @@ case "$platform" in
   nixos)
     env_candidate="${NIXOS_HOST:-}"
     detected_candidate="$(detect_nixos_host)"
-    hosts_root="$repo/hosts/nixos"
+    hosts_root="$repo/nix/hosts/nixos"
     required_files=(hardware.nix disko.nix vars.nix)
     ;;
   darwin)
     env_candidate="${DARWIN_HOST:-}"
     detected_candidate="$(detect_darwin_host)"
-    hosts_root="$repo/hosts/darwin"
+    hosts_root="$repo/nix/hosts/darwin"
     required_files=(default.nix vars.nix)
     ;;
   *)
