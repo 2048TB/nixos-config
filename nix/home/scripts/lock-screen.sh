@@ -13,21 +13,20 @@ args=(
   --indicator-thickness 12
   --line-color 00000000
   --separator-color 00000000
-  # Nord palette
-  --inside-color 2e3440cc
-  --ring-color 81a1c1ff
-  --text-color eceff4ff
-  --inside-clear-color 2e3440cc
-  --ring-clear-color ebcb8bff
-  --text-clear-color eceff4ff
-  --inside-ver-color 2e3440cc
-  --ring-ver-color a3be8cff
-  --text-ver-color eceff4ff
-  --inside-wrong-color 2e3440cc
-  --ring-wrong-color bf616aff
-  --text-wrong-color bf616aff
-  --key-hl-color 88c0d0ff
-  --bs-hl-color bf616aff
+  --inside-color @THEME_BG@cc
+  --ring-color @THEME_BLUE@ff
+  --text-color @THEME_FG2@ff
+  --inside-clear-color @THEME_BG@cc
+  --ring-clear-color @THEME_YELLOW@ff
+  --text-clear-color @THEME_FG2@ff
+  --inside-ver-color @THEME_BG@cc
+  --ring-ver-color @THEME_GREEN@ff
+  --text-ver-color @THEME_FG2@ff
+  --inside-wrong-color @THEME_BG@cc
+  --ring-wrong-color @THEME_RED@ff
+  --text-wrong-color @THEME_RED@ff
+  --key-hl-color @THEME_CYAN@ff
+  --bs-hl-color @THEME_RED@ff
   --show-failed-attempts
   --show-keyboard-layout
   --scaling fill
@@ -36,7 +35,7 @@ args=(
 if [ -n "$wallpaper" ]; then
   args+=(--image "$wallpaper")
 else
-  args+=(--color 2e3440ff)
+  args+=(--color @THEME_BG@ff)
 fi
 
 exec swaylock -f "${args[@]}" "$@"

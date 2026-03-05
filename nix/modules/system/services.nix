@@ -2,6 +2,7 @@
 , lib
 , mylib
 , myvars
+, mytheme
 , mainUser
 , ...
 }:
@@ -14,9 +15,9 @@ let
   journaldRuntimeMaxUse = myvars.journaldRuntimeMaxUse or "256M";
 
   tuigreetPackage = pkgs.tuigreet or pkgs.greetd.tuigreet;
-  tuigreetTheme =
-    "border=#4c566a;text=#d8dee9;prompt=#81a1c1;time=#d8dee9;action=#81a1c1;"
-    + "button=#a3be8c;container=#2e3440;input=#ebcb8b;greet=#88c0d0;title=#5e81ac";
+  tuigreetTheme = let p = mytheme.palette; in
+    "border=#${p.bg3.hex};text=#${p.fg.hex};prompt=#${p.blue.hex};time=#${p.fg.hex};action=#${p.blue.hex};"
+    + "button=#${p.green.hex};container=#${p.bg.hex};input=#${p.yellow.hex};greet=#${p.cyan.hex};title=#${p.deep.hex}";
   tuigreetCommand = pkgs.writeShellScript "greetd-tuigreet-session" ''
     exec ${lib.getExe tuigreetPackage} \
       --time \

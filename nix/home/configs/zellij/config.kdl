@@ -33,4 +33,20 @@ keybinds {
 
 default_shell "zsh"
 pane_frames true
-theme "default"
+
+themes {
+    nord {
+        bg "#@THEME_BG1@"
+        fg "#@THEME_FG@"
+        black "#@THEME_BG1@"
+        red "#@THEME_RED@"
+        green "#@THEME_GREEN@"
+        yellow "#@THEME_YELLOW@"
+        blue "#@THEME_BLUE@"
+        magenta "#@THEME_PURPLE@"
+        cyan "#@THEME_CYAN@"
+        white "#@THEME_FG1@"
+        orange "#@THEME_ORANGE@"
+    }
+}
+theme "nord"

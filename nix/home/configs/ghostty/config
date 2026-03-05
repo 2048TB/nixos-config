@@ -26,7 +26,7 @@ background-opacity = 1.0
 window-theme = dark
 
 # ===== 主题 =====
-theme = Catppuccin Mocha
+theme = @THEME_GHOSTTY@
 
 # 未聚焦窗口透明度
 unfocused-split-opacity = 0.7
