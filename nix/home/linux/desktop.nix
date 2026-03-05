@@ -2,6 +2,7 @@
 , lib
 , mylib
 , myvars
+, mytheme
 , userProfileBin
 , ...
 }:
@@ -111,31 +112,31 @@ let
       notifications = { };
     };
   };
-  swayncStyle = ''
+  swayncStyle = let p = mytheme.palette; in ''
     * {
       font-family: "Maple Mono NF CN", "Sarasa UI SC", "JetBrainsMono Nerd Font", sans-serif;
       font-size: 13px;
     }
 
     .control-center {
-      background: #1e1e2e;
-      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: #${p.bg.hex};
+      border: 1px solid rgba(${p.bg3.rgb}, 0.35);
       border-radius: 14px;
     }
 
     .control-center .widget-title,
     .control-center .widget-dnd,
     .control-center .widget-mpris {
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(${p.bg1.rgb}, 0.5);
+      border: 1px solid rgba(${p.bg3.rgb}, 0.25);
       border-radius: 10px;
       margin: 8px 10px 0 10px;
       padding: 8px 10px;
     }
 
     .control-center .widget-title > button {
-      background: #89b4fa;
-      color: #1e1e2e;
+      background: #${p.blue.hex};
+      color: #${p.bg.hex};
       border-radius: 8px;
       border: none;
       padding: 4px 10px;
@@ -147,8 +148,8 @@ let
     }
 
     .notification {
-      background: #1e1e2e;
-      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: #${p.bg.hex};
+      border: 1px solid rgba(${p.bg3.rgb}, 0.25);
       border-radius: 12px;
       margin: 6px 10px;
       padding: 0;
@@ -160,24 +161,24 @@ let
 
     .notification-default-action:hover,
     .notification-action:hover {
-      background: rgba(137, 180, 250, 0.18);
+      background: rgba(${p.blue.rgb}, 0.18);
     }
 
     .notification.critical {
-      border-color: rgba(243, 139, 168, 0.45);
+      border-color: rgba(${p.red.rgb}, 0.45);
     }
 
     .widget-dnd > switch {
-      background: #313244;
+      background: #${p.bg1.hex};
       border-radius: 999px;
     }
 
     .widget-dnd > switch:checked {
-      background: #89b4fa;
+      background: #${p.blue.hex};
     }
 
     .widget-dnd > switch slider {
-      background: #cdd6f4;
+      background: #${p.fg.hex};
       border-radius: 999px;
     }
   '';

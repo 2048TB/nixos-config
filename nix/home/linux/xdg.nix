@@ -2,6 +2,7 @@
 , pkgs
 , lib
 , myvars
+, mytheme
 , userProfileBin
 , ...
 }:
@@ -37,7 +38,7 @@ let
       [
         "${../configs/waybar/icons/pacman.svg}"
       ]
-      (builtins.readFile ../configs/waybar/style.css);
+      (mytheme.apply (builtins.readFile ../configs/waybar/style.css));
 
   wlogoutIconNames = [
     "lock"
@@ -113,23 +114,23 @@ in
         };
         "niri/config.kdl".source = ../configs/niri/config.kdl;
         "niri/interaction.kdl".source = ../configs/niri/interaction.kdl;
-        "niri/appearance.kdl".source = ../configs/niri/appearance.kdl;
+        "niri/appearance.kdl".text = mytheme.apply (builtins.readFile ../configs/niri/appearance.kdl);
         "wlogout/layout".source = ../configs/wlogout/layout;
-        "wlogout/style.css".source = ../configs/wlogout/style.css;
+        "wlogout/style.css".text = mytheme.apply (builtins.readFile ../configs/wlogout/style.css);
 
         "fcitx5/profile" = {
           source = ../configs/fcitx5/profile;
           force = true;
         };
 
-        "fuzzel/fuzzel.ini".source = ../configs/fuzzel/fuzzel.ini;
-        "foot/foot.ini".source = ../configs/foot/foot.ini;
-        "ghostty/config".source = ../configs/ghostty/config;
+        "fuzzel/fuzzel.ini".text = mytheme.apply (builtins.readFile ../configs/fuzzel/fuzzel.ini);
+        "foot/foot.ini".text = mytheme.apply (builtins.readFile ../configs/foot/foot.ini);
+        "ghostty/config".text = mytheme.apply (builtins.readFile ../configs/ghostty/config);
         "yazi/yazi.toml".source = ../configs/yazi/yazi.toml;
         "yazi/keymap.toml".source = ../configs/yazi/keymap.toml;
         "git/config".source = ../configs/git/config;
-        "zellij/config.kdl".source = ../configs/zellij/config.kdl;
-        "tmux/tmux.conf".source = ../configs/tmux/tmux.conf;
+        "zellij/config.kdl".text = mytheme.apply (builtins.readFile ../configs/zellij/config.kdl);
+        "tmux/tmux.conf".text = mytheme.apply (builtins.readFile ../configs/tmux/tmux.conf);
         "wallpapers" = {
           source = ../configs/wallpapers;
           recursive = true;

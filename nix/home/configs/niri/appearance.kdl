@@ -43,9 +43,9 @@ layout {
     focus-ring {
         off
         width 4
-        active-gradient from="#89b4facc" to="#cba6f7cc" angle=135
-        inactive-color "#585b70"
-        urgent-color "#f38ba8"
+        active-gradient from="#@THEME_BLUE@cc" to="#@THEME_CYAN@cc" angle=135
+        inactive-color "#@THEME_BG3@"
+        urgent-color "#@THEME_RED@"
     }
 
     // 也可以添加边框，类似焦点环但始终可见。
@@ -55,11 +55,11 @@ layout {
         off
 
         width 4
-        active-color "#f9e2af"
-        inactive-color "#585b70"
+        active-color "#@THEME_BLUE@"
+        inactive-color "#@THEME_BG3@"
 
         // 请求注意的窗口边框颜色。
-        urgent-color "#f38ba8"
+        urgent-color "#@THEME_RED@"
 
         // 渐变可使用不同的插值色彩空间。
         // 例如通过 in="oklch longer hue" 可实现柔和的彩虹渐变。
@@ -104,13 +104,13 @@ animations {
 // 最近窗口切换器（Alt+Tab）样式
 recent-windows {
     highlight {
-        active-color "#89b4fa33"
-        urgent-color "#f38ba8"
+        active-color "#@THEME_BLUE@33"
+        urgent-color "#@THEME_RED@"
     }
 }
 
 // 输出缩放（百分比 = scale * 100）
-// 使用 niri msg outputs 中的“厂商 型号 序列号”匹配，避免 DP-1/DP-2 端口号切换导致重复配置。
+// 使用 niri msg outputs 中的"厂商 型号 序列号"匹配，避免 DP-1/DP-2 端口号切换导致重复配置。
 output "HKC OVERSEAS LIMITED MG27Q 0000000000001" {
     // 高刷屏常把 60Hz 标为 preferred，这里显式锁到 165Hz 以获得稳定高刷体验。
     mode "2560x1440@165.000"

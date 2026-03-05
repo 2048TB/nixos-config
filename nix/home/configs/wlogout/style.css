@@ -1,89 +1,82 @@
 /* ============================================
- * Nord - Unified Dark Theme
+ * Theme-aware wlogout style (placeholders)
  * ============================================ */
 
-/* Reset */
 * {
   background-image: none;
   box-shadow: none;
   font-family: "Maple Mono NF CN", "Sarasa UI SC", "JetBrainsMono Nerd Font", sans-serif;
 }
 
-/* Fullscreen backdrop */
 window {
-  background-color: rgba(46, 52, 64, 0.85);
+  background-color: rgba(@THEME_BG_RGB@, 0.85);
 }
 
-/* Button base */
 button {
   margin: 14px;
   border-radius: 28px;
-  border: 2px solid rgba(76, 86, 106, 0.3);
-  background-color: rgba(59, 66, 82, 0.65);
+  border: 2px solid rgba(@THEME_BG3_RGB@, 0.3);
+  background-color: rgba(@THEME_BG1_RGB@, 0.65);
   background-repeat: no-repeat;
   background-position: center 38%;
   background-size: 28%;
-  color: #d8dee9;
+  color: #@THEME_FG@;
   font-size: 14px;
   font-weight: 600;
   letter-spacing: 0.5px;
   transition: all 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
-/* Shared hover base */
 button:focus,
 button:active,
 button:hover {
   background-size: 32%;
   outline-style: none;
-  color: #eceff4;
+  color: #@THEME_FG2@;
 }
 
-/* ---- Per-button accent colors (Nord Frost + Aurora) ---- */
-
 #lock:focus, #lock:active, #lock:hover {
-  background-color: rgba(129, 161, 193, 0.15);
-  border-color: rgba(129, 161, 193, 0.55);
-  box-shadow: 0 0 24px rgba(129, 161, 193, 0.12), inset 0 0 12px rgba(129, 161, 193, 0.04);
-  color: #81a1c1;
+  background-color: rgba(@THEME_BLUE_RGB@, 0.15);
+  border-color: rgba(@THEME_BLUE_RGB@, 0.55);
+  box-shadow: 0 0 24px rgba(@THEME_BLUE_RGB@, 0.12), inset 0 0 12px rgba(@THEME_BLUE_RGB@, 0.04);
+  color: #@THEME_BLUE@;
 }
 
 #logout:focus, #logout:active, #logout:hover {
-  background-color: rgba(163, 190, 140, 0.15);
-  border-color: rgba(163, 190, 140, 0.55);
-  box-shadow: 0 0 24px rgba(163, 190, 140, 0.12), inset 0 0 12px rgba(163, 190, 140, 0.04);
-  color: #a3be8c;
+  background-color: rgba(@THEME_GREEN_RGB@, 0.15);
+  border-color: rgba(@THEME_GREEN_RGB@, 0.55);
+  box-shadow: 0 0 24px rgba(@THEME_GREEN_RGB@, 0.12), inset 0 0 12px rgba(@THEME_GREEN_RGB@, 0.04);
+  color: #@THEME_GREEN@;
 }
 
 #suspend:focus, #suspend:active, #suspend:hover {
-  background-color: rgba(136, 192, 208, 0.15);
-  border-color: rgba(136, 192, 208, 0.55);
-  box-shadow: 0 0 24px rgba(136, 192, 208, 0.12), inset 0 0 12px rgba(136, 192, 208, 0.04);
-  color: #88c0d0;
+  background-color: rgba(@THEME_CYAN_RGB@, 0.15);
+  border-color: rgba(@THEME_CYAN_RGB@, 0.55);
+  box-shadow: 0 0 24px rgba(@THEME_CYAN_RGB@, 0.12), inset 0 0 12px rgba(@THEME_CYAN_RGB@, 0.04);
+  color: #@THEME_CYAN@;
 }
 
 #hibernate:focus, #hibernate:active, #hibernate:hover {
-  background-color: rgba(180, 142, 173, 0.15);
-  border-color: rgba(180, 142, 173, 0.55);
-  box-shadow: 0 0 24px rgba(180, 142, 173, 0.12), inset 0 0 12px rgba(180, 142, 173, 0.04);
-  color: #b48ead;
+  background-color: rgba(@THEME_PURPLE_RGB@, 0.15);
+  border-color: rgba(@THEME_PURPLE_RGB@, 0.55);
+  box-shadow: 0 0 24px rgba(@THEME_PURPLE_RGB@, 0.12), inset 0 0 12px rgba(@THEME_PURPLE_RGB@, 0.04);
+  color: #@THEME_PURPLE@;
 }
 
 #reboot:focus, #reboot:active, #reboot:hover {
-  background-color: rgba(208, 135, 112, 0.15);
-  border-color: rgba(208, 135, 112, 0.55);
-  box-shadow: 0 0 24px rgba(208, 135, 112, 0.12), inset 0 0 12px rgba(208, 135, 112, 0.04);
-  color: #d08770;
+  background-color: rgba(@THEME_ORANGE_RGB@, 0.15);
+  border-color: rgba(@THEME_ORANGE_RGB@, 0.55);
+  box-shadow: 0 0 24px rgba(@THEME_ORANGE_RGB@, 0.12), inset 0 0 12px rgba(@THEME_ORANGE_RGB@, 0.04);
+  color: #@THEME_ORANGE@;
 }
 
 #shutdown:focus, #shutdown:active, #shutdown:hover {
-  background-color: rgba(191, 97, 106, 0.15);
-  border-color: rgba(191, 97, 106, 0.55);
-  box-shadow: 0 0 24px rgba(191, 97, 106, 0.12), inset 0 0 12px rgba(191, 97, 106, 0.04);
-  color: #bf616a;
+  background-color: rgba(@THEME_RED_RGB@, 0.15);
+  border-color: rgba(@THEME_RED_RGB@, 0.55);
+  box-shadow: 0 0 24px rgba(@THEME_RED_RGB@, 0.12), inset 0 0 12px rgba(@THEME_RED_RGB@, 0.04);
+  color: #@THEME_RED@;
 }
 
-/* ---- Icon bindings ---- */
 #lock      { background-image: url("icons/lock.png"); }
 #logout    { background-image: url("icons/logout.png"); }
 #suspend   { background-image: url("icons/suspend.png"); }

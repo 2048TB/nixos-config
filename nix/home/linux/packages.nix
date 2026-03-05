@@ -3,6 +3,7 @@
 , lib
 , mylib
 , myvars
+, mytheme
 , ...
 }:
 let
@@ -62,7 +63,7 @@ let
   lockScreen = pkgs.writeShellApplication {
     name = "lock-screen";
     runtimeInputs = with pkgs; [ swaylock ];
-    text = builtins.readFile ../scripts/lock-screen.sh;
+    text = mytheme.apply (builtins.readFile ../scripts/lock-screen.sh);
   };
   riverScreenshot = pkgs.writeShellApplication {
     name = "river-screenshot";

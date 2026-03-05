@@ -4,12 +4,13 @@
 let
   inherit (nixpkgs) lib;
   mylib = import ../../lib { inherit lib; };
+  mytheme = import ../../lib/theme.nix { inherit lib; };
 
   genSpecialArgs =
     system:
     inputs
     // {
-      inherit mylib;
+      inherit mylib mytheme;
       pkgsUnstable = import inputs.nixpkgs-unstable {
         inherit system;
         config.allowUnfree = true;
