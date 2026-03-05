@@ -15,9 +15,11 @@ layout {
     preset-column-widths {
         // proportion 以输出宽度的比例设置列宽，并考虑 gaps。
         // 例如 proportion 0.25 可在一个输出上正好放下四个窗口。
-        // 预设宽度：50%、80%、100%。
+        // 预设宽度：42%、50%、67%、83%、100%（适配 2560x1440）。
+        proportion 0.420000
         proportion 0.500000
-        proportion 0.800000
+        proportion 0.670000
+        proportion 0.830000
         proportion 1.000000
 
         // fixed 以逻辑像素设置固定宽度。
@@ -25,8 +27,8 @@ layout {
     }
 
     // 可以修改新窗口的默认宽度。
-    // 默认 80%，通过 Mod+R 快捷键在 50%, 80%, 100% 之间切换
-    default-column-width { proportion 0.80; }
+    // 默认 67%，通过 Mod+R 快捷键在 42%, 50%, 67%, 83%, 100% 之间切换
+    default-column-width { proportion 0.67; }
     // 若花括号留空，由窗口自身决定初始宽度。
     // default-column-width {}
 
@@ -112,6 +114,7 @@ recent-windows {
 // 输出缩放（百分比 = scale * 100）
 // 使用 niri msg outputs 中的“厂商 型号 序列号”匹配，避免 DP-1/DP-2 端口号切换导致重复配置。
 output "HKC OVERSEAS LIMITED MG27Q 0000000000001" {
-    // 使用显示器首选模式，避免固定 180Hz 在当前链路下不可用时报回退告警。
-    scale 1.20
+    // 高刷屏常把 60Hz 标为 preferred，这里显式锁到 165Hz 以获得稳定高刷体验。
+    mode "2560x1440@165.000"
+    scale 1.25
 }
