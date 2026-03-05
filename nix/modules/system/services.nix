@@ -15,8 +15,8 @@ let
 
   tuigreetPackage = pkgs.tuigreet or pkgs.greetd.tuigreet;
   tuigreetTheme =
-    "border=cyan;text=white;prompt=lightcyan;time=lightblue;action=lightblue;"
-    + "button=yellow;container=black;input=lightyellow;greet=cyan;title=lightcyan";
+    "border=#45475a;text=#cdd6f4;prompt=#89b4fa;time=#a6adc8;action=#89b4fa;"
+    + "button=#a6e3a1;container=#1e1e2e;input=#f9e2af;greet=#b4befe;title=#cba6f7";
   tuigreetCommand = pkgs.writeShellScript "greetd-tuigreet-session" ''
     exec ${lib.getExe tuigreetPackage} \
       --time \

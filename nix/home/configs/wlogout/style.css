@@ -1,58 +1,92 @@
-/* 清除 GTK 主题默认渐变 */
+/* ============================================
+ * Catppuccin Mocha - Unified Dark Theme
+ * ============================================ */
+
+/* Reset */
 * {
   background-image: none;
   box-shadow: none;
+  font-family: "Maple Mono NF CN", "Sarasa UI SC", "JetBrainsMono Nerd Font", sans-serif;
 }
 
-/* 全局背景设置 */
+/* Fullscreen backdrop */
 window {
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(17, 17, 27, 0.82);
 }
 
-/* 按钮基础样式 */
+/* Button base */
 button {
-  margin: 10px;
-  border-radius: 20px;
-  border: 2px solid rgba(255, 255, 255, 0.1);
-  background-color: rgba(30, 30, 46, 0.5);
+  margin: 14px;
+  border-radius: 28px;
+  border: 2px solid rgba(205, 214, 244, 0.06);
+  background-color: rgba(30, 30, 46, 0.65);
   background-repeat: no-repeat;
-  background-position: center;
-  background-size: 25%;
-  color: #cdd6f4;
-  transition: all 0.3s cubic-bezier(.55, 0.0, .28, 1.4);
+  background-position: center 38%;
+  background-size: 28%;
+  color: #a6adc8;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  transition: all 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
-/* 悬浮状态 */
+/* Shared hover base */
 button:focus,
 button:active,
 button:hover {
-  background-color: rgba(137, 180, 250, 0.2);
-  border: 2px solid #89b4fa;
-  background-size: 35%;
+  background-size: 32%;
   outline-style: none;
+  color: #cdd6f4;
 }
 
-/* 图标绑定 */
-#lock {
-  background-image: url("icons/lock.png");
+/* ---- Per-button accent colors ---- */
+
+#lock:focus, #lock:active, #lock:hover {
+  background-color: rgba(137, 180, 250, 0.12);
+  border-color: rgba(137, 180, 250, 0.5);
+  box-shadow: 0 0 24px rgba(137, 180, 250, 0.12), inset 0 0 12px rgba(137, 180, 250, 0.04);
+  color: #89b4fa;
 }
 
-#logout {
-  background-image: url("icons/logout.png");
+#logout:focus, #logout:active, #logout:hover {
+  background-color: rgba(166, 227, 161, 0.12);
+  border-color: rgba(166, 227, 161, 0.5);
+  box-shadow: 0 0 24px rgba(166, 227, 161, 0.12), inset 0 0 12px rgba(166, 227, 161, 0.04);
+  color: #a6e3a1;
 }
 
-#suspend {
-  background-image: url("icons/suspend.png");
+#suspend:focus, #suspend:active, #suspend:hover {
+  background-color: rgba(180, 190, 254, 0.12);
+  border-color: rgba(180, 190, 254, 0.5);
+  box-shadow: 0 0 24px rgba(180, 190, 254, 0.12), inset 0 0 12px rgba(180, 190, 254, 0.04);
+  color: #b4befe;
 }
 
-#hibernate {
-  background-image: url("icons/hibernate.png");
+#hibernate:focus, #hibernate:active, #hibernate:hover {
+  background-color: rgba(203, 166, 247, 0.12);
+  border-color: rgba(203, 166, 247, 0.5);
+  box-shadow: 0 0 24px rgba(203, 166, 247, 0.12), inset 0 0 12px rgba(203, 166, 247, 0.04);
+  color: #cba6f7;
 }
 
-#shutdown {
-  background-image: url("icons/shutdown.png");
+#reboot:focus, #reboot:active, #reboot:hover {
+  background-color: rgba(250, 179, 135, 0.12);
+  border-color: rgba(250, 179, 135, 0.5);
+  box-shadow: 0 0 24px rgba(250, 179, 135, 0.12), inset 0 0 12px rgba(250, 179, 135, 0.04);
+  color: #fab387;
 }
 
-#reboot {
-  background-image: url("icons/reboot.png");
+#shutdown:focus, #shutdown:active, #shutdown:hover {
+  background-color: rgba(243, 139, 168, 0.12);
+  border-color: rgba(243, 139, 168, 0.5);
+  box-shadow: 0 0 24px rgba(243, 139, 168, 0.12), inset 0 0 12px rgba(243, 139, 168, 0.04);
+  color: #f38ba8;
 }
+
+/* ---- Icon bindings ---- */
+#lock      { background-image: url("icons/lock.png"); }
+#logout    { background-image: url("icons/logout.png"); }
+#suspend   { background-image: url("icons/suspend.png"); }
+#hibernate { background-image: url("icons/hibernate.png"); }
+#shutdown  { background-image: url("icons/shutdown.png"); }
+#reboot    { background-image: url("icons/reboot.png"); }

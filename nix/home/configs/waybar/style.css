@@ -10,7 +10,7 @@
 
 window#waybar {
   background: transparent;
-  color: #f1eeea;
+  color: #cdd6f4;
   margin: 2px 10px 0 10px;
   border: none;
   box-shadow: none;
@@ -22,9 +22,9 @@ window#waybar {
   margin-top: 3px;
   padding: 0 5px;
   border-radius: 999px;
-  background: linear-gradient(145deg, rgba(30, 33, 46, 0.94), rgba(48, 53, 70, 0.9));
-  border: 1px solid rgba(154, 164, 188, 0.4);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 8px 18px rgba(0, 0, 0, 0.38);
+  background: linear-gradient(145deg, rgba(30, 30, 46, 0.94), rgba(49, 50, 68, 0.9));
+  border: 1px solid rgba(69, 71, 90, 0.6);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03), 0 8px 18px rgba(0, 0, 0, 0.38);
 }
 
 .modules-left {
@@ -54,7 +54,7 @@ window#waybar {
 #custom-launcher,
 #custom-power {
   background: transparent;
-  color: #f1eeea;
+  color: #cdd6f4;
   margin: 0;
   padding: 0 5px;
   border-radius: 0;
@@ -76,25 +76,25 @@ window#waybar {
 }
 
 #workspaces button {
-  color: #f1eeea;
-  background: rgba(102, 108, 132, 0.5);
+  color: #cdd6f4;
+  background: rgba(69, 71, 90, 0.55);
   background-image: none;
   margin: 0 2px;
   padding: 0;
   min-width: 24px;
   min-height: 24px;
   border-radius: 999px;
-  border: 1px solid rgba(170, 177, 210, 0.5);
-  box-shadow: 0 1px 3px rgba(4, 6, 12, 0.2);
+  border: 1px solid rgba(88, 91, 112, 0.6);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
   transition: all 0.2s ease;
 }
 
 #workspaces button.active,
 #workspaces button.focused {
-  background: #a7c7ef;
-  color: #1a2232;
-  border-color: rgba(167, 199, 239, 0.9);
-  box-shadow: 0 0 0 1px rgba(167, 199, 239, 0.45), 0 2px 7px rgba(134, 170, 220, 0.22);
+  background: #89b4fa;
+  color: #1e1e2e;
+  border-color: rgba(137, 180, 250, 0.9);
+  box-shadow: 0 0 0 1px rgba(137, 180, 250, 0.45), 0 2px 7px rgba(137, 180, 250, 0.22);
   background-image: url("@WAYBAR_PACMAN_ICON@");
   background-repeat: no-repeat;
   background-position: center;
@@ -103,31 +103,31 @@ window#waybar {
 
 #workspaces button.visible:not(.active):not(.focused),
 #workspaces button.current_output:not(.active):not(.focused) {
-  background: linear-gradient(125deg, #6f8eb8, #7aa4d4);
-  color: #ffffff;
-  border-color: rgba(132, 168, 214, 0.82);
-  box-shadow: 0 0 0 1px rgba(121, 158, 203, 0.42), 0 2px 7px rgba(77, 105, 150, 0.3);
+  background: linear-gradient(125deg, #585b70, #6c7086);
+  color: #cdd6f4;
+  border-color: rgba(108, 112, 134, 0.8);
+  box-shadow: 0 0 0 1px rgba(108, 112, 134, 0.42), 0 2px 7px rgba(69, 71, 90, 0.3);
 }
 
 #workspaces button.urgent {
-  background: rgba(198, 123, 123, 0.4);
-  color: #ffffff;
-  box-shadow: 0 0 0 1px rgba(198, 123, 123, 0.58);
+  background: rgba(243, 139, 168, 0.35);
+  color: #cdd6f4;
+  box-shadow: 0 0 0 1px rgba(243, 139, 168, 0.58);
 }
 
 #workspaces button.special {
-  background: rgba(90, 125, 178, 0.42);
-  border-color: rgba(115, 156, 210, 0.78);
+  background: rgba(137, 180, 250, 0.3);
+  border-color: rgba(137, 180, 250, 0.6);
 }
 
 #workspaces button:hover {
-  background-color: rgba(116, 142, 180, 0.62);
-  color: #ffffff;
-  border-color: rgba(138, 170, 214, 0.76);
+  background-color: rgba(137, 180, 250, 0.3);
+  color: #cdd6f4;
+  border-color: rgba(137, 180, 250, 0.5);
 }
 
 #workspaces button label {
-  color: #f1eeea;
+  color: #cdd6f4;
   font-size: 14px;
   font-weight: 900;
 }
@@ -140,36 +140,36 @@ window#waybar {
 
 #workspaces button.visible:not(.active):not(.focused) label,
 #workspaces button.current_output:not(.active):not(.focused) label {
-  color: #ffffff;
+  color: #cdd6f4;
 }
 
 #window {
-  color: #f1eeea;
+  color: #cdd6f4;
   font-weight: 600;
 }
 
 #mpris {
-  color: #bcc2d2;
+  color: #a6adc8;
   font-style: italic;
 }
 
 #clock {
-  color: #ffffff;
+  color: #cdd6f4;
   letter-spacing: 0.7px;
   font-feature-settings: "tnum";
   padding: 0 13px;
 }
 
 #submap {
-  color: #f1eeea;
+  color: #cdd6f4;
 }
 
 #submap.normal {
-  color: #bcc2d2;
+  color: #a6adc8;
 }
 
 #submap.passthrough {
-  color: #d68b8b;
+  color: #f38ba8;
 }
 
 #tray {
@@ -186,58 +186,58 @@ window#waybar {
 }
 
 #custom-public-ip {
-  color: #9ec5ff;
+  color: #89b4fa;
   padding: 0 7px;
   font-feature-settings: "tnum";
 }
 
 #custom-public-ip.offline {
-  color: #d68b8b;
+  color: #f38ba8;
 }
 
 #backlight {
-  color: #f1eeea;
+  color: #cdd6f4;
 }
 
 #cpu.warning,
 #memory.warning,
 #custom-temperature.warning {
-  color: #a4bde0;
+  color: #f9e2af;
 }
 
 #cpu.critical,
 #memory.critical,
 #custom-temperature.critical {
-  color: #d68b8b;
+  color: #f38ba8;
 }
 
 #battery.charging,
 #battery.full {
-  color: #9ec5ff;
+  color: #a6e3a1;
 }
 
 #battery.warning:not(.charging):not(.full) {
-  color: #a4bde0;
+  color: #f9e2af;
 }
 
 #battery.critical:not(.charging):not(.full) {
-  color: #d68b8b;
+  color: #f38ba8;
 }
 
 #custom-notification {
-  color: #9ec5ff;
+  color: #89b4fa;
   margin: 0 1px;
   padding: 0 6px;
 }
 
 #custom-notification.none,
 #custom-notification.inhibited-none {
-  color: #bcc2d2;
+  color: #a6adc8;
 }
 
 #custom-notification.notification,
 #custom-notification.inhibited-notification {
-  color: #ffffff;
+  color: #cdd6f4;
   animation: notify-pulse 1.2s ease-in-out infinite alternate;
 }
 
@@ -245,30 +245,30 @@ window#waybar {
 #custom-notification.dnd-notification,
 #custom-notification.dnd-inhibited-none,
 #custom-notification.dnd-inhibited-notification {
-  color: #d68b8b;
+  color: #f38ba8;
 }
 
 #custom-power {
-  color: #d68b8b;
+  color: #f38ba8;
 }
 
 tooltip {
-  background: linear-gradient(180deg, rgba(66, 66, 69, 0.97), rgba(48, 47, 46, 0.97));
-  border: 1px solid rgba(94, 92, 91, 0.66);
+  background: linear-gradient(180deg, rgba(49, 50, 68, 0.97), rgba(30, 30, 46, 0.97));
+  border: 1px solid rgba(69, 71, 90, 0.7);
   border-radius: 12px;
   box-shadow: 0 10px 22px rgba(0, 0, 0, 0.34);
 }
 
 tooltip label {
-  color: #f1eeea;
+  color: #cdd6f4;
   padding: 8px 10px;
 }
 
 @keyframes notify-pulse {
   from {
-    text-shadow: 0 0 0 rgba(9, 134, 211, 0);
+    text-shadow: 0 0 0 rgba(137, 180, 250, 0);
   }
   to {
-    text-shadow: 0 0 10px rgba(9, 134, 211, 0.42);
+    text-shadow: 0 0 10px rgba(137, 180, 250, 0.42);
   }
 }
