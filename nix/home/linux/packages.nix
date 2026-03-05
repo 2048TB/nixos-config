@@ -61,7 +61,7 @@ let
   };
   lockScreen = pkgs.writeShellApplication {
     name = "lock-screen";
-    runtimeInputs = with pkgs; [ swaylock ];
+    runtimeInputs = with pkgs; [ swaylock-effects ];
     text = builtins.readFile ../scripts/lock-screen.sh;
   };
   riverScreenshot = pkgs.writeShellApplication {
@@ -196,7 +196,7 @@ in
 
       # === Wayland 工具 ===
       satty
-      swaylock # Niri 手动锁屏
+      swaylock-effects # Niri 手动锁屏（支持 blur 等特效）
       grim
       slurp
       wl-screenrec

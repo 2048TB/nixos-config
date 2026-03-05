@@ -7,35 +7,46 @@ fi
 args=(
   --font "Maple Mono NF CN"
   --font-size 22
+  --clock
+  --timestr "%H:%M"
+  --datestr "%Y-%m-%d  %A"
+  --indicator
   --indicator-idle-visible
   --indicator-caps-lock
-  --indicator-radius 110
+  --indicator-radius 115
   --indicator-thickness 10
   --line-color 00000000
   --separator-color 00000000
-  --inside-color 313244ee
+  --inside-color 1e1e2ee6
   --ring-color 89b4faff
-  --text-color cdd6f4ff
-  --inside-clear-color 313244ee
+  --text-color e2e8ffff
+  --inside-clear-color 1e1e2ee6
   --ring-clear-color f9e2afff
-  --text-clear-color cdd6f4ff
-  --inside-ver-color 313244ee
+  --text-clear-color e2e8ffff
+  --inside-ver-color 1e1e2ee6
   --ring-ver-color a6e3a1ff
-  --text-ver-color cdd6f4ff
-  --inside-wrong-color 313244ee
+  --text-ver-color e2e8ffff
+  --inside-wrong-color 1e1e2ee6
   --ring-wrong-color f38ba8ff
-  --text-wrong-color cdd6f4ff
+  --text-wrong-color e2e8ffff
   --key-hl-color a6e3a1ff
   --bs-hl-color f38ba8ff
+  --layout-text-color bac2deff
+  --grace 2
+  --fade-in 0.2
+  --effect-blur 7x4
+  --effect-vignette 0.55:0.55
+  --effect-pixelate 3
   --show-failed-attempts
   --show-keyboard-layout
+  --ignore-empty-password
   --scaling fill
 )
 
 if [ -n "$wallpaper" ]; then
   args+=(--image "$wallpaper")
 else
-  args+=(--color 1e1e2eff)
+  args+=(--screenshots --color 1a1b26ff)
 fi
 
 exec swaylock -f "${args[@]}" "$@"
