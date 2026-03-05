@@ -7,15 +7,25 @@ fi
 args=(
   --font "Maple Mono NF CN"
   --font-size 26
+  --fade-in 0.2
   --indicator
   --indicator-caps-lock
   --indicator-radius 120
   --indicator-thickness 10
   --clock
-  --timestr "%H:%M"
-  --datestr ""
+  --timestr "%H:%M:%S"
+  --datestr "%a, %d %b"
+  --effect-blur 7x5
+  --effect-vignette 0.35:0.35
   --line-color 00000000
+  --line-clear-color 00000000
+  --line-caps-lock-color 00000000
+  --line-ver-color 00000000
+  --line-wrong-color 00000000
   --separator-color 00000000
+  --layout-bg-color 00000000
+  --layout-border-color 00000000
+  --layout-text-color @THEME_FG2@ff
   --inside-color @THEME_BG@cc
   --ring-color @THEME_BLUE@ff
   --text-color @THEME_FG2@ff
@@ -30,8 +40,6 @@ args=(
   --text-wrong-color @THEME_RED@ff
   --key-hl-color @THEME_CYAN@ff
   --bs-hl-color @THEME_RED@ff
-  --show-failed-attempts
-  --show-keyboard-layout
   --scaling fill
 )
 
