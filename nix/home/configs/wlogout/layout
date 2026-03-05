@@ -1,36 +1,36 @@
 {
   "label": "lock",
   "action": "/etc/profiles/per-user/$USER/bin/lock-screen",
-  "text": "Lock",
+  "text": "锁屏",
   "keybind": "l"
+}
+{
+  "label": "suspend",
+  "action": "/etc/profiles/per-user/$USER/bin/lock-screen && systemctl suspend",
+  "text": "挂起",
+  "keybind": "u"
 }
 {
   "label": "logout",
   "action": "loginctl terminate-session \"$XDG_SESSION_ID\"",
-  "text": "Logout",
+  "text": "注销",
   "keybind": "e"
-}
-{
-  "label": "suspend",
-  "action": "systemctl suspend",
-  "text": "Suspend",
-  "keybind": "u"
-}
-{
-  "label": "hibernate",
-  "action": "systemctl hibernate",
-  "text": "Hibernate",
-  "keybind": "h"
 }
 {
   "label": "reboot",
   "action": "systemctl reboot",
-  "text": "Reboot",
+  "text": "重启",
   "keybind": "r"
 }
 {
   "label": "shutdown",
   "action": "systemctl poweroff",
-  "text": "Shutdown",
+  "text": "关机",
   "keybind": "s"
+}
+{
+  "label": "hibernate",
+  "action": "/etc/profiles/per-user/$USER/bin/lock-screen && systemctl hibernate",
+  "text": "休眠",
+  "keybind": "h"
 }
