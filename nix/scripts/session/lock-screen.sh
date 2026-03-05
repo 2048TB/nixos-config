@@ -14,7 +14,7 @@ args=(
   --indicator-thickness 10
   --clock
   --timestr "%H:%M:%S"
-  --datestr "%a, %d %b"
+  --datestr "%Y-%m-%d"
   --effect-blur 7x5
   --effect-vignette 0.35:0.35
   --line-color 00000000
