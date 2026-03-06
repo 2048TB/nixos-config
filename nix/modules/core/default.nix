@@ -51,10 +51,10 @@ in
         "video"
         "input"
       ];
-      shell = pkgs.zsh;
+      shell = pkgs.nushell;
       hashedPasswordFile = config.age.secrets."passwords/user".path;
     };
 
-    defaultUserShell = pkgs.zsh;
+    defaultUserShell = pkgs.nushell;
   };
 }

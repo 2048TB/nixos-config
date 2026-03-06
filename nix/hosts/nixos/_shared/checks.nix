@@ -57,6 +57,7 @@ let
     "less"
     "shadow"
     "zsh"
+    "nushell"
   ];
   unexpectedSystemDuplicateNames = excludeAllowed allowedSystemDuplicateNames systemDuplicateNames;
   allowedSystemHomeOverlapNames = [
@@ -65,6 +66,7 @@ let
     "xdg-desktop-portal-gnome"
     "python3"
     "zsh"
+    "nushell"
     "nix-zsh-completions"
     "man-db"
     "shared-mime-info"
