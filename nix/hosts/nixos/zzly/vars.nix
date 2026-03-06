@@ -24,6 +24,10 @@
   # Hardware
   cpuVendor = "amd";
   gpuMode = "amd";
+  # Hybrid/Prime GPU Bus IDs (set from `lspci -D`; format: PCI:<bus>:<device>:<function>)
+  intelBusId = null;
+  amdgpuBusId = null;
+  nvidiaBusId = null;
   enableGpuSpecialisation = false;
   enableBluetoothRfkillUnblock = false;
   enableAggressiveApparmorKill = false;

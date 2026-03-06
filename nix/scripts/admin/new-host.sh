@@ -9,10 +9,11 @@ source "$script_dir/common.sh"
 usage() {
   cat <<'EOF'
 usage:
-  new-host.sh <nixos|darwin> <host-name> [--from <source-host>] [--repo <repo>] [--dry-run] [--force]
+  new-host.sh <nixos|darwin> <host-name> [--from <source-host>] [--gpu-mode <mode>] [--repo <repo>] [--dry-run] [--force]
 
 examples:
   new-host.sh nixos zbook --from zly
+  new-host.sh nixos zbook --gpu-mode amd-nvidia-hybrid
   new-host.sh darwin mbp14 --from zly-mac
   new-host.sh nixos devbox --dry-run
 EOF
@@ -28,6 +29,7 @@ host_name="${2:-}"
 shift "$(( $# >= 2 ? 2 : $# ))"
 
 source_host=""
+gpu_mode=""
 repo="${NIXOS_CONFIG_REPO:-$PWD}"
 dry_run=0
 force=0
@@ -40,6 +42,10 @@ while [ "$#" -gt 0 ]; do
       ;;
     --repo)
       repo="${2:-}"
+      shift 2
+      ;;
+    --gpu-mode)
+      gpu_mode="${2:-}"
       shift 2
       ;;
     --dry-run)
@@ -66,6 +72,117 @@ if [ -z "$platform" ] || [ -z "$host_name" ]; then
   usage >&2
   exit 2
 fi
+
+is_valid_gpu_mode() {
+  local mode="${1:-}"
+  case "$mode" in
+    auto|none|amd|amdgpu|nvidia|nvidia-prime|modesetting|amd-nvidia-hybrid)
+      return 0
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
+pci_slot_to_bus_id() {
+  local slot="${1:-}"
+  local bus_hex dev_hex func
+  if [[ "$slot" =~ ^([0-9A-Fa-f]{4}:)?([0-9A-Fa-f]{2}):([0-9A-Fa-f]{2})\.([0-7])$ ]]; then
+    bus_hex="${BASH_REMATCH[2]}"
+    dev_hex="${BASH_REMATCH[3]}"
+    func="${BASH_REMATCH[4]}"
+    printf 'PCI:%d:%d:%d\n' "$((16#$bus_hex))" "$((16#$dev_hex))" "$func"
+    return 0
+  fi
+  return 1
+}
+
+detected_gpu_mode=""
+detected_intel_bus_id=""
+detected_amdgpu_bus_id=""
+detected_nvidia_bus_id=""
+
+detect_gpu_settings() {
+  local has_nvidia=0
+  local has_amd=0
+  local has_intel=0
+  local line="" slot="" bus_id="" lower=""
+
+  if command -v systemd-detect-virt >/dev/null 2>&1 && systemd-detect-virt -q; then
+    detected_gpu_mode="modesetting"
+    return 0
+  fi
+
+  if ! command -v lspci >/dev/null 2>&1; then
+    return 0
+  fi
+
+  while IFS= read -r line; do
+    [ -n "$line" ] || continue
+    slot="${line%% *}"
+    bus_id="$(pci_slot_to_bus_id "$slot" || true)"
+    lower="$(printf '%s\n' "$line" | tr '[:upper:]' '[:lower:]')"
+
+    if [[ "$lower" == *nvidia* ]]; then
+      has_nvidia=1
+      if [ -z "$detected_nvidia_bus_id" ] && [ -n "$bus_id" ]; then
+        detected_nvidia_bus_id="$bus_id"
+      fi
+    elif [[ "$lower" == *amd* || "$lower" == *ati* || "$lower" == *"advanced micro devices"* ]]; then
+      has_amd=1
+      if [ -z "$detected_amdgpu_bus_id" ] && [ -n "$bus_id" ]; then
+        detected_amdgpu_bus_id="$bus_id"
+      fi
+    elif [[ "$lower" == *intel* ]]; then
+      has_intel=1
+      if [ -z "$detected_intel_bus_id" ] && [ -n "$bus_id" ]; then
+        detected_intel_bus_id="$bus_id"
+      fi
+    fi
+  done < <(lspci -D | grep -Ei 'vga|3d|display' || true)
+
+  if [ "$has_nvidia" -eq 1 ] && [ "$has_amd" -eq 1 ]; then
+    detected_gpu_mode="amd-nvidia-hybrid"
+  elif [ "$has_nvidia" -eq 1 ] && [ "$has_intel" -eq 1 ]; then
+    detected_gpu_mode="nvidia-prime"
+  elif [ "$has_nvidia" -eq 1 ]; then
+    detected_gpu_mode="nvidia"
+  elif [ "$has_amd" -eq 1 ]; then
+    detected_gpu_mode="amd"
+  elif [ "$has_intel" -eq 1 ]; then
+    detected_gpu_mode="modesetting"
+  fi
+}
+
+set_nix_string_or_null() {
+  local file="$1"
+  local key="$2"
+  local value="$3"
+  local value_expr="null"
+
+  if [ -n "$value" ]; then
+    value_expr="\"$value\""
+  fi
+
+  if grep -Eq "^[[:space:]]*${key}[[:space:]]*=" "$file"; then
+    sed -i "s|^[[:space:]]*${key}[[:space:]]*=.*|  ${key} = ${value_expr};|" "$file"
+  fi
+}
+
+set_nix_string_field() {
+  local file="$1"
+  local key="$2"
+  local value="$3"
+
+  if [ -z "$value" ]; then
+    return 0
+  fi
+
+  if grep -Eq "^[[:space:]]*${key}[[:space:]]*=" "$file"; then
+    sed -i "s|^[[:space:]]*${key}[[:space:]]*=.*|  ${key} = \"${value}\";|" "$file"
+  fi
+}
 
 if ! is_valid_host_name "$host_name"; then
   echo "error: invalid host name '$host_name' (allowed: [A-Za-z0-9][A-Za-z0-9_-]*)" >&2
@@ -94,6 +211,17 @@ case "$platform" in
     exit 2
     ;;
 esac
+
+if [ -n "$gpu_mode" ] && [ "$platform" != "nixos" ]; then
+  echo "error: --gpu-mode only supports nixos hosts" >&2
+  exit 2
+fi
+
+if [ -n "$gpu_mode" ] && ! is_valid_gpu_mode "$gpu_mode"; then
+  echo "error: invalid gpu mode '$gpu_mode'" >&2
+  echo "allowed: auto, none, amd, amdgpu, nvidia, nvidia-prime, modesetting, amd-nvidia-hybrid" >&2
+  exit 2
+fi
 
 if ! is_valid_host_name "$source_host"; then
   echo "error: invalid source host name '$source_host' (allowed: [A-Za-z0-9][A-Za-z0-9_-]*)" >&2
@@ -165,6 +293,27 @@ if [ "$source_host" != "$host_name" ]; then
   done < <(find "$target_dir" -type f -name '*.nix' -print0)
 
   find "$target_dir" -type f -name '*.bak' -delete
+fi
+
+if [ "$platform" = "nixos" ] && [ -f "$target_dir/vars.nix" ]; then
+  detect_gpu_settings
+
+  effective_gpu_mode="$gpu_mode"
+  if [ -z "$effective_gpu_mode" ]; then
+    effective_gpu_mode="$detected_gpu_mode"
+  fi
+
+  if [ -n "$effective_gpu_mode" ]; then
+    set_nix_string_field "$target_dir/vars.nix" "gpuMode" "$effective_gpu_mode"
+    echo ">>> gpuMode set to: $effective_gpu_mode"
+  else
+    echo "warning: unable to auto-detect gpu mode; keeping template gpuMode" >&2
+  fi
+
+  set_nix_string_or_null "$target_dir/vars.nix" "intelBusId" "$detected_intel_bus_id"
+  set_nix_string_or_null "$target_dir/vars.nix" "amdgpuBusId" "$detected_amdgpu_bus_id"
+  set_nix_string_or_null "$target_dir/vars.nix" "nvidiaBusId" "$detected_nvidia_bus_id"
+  echo ">>> bus IDs: intel=${detected_intel_bus_id:-null} amdgpu=${detected_amdgpu_bus_id:-null} nvidia=${detected_nvidia_bus_id:-null}"
 fi
 
 echo "created host: $platform/$host_name"
