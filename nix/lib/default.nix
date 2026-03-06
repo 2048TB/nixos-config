@@ -88,7 +88,7 @@ let
   mkNixosHost = import ./mkNixosHost.nix { inherit lib; };
   mkDarwinHost = import ./mkDarwinHost.nix { inherit lib; };
 in
-{
+rec {
   inherit nixosSystem macosSystem;
   inherit mkNixosHost mkDarwinHost;
 
@@ -130,11 +130,81 @@ in
   # Use paths relative to the repository root.
   relativeToRoot = lib.path.append ../../.;
 
+  hostMetaSchema = {
+    defaultRoles = [ "desktop" ];
+    defaultDockerMode = "rootless";
+
+    allowedCpuVendors = [
+      "auto"
+      "amd"
+      "intel"
+    ];
+
+    allowedGpuModes = [
+      "auto"
+      "none"
+      "amd"
+      "amdgpu"
+      "nvidia"
+      "nvidia-prime"
+      "modesetting"
+      "amd-nvidia-hybrid"
+    ];
+
+    allowedDockerModes = [
+      "rootless"
+      "rootful"
+    ];
+
+    knownHostRoles = [
+      "desktop"
+      "gaming"
+      "vpn"
+      "virt"
+      "container"
+    ];
+
+    optionalBoolOptions = [
+      "enableHibernate"
+      "enableGpuSpecialisation"
+      "enableBluetoothRfkillUnblock"
+      "enableAggressiveApparmorKill"
+      "enableWaybarBacklight"
+      "enableWaybarBattery"
+      "enableNvidiaContainerToolkit"
+      "acceptFlakeConfig"
+      "enableProvider appVpn"
+      "enableLibvirtd"
+      "enableDocker"
+      "enableFlatpak"
+      "enableSteam"
+      "enableWpsOffice"
+      "enableZathura"
+      "enableSplayer"
+      "enableTelegramDesktop"
+      "enableLocalSend"
+    ];
+
+    optionalStringOptions = [
+      "rootTmpfsSize"
+      "journaldSystemMaxUse"
+      "journaldRuntimeMaxUse"
+      "gcRetentionDays"
+      "diskDevice"
+    ];
+
+    optionalNullableStringOptions = [
+      "intelBusId"
+      "amdgpuBusId"
+      "nvidiaBusId"
+    ];
+  };
+
   roleFlags = myvars:
     let
-      hostRoles = myvars.roles or [ "desktop" ];
+      hostRoles = myvars.roles or hostMetaSchema.defaultRoles;
       hasRole = role: builtins.elem role hostRoles;
-      dockerMode = myvars.dockerMode or "rootless";
+      dockerMode = myvars.dockerMode or hostMetaSchema.defaultDockerMode;
     in
     {
       inherit hostRoles hasRole dockerMode;
