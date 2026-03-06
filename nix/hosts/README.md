@@ -36,11 +36,17 @@ just new-nixos-host-dry-run devbox  # 预览
 ```
 
 新增后需编辑：
-1. `vars.nix` — 主机名、用户名、硬件参数、roles
+1. `vars.nix` — 主机名、用户名、硬件参数、roles（含 `gpuMode` 与可选 `intelBusId` / `amdgpuBusId` / `nvidiaBusId`）
 2. `disko.nix` — 磁盘布局
 3. `hardware.nix` — 硬件探测
 
 验证：`just hosts && just eval-tests && just host=devbox check`
+
+### GPU 字段说明（`vars.nix`）
+
+- `gpuMode` 常见值：`auto`、`modesetting`、`amd`、`nvidia`、`nvidia-prime`、`amd-nvidia-hybrid`
+- `intelBusId` / `amdgpuBusId` / `nvidiaBusId`：仅在 Prime/Hybrid 场景需要，格式为 `PCI:<bus>:<device>:<function>`（十进制）
+- 获取方式：`lspci -D` 后将槽位（如 `0000:12:00.0`）换算为 `PCI:18:0:0`
 
 ---
 
