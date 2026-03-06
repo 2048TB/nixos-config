@@ -9,24 +9,16 @@ in
     starship = {
       enable = true;
       enableZshIntegration = true;
-      enableNushellIntegration = true;
     };
 
     zoxide = {
       enable = true;
       enableZshIntegration = true;
-      enableNushellIntegration = true;
     };
 
     direnv = {
       enable = true;
       nix-direnv.enable = true;
-    };
-
-    carapace = {
-      enable = true;
-      enableNushellIntegration = true;
-      enableZshIntegration = true;
     };
 
     fzf = {
@@ -48,18 +40,6 @@ in
       autosuggestion.enable = true;
       syntaxHighlighting.enable = true;
       initContent = builtins.readFile ../configs/shell/zshrc;
-    };
-
-    nushell = {
-      enable = true;
-      configFile.source = ../configs/shell/config.nu;
-      loginFile.source = ../configs/shell/login.nu;
-      shellAliases = {
-        ls = "eza";
-        ll = "eza -l";
-        la = "eza -la";
-        lt = "eza --tree";
-      };
     };
 
     vim = {

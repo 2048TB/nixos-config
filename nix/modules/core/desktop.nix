@@ -24,6 +24,7 @@ in
     };
 
     zsh.enable = true;
+
     niri = {
       enable = true;
       useNautilus = false;
@@ -44,7 +45,6 @@ in
   environment.shells = with pkgs; [
     bashInteractive
     zsh
-    nushell
   ];
 
   xdg.portal = {

@@ -35,14 +35,5 @@ in
     zsh.envExtra = ''
       export PKG_CONFIG_PATH="${pkgs.openssl.dev}/lib/pkgconfig''${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
     '';
-
-    nushell.extraEnv = ''
-      let existing_pkg_config_path = ($env.PKG_CONFIG_PATH? | default "")
-      $env.PKG_CONFIG_PATH = if ($existing_pkg_config_path | is-empty) {
-        "${pkgs.openssl.dev}/lib/pkgconfig"
-      } else {
-        $"${pkgs.openssl.dev}/lib/pkgconfig:($existing_pkg_config_path)"
-      }
-    '';
   };
 }
