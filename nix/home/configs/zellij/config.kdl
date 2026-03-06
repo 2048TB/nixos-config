@@ -31,7 +31,7 @@ keybinds {
     }
 }
 
-default_shell "zsh"
+default_shell "nu"
 pane_frames true
 
 themes {
