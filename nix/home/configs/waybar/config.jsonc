@@ -147,7 +147,10 @@
     // Blueman 在空闲态常以 passive 注册；开启后可恢复蓝牙管理入口可见性
     "show-passive-items": true,
     "icons": {
-      "chrome_status_icon_1": "mullvad-vpn"
+      "chrome_status_icon_1": "mullvad-vpn",
+      // 按 app id 映射，避免某些会话下 SNI 未提供可解析 icon name 时丢图标
+      "blueman": "bluetooth",
+      "blueman-applet": "bluetooth"
     }
   },
 

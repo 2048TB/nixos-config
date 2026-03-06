@@ -119,6 +119,9 @@ in
   };
 
   boot = {
+    # MT7922 蓝牙端走 USB 接口，部分启动时序下不会自动触发 btusb/btmtk 装载。
+    # 预加载可避免 bluetooth.service 因 /sys/class/bluetooth 缺失被跳过。
+    kernelModules = [ "btusb" "btmtk" ];
     kernelParams = lib.mkIf useNvidia nvidiaKernelParams;
     # Kraken 设备在无 SATA 供电或固件异常时会持续打印硬错误日志；
     # 如需该设备监控/控制能力，可删除此黑名单并先排查供电与固件。
