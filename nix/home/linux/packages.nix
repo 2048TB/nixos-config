@@ -20,6 +20,7 @@ let
   # 仅在混合显卡（amd-nvidia-hybrid）时安装 GPU 加速相关软件
   gpuChoice = myvars.gpuMode or "auto";
   isHybridGpu = gpuChoice == "amd-nvidia-hybrid";
+  isPrimeOffloadGpu = isHybridGpu || gpuChoice == "nvidia-prime";
   ollamaVulkan = pkgs.ollama or null;
   tensorflowCudaPkg = pkgs.python3Packages.tensorflowWithCuda or null;
   tensorflowCudaEnv =
@@ -90,6 +91,16 @@ let
     runtimeInputs = with pkgs; [ wget coreutils gnused ];
     text = builtins.readFile ../../scripts/session/public-ip-status.sh;
   };
+  nvidiaOffload = pkgs.writeShellApplication {
+    name = "nvidia-offload";
+    text = ''
+      export __NV_PRIME_RENDER_OFFLOAD=1
+      export __NV_PRIME_RENDER_OFFLOAD_PROVIDER=NVIDIA-G0
+      export __GLX_VENDOR_LIBRARY_NAME=nvidia
+      export __VK_LAYER_NV_optimus=NVIDIA_only
+      exec "$@"
+    '';
+  };
 
   cherryStudioPackage = pkgsUnstable.cherry-studio;
   gamingPackages = with pkgs; [
@@ -144,6 +155,7 @@ in
 
       # === 网络工具 ===
       wget # 文件下载工具
+      pciutils # PCI 设备查询（提供 `lspci`）
 
       # === 基础工具 ===
       git # 版本控制
@@ -255,6 +267,7 @@ in
     ++ lib.optionals enableSteam gamingPackages
     ++ lib.optionals enableLibvirtd virtualisationPackages
     ++ lib.optionals enableDocker dockerPackages
+    ++ lib.optional isPrimeOffloadGpu nvidiaOffload
     ++ lib.optional enableMullvadVpn pkgs.mullvad-vpn
     ++ [
       wlogoutMenu

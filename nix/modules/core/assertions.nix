@@ -6,6 +6,7 @@ let
     "amd"
     "amdgpu"
     "nvidia"
+    "nvidia-prime"
     "modesetting"
     "amd-nvidia-hybrid"
   ];
@@ -51,7 +52,7 @@ in
   assertions = [
     {
       assertion = builtins.elem (myvars.gpuMode or "auto") allowedGpuModes;
-      message = "myvars.gpuMode must be one of: auto, none, amd, amdgpu, nvidia, modesetting, amd-nvidia-hybrid.";
+      message = "myvars.gpuMode must be one of: auto, none, amd, amdgpu, nvidia, nvidia-prime, modesetting, amd-nvidia-hybrid.";
     }
     {
       assertion = builtins.elem (myvars.cpuVendor or "auto") allowedCpuVendors;

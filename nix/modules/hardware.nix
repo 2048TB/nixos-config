@@ -3,18 +3,25 @@ let
   # GPU 驱动常量
   driverNvidia = "nvidia";
   driverAmdgpu = "amdgpu";
+  driverNvidiaPrime = "nvidia-prime";
   driverAmdNvidiaHybrid = "amd-nvidia-hybrid";
   driverModesetting = "modesetting";
   gpuDefaultValue = "auto";
 
   gpuChoice = myvars.gpuMode or gpuDefaultValue;
   isNvidia = gpuChoice == driverNvidia;
+  isNvidiaPrime = gpuChoice == driverNvidiaPrime;
   # 兼容历史配置/README 中的 "amd" 取值
   isAmd = gpuChoice == "amd" || gpuChoice == driverAmdgpu;
   isAmdNvidiaHybrid = gpuChoice == driverAmdNvidiaHybrid;
-  useNvidia = isNvidia || isAmdNvidiaHybrid;
+  useNvidia = isNvidia || isNvidiaPrime || isAmdNvidiaHybrid;
   # 官方默认关闭 nvidia-container-toolkit。桌面场景按需开启，避免无用 CDI 生成告警。
   enableNvidiaContainerToolkit = myvars.enableNvidiaContainerToolkit or false;
+  intelBusId = myvars.intelBusId or null;
+  amdgpuBusId = myvars.amdgpuBusId or null;
+  nvidiaBusId = myvars.nvidiaBusId or null;
+  hasPrimeBusIds = intelBusId != null && nvidiaBusId != null;
+  hasAmdNvidiaHybridBusIds = amdgpuBusId != null && nvidiaBusId != null;
 
   # 统一 NVIDIA 配置，避免专用配置与默认配置漂移
   nvidiaKernelParams = [ "nvidia-drm.fbdev=1" ];
@@ -29,6 +36,7 @@ let
   # 如果是 "auto" 或其他未知值，使用安全的通用 modesetting 驱动
   videoDrivers =
     if isNvidia then [ driverNvidia ]
+    else if isNvidiaPrime then [ driverNvidia ]
     else if isAmd then [ driverAmdgpu ]
     else if isAmdNvidiaHybrid then [
       driverNvidia
@@ -36,10 +44,28 @@ let
     ]
     else [ driverModesetting ]; # none、auto 或其他值都使用通用驱动
 
+  nvidiaPrimeConfig =
+    (lib.optionalAttrs (isNvidiaPrime && hasPrimeBusIds) {
+      prime = {
+        offload = {
+          enable = true;
+        };
+        inherit intelBusId nvidiaBusId;
+      };
+    })
+    // (lib.optionalAttrs (isAmdNvidiaHybrid && hasAmdNvidiaHybridBusIds) {
+      prime = {
+        offload = {
+          enable = true;
+        };
+        inherit amdgpuBusId nvidiaBusId;
+      };
+    });
+
   # 是否启用 GPU 专用配置（启动菜单中切换驱动）
   # 默认禁用以减少 ISO 体积和安装时间
   enableGpuSpecialisation = myvars.enableGpuSpecialisation or false;
-  enableBluetoothRfkillUnblock = myvars.enableBluetoothRfkillUnblock or false;
+  enableBluetoothRfkillUnblock = lib.attrByPath [ "enableBluetoothRfkillUnblock" ] false myvars;
 in
 {
   hardware = {
@@ -50,7 +76,7 @@ in
       enable = true;
       enable32Bit = true;
     };
-    nvidia = lib.mkIf useNvidia nvidiaBase;
+    nvidia = lib.mkIf useNvidia (nvidiaBase // nvidiaPrimeConfig);
     nvidia-container-toolkit.enable = lib.mkIf (useNvidia && enableNvidiaContainerToolkit) true;
     bluetooth = {
       enable = true;
@@ -98,6 +124,14 @@ in
     # 如需该设备监控/控制能力，可删除此黑名单并先排查供电与固件。
     blacklistedKernelModules = [ "nzxt_kraken3" ];
   };
+
+  warnings =
+    lib.optionals (isNvidiaPrime && !hasPrimeBusIds) [
+      "gpuMode=nvidia-prime requires myvars.intelBusId and myvars.nvidiaBusId (e.g. PCI:0:2:0 / PCI:1:0:0). Falling back to non-prime NVIDIA setup."
+    ]
+    ++ lib.optionals (isAmdNvidiaHybrid && !hasAmdNvidiaHybridBusIds) [
+      "gpuMode=amd-nvidia-hybrid requires myvars.amdgpuBusId and myvars.nvidiaBusId (e.g. PCI:5:0:0 / PCI:1:0:0). Falling back to non-prime hybrid setup."
+    ];
 
   # GPU 专用配置：启动时在引导菜单中切换驱动
   # 默认禁用以减少 ISO 体积（~500MB）和安装时间
