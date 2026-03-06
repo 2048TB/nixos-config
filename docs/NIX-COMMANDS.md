@@ -78,6 +78,21 @@ just new-darwin-host mac-mini           # 新增 Darwin 主机
 just new-nixos-host-dry-run devbox      # 预览
 ```
 
+需要显式指定 GPU 模式时，可直接调用脚本：
+
+```bash
+nix/scripts/admin/new-host.sh nixos devbox --from zly --repo . --gpu-mode amd-nvidia-hybrid
+```
+
+`--gpu-mode` 可选：
+- `auto`（默认，按 `lspci` 自动识别）
+- `none` / `modesetting`
+- `amd` / `amdgpu`
+- `nvidia` / `nvidia-prime`
+- `amd-nvidia-hybrid`
+
+当为混合显卡模式时，脚本会尝试探测并写入 `vars.nix` 中的 `intelBusId` / `amdgpuBusId` / `nvidiaBusId`（格式：`PCI:<bus>:<device>:<function>`）。
+
 ---
 
 ## 7. 清理维护
