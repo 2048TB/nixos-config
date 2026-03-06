@@ -15,7 +15,7 @@ def --env y [...args] {
         }
     }
 
-    rm -f $tmp
+    rm -f -- $tmp
 }
 
 # Claude Code helper.
@@ -44,7 +44,7 @@ def --wrapped cdx [...args] {
 }
 
 # Global fuzzy search helper.
-def frg [scope?: string] {
+def --wrapped frg [scope?: string] {
     let selected_scope = ($scope | default "")
     let depth = if ($selected_scope == "l" or $selected_scope == "1") {
         "--max-depth 1"
@@ -52,10 +52,13 @@ def frg [scope?: string] {
         ""
     }
 
-    ^fzf --ansi --bind $"change:reload:
+    ^fzf --ansi \
+      --bind $"change:reload:
       if [[ -n {q} ]]; then
         rg ($depth) --line-number --no-heading --color=always {q};
       else
         rg ($depth) --files;
-      fi || true" --preview "bat --style=numbers --color=always --highlight-line {2} {1}" --delimiter ":"
+      fi || true" \
+      --preview "bat --style=numbers --color=always --highlight-line {2} {1}" \
+      --delimiter ":"
 }
