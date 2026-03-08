@@ -65,7 +65,7 @@ let
   hostModules = [
     nixpkgsModule
     (mylib.relativeToRoot "nix/modules/core")
-    (mylib.relativeToRoot "nix/modules/hardware.nix")
+    (mylib.relativeToRoot "nix/modules/core/hardware.nix")
     ({ modulesPath, ... }: { imports = [ (modulesPath + "/installer/scan/not-detected.nix") ]; })
     hostHardwarePath
     hostDiskoPath

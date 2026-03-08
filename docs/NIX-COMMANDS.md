@@ -62,7 +62,6 @@ just agenix-rekey             # 重加密所有 secrets
 just fmt              # 格式化
 just lint             # 静态检查
 just dead             # 死代码检测
-just scripts-check    # Shell 语法 + shellcheck
 just eval-tests       # eval 测试
 just flake-check      # flake 完整检查
 just check-all        # 以上全部
@@ -70,28 +69,23 @@ just check-all        # 以上全部
 
 ---
 
-## 6. 主机脚手架
+## 6. 新增主机（手动）
 
 ```bash
-just new-nixos-host devbox              # 新增 NixOS 主机
-just new-darwin-host mac-mini           # 新增 Darwin 主机
-just new-nixos-host-dry-run devbox      # 预览
+cp -a nix/hosts/nixos/zly nix/hosts/nixos/devbox
+cp -a nix/hosts/darwin/zly-mac nix/hosts/darwin/mac-mini
 ```
 
-需要显式指定 GPU 模式时，可直接调用脚本：
+复制后请手动修改 `vars.nix` 里的 `gpuMode` / `*BusId` 等字段。
 
-```bash
-nix/scripts/admin/new-host.sh nixos devbox --from zly --repo . --gpu-mode amd-nvidia-hybrid
-```
-
-`--gpu-mode` 可选：
+`gpuMode` 可选：
 - `auto`（默认，按 `lspci` 自动识别）
 - `none` / `modesetting`
 - `amd` / `amdgpu`
 - `nvidia` / `nvidia-prime`
 - `amd-nvidia-hybrid`
 
-当为混合显卡模式时，脚本会尝试探测并写入 `vars.nix` 中的 `intelBusId` / `amdgpuBusId` / `nvidiaBusId`（格式：`PCI:<bus>:<device>:<function>`）。
+混合显卡模式需要手动填写 `vars.nix` 中的 `intelBusId` / `amdgpuBusId` / `nvidiaBusId`（格式：`PCI:<bus>:<device>:<function>`）。
 
 ---
 

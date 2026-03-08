@@ -35,14 +35,14 @@ let
   mainUsers = mylib.mergeAttrFromList "mainUsers" dataWithoutPaths;
   resolvedHostNames = builtins.attrNames nixosConfigurations;
 
-  hostnameExpr = import ./tests/hostname/expr.nix { inherit lib nixosConfigurations; };
-  hostnameExpected = import ./tests/hostname/expected.nix { hostNames = resolvedHostNames; };
-  homeExpr = import ./tests/home/expr.nix { inherit lib nixosConfigurations; };
-  homeExpected = import ./tests/home/expected.nix { inherit mainUsers; };
-  kernelExpr = import ./tests/kernel/expr.nix { inherit lib nixosConfigurations; };
-  kernelExpected = import ./tests/kernel/expected.nix { inherit system; hostNames = resolvedHostNames; };
-  platformExpr = import ./tests/platform/expr.nix { inherit lib nixosConfigurations; };
-  platformExpected = import ./tests/platform/expected.nix { inherit system; hostNames = resolvedHostNames; };
+  hostnameExpr = import ./tests/hostname-expr.nix { inherit lib nixosConfigurations; };
+  hostnameExpected = import ./tests/hostname-expected.nix { hostNames = resolvedHostNames; };
+  homeExpr = import ./tests/home-expr.nix { inherit lib nixosConfigurations; };
+  homeExpected = import ./tests/home-expected.nix { inherit mainUsers; };
+  kernelExpr = import ./tests/kernel-expr.nix { inherit lib nixosConfigurations; };
+  kernelExpected = import ./tests/kernel-expected.nix { inherit system; hostNames = resolvedHostNames; };
+  platformExpr = import ./tests/platform-expr.nix { inherit lib nixosConfigurations; };
+  platformExpected = import ./tests/platform-expected.nix { inherit system; hostNames = resolvedHostNames; };
   hostEvalTests = {
     hostname = hostnameExpr == hostnameExpected;
     home = homeExpr == homeExpected;

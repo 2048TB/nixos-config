@@ -12,9 +12,9 @@ flake-based 多主机配置仓库，所有 Nix/脚本代码在 `nix/` 下：
 nix/
 ├── lib/           # Nix 库函数
 ├── hosts/         # 主机配置（nixos/ + darwin/ + outputs/）
-├── modules/       # 系统模块（core/ + darwin/ + hardware.nix）
+├── modules/       # 系统模块（core/ + darwin/）
 ├── home/          # Home Manager（base/ + linux/ + darwin/ + configs/）
-└── scripts/       # Shell 脚本（admin/ + session/）
+└── scripts/       # Shell 脚本（admin/）
 ```
 
 其他顶层目录：`secrets/`、`wallpapers/`、`docs/`
@@ -39,8 +39,8 @@ just flake-check    # flake 完整检查
 |------|----------|
 | 某台机器参数 | `nix/hosts/<platform>/<host>/vars.nix` |
 | 系统服务/内核/持久化 | `nix/modules/core/`（入口 `default.nix`） |
-| 角色逻辑 | `nix/lib/default.nix`（roleFlags）+ `nix/modules/core/role-services.nix` |
-| 硬件/显卡 | `nix/modules/hardware.nix` |
+| 角色逻辑 | `nix/lib/default.nix`（roleFlags）+ `nix/modules/core/roles/*.nix` |
+| 硬件/显卡 | `nix/modules/core/hardware.nix` |
 | 用户软件包 | `nix/home/linux/packages.nix` |
 | 桌面服务 | `nix/home/linux/desktop.nix` |
 | 程序配置 | `nix/home/linux/programs.nix` |
@@ -49,7 +49,7 @@ just flake-check    # flake 完整检查
 | macOS 配置 | `nix/home/darwin/default.nix` |
 | 密钥管理 | `nix/scripts/admin/agenix.sh` |
 | 安装流程 | `nix/scripts/admin/install-live.sh` |
-| 主机脚手架 | `nix/scripts/admin/new-host.sh` |
+| 新增主机参考 | `nix/hosts/README.md` |
 
 ---
 
@@ -57,7 +57,6 @@ just flake-check    # flake 完整检查
 
 ```bash
 just check && just switch    # 日常更新
-just new-nixos-host <name>   # 新增主机
 just darwin-switch            # macOS
 ```
 

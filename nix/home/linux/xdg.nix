@@ -17,7 +17,7 @@ let
     "image/tiff"
   ];
   imageApps = [ "org.nomacs.ImageLounge.desktop" "nomacs.desktop" ];
-  portalConfig = import ../../modules/core/portal-config.nix;
+  portalConfig = import ../../lib/portal-config.nix;
 in
 {
   xdg = {

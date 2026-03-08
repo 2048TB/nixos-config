@@ -123,7 +123,6 @@ just guard-secrets
 ## 5. 提交前验证
 
 ```bash
-just scripts-check
 just eval-tests
 just flake-check
 ```
@@ -137,9 +136,9 @@ nixos-config/
 ├── nix/
 │   ├── lib/              # Nix 库函数
 │   ├── hosts/            # 主机配置（nixos/ + darwin/ + outputs/）
-│   ├── modules/          # 系统模块（core/ + darwin/ + hardware.nix）
+│   ├── modules/          # 系统模块（core/ + darwin/）
 │   ├── home/             # Home Manager 配置
-│   └── scripts/          # 脚本（admin/ + session/）
+│   └── scripts/          # 脚本（admin/）
 ├── secrets/              # 加密 secrets（可提交）
 ├── wallpapers/           # 壁纸
 ├── docs/                 # 文档
