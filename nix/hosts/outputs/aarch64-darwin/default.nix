@@ -1,12 +1,16 @@
 { lib, mylib, inputs, system, mkApp, appRepoPreamble, ... }@args:
 let
+  common = import ../common.nix { inherit lib mylib; };
   hostsRoot = mylib.relativeToRoot "nix/hosts/darwin";
-  hostNames = mylib.discoverHostNamesBy hostsRoot [
-    "default.nix"
-    "vars.nix"
-  ];
-  hostNamePattern = "^[A-Za-z0-9][A-Za-z0-9_-]*$";
-  invalidHostNames = mylib.namesNotMatching hostNamePattern hostNames;
+  registryState = common.mkRegistryState {
+    kind = "darwin";
+    inherit hostsRoot system;
+    requiredFiles = [
+      "default.nix"
+      "vars.nix"
+    ];
+  };
+  inherit (registryState) hostNames;
 
   mkHostData =
     name:
@@ -16,8 +20,9 @@ let
       hostVarsPath = mylib.relativeToRoot "${hostDir}/vars.nix";
       hostChecksPath = mylib.relativeToRoot "${hostDir}/checks.nix";
       hostMyvars = import hostVarsPath;
+      hostRegistry = mylib.hostRegistryEntry "darwin" name;
       hostCtx = mylib.mkDarwinHost (args // {
-        inherit name hostPath hostMyvars;
+        inherit name hostPath hostMyvars hostRegistry;
       });
       hostChecks = mylib.importIfExists hostChecksPath hostCtx;
     in
@@ -33,12 +38,12 @@ let
   darwinConfigurations = mylib.mergeAttrFromList "darwinConfigurations" dataWithoutPaths;
   mainUsers = mylib.mergeAttrFromList "mainUsers" dataWithoutPaths;
   resolvedHostNames = builtins.attrNames darwinConfigurations;
-  hostnameExpr = import ./tests/hostname-expr.nix { inherit lib darwinConfigurations; };
-  hostnameExpected = import ./tests/hostname-expected.nix { hostNames = resolvedHostNames; };
-  homeExpr = import ./tests/home-expr.nix { inherit lib darwinConfigurations; };
-  homeExpected = import ./tests/home-expected.nix { inherit mainUsers; };
-  platformExpr = import ./tests/platform-expr.nix { inherit lib darwinConfigurations; };
-  platformExpected = import ./tests/platform-expected.nix { inherit system; hostNames = resolvedHostNames; };
+  hostnameExpr = import ./hostname-expr.nix { inherit lib darwinConfigurations; };
+  hostnameExpected = import ./hostname-expected.nix { hostNames = resolvedHostNames; };
+  homeExpr = import ./home-expr.nix { inherit lib darwinConfigurations; };
+  homeExpected = import ./home-expected.nix { inherit mainUsers; };
+  platformExpr = import ./platform-expr.nix { inherit lib darwinConfigurations; };
+  platformExpected = import ./platform-expected.nix { inherit system; hostNames = resolvedHostNames; };
   hostEvalTests = {
     hostname = hostnameExpr == hostnameExpected;
     home = homeExpr == homeExpected;
@@ -49,15 +54,7 @@ let
     config.allowUnfreePredicate = mylib.allowUnfreePredicate;
   };
   mkAppLocal = mkApp pkgs;
-  mkEvalCheck =
-    { name, ok, message }:
-    pkgs.runCommand name { } ''
-      if [ "${if ok then "1" else "0"}" != "1" ]; then
-        echo "${message}" >&2
-        exit 1
-      fi
-      touch "$out"
-    '';
+  mkEvalCheck = common.mkEvalCheck pkgs;
   evalCheckSpecs = [
     {
       name = "evaltest-darwin-hostname";
@@ -75,7 +72,10 @@ let
       message = "darwin platform eval test failed";
     }
   ];
-  resolveDarwinHostStrict = ''host="$("$repo/nix/scripts/admin/resolve-host.sh" darwin "$repo" "${builtins.head resolvedHostNames}" --strict)"'';
+  resolveDarwinHostStrict = common.resolveHostStrictSnippet {
+    kind = "darwin";
+    inherit resolvedHostNames;
+  };
   platformApps.${system} = {
     apply = mkAppLocal "apply" "Apply Darwin host configuration (switch)" ''
       ${appRepoPreamble}
@@ -100,10 +100,14 @@ let
   };
   evalTestChecks.${system} = mylib.specsToAttrs evalCheckSpecs mkEvalCheck;
 in
-assert lib.assertMsg
-  (invalidHostNames == [ ])
-  "Invalid Darwin host names under nix/hosts/darwin: ${lib.concatStringsSep ", " invalidHostNames}. Allowed pattern: ${hostNamePattern}";
-assert lib.assertMsg (hostNames != [ ]) "No hosts found under nix/hosts/darwin";
+assert common.assertRegistryState
+{
+  state = registryState;
+  registryKey = "darwin";
+  kindDisplay = "Darwin";
+  hostsPath = "nix/hosts/darwin";
+  inherit system;
+};
 {
   inherit data;
   registeredHosts = resolvedHostNames;

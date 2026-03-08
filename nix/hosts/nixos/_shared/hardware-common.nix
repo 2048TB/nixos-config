@@ -1,6 +1,7 @@
-{ config, lib, pkgs, myvars, ... }:
+{ config, lib, pkgs, ... }:
 let
-  cpuVendor = myvars.cpuVendor or "auto";
+  hostCfg = config.my.host;
+  inherit (hostCfg) cpuVendor;
 in
 {
   # Initrd and boot-time hardware drivers.
@@ -38,5 +39,5 @@ in
   ];
 
   # Keep stateVersion pinned for stable upgrades.
-  system.stateVersion = myvars.systemStateVersion or "25.11";
+  system.stateVersion = hostCfg.systemStateVersion;
 }

@@ -1,9 +1,12 @@
 { pkgs
-, myvars
+, lib
+, config
 , ...
 }:
 let
-  enableAggressiveApparmorKill = myvars.enableAggressiveApparmorKill or false;
+  hostCfg = config.my.host;
+  isDesktop = config.my.profiles.desktop;
+  inherit (hostCfg) enableAggressiveApparmorKill;
 in
 {
   security = {
@@ -19,7 +22,7 @@ in
     polkit = {
       enable = true;
       # 恢复单用户桌面体验：wheel 组对 UDisks 挂载类操作直接放行。
-      extraConfig = ''
+      extraConfig = lib.optionalString isDesktop ''
         polkit.addRule(function(action, subject) {
           var guardedActions = [
             "org.freedesktop.udisks2.filesystem-mount",

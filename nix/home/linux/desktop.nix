@@ -3,11 +3,13 @@
 , lib
 , mylib
 , myvars
+, osConfig ? null
 , userProfileBin
 , ...
 }:
 let
-  roleFlags = mylib.roleFlags myvars;
+  hostCfg = import ../base/resolve-host.nix { inherit myvars osConfig; };
+  roleFlags = mylib.roleFlags hostCfg;
   inherit (roleFlags) enableMullvadVpn;
 
   mkLogFilteredLauncher = mylib.mkLogFilteredLauncher pkgs;

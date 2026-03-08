@@ -1,6 +1,7 @@
-{ lib, myvars, nixpkgs, ... }:
+{ lib, config, nixpkgs, ... }:
 let
-  gcRetentionDays = myvars.gcRetentionDays or "14d";
+  hostCfg = config.my.host;
+  inherit (hostCfg) gcRetentionDays acceptFlakeConfig extraTrustedUsers;
   cacheSubstituters = [
     "https://nix-community.cachix.org"
     "https://nixpkgs-wayland.cachix.org"
@@ -11,8 +12,6 @@ let
     "nixpkgs-wayland.cachix.org-1:3lwxaILxMRkVhehr5StQprHdEo4IrE8sRho9R9HOLYA="
     "cache.garnix.io:CTFPyKSLcx5RMJKfLo5EEPUObbA78b0YQ2DTCJXqr9g="
   ];
-  acceptFlakeConfig = myvars.acceptFlakeConfig or false;
-  extraTrustedUsers = myvars.extraTrustedUsers or [ ];
 in
 {
   nix = {

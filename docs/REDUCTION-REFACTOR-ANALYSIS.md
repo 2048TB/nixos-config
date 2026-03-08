@@ -106,17 +106,21 @@ nix/
 - 输出层模板收敛
 - 主机 vars 校验去重
 
-### Phase B（下一步，低风险）
-- 新增 `nix/hosts/outputs/common.nix`，把 `mkEvalCheck`、`resolve-host` 模板、apps 组装共性下沉
-- 保持平台文件仅描述差异
+### Phase B（已完成）
+- 已新增 `nix/hosts/outputs/common.nix`，把 `mkEvalCheck`、`resolve-host` 模板、apps 组装共性下沉
+- 平台文件仅描述差异
 
-### Phase C（中风险）
-- 将 `nix/lib/default.nix` 按职责拆分为 `host-meta.nix` / `attrs.nix` / `validation.nix` / `launchers.nix`
-- `default.nix` 仅做 re-export，降低单文件认知负担
+### Phase C（已完成）
+- 已拆分 `nix/lib/host-meta.nix`（`hostMetaSchema` + `roleFlags`）
+- 已拆分 `nix/lib/attrs.nix`（`hasNonEmptyString`、`mergeAttrFromList*`、`discoverHostNamesBy` 等）
+- 已拆分 `nix/lib/launchers.nix`（`mkLogFilteredLauncher`）
+- 已拆分 `nix/lib/validation.nix`（主机 vars/path 断言 helper）
+- `nix/lib/default.nix` 已改为 re-export 以上能力
 
-### Phase D（可选）
-- 为 host 目录增加薄 `default.nix`（仅 import `vars/hardware/disko/home/checks`）
-- 同步 `nix/hosts/README.md` 与 `docs/README.md`
+### Phase D（已完成）
+- NixOS host 目录增加薄 `default.nix`（统一 host 入口，集中 import `hardware.nix` + `disko.nix`）
+- 输出层测试文件扁平化，移除平台 `tests/` 目录镶套
+- 同步 `nix/hosts/README.md` 与 `nix/hosts/outputs/README.md`
 
 ---
 

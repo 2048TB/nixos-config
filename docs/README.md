@@ -93,6 +93,12 @@ just host=zly switch
 - 当前 `justfile` 默认 `host := "zzly"`，`just switch/check/test` 未显式指定时会使用该默认值。
 - 如需自动检测主机，请使用 flake apps（`nix run .#build-switch`）或在本地调整 `justfile` 的默认 `host`。
 
+远程部署（按主机元数据）：
+```bash
+just deploy
+just deploy HOSTS=zly,zky
+```
+
 ---
 
 ## 3. macOS
@@ -150,7 +156,7 @@ just flake-check
 nixos-config/
 ├── nix/
 │   ├── lib/              # Nix 库函数
-│   ├── hosts/            # 主机配置（nixos/ + darwin/ + outputs/）
+│   ├── hosts/            # 主机配置（nixos/ + darwin/ + registry/ + outputs/）
 │   ├── modules/          # 系统模块（core/ + darwin/）
 │   ├── home/             # Home Manager 配置
 │   └── scripts/          # 脚本（admin/）

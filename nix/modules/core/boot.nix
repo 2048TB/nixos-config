@@ -1,11 +1,11 @@
 { config
 , lib
 , mylib
-, myvars
 , ...
 }:
 let
-  cpuVendor = myvars.cpuVendor or "auto";
+  hostCfg = config.my.host;
+  inherit (hostCfg) cpuVendor enableHibernate;
   hasAmd = cpuVendor != "intel";
   hasIntel = cpuVendor != "amd";
   kvmModules = mylib.kvmModulesForVendor cpuVendor;
@@ -13,14 +13,13 @@ let
     (lib.optional hasAmd "options kvm_amd nested=1")
     (lib.optional hasIntel "options kvm_intel nested=1")
   ]);
-  enableHibernate = myvars.enableHibernate or true;
   resumeDevice =
     if config.fileSystems ? "/swap" && config.fileSystems."/swap" ? device
     then config.fileSystems."/swap".device
     else "/dev/mapper/crypted-nixos";
   resumeKernelParams =
-    if enableHibernate && myvars ? resumeOffset && myvars.resumeOffset != null
-    then [ "resume_offset=${toString myvars.resumeOffset}" ]
+    if enableHibernate && hostCfg.resumeOffset != null
+    then [ "resume_offset=${toString hostCfg.resumeOffset}" ]
     else [ ];
 in
 {

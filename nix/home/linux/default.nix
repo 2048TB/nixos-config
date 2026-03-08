@@ -3,13 +3,15 @@
 , lib
 , noctalia
 , myvars
+, osConfig ? null
 , mainUser
 , ...
 }:
 let
-  homeStateVersion = myvars.homeStateVersion or "25.11";
+  hostCfg = import ../base/resolve-host.nix { inherit myvars osConfig; };
+  homeStateVersion = hostCfg.homeStateVersion or "25.11";
   homeDir = config.home.homeDirectory;
-  inherit (myvars) configRepoPath;
+  configRepoPath = hostCfg.configRepoPath or "/persistent/nixos-config";
 
   waylandSession = pkgs.writeScript "wayland-session" ''
     #!/usr/bin/env bash

@@ -40,6 +40,10 @@ test:
 check:
     h="{{host}}"; if [ -z "$h" ]; then h="$({{repo}}/nix/scripts/admin/resolve-host.sh nixos {{repo}} auto --strict)"; fi; echo ">>> host=$h"; nix build --no-link "path:{{repo}}#nixosConfigurations.$h.config.system.build.toplevel"
 
+# 远程批量部署（HOSTS 为空时部署全部 NixOS 主机）
+deploy HOSTS="":
+    @{{repo}}/nix/scripts/admin/deploy-hosts.sh --repo {{repo}} --hosts '{{HOSTS}}'
+
 # 快速执行 eval tests（hostname/home 映射一致性）
 eval-tests:
     @echo "=== checks.x86_64-linux (eval tests) ==="
