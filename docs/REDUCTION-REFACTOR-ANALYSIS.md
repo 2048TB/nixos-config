@@ -1,6 +1,6 @@
 # 减法重构分析（对标 3 个参考仓库）
 
-更新时间：2026-03-08
+更新时间：2026-03-09
 
 参考仓库：
 - https://github.com/wimpysworld/nix-config
@@ -28,12 +28,14 @@
 ## 2. 当前仓库现状（量化快照）
 
 基于当前仓库统计（`find nix -type f`）：
-- `nix` 总文件数：92
-- `nix/hosts`：38
-- `nix/home`：27
-- `nix/modules`：17
-- `nix/scripts`：5
-- `nix/lib`：5
+- `nix` 总文件数：107
+- `nix/hosts`：44
+- `nix/home`：28
+- `nix/modules`：18
+- `nix/scripts`：6
+- `nix/lib`：9
+- `nix/overlays`：1
+- `nix/patches`：1
 
 现状判断：
 - 优点：

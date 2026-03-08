@@ -12,8 +12,17 @@ fallback="${3:-}"
 strict_mode=0
 strict_flag="${4:-}"
 
+usage() {
+  echo "usage: resolve-host.sh <nixos|darwin> <repo> <fallback-host> [--strict]"
+}
+
+if [ "$platform" = "-h" ] || [ "$platform" = "--help" ]; then
+  usage
+  exit 0
+fi
+
 if [ -z "$platform" ] || [ -z "$fallback" ]; then
-  echo "usage: resolve-host.sh <nixos|darwin> <repo> <fallback-host> [--strict]" >&2
+  usage >&2
   exit 2
 fi
 

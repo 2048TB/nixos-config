@@ -159,6 +159,8 @@ nixos-config/
 │   ├── hosts/            # 主机配置（nixos/ + darwin/ + registry/ + outputs/）
 │   ├── modules/          # 系统模块（core/ + darwin/）
 │   ├── home/             # Home Manager 配置
+│   ├── overlays/         # Nixpkgs overlays（兼容性修复）
+│   ├── patches/          # 本地 patch
 │   └── scripts/          # 脚本（admin/）
 ├── secrets/              # 加密 secrets（可提交）
 ├── wallpapers/           # 壁纸
