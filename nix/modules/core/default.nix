@@ -12,7 +12,12 @@ in
   imports = [
     ./nix-settings.nix
     ./assertions.nix
-    ./role-services.nix
+    ./roles/firewall.nix
+    ./roles/steam.nix
+    ./roles/mullvad.nix
+    ./roles/flatpak.nix
+    ./roles/libvirtd.nix
+    ./roles/docker.nix
     ./boot.nix
     ./storage.nix
     ./security.nix

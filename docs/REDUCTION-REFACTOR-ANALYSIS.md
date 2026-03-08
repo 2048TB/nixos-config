@@ -1,0 +1,149 @@
+# 减法重构分析（对标 3 个参考仓库）
+
+更新时间：2026-03-08
+
+参考仓库：
+- https://github.com/wimpysworld/nix-config
+- https://github.com/Misterio77/nix-config
+- https://github.com/ryan4yin/nix-config
+
+---
+
+## 1. 对标结论（可直接复用的设计思想）
+
+### 1.1 wimpysworld/nix-config
+- 特征：按 `common` / `nixos` / `darwin` / `home` 做分层，主机定义集中，模块内自带开关判断。
+- 可借鉴点：主机层只描述“事实”（hostname、硬件、角色），功能启用逻辑尽量收敛到模块层，避免 host 侧散落条件分支。
+
+### 1.2 Misterio77/nix-config
+- 特征：明确强调 simple、可读、低认知负担，避免 overengineered；不依赖复杂的自定义框架。
+- 可借鉴点：减少“抽象为了抽象”的 helper；保持“读 1-2 个文件就能理解装配路径”。
+
+### 1.3 ryan4yin/nix-config
+- 特征：目录层次清晰，`hosts` / `modules` / `home` / `scripts` 边界明确，并保留 deploy/automation 入口。
+- 可借鉴点：把“平台装配逻辑”和“业务模块逻辑”分开，减少跨层耦合。
+
+---
+
+## 2. 当前仓库现状（量化）
+
+基于当前仓库统计：
+- `nix` 总文件数：106
+- `nix/hosts`：41
+- `nix/home`：27
+- `nix/modules`：18
+- `nix/scripts`：16
+- `nix/lib`：4
+
+现状判断：
+- 优点：
+  - 已有清晰主干：`nix/hosts`、`nix/modules`、`nix/home`、`nix/scripts`
+  - 已实现多平台（NixOS + Darwin）和 host 自动发现
+  - 已有 eval tests 与 just 命令入口
+- 主要复杂度：
+  - `nix/lib/default.nix` 承担了过多职责（装配、验证、schema、工具函数混放）
+  - 两个平台 `outputs` 历史上存在重复模板（已部分减掉，但仍可继续抽离）
+  - `hosts` 与 `outputs` 的边界对新贡献者仍有学习成本
+
+---
+
+## 3. 已完成的减法重构（本轮之前 + 本轮）
+
+1. 角色模块去中转，入口直连  
+   - 移除 `nix/modules/core/role-services.nix` 与 `nix/modules/core/roles/default.nix`
+   - 在 `nix/modules/core/default.nix` 直接导入 roles
+
+2. 输出层重复模板收敛  
+   - `nix/hosts/outputs/x86_64-linux/default.nix`
+   - `nix/hosts/outputs/aarch64-darwin/default.nix`
+   - 统一了 eval-check 生成与合并套路
+
+3. lib 层补齐通用小函数并复用  
+   - 非空字符串/正整数校验 helper
+   - name->attrs、按 key 合并 attrs、specs->attrs
+   - 可选 path/import 与 host data entry 组装 helper
+
+---
+
+## 4. 目标结构（减法版，保持最小迁移成本）
+
+建议目标（不是推翻式重构）：
+
+```text
+nix/
+├── hosts/
+│   ├── nixos/<host>/              # 主机事实（vars/hardware/disko/home/checks）
+│   ├── darwin/<host>/             # 主机事实（vars/default/home/checks）
+│   └── outputs/
+│       ├── default.nix            # 仅聚合平台输出
+│       ├── x86_64-linux/default.nix
+│       ├── aarch64-darwin/default.nix
+│       └── common.nix             # 下一步建议新增：shared builders
+├── modules/
+│   ├── core/                      # NixOS 通用系统模块
+│   ├── darwin/                    # Darwin 通用系统模块
+│   └── hardware.nix
+├── home/
+│   ├── base/
+│   ├── linux/
+│   ├── darwin/
+│   └── configs/
+├── lib/
+│   ├── default.nix                # 导出层（re-export）
+│   ├── host-meta.nix              # 下一步建议拆出 schema/roleFlags
+│   ├── attrs.nix                  # 下一步建议拆出 merge/map helpers
+│   ├── validation.nix             # 下一步建议拆出断言 helper
+│   └── launchers.nix              # 下一步建议拆出 log-filter launcher
+└── scripts/
+    ├── admin/
+    └── session/
+```
+
+---
+
+## 5. 迁移路线（推荐按阶段执行）
+
+### Phase A（已完成）
+- 入口去中转
+- 输出层模板收敛
+- 主机 vars 校验去重
+
+### Phase B（下一步，低风险）
+- 新增 `nix/hosts/outputs/common.nix`，把 `mkEvalCheck`、`resolve-host` 模板、apps 组装共性下沉
+- 保持 `x86_64-linux/default.nix`、`aarch64-darwin/default.nix` 仅描述平台差异
+
+### Phase C（中风险）
+- 将 `nix/lib/default.nix` 按职责拆分为 `host-meta.nix`/`attrs.nix`/`validation.nix`/`launchers.nix`
+- `default.nix` 只做 re-export，降低单文件认知负担
+
+### Phase D（可选）
+- 为 host 目录增加薄 `default.nix`（仅 import 当前 `vars/hardware/disko/home/checks`），提升“单入口可读性”
+- 同步 `nix/hosts/README.md` 与 `docs/README.md`
+
+---
+
+## 6. 校验策略（每阶段必须执行）
+
+最小校验集合：
+- `just eval-tests`
+- `just flake-check`
+- `just scripts-check`
+
+平台相关（按环境可用性）：
+- Linux：`just check`
+- Darwin：`just darwin-check`
+
+---
+
+## 7. 风险与回滚
+
+- 风险重点：attr merge 顺序变化、optional import 语义变化、host auto-discovery 过滤逻辑变化。
+- 回滚原则：每个 Phase 单独提交，出现回归仅回滚该 Phase。
+
+---
+
+## 8. 执行标准（Done Definition）
+
+- 新贡献者从 `flake.nix -> nix/hosts/outputs/* -> nix/lib/* -> host vars` 的理解路径不超过 10 分钟。
+- 同类逻辑只出现一处（例如 eval checks 组装、host data entry 组装）。
+- 重构后 `just eval-tests` 与 `just flake-check` 通过。

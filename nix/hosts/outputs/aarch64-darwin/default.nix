@@ -6,7 +6,7 @@ let
     "vars.nix"
   ];
   hostNamePattern = "^[A-Za-z0-9][A-Za-z0-9_-]*$";
-  invalidHostNames = builtins.filter (name: builtins.match hostNamePattern name == null) hostNames;
+  invalidHostNames = mylib.namesNotMatching hostNamePattern hostNames;
 
   mkHostData =
     name:
@@ -19,30 +19,19 @@ let
       hostCtx = mylib.mkDarwinHost (args // {
         inherit name hostPath hostMyvars;
       });
-      hostChecks =
-        if builtins.pathExists hostChecksPath
-        then import hostChecksPath hostCtx
-        else { };
+      hostChecks = mylib.importIfExists hostChecksPath hostCtx;
     in
-    {
-      darwinConfigurations.${hostCtx.name} = hostCtx.darwinSystem;
-      checks.${hostCtx.system} = hostChecks;
-      mainUsers.${hostCtx.name} = hostCtx.mainUser;
+    mylib.mkHostDataEntry {
+      configAttrName = "darwinConfigurations";
+      hostSystemAttr = "darwinSystem";
+      inherit hostCtx hostChecks;
     };
 
-  data = builtins.listToAttrs (
-    map
-      (name: {
-        inherit name;
-        value = mkHostData name;
-      })
-      hostNames
-  );
+  data = mylib.mapNamesToAttrs hostNames mkHostData;
   dataWithoutPaths = builtins.attrValues data;
 
-  darwinConfigurations =
-    mylib.mergeRecursiveAttrsList (map (it: it.darwinConfigurations or { }) dataWithoutPaths);
-  mainUsers = mylib.mergeRecursiveAttrsList (map (it: it.mainUsers or { }) dataWithoutPaths);
+  darwinConfigurations = mylib.mergeAttrFromList "darwinConfigurations" dataWithoutPaths;
+  mainUsers = mylib.mergeAttrFromList "mainUsers" dataWithoutPaths;
   resolvedHostNames = builtins.attrNames darwinConfigurations;
   hostnameExpr = import ./tests/hostname/expr.nix { inherit lib darwinConfigurations; };
   hostnameExpected = import ./tests/hostname/expected.nix { hostNames = resolvedHostNames; };
@@ -60,6 +49,32 @@ let
     config.allowUnfree = true;
   };
   mkAppLocal = mkApp pkgs;
+  mkEvalCheck =
+    { name, ok, message }:
+    pkgs.runCommand name { } ''
+      if [ "${if ok then "1" else "0"}" != "1" ]; then
+        echo "${message}" >&2
+        exit 1
+      fi
+      touch "$out"
+    '';
+  evalCheckSpecs = [
+    {
+      name = "evaltest-darwin-hostname";
+      ok = hostEvalTests.hostname;
+      message = "darwin hostname eval test failed";
+    }
+    {
+      name = "evaltest-darwin-home";
+      ok = hostEvalTests.home;
+      message = "darwin home eval test failed";
+    }
+    {
+      name = "evaltest-darwin-platform";
+      ok = hostEvalTests.platform;
+      message = "darwin platform eval test failed";
+    }
+  ];
   resolveDarwinHostStrict = ''host="$("$repo/nix/scripts/admin/resolve-host.sh" darwin "$repo" "${builtins.head resolvedHostNames}" --strict)"'';
   platformApps.${system} = {
     apply = mkAppLocal "apply" "Apply Darwin host configuration (switch)" ''
@@ -83,29 +98,7 @@ let
       exec ${pkgs.just}/bin/just clean
     '';
   };
-  evalTestChecks.${system} = {
-    evaltest-darwin-hostname = pkgs.runCommand "evaltest-darwin-hostname" { } ''
-      if [ "${if hostEvalTests.hostname then "1" else "0"}" != "1" ]; then
-        echo "darwin hostname eval test failed" >&2
-        exit 1
-      fi
-      touch "$out"
-    '';
-    evaltest-darwin-home = pkgs.runCommand "evaltest-darwin-home" { } ''
-      if [ "${if hostEvalTests.home then "1" else "0"}" != "1" ]; then
-        echo "darwin home eval test failed" >&2
-        exit 1
-      fi
-      touch "$out"
-    '';
-    evaltest-darwin-platform = pkgs.runCommand "evaltest-darwin-platform" { } ''
-      if [ "${if hostEvalTests.platform then "1" else "0"}" != "1" ]; then
-        echo "darwin platform eval test failed" >&2
-        exit 1
-      fi
-      touch "$out"
-    '';
-  };
+  evalTestChecks.${system} = mylib.specsToAttrs evalCheckSpecs mkEvalCheck;
 in
 assert lib.assertMsg
   (invalidHostNames == [ ])
@@ -116,11 +109,7 @@ assert lib.assertMsg (hostNames != [ ]) "No hosts found under nix/hosts/darwin";
   registeredHosts = resolvedHostNames;
   inherit darwinConfigurations;
   apps = platformApps;
-  checks =
-    mylib.mergeRecursiveAttrsList (
-      (map (it: it.checks or { }) dataWithoutPaths)
-      ++ [ evalTestChecks ]
-    );
-  devShells = mylib.mergeRecursiveAttrsList (map (it: it.devShells or { }) dataWithoutPaths);
-  formatter = mylib.mergeRecursiveAttrsList (map (it: it.formatter or { }) dataWithoutPaths);
+  checks = mylib.mergeAttrFromListWithExtra "checks" dataWithoutPaths [ evalTestChecks ];
+  devShells = mylib.mergeAttrFromListWithExtra "devShells" dataWithoutPaths [ ];
+  formatter = mylib.mergeAttrFromListWithExtra "formatter" dataWithoutPaths [ ];
 }

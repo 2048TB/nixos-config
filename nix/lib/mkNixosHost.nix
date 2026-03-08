@@ -97,46 +97,26 @@ assert lib.assertMsg (builtins.pathExists hostHardwarePath) "Missing ${hostDir}/
 assert lib.assertMsg (builtins.pathExists hostDiskoPath) "Missing ${hostDir}/disko.nix";
 assert lib.assertMsg (hostMyvars != { }) "Missing or empty ${hostDir}/vars.nix";
 assert lib.assertMsg
-  (
-    builtins.hasAttr "username" hostMyvars
-    && builtins.isString hostMyvars.username
-      && hostMyvars.username != ""
-  ) "Invalid ${hostDir}/vars.nix: username must be a non-empty string";
+  (mylib.hasNonEmptyString hostMyvars "username")
+  "Invalid ${hostDir}/vars.nix: username must be a non-empty string";
 assert lib.assertMsg
-  (
-    builtins.hasAttr "timezone" hostMyvars
-    && builtins.isString hostMyvars.timezone
-      && hostMyvars.timezone != ""
-  ) "Invalid ${hostDir}/vars.nix: timezone must be a non-empty string";
+  (mylib.hasNonEmptyString hostMyvars "timezone")
+  "Invalid ${hostDir}/vars.nix: timezone must be a non-empty string";
 assert lib.assertMsg
-  (
-    builtins.hasAttr "systemStateVersion" hostMyvars
-    && builtins.isString hostMyvars.systemStateVersion
-      && hostMyvars.systemStateVersion != ""
-  ) "Invalid ${hostDir}/vars.nix: systemStateVersion must be a non-empty string";
+  (mylib.hasNonEmptyString hostMyvars "systemStateVersion")
+  "Invalid ${hostDir}/vars.nix: systemStateVersion must be a non-empty string";
 assert lib.assertMsg
-  (
-    builtins.hasAttr "homeStateVersion" hostMyvars
-    && builtins.isString hostMyvars.homeStateVersion
-      && hostMyvars.homeStateVersion != ""
-  ) "Invalid ${hostDir}/vars.nix: homeStateVersion must be a non-empty string";
+  (mylib.hasNonEmptyString hostMyvars "homeStateVersion")
+  "Invalid ${hostDir}/vars.nix: homeStateVersion must be a non-empty string";
 assert lib.assertMsg
-  (
-    builtins.hasAttr "diskDevice" hostMyvars
-    && builtins.isString hostMyvars.diskDevice
-      && hostMyvars.diskDevice != ""
-  ) "Invalid ${hostDir}/vars.nix: diskDevice must be a non-empty string";
+  (mylib.hasNonEmptyString hostMyvars "diskDevice")
+  "Invalid ${hostDir}/vars.nix: diskDevice must be a non-empty string";
 assert lib.assertMsg
-  (
-    builtins.hasAttr "swapSizeGb" hostMyvars
-    && builtins.isInt hostMyvars.swapSizeGb
-      && hostMyvars.swapSizeGb > 0
-  ) "Invalid ${hostDir}/vars.nix: swapSizeGb must be a positive integer";
+  (mylib.hasPositiveInt hostMyvars "swapSizeGb")
+  "Invalid ${hostDir}/vars.nix: swapSizeGb must be a positive integer";
 assert lib.assertMsg
-  (
-    builtins.isString resolvedMyvars.configRepoPath
-      && resolvedMyvars.configRepoPath != ""
-  ) "Invalid ${hostDir}/vars.nix: configRepoPath must be a non-empty string";
+  (mylib.hasNonEmptyString resolvedMyvars "configRepoPath")
+  "Invalid ${hostDir}/vars.nix: configRepoPath must be a non-empty string";
 {
   inherit
     name

@@ -286,8 +286,8 @@ binds {
     // Mod+Shift+Space { switch-layout "prev"; }
 
     Print { screenshot; }
-    // 对齐 Hyprland: Mod+A 区域截图
-    Mod+A { spawn "river-screenshot" "area"; }
+    // 对齐 Hyprland: Mod+A 截图（使用 Niri 默认 screenshot）
+    Mod+A { screenshot; }
     Ctrl+Print { screenshot-screen; }
     Alt+Print { screenshot-window; }
 

@@ -14,6 +14,7 @@
 | `docs/NIX-COMMANDS.md` | 命令速查 |
 | `docs/ENV-USAGE.md` | 按环境操作指南 |
 | `docs/KEYBINDINGS.md` | 桌面快捷键 |
+| `docs/REDUCTION-REFACTOR-ANALYSIS.md` | 减法重构分析与目标结构 |
 | `nix/hosts/README.md` | 主机目录组织 |
 | `nix/home/README.md` | Home Manager 结构 |
 

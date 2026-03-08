@@ -117,7 +117,7 @@
 | `Print` | 截图 |
 | `Ctrl + Print` | 当前屏幕截图 |
 | `Alt + Print` | 当前窗口截图 |
-| `Mod + A` | 区域截图 |
+| `Mod + A` | 截图（Niri 默认） |
 | `Mod + Ctrl + C` | 剪贴板历史 |
 | `Mod + Ctrl + S` | 音量控制 |
 
