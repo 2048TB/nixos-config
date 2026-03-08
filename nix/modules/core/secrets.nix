@@ -7,38 +7,38 @@
 let
   homeDir = "/home/${mainUser}";
   inherit (myvars) configRepoPath;
-  agenixMainKeyPath = "/persistent/keys/main.agekey";
-  expectedAgenixMainPub = builtins.replaceStrings [ "\n" "\r" ] [ "" "" ] (builtins.readFile ../../../secrets/keys/main.age.pub);
-  agenixBootstrapSourcePaths = [
+  mainKeyPath = "/persistent/keys/main.agekey";
+  expectedMainPub = builtins.replaceStrings [ "\n" "\r" ] [ "" "" ] (builtins.readFile ../../../secrets/keys/main.age.pub);
+  bootstrapSourcePaths = [
     "${configRepoPath}/.keys/main.agekey"
     "/etc/nixos/.keys/main.agekey"
     "/home/${mainUser}/nixos/.keys/main.agekey"
   ];
-  ageIdentityPaths = [
-    agenixMainKeyPath
-    "/etc/ssh/ssh_host_ed25519_key"
-    "/persistent/etc/ssh/ssh_host_ed25519_key"
-  ];
-  userPasswordSecretFile = ../../../secrets/passwords/user-password.age;
-  rootPasswordSecretFile = ../../../secrets/passwords/root-password.age;
-  githubSshPrivateSecretFile = ../../../secrets/ssh/github_id_ed25519.age;
-  githubSshPublicSecretFile = ../../../secrets/ssh/github_id_ed25519.pub.age;
+
+  userPasswordSecretFile = ../../../secrets/passwords/user-password.yaml;
+  rootPasswordSecretFile = ../../../secrets/passwords/root-password.yaml;
+  githubSshPrivateSecretFile = ../../../secrets/ssh/github_id_ed25519.yaml;
+  githubSshPublicSecretFile = ../../../secrets/ssh/github_id_ed25519_pub.yaml;
+
   hasGithubSshPrivateSecret = builtins.pathExists githubSshPrivateSecretFile;
   hasGithubSshPublicSecret = builtins.pathExists githubSshPublicSecretFile;
 in
 {
-  age = {
-    identityPaths = ageIdentityPaths;
+  sops = {
+    age.keyFile = mainKeyPath;
+
     secrets =
       {
         "passwords/user" = {
-          file = userPasswordSecretFile;
+          sopsFile = userPasswordSecretFile;
+          key = "value";
           mode = "0400";
           owner = "root";
           group = "root";
         };
         "passwords/root" = {
-          file = rootPasswordSecretFile;
+          sopsFile = rootPasswordSecretFile;
+          key = "value";
           mode = "0400";
           owner = "root";
           group = "root";
@@ -46,9 +46,9 @@ in
       }
       // lib.optionalAttrs hasGithubSshPrivateSecret {
         "ssh/github-private" = {
-          file = githubSshPrivateSecretFile;
+          sopsFile = githubSshPrivateSecretFile;
+          key = "value";
           path = "${homeDir}/.ssh/id_ed25519";
-          symlink = false;
           mode = "0400";
           owner = mainUser;
           group = mainUser;
@@ -56,9 +56,9 @@ in
       }
       // lib.optionalAttrs hasGithubSshPublicSecret {
         "ssh/github-public" = {
-          file = githubSshPublicSecretFile;
+          sopsFile = githubSshPublicSecretFile;
+          key = "value";
           path = "${homeDir}/.ssh/id_ed25519.pub";
-          symlink = false;
           mode = "0644";
           owner = mainUser;
           group = mainUser;
@@ -67,22 +67,21 @@ in
   };
 
   system.activationScripts = {
-    agenixNewGeneration.deps = lib.mkAfter [ "agenixKeyBootstrap" ];
-    agenixInstall.deps = lib.mkAfter [ "agenixKeyBootstrap" ];
+    setupSecrets.deps = lib.mkAfter [ "sopsKeyBootstrap" ];
 
-    agenixKeyBootstrap = {
+    sopsKeyBootstrap = {
       text = ''
-        target_key="${agenixMainKeyPath}"
+        target_key="${mainKeyPath}"
         if [ ! -r "$target_key" ]; then
           age_keygen_bin="${pkgs.age}/bin/age-keygen"
           install_bin="${pkgs.coreutils}/bin/install"
           mkdir_bin="${pkgs.coreutils}/bin/mkdir"
           src=""
 
-          for candidate in ${lib.concatMapStringsSep " " lib.escapeShellArg agenixBootstrapSourcePaths}; do
+          for candidate in ${lib.concatMapStringsSep " " lib.escapeShellArg bootstrapSourcePaths}; do
             [ -r "$candidate" ] || continue
             candidate_pub="$("$age_keygen_bin" -y "$candidate" 2>/dev/null || true)"
-            [ "$candidate_pub" = "${expectedAgenixMainPub}" ] || continue
+            [ "$candidate_pub" = "${expectedMainPub}" ] || continue
             src="$candidate"
             break
           done
@@ -91,7 +90,7 @@ in
             for candidate in /home/*/nixos/.keys/main.agekey; do
               [ -r "$candidate" ] || continue
               candidate_pub="$("$age_keygen_bin" -y "$candidate" 2>/dev/null || true)"
-              [ "$candidate_pub" = "${expectedAgenixMainPub}" ] || continue
+              [ "$candidate_pub" = "${expectedMainPub}" ] || continue
               src="$candidate"
               break
             done
@@ -100,9 +99,9 @@ in
           if [ -n "$src" ]; then
             "$mkdir_bin" -p /persistent/keys
             "$install_bin" -D -m 0400 -o root -g root "$src" "$target_key"
-            echo "[agenix] bootstrapped main identity key: $src -> $target_key"
+            echo "[sops] bootstrapped main identity key: $src -> $target_key"
           else
-            echo "[agenix] WARNING: main identity key missing at $target_key and no bootstrap source found." >&2
+            echo "[sops] WARNING: main identity key missing at $target_key and no bootstrap source found." >&2
           fi
         fi
       '';

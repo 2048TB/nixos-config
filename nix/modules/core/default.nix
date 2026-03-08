@@ -39,7 +39,7 @@ in
     mutableUsers = false;
 
     users.root = {
-      hashedPasswordFile = config.age.secrets."passwords/root".path;
+      hashedPasswordFile = config.sops.secrets."passwords/root".path;
     };
 
     groups.${mainUser} = {
@@ -57,7 +57,7 @@ in
         "input"
       ];
       shell = pkgs.zsh;
-      hashedPasswordFile = config.age.secrets."passwords/user".path;
+      hashedPasswordFile = config.sops.secrets."passwords/user".path;
     };
 
     defaultUserShell = pkgs.zsh;

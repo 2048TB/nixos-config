@@ -21,20 +21,68 @@ recovery_pub="$secrets_key_dir/recovery.age.pub"
 require_main_key() {
   if [ ! -f "$main_key" ]; then
     echo "error: missing $main_key" >&2
-    echo "hint: import your existing main key, or run: nix/scripts/admin/agenix.sh init --create" >&2
+    echo "hint: import your existing main key, or run: nix/scripts/admin/sops.sh init --create" >&2
     exit 1
   fi
 }
 
 require_main_pub() {
   if [ ! -f "$main_pub" ]; then
-    echo "error: missing $main_pub; run: nix/scripts/admin/agenix.sh init" >&2
+    echo "error: missing $main_pub; run: nix/scripts/admin/sops.sh init" >&2
     exit 1
   fi
   if [ -z "$(tr -d '\n' < "$main_pub")" ]; then
     echo "error: empty public key file: $main_pub" >&2
     exit 1
   fi
+}
+
+trim_line() {
+  tr -d '\r\n' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//'
+}
+
+collect_age_recipients() {
+  local item host_file host_rec
+  local -a recipients
+
+  if [ -f "$main_pub" ]; then
+    item="$(trim_line < "$main_pub")"
+    [ -n "$item" ] && recipients+=("$item")
+  fi
+
+  if [ -f "$recovery_pub" ]; then
+    item="$(trim_line < "$recovery_pub")"
+    [ -n "$item" ] && recipients+=("$item")
+  fi
+
+  if [ -d "$host_key_dir" ]; then
+    while IFS= read -r host_file; do
+      host_rec="$(run_ssh_to_age < "$host_file" | trim_line || true)"
+      [ -n "$host_rec" ] && recipients+=("$host_rec")
+    done < <(find "$host_key_dir" -maxdepth 1 -type f -name '*.pub' | sort)
+  fi
+
+  if [ "${#recipients[@]}" -eq 0 ]; then
+    return 1
+  fi
+
+  printf '%s\n' "${recipients[@]}" | awk 'NF && !seen[$0]++'
+}
+
+collect_age_recipients_csv() {
+  collect_age_recipients | paste -sd, -
+}
+
+encrypt_yaml_to_target() {
+  local target="$1"
+  local recipients_csv="$2"
+  local tmp
+
+  tmp="$(mktemp)"
+  cat > "$tmp"
+  mkdir -p "$(dirname "$target")"
+  run_sops_encrypt_yaml "$recipients_csv" "$target" < "$tmp"
+  rm -f "$tmp"
 }
 
 # ── subcommands ───────────────────────────────────────────────
@@ -69,43 +117,41 @@ cmd_init() {
     rotate)
       run_age_keygen -o "$main_key" >/dev/null
       echo "rotated main key: $main_key"
-      echo "warning: run 'nix/scripts/admin/agenix.sh rekey' before next deployment."
+      echo "warning: run 'nix/scripts/admin/sops.sh rekey' before next deployment."
       ;;
   esac
 
   chmod 0400 "$main_key"
   run_age_keygen -y "$main_key" > "$main_pub"
 
-  echo "agenix key ready:"
+  echo "sops key ready:"
   echo "- private: $main_key"
   echo "- public : $main_pub"
 }
 
 cmd_password_set() {
   if [ $# -ne 1 ]; then
-    echo "usage: agenix.sh password-set '<sha512-hash>'" >&2
+    echo "usage: sops.sh password-set '<sha512-hash>'" >&2
     exit 2
   fi
 
   local password_hash="$1"
-  local user_secret_rel="./secrets/passwords/user-password.age"
-  local root_secret_rel="./secrets/passwords/root-password.age"
-  local user_secret="$repo_root/secrets/passwords/user-password.age"
-  local root_secret="$repo_root/secrets/passwords/root-password.age"
+  local user_secret="$repo_root/secrets/passwords/user-password.yaml"
+  local root_secret="$repo_root/secrets/passwords/root-password.yaml"
+  local recipients_csv
 
-  require_main_key
   require_main_pub
-  mkdir -p "$(dirname "$user_secret")"
+  recipients_csv="$(collect_age_recipients_csv)"
 
-  local tmp
-  tmp="$(mktemp)"
-  printf '%s\n' "$password_hash" > "$tmp"
+  encrypt_yaml_to_target "$user_secret" "$recipients_csv" <<EOF_HASH
+value: "$password_hash"
+EOF_HASH
 
-  run_agenix_encrypt "$tmp" "$user_secret_rel" "$main_key"
-  run_agenix_encrypt "$tmp" "$root_secret_rel" "$main_key"
-  rm -f "$tmp"
+  encrypt_yaml_to_target "$root_secret" "$recipients_csv" <<EOF_HASH
+value: "$password_hash"
+EOF_HASH
 
-  echo "updated agenix password secrets:"
+  echo "updated sops password secrets:"
   echo "- $user_secret"
   echo "- $root_secret"
 }
@@ -113,10 +159,9 @@ cmd_password_set() {
 cmd_ssh_key_set() {
   local private_src="$repo_root/.keys/github_id_ed25519"
   local public_src="$repo_root/.keys/github_id_ed25519.pub"
-  local private_secret_rel="./secrets/ssh/github_id_ed25519.age"
-  local public_secret_rel="./secrets/ssh/github_id_ed25519.pub.age"
-  local private_secret="$repo_root/secrets/ssh/github_id_ed25519.age"
-  local public_secret="$repo_root/secrets/ssh/github_id_ed25519.pub.age"
+  local private_secret="$repo_root/secrets/ssh/github_id_ed25519.yaml"
+  local public_secret="$repo_root/secrets/ssh/github_id_ed25519_pub.yaml"
+  local recipients_csv
 
   if [ ! -f "$private_src" ]; then
     echo "error: missing $private_src" >&2
@@ -124,20 +169,27 @@ cmd_ssh_key_set() {
     exit 1
   fi
 
-  require_main_key
-
   if [ ! -f "$public_src" ]; then
     run_ssh_keygen -y -f "$private_src" > "$public_src"
   fi
 
   chmod 0600 "$private_src"
   chmod 0644 "$public_src"
-  mkdir -p "$(dirname "$private_secret")"
 
-  run_agenix_encrypt "$private_src" "$private_secret_rel" "$main_key"
-  run_agenix_encrypt "$public_src" "$public_secret_rel" "$main_key"
+  require_main_pub
+  recipients_csv="$(collect_age_recipients_csv)"
 
-  echo "updated agenix ssh key secrets:"
+  {
+    echo "value: |-"
+    sed 's/^/  /' "$private_src"
+  } | encrypt_yaml_to_target "$private_secret" "$recipients_csv"
+
+  {
+    echo "value: |-"
+    sed 's/^/  /' "$public_src"
+  } | encrypt_yaml_to_target "$public_secret" "$recipients_csv"
+
+  echo "updated sops ssh key secrets:"
   echo "- $private_secret"
   echo "- $public_secret"
 }
@@ -208,36 +260,48 @@ cmd_recipients() {
   find "$host_key_dir" -maxdepth 1 -type f -name '*.pub' -print \
     | sed "s|^$repo_root/|- |" \
     | sort
+
+  echo ""
+  echo "resolved age recipients:"
+  collect_age_recipients | sed 's/^/- /'
 }
 
 cmd_rekey() {
-  require_main_key
-  if [ ! -f "$repo_root/secrets.nix" ]; then
-    echo "error: missing $repo_root/secrets.nix" >&2
-    exit 1
-  fi
+  local recipients_csv file tmp_plain tmp_enc
 
-  if [ -f "$recovery_key" ]; then
-    run_agenix -r -i "$main_key" -i "$recovery_key"
-  else
-    run_agenix -r -i "$main_key"
-  fi
+  require_main_key
+  require_main_pub
+  recipients_csv="$(collect_age_recipients_csv)"
+
+  export SOPS_AGE_KEY_FILE="$main_key"
+
+  while IFS= read -r file; do
+    tmp_plain="$(mktemp)"
+    tmp_enc="$(mktemp)"
+
+    run_sops --decrypt "$file" > "$tmp_plain"
+    run_sops --encrypt --age "$recipients_csv" --input-type yaml --output-type yaml "$tmp_plain" > "$tmp_enc"
+    mv "$tmp_enc" "$file"
+    rm -f "$tmp_plain"
+    echo "rekeyed: $file"
+  done < <(find "$repo_root/secrets" -type f -name '*.yaml' | sort)
+
   echo "rekey completed."
 }
 
 # ── usage ─────────────────────────────────────────────────────
 usage() {
   cat <<'EOF'
-usage: agenix.sh <command> [args]
+usage: sops.sh <command> [args]
 
 commands:
   init [--create|--rotate]       Initialize/sync main age key
   password-set <sha512-hash>     Encrypt password hash for user + root
-  ssh-key-set                    Encrypt .keys/github_id_ed25519 via agenix
+  ssh-key-set                    Encrypt .keys/github_id_ed25519 via sops
   recovery-init [--force]        Create/update recovery key pair
   host-add <host> [pub-path]     Register host SSH public key as recipient
   recipients                     List current recipient key files
-  rekey                          Re-encrypt all secrets/*.age
+  rekey                          Re-encrypt all secrets/*.yaml
 EOF
 }
 

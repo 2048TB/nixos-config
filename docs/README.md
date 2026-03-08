@@ -24,7 +24,7 @@
 
 - 优先使用 `just` 命令
 - 危险操作需明确目标主机和磁盘
-- 密码和 SSH 私钥走 `agenix`，不要明文放进 Git
+- 密码和 SSH 私钥走 `sops-nix`，不要明文放进 Git
 
 ---
 
@@ -42,14 +42,14 @@ cd ~/nixos
 全新环境：
 
 ```bash
-just agenix-init-create
-just agenix-recovery-init
+just sops-init-create
+just sops-recovery-init
 ```
 
 已有旧密钥（先复制到 `.keys/`）：
 
 ```bash
-just agenix-init
+just sops-init
 ```
 
 ### 1.3 设置密码
@@ -73,6 +73,7 @@ just host=zly disk=/dev/nvme0n1 install  # 安装（会清盘）
 ### 1.5 重启后
 
 ```bash
+sudo install -D -m 0400 .keys/main.agekey /persistent/keys/main.agekey
 just switch
 ```
 

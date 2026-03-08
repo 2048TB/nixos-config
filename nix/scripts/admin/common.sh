@@ -42,14 +42,6 @@ enter_repo_root() {
   printf '%s\n' "$repo_root"
 }
 
-run_agenix() {
-  if command -v agenix >/dev/null 2>&1; then
-    agenix "$@"
-  else
-    nix run github:ryantm/agenix -- "$@"
-  fi
-}
-
 run_age_keygen() {
   if command -v age-keygen >/dev/null 2>&1; then
     age-keygen "$@"
@@ -66,13 +58,32 @@ run_ssh_keygen() {
   fi
 }
 
-# Non-interactive agenix encryption: write content from a source file to an .age secret.
-# Usage: run_agenix_encrypt <content-file> <secret-rel-path> <identity-file>
-run_agenix_encrypt() {
-  local content_file="$1"
-  local secret_rel="$2"
-  local identity="$3"
-  # agenix 在非交互 stdin 下会忽略外部 EDITOR 并强制走 "cp /dev/stdin"。
-  # 直接通过 stdin 注入内容，避免写入空 secret。
-  cat "$content_file" | run_agenix -e "$secret_rel" -i "$identity"
+run_ssh_to_age() {
+  if command -v ssh-to-age >/dev/null 2>&1; then
+    ssh-to-age "$@"
+  else
+    nix shell nixpkgs#age -c ssh-to-age "$@"
+  fi
+}
+
+run_sops() {
+  if command -v sops >/dev/null 2>&1; then
+    sops "$@"
+  else
+    nix shell nixpkgs#sops -c sops "$@"
+  fi
+}
+
+# Encrypt YAML from stdin to target path with selected age recipients.
+# Usage: run_sops_encrypt_yaml <recipient-csv> <target-file>
+run_sops_encrypt_yaml() {
+  local recipients="$1"
+  local target_file="$2"
+
+  if [ -z "$recipients" ]; then
+    echo "error: empty sops recipient list" >&2
+    return 1
+  fi
+
+  run_sops --encrypt --age "$recipients" --input-type yaml --output-type yaml /dev/stdin >"$target_file"
 }

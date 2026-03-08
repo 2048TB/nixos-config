@@ -101,12 +101,12 @@ sudo env NIXOS_DISK_DEVICE="$disk" "$disko_script"
 findmnt /mnt/boot
 findmnt /mnt/persistent
 
-# 3. Install agenix key
+# 3. Install sops age key
 if age_key_src="$(resolve_age_key_src)"; then
   sudo install -D -m 0400 -o root -g root "$age_key_src" /mnt/persistent/keys/main.agekey
-  echo ">>> agenix key installed: $age_key_src -> /mnt/persistent/keys/main.agekey"
+  echo ">>> sops key installed: $age_key_src -> /mnt/persistent/keys/main.agekey"
 else
-  echo "error: agenix key not found (or invalid) in search paths below:" >&2
+  echo "error: sops key not found (or invalid) in search paths below:" >&2
   echo "  - $PWD/$age_key_rel" >&2
   echo "  - $repo/$age_key_rel" >&2
   echo "  - ${HOME:-}/$age_key_rel" >&2
@@ -128,7 +128,7 @@ fi
 sudo rm -rf "$TARGET_FLAKE_TMP"
 sudo mkdir -p "$TARGET_FLAKE_TMP"
 sudo cp -a "$repo/." "$TARGET_FLAKE_TMP/"
-# Keep decrypt key in repo copy for post-install agenix workflows.
+# Keep decrypt key in repo copy for post-install sops workflows.
 sudo install -D -m 0400 -o root -g root "$age_key_src" "$TARGET_FLAKE_TMP/.keys/main.agekey"
 if [ ! -f "$TARGET_FLAKE_TMP/flake.nix" ]; then
   echo "error: synced target flake is incomplete: missing flake.nix" >&2
@@ -153,5 +153,5 @@ sudo ln -sfn /persistent/nixos-config /mnt/etc/nixos
 # 7. Verify target flake (dry-build)
 sudo nixos-rebuild dry-build --flake /mnt/persistent/nixos-config#"$host"
 
-echo ">>> github ssh key will be provisioned by agenix secrets on first boot/switch (if configured)"
+echo ">>> github ssh key will be provisioned by sops secrets on first boot/switch (if configured)"
 echo "done: reboot, then run: just host=$host switch"

@@ -40,18 +40,18 @@ just darwin_host=zly-mac darwin-switch
 
 ---
 
-## 4. 密钥管理（agenix）
+## 4. 密钥管理（sops）
 
 ```bash
-just agenix-init-create       # 首次创建主密钥
-just agenix-init              # 同步已有密钥
-just agenix-recovery-init     # 初始化恢复密钥
+just sops-init-create         # 首次创建主密钥
+just sops-init                # 同步已有密钥
+just sops-recovery-init       # 初始化恢复密钥
 just password-hashes          # 生成密码哈希
 just password-set-hash '<h>'  # 写入密码
 just ssh-key-set              # 托管 SSH key
-just agenix-recipients        # 查看 recipients
-just agenix-host-key-add <host> <pub>  # 添加主机公钥
-just agenix-rekey             # 重加密所有 secrets
+just sops-recipients          # 查看 recipients
+just sops-host-key-add <host> <pub>  # 添加主机公钥
+just sops-rekey               # 重加密所有 secrets
 ```
 
 ---
@@ -124,4 +124,4 @@ nix run .#clean           # 清理
 | test | 临时激活，重启失效 |
 | switch | 正式切换，持久生效 |
 | flake-check | 仓库级完整检查 |
-| agenix | 加密 secrets 管理 |
+| sops | 加密 secrets 管理 |

@@ -26,26 +26,26 @@
 
 ```bash
 # 初始化/同步主密钥（默认不创建）
-just agenix-init
+just sops-init
 
 # 首次创建主密钥
-just agenix-init-create
+just sops-init-create
 
 # 初始化 recovery key
-just agenix-recovery-init
+just sops-recovery-init
 
 # 添加主机 host 公钥作为 recipient
-just agenix-host-key-add zly /etc/ssh/ssh_host_ed25519_key.pub
+just sops-host-key-add zly /etc/ssh/ssh_host_ed25519_key.pub
 
 # 重加密 secrets
-just agenix-rekey
+just sops-rekey
 
 # 查看 recipients
-just agenix-recipients
+just sops-recipients
 ```
 
 ---
 
 ## 4. 工作原理（简版）
 
-`secrets.nix` 会自动读取本目录中的公钥集合，作为 `secrets/*.age` 的 recipients。
+`nix/scripts/admin/sops.sh` 会读取本目录中的公钥集合，作为 `secrets/*.yaml` 的 recipients。

@@ -46,7 +46,7 @@
   enableTelegramDesktop = false;
   enableLocalSend = false;
 
-  # Credentials are managed by agenix secrets:
-  # - secrets/passwords/user-password.age
-  # - secrets/passwords/root-password.age
+  # Credentials are managed by sops secrets:
+  # - secrets/passwords/user-password.yaml
+  # - secrets/passwords/root-password.yaml
 }
