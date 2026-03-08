@@ -16,7 +16,7 @@ let
   enableSplayer = hostCfg.enableSplayer or false;
   enableTelegramDesktop = hostCfg.enableTelegramDesktop or false;
   enableLocalSend = hostCfg.enableLocalSend or false;
-  wpsOfficePackage = pkgs.wpsoffice-cn or pkgs.wpsoffice;
+  wpsOfficePackage = pkgs.wpsoffice;
 
   # 仅在混合显卡（amd-nvidia-hybrid）时安装 GPU 加速相关软件
   gpuChoice = hostCfg.gpuMode or "auto";
