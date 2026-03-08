@@ -6,13 +6,25 @@ let
   darwinExtraNames = [
     # Programming languages and toolchains
     "go"
-    "rustup"
-    "nodejs_22"
+    "rust-bin.stable.latest.default"
+    "rust-bin.stable.latest.rust-analyzer"
+    "nodejs"
+    "nodePackages.typescript"
+    "nodePackages.typescript-language-server"
     "python3"
+    "python3Packages.pip"
+    "pyright"
+    "ruff"
+    "black"
+    "uv"
     "bun"
     "pnpm"
     "pipx"
     "zig"
+    "zls"
+    "gopls"
+    "delve"
+    "gotools"
 
     # CLI tools
     "gitui"
