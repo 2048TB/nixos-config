@@ -13,7 +13,7 @@
 2. 环境变量（`NIXOS_HOST` / `DARWIN_HOST`）
 3. 当前 hostname（由 `resolve-host.sh`）
 
-注意：当前 `justfile` 默认 `host := "zzly"`，所以 `just switch/check/test` 默认不会走自动检测。
+注意：当前 `justfile` 默认 `host := ""`，所以 `just switch/check/test` 未显式指定时会自动检测当前主机。
 
 ---
 

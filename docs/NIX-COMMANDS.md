@@ -15,7 +15,7 @@ just host=zly boot
 just rollback
 ```
 
-说明：当前 `justfile` 默认 `host := "zzly"`。未显式指定 `host` 时会使用该默认值。
+说明：当前 `justfile` 默认 `host := ""`。未显式指定 `host` 时会自动检测当前主机。
 
 ---
 

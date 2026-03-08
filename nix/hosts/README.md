@@ -81,4 +81,4 @@ cp -a nix/hosts/darwin/zly-mac nix/hosts/darwin/mac-mini
 1. `NIXOS_HOST` / `DARWIN_HOST` 环境变量
 2. 当前 hostname
 
-补充：当前 `justfile` 默认 `host := "zzly"`，所以 `just switch/check/test` 默认直接用 `zzly`；建议显式指定 `host`。
+补充：当前 `justfile` 默认 `host := ""`，所以 `just switch/check/test` 未显式指定时会自动检测当前主机；跨主机操作建议显式指定 `host`。
