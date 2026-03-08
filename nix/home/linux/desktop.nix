@@ -11,7 +11,7 @@ let
   inherit (roleFlags) enableProvider appVpn;
 
   mkLogFilteredLauncher = mylib.mkLogFilteredLauncher pkgs;
-  noctaliaShellPkg = noctalia.packages.${pkgs.system}.default;
+  noctaliaShellPkg = noctalia.packages.${pkgs.stdenv.hostPlatform.system}.default;
 
   # ===== Quiet launcher 定义 =====
   udiskieQuiet = mkLogFilteredLauncher "udiskie-quiet" "${pkgs.udiskie}/bin/udiskie" [

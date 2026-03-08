@@ -16,7 +16,7 @@
   swapSizeGb = 32;
 
   enableHibernate = true;
-  resumeOffset = 533760;
+  resumeOffset = 1513128;
   rootTmpfsSize = "2G";
   journaldSystemMaxUse = "512M";
   journaldRuntimeMaxUse = "256M";
