@@ -151,7 +151,7 @@ rec {
     builtins.listToAttrs (
       map
         (spec: {
-          name = spec.name;
+          inherit (spec) name;
           value = mkValue spec;
         })
         specs
@@ -261,6 +261,7 @@ rec {
       "amdgpuBusId"
       "nvidiaBusId"
     ];
+
   };
 
   roleFlags = myvars:

@@ -29,7 +29,7 @@
   amdgpuBusId = null;
   nvidiaBusId = null;
   enableGpuSpecialisation = false;
-  enableBluetoothRfkillUnblock = false;
+  enableBluetoothRfkillUnblock = true;
   enableAggressiveApparmorKill = false;
   dockerMode = "rootless";
 
