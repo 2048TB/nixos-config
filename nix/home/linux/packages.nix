@@ -3,7 +3,6 @@
 , lib
 , mylib
 , myvars
-, mytheme
 , ...
 }:
 let
