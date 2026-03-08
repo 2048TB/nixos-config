@@ -90,8 +90,8 @@ just host=zly switch
 ```
 
 说明：
-- 当前 `justfile` 默认 `host := "zzly"`，`just switch/check/test` 未显式指定时会使用该默认值。
-- 如需自动检测主机，请使用 flake apps（`nix run .#build-switch`）或在本地调整 `justfile` 的默认 `host`。
+- 当前 `justfile` 默认 `host := ""`，`just switch/check/test` 未显式指定时会自动检测当前主机。
+- 跨主机执行时，建议显式指定 `host=...`。
 
 远程部署（按主机元数据）：
 ```bash

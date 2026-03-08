@@ -60,7 +60,7 @@ just host=zly check && just host=zly switch   # 日常更新（建议显式 host
 just darwin-switch                             # macOS
 ```
 
-注意：当前 `justfile` 默认 `host := "zzly"`。为避免误操作，建议显式写 `host=...`。
+注意：当前 `justfile` 默认 `host := ""`。`just switch/check/test` 未显式指定时会自动解析当前主机；跨主机操作仍建议显式写 `host=...`。
 
 ---
 

@@ -10,12 +10,12 @@ let
   hostCfg = import ../base/resolve-host.nix { inherit myvars osConfig; };
   roleFlags = mylib.roleFlags hostCfg;
   inherit (roleFlags) enableMullvadVpn enableSteam enableLibvirtd enableDocker;
-  # App toggles (flat host vars, default true)
-  enableWpsOffice = hostCfg.enableWpsOffice or true;
-  enableZathura = hostCfg.enableZathura or true;
-  enableSplayer = hostCfg.enableSplayer or true;
-  enableTelegramDesktop = hostCfg.enableTelegramDesktop or true;
-  enableLocalSend = hostCfg.enableLocalSend or true;
+  # App toggles (flat host vars, default false; aligned with nix/modules/core/options.nix)
+  enableWpsOffice = hostCfg.enableWpsOffice or false;
+  enableZathura = hostCfg.enableZathura or false;
+  enableSplayer = hostCfg.enableSplayer or false;
+  enableTelegramDesktop = hostCfg.enableTelegramDesktop or false;
+  enableLocalSend = hostCfg.enableLocalSend or false;
 
   # 仅在混合显卡（amd-nvidia-hybrid）时安装 GPU 加速相关软件
   gpuChoice = hostCfg.gpuMode or "auto";
