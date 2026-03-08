@@ -53,8 +53,8 @@ let
     }
   ];
 
-  userPasswordSecretFile = ../../../secrets/passwords/user-password.age;
-  rootPasswordSecretFile = ../../../secrets/passwords/root-password.age;
+  userPasswordSecretFile = ../../../secrets/passwords/user-password.yaml;
+  rootPasswordSecretFile = ../../../secrets/passwords/root-password.yaml;
 in
 {
   assertions = [
@@ -87,11 +87,11 @@ in
     }
     {
       assertion = builtins.pathExists userPasswordSecretFile;
-      message = "Missing secrets/passwords/user-password.age. Use agenix to create/update it.";
+      message = "Missing secrets/passwords/user-password.yaml. Use sops workflow to create/update it.";
     }
     {
       assertion = builtins.pathExists rootPasswordSecretFile;
-      message = "Missing secrets/passwords/root-password.age. Use agenix to create/update it.";
+      message = "Missing secrets/passwords/root-password.yaml. Use sops workflow to create/update it.";
     }
     {
       assertion =

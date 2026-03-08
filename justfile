@@ -213,33 +213,33 @@ hooks-enable:
 guard-secrets:
     @{{repo}}/nix/scripts/admin/guard-secrets.sh
 
-# 初始化 agenix 主密钥（默认只同步，不自动创建）
-agenix-init:
-    @{{repo}}/nix/scripts/admin/agenix.sh init
+# 初始化 sops 主密钥（默认只同步，不自动创建）
+sops-init:
+    @{{repo}}/nix/scripts/admin/sops.sh init
 
-# 首次初始化 agenix 主密钥（仅在 main.agekey 缺失时创建）
-agenix-init-create:
-    @{{repo}}/nix/scripts/admin/agenix.sh init --create
+# 首次初始化 sops 主密钥（仅在 main.agekey 缺失时创建）
+sops-init-create:
+    @{{repo}}/nix/scripts/admin/sops.sh init --create
 
-# 旋转 agenix 主密钥（危险：需要立即 rekey）
-agenix-init-rotate:
-    @{{repo}}/nix/scripts/admin/agenix.sh init --rotate
+# 旋转 sops 主密钥（危险：需要立即 rekey）
+sops-init-rotate:
+    @{{repo}}/nix/scripts/admin/sops.sh init --rotate
 
 # 初始化/更新恢复密钥（本地 .keys/recovery.agekey + 仓库公钥）
-agenix-recovery-init:
-    @{{repo}}/nix/scripts/admin/agenix.sh recovery-init
+sops-recovery-init:
+    @{{repo}}/nix/scripts/admin/sops.sh recovery-init
 
 # 添加主机 SSH host 公钥 recipient（默认读取 /etc/ssh/ssh_host_ed25519_key.pub）
-agenix-host-key-add HOST PUB="/etc/ssh/ssh_host_ed25519_key.pub":
-    @{{repo}}/nix/scripts/admin/agenix.sh host-add '{{HOST}}' '{{PUB}}'
+sops-host-key-add HOST PUB="/etc/ssh/ssh_host_ed25519_key.pub":
+    @{{repo}}/nix/scripts/admin/sops.sh host-add '{{HOST}}' '{{PUB}}'
 
-# 列出 agenix recipients
-agenix-recipients:
-    @{{repo}}/nix/scripts/admin/agenix.sh recipients
+# 列出 sops recipients
+sops-recipients:
+    @{{repo}}/nix/scripts/admin/sops.sh recipients
 
-# 按当前 recipients 重加密所有 secrets/*.age
-agenix-rekey:
-    @{{repo}}/nix/scripts/admin/agenix.sh rekey
+# 按当前 recipients 重加密所有 secrets/*.yaml
+sops-rekey:
+    @{{repo}}/nix/scripts/admin/sops.sh rekey
 
 # 生成 sha-512 密码哈希（交互输入密码）
 password-hash:
@@ -257,13 +257,13 @@ password-hashes:
     @echo ">>> rootPasswordHash"
     @just password-hash
 
-# 将同一个密码哈希写入 agenix（user/root）
+# 将同一个密码哈希写入 sops（user/root）
 password-set-hash HASH:
-    @{{repo}}/nix/scripts/admin/agenix.sh password-set '{{HASH}}'
+    @{{repo}}/nix/scripts/admin/sops.sh password-set '{{HASH}}'
 
-# 将 .keys/github_id_ed25519(.pub) 加密写入 agenix secrets
+# 将 .keys/github_id_ed25519(.pub) 加密写入 sops secrets
 ssh-key-set:
-    @{{repo}}/nix/scripts/admin/agenix.sh ssh-key-set
+    @{{repo}}/nix/scripts/admin/sops.sh ssh-key-set
 
 # 提交所有更改
 commit MESSAGE:

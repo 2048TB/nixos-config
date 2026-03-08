@@ -33,10 +33,9 @@ nixos-config/
 │   │   ├── darwin/            # macOS HM
 │   │   └── configs/           # 应用配置文件（niri/waybar/shell/tmux/zellij…）
 │   └── scripts/
-│       ├── admin/             # 管理脚本（agenix/install/resolve-host/new-host/guard-secrets）
+│       ├── admin/             # 管理脚本（sops/install/resolve-host/new-host/guard-secrets）
 │       └── session/           # 会话脚本（waybar/lock-screen/screenshot/wlogout…）
 ├── secrets/                   # 加密 secrets（可提交）
-├── secrets.nix                # agenix recipients
 ├── wallpapers/                # 壁纸
 ├── docs/                      # 文档（README/KEYBINDINGS/NIX-COMMANDS/ENV-USAGE）
 ├── justfile                   # 命令入口
@@ -64,9 +63,9 @@ nixos-config/
 ## 4. 安全规则
 
 - 禁止提交私钥、token、明文密码
-- `secrets/*.age` 可提交，`.keys/*.agekey` 不可提交
+- `secrets/*.yaml` 可提交，`.keys/*.agekey` 不可提交
 - 安装与分区（disko）命令视为危险操作
-- 密码来源：agenix（`secrets/passwords/*.age`），不使用明文文件
+- 密码来源：sops（`secrets/passwords/*.yaml`），不使用明文文件
 
 ---
 

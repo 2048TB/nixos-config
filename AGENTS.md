@@ -47,7 +47,7 @@ just flake-check    # flake 完整检查
 | XDG/portal | `nix/home/linux/xdg.nix` |
 | 跨平台共享 | `nix/home/base/default.nix` |
 | macOS 配置 | `nix/home/darwin/default.nix` |
-| 密钥管理 | `nix/scripts/admin/agenix.sh` |
+| 密钥管理 | `nix/scripts/admin/sops.sh` |
 | 安装流程 | `nix/scripts/admin/install-live.sh` |
 | 新增主机参考 | `nix/hosts/README.md` |
 
@@ -72,7 +72,7 @@ just darwin-switch            # macOS
 
 ## 6. 安全红线
 
-详见 `CLAUDE.md` §4。核心：不提交私钥，`secrets/*.age` 可提交，`.keys/*.agekey` 不可提交。
+详见 `CLAUDE.md` §4。核心：不提交私钥，`secrets/*.yaml` 可提交，`.keys/*.agekey` 不可提交。
 
 ---
 
