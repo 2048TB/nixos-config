@@ -55,37 +55,6 @@ let
       sed -E -i 's|^Exec=.*/bin/${bin}(.*)$|Exec=${bin}\1|' "$out"
     '';
 
-  # 统一 Wlogout 调用入口，避免 Waybar/Niri 参数漂移
-  wlogoutMenu = pkgs.writeShellApplication {
-    name = "wlogout-menu";
-    runtimeInputs = with pkgs; [ wlogout ];
-    text = builtins.readFile ../../scripts/session/wlogout-menu.sh;
-  };
-  lockScreen = pkgs.writeShellApplication {
-    name = "lock-screen";
-    runtimeInputs = with pkgs; [ swaylock-effects ];
-    text = mytheme.apply (builtins.readFile ../../scripts/session/lock-screen.sh);
-  };
-  riverCliphistMenu = pkgs.writeShellApplication {
-    name = "river-cliphist-menu";
-    runtimeInputs = with pkgs; [ cliphist fuzzel wl-clipboard ];
-    text = builtins.readFile ../../scripts/session/cliphist-menu.sh;
-  };
-  waybarClockCalendar = pkgs.writeShellApplication {
-    name = "waybar-clock-calendar";
-    runtimeInputs = with pkgs; [ fuzzel coreutils ];
-    text = builtins.readFile ../../scripts/session/waybar-clock-calendar.sh;
-  };
-  waybarTemperatureStatus = pkgs.writeShellApplication {
-    name = "waybar-temperature-status";
-    runtimeInputs = with pkgs; [ coreutils ];
-    text = builtins.readFile ../../scripts/session/waybar-temperature.sh;
-  };
-  publicIpStatus = pkgs.writeShellApplication {
-    name = "public-ip-status";
-    runtimeInputs = with pkgs; [ wget coreutils gnused ];
-    text = builtins.readFile ../../scripts/session/public-ip-status.sh;
-  };
   nvidiaOffload = pkgs.writeShellApplication {
     name = "nvidia-offload";
     text = ''
@@ -96,6 +65,7 @@ let
       exec "$@"
     '';
   };
+  noctaliaShell = pkgs.noctalia-shell;
 
   cherryStudioPackage = pkgsUnstable.cherry-studio;
   gamingPackages = with pkgs; [
@@ -204,7 +174,6 @@ in
 
       # === Wayland 工具 ===
       satty
-      swaylock-effects # Niri 手动锁屏（支持 --clock）
       wl-screenrec
 
       # === 基础图形工具 ===
@@ -222,19 +191,14 @@ in
 
       # === 桌面工作流 ===
       fuzzel
-      waybar
-      wlogout
+      noctaliaShell
       gnome-calculator
-      swaybg # 备用壁纸工具（手动/脚本场景可用）
 
       # === Wayland 基础设施 ===
-      cliphist
-      wl-clipboard
       qt6Packages.qt6ct
       app2unit
       polkit_gnome # Polkit 认证代理（权限提升对话框，virt-manager/Nautilus 等需要）
       networkmanagerapplet # nm-connection-editor（WiFi GUI 管理入口）
-      pasystray # 托盘音量控制（恢复托盘区声音管理）
 
       # 媒体 / 图形
       pavucontrol
@@ -262,14 +226,6 @@ in
     ++ lib.optionals enableDocker dockerPackages
     ++ lib.optional isPrimeOffloadGpu nvidiaOffload
     ++ lib.optional enableMullvadVpn pkgs.mullvad-vpn
-    ++ [
-      wlogoutMenu
-      lockScreen
-      riverCliphistMenu
-      waybarClockCalendar
-      waybarTemperatureStatus
-      publicIpStatus
-    ]
     ++ lib.optionals enableWpsOffice wpsWrappedBins; # WPS steam-run 包装器（覆盖原始二进制，修复启动问题）
 
     file = lib.optionalAttrs enableWpsOffice {

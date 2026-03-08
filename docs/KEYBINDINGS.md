@@ -21,7 +21,7 @@
 | `Mod + T` | 全屏 |
 | `Print` | 截图 |
 | `XF86AudioRaiseVolume/LowerVolume` | 音量 |
-| `Mod + Shift + L` | 锁屏 |
+| `Mod + Shift + L` | 锁屏（Noctalia） |
 | `Mod + Shift + E` | 退出 Niri |
 
 ---
@@ -35,9 +35,9 @@
 | `Mod + Space` | Fuzzel |
 | `Mod + Shift + Slash` | 快捷键提示层 |
 | `Mod + .` | 文件管理器 |
-| `Mod + Shift + L` | 锁屏 |
+| `Mod + Shift + L` | 锁屏（Noctalia） |
 | `Mod + O` | 列 tabbed 切换 |
-| `Mod + Ctrl + E` | 会话菜单（wlogout） |
+| `Mod + Ctrl + E` | 会话菜单（Noctalia） |
 | `Mod + Shift + E` | 退出 Niri |
 | `Ctrl + Alt + Delete` | 退出 Niri |
 
@@ -118,7 +118,6 @@
 | `Ctrl + Print` | 当前屏幕截图 |
 | `Alt + Print` | 当前窗口截图 |
 | `Mod + A` | 截图（Niri 默认） |
-| `Mod + Ctrl + C` | 剪贴板历史 |
 | `Mod + Ctrl + S` | 音量控制 |
 
 ---

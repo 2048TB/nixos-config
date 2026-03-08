@@ -234,8 +234,6 @@ rec {
       "enableGpuSpecialisation"
       "enableBluetoothRfkillUnblock"
       "enableAggressiveApparmorKill"
-      "enableWaybarBacklight"
-      "enableWaybarBattery"
       "enableNvidiaContainerToolkit"
       "acceptFlakeConfig"
       "enableMullvadVpn"
