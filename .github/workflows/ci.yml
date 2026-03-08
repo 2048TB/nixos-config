@@ -1,20 +1,6 @@
-name: Nix CI
+name: Nix CI Heavy (Manual)
 
 on:
-  pull_request:
-    branches:
-      - main
-    paths-ignore:
-      - "docs/**"
-      - "**/*.md"
-      - "wallpapers/**"
-  push:
-    branches:
-      - main
-    paths-ignore:
-      - "docs/**"
-      - "**/*.md"
-      - "wallpapers/**"
   workflow_dispatch:
 
 concurrency:

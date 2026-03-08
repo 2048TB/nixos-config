@@ -1,8 +1,6 @@
-name: Flake Lock Checker
+name: Flake Lock Checker Heavy (Manual)
 
 on:
-  schedule:
-    - cron: "17 3 * * 1"
   workflow_dispatch:
 
 jobs:

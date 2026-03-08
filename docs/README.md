@@ -136,8 +136,10 @@ just flake-check
 
 ## 6. CI（GitHub Actions）
 
-- 主流程：`Nix CI`（`inventory -> flake-check -> nixos-build matrix -> darwin-eval matrix`）
-- 定时巡检：`Flake Lock Checker`（每周检查 lock freshness）
+- 默认门禁：`Nix CI Light`（PR/Push 自动触发，快速 eval checks）
+- 保留重型：`Nix CI Heavy (Manual)`（仅手动触发）
+- 保留 lock 检查：`Flake Lock Checker Heavy (Manual)`（仅手动触发）
+- 自动清理：`Cleanup Old Workflow Runs`（按周期清理旧 runs）
 - 详情见：`docs/CI.md`
 
 ---

@@ -90,8 +90,10 @@ just lock
 
 ```bash
 # 触发工作流（指定分支）
-gh workflow run "Nix CI" --ref <branch>
-gh workflow run "Flake Lock Checker" --ref <branch>
+gh workflow run "Nix CI Light" --ref <branch>
+gh workflow run "Nix CI Heavy (Manual)" --ref <branch>
+gh workflow run "Flake Lock Checker Heavy (Manual)" --ref <branch>
+gh workflow run "Cleanup Old Workflow Runs" --ref <branch>
 
 # 查看与跟踪运行
 gh run list --limit 10
