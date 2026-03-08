@@ -9,7 +9,10 @@
 , hostRegistry ? { }
 , extraModules ? [ ]
 , homeModules ? [ (mylib.relativeToRoot "nix/home/linux") ]
-, nixpkgsOverlays ? [ inputs.rust-overlay.overlays.default ]
+, nixpkgsOverlays ? [
+    inputs.rust-overlay.overlays.default
+    (import (mylib.relativeToRoot "nix/overlays/telegram-desktop.nix"))
+  ]
 , nixpkgsConfig ? { inherit (mylib) allowUnfreePredicate; }
 , ...
 }:
