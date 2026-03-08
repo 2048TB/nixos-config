@@ -1,77 +1,94 @@
 # CI（GitHub Actions）
 
-本仓库使用 GitHub Actions 做 2 类 CI：
+本仓库使用 GitHub Actions 做 4 类流程：
 
-1. `Nix CI`：PR/Push（`main`）与手动触发  
-2. `Flake Lock Checker`：定时巡检 `flake.lock` 健康度
+1. `Nix CI Light`：默认 PR/Push 轻量门禁（启用）  
+2. `Nix CI Heavy (Manual)`：完整重型检查（保留，仅手动）  
+3. `Flake Lock Checker Heavy (Manual)`：lock 健康检查（保留，仅手动）
+4. `Cleanup Old Workflow Runs`：自动清理旧 Actions runs（启用）
 
 ---
 
-## 1. Nix CI 流程
+## 1. 默认轻量 CI
+
+工作流文件：`.github/workflows/ci-light.yml`
+
+触发方式：
+- `pull_request`（`main`）
+- `push`（`main`）
+- `workflow_dispatch`
+
+检查内容：
+1. build Linux eval checks（`evaltest-hostname/home/kernel/platform`）
+2. eval Darwin checks（`evaltest-darwin-hostname/home/platform`）
+
+设计目标：尽快反馈，不做每台主机 toplevel build。
+
+---
+
+## 2. 保留的重型 CI（手动）
 
 工作流文件：`.github/workflows/ci.yml`
 
+触发方式：仅 `workflow_dispatch`
+
 执行顺序：
+1. `inventory`：动态发现 hosts
+2. `flake-check`：`nix flake check --all-systems`
+3. `nixos-build`：逐 host 构建 `config.system.build.toplevel`
+4. `darwin-eval`：逐 host eval `system.drvPath`
 
-1. `inventory`：动态发现 `nixosConfigurations` / `darwinConfigurations`
-2. `flake-check`：执行 `nix flake check --all-systems --show-trace`
-3. `nixos-build`：按 host matrix 构建每台 NixOS 的 `config.system.build.toplevel`
-4. `darwin-eval`：按 host matrix 校验 Darwin `system.drvPath`
-
-设计目标：
-- 不手写 host 列表，避免新增主机后漏测
-- `flake-check` 负责统一质量门
-- Linux runner 上对 Darwin 做 eval 校验，避免跨平台构建失败噪音
+说明：当配置接近稳定时可切回此流程作为默认门禁。
 
 ---
 
-## 2. Flake Lock Checker
+## 3. 保留的 lock 检查（手动）
 
 工作流文件：`.github/workflows/flake-lock-checker.yml`
 
-- 每周一 UTC `03:17` 自动执行
-- 也可手动触发（`workflow_dispatch`）
-- 使用 `DeterminateSystems/flake-checker-action` 检查 lock freshness 与依赖健康
+触发方式：仅 `workflow_dispatch`
+
+用途：按需运行 `DeterminateSystems/flake-checker-action`。
 
 ---
 
-## 3. 本地等价验证（与 CI 对齐）
+## 4. 自动清理旧运行记录（启用）
+
+工作流文件：`.github/workflows/cleanup-workflow-runs.yml`
+
+触发方式：
+- `schedule`：每周日 UTC `03:27`
+- `workflow_dispatch`
+
+清理策略：
+- 删除“已完成（completed）且创建时间超过 30 天”的 workflow runs
+- 不删除进行中 runs
+
+---
+
+## 5. 本地等价验证（轻量 CI）
 
 ```bash
-# 1) inventory
-nix eval --json .#nixosConfigurations --apply builtins.attrNames
-nix eval --json .#darwinConfigurations --apply builtins.attrNames
-
-# 2) flake-check
-just flake-check
-
-# 3) nixos host builds
-for h in $(nix eval --json .#nixosConfigurations --apply builtins.attrNames | jq -r '.[]'); do
-  nix build --no-link -L ".#nixosConfigurations.${h}.config.system.build.toplevel"
-done
-
-# 4) darwin eval
-for h in $(nix eval --json .#darwinConfigurations --apply builtins.attrNames | jq -r '.[]'); do
-  nix eval --raw ".#darwinConfigurations.${h}.system.drvPath" >/dev/null
-done
+just eval-tests
 ```
-
-说明：本地循环命令依赖 `jq`。若无 `jq`，请先安装或改用 `nix eval` 的 `--apply` 方式处理列表。
 
 ---
 
-## 4. 手动触发 CI
+## 6. 手动触发 CI
 
 GitHub 页面：
-- `Actions -> Nix CI -> Run workflow`
-- `Actions -> Flake Lock Checker -> Run workflow`
+- `Actions -> Nix CI Light -> Run workflow`
+- `Actions -> Nix CI Heavy (Manual) -> Run workflow`
+- `Actions -> Flake Lock Checker Heavy (Manual) -> Run workflow`
+- `Actions -> Cleanup Old Workflow Runs -> Run workflow`
 
 CLI：
 
 ```bash
-gh workflow run "Nix CI" --ref <branch>
-gh workflow run "Flake Lock Checker" --ref <branch>
+gh workflow run "Nix CI Light" --ref <branch>
+gh workflow run "Nix CI Heavy (Manual)" --ref <branch>
+gh workflow run "Flake Lock Checker Heavy (Manual)" --ref <branch>
+gh workflow run "Cleanup Old Workflow Runs" --ref <branch>
 gh run list --limit 10
 gh run watch <run-id>
 ```
-
