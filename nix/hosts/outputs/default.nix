@@ -13,7 +13,7 @@ let
       inherit mylib mytheme;
       pkgsUnstable = import inputs.nixpkgs-unstable {
         inherit system;
-        config.allowUnfree = true;
+        config.allowUnfreePredicate = mylib.allowUnfreePredicate;
       };
     };
 

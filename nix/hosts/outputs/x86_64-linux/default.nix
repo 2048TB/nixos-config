@@ -52,7 +52,7 @@ let
 
   pkgs = import inputs.nixpkgs {
     inherit system;
-    config.allowUnfree = true;
+    config.allowUnfreePredicate = mylib.allowUnfreePredicate;
   };
   mkAppLocal = mkApp pkgs;
   mkEvalCheck =

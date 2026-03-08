@@ -46,6 +46,7 @@ in
   ];
 
   home = {
+    enableNixpkgsReleaseCheck = true;
     username = mainUser;
     homeDirectory = "/home/${mainUser}";
     stateVersion = homeStateVersion;

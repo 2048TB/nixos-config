@@ -1,0 +1,17 @@
+[
+  "ripgrep-all"
+  "btop"
+  "duf"
+  "dust"
+  "procs"
+  "fastfetch"
+  "yq"
+  "yamllint"
+  "taplo"
+  "check-jsonschema"
+  "sd"
+  "tealdeer"
+  "pciutils"
+  "brightnessctl"
+  "xdg-user-dirs"
+]

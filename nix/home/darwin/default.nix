@@ -1,23 +1,8 @@
-{ lib, pkgs, mainUser, myvars, ... }:
+{ lib, pkgs, mylib, mainUser, myvars, ... }:
 let
   homeDir = "/Users/${mainUser}";
   brewPath = "/opt/homebrew/bin:/usr/local/bin";
-  sharedNames = [
-    "git"
-    "gh"
-    "tmux"
-    "zellij"
-    "yazi"
-    "bat"
-    "fd"
-    "eza"
-    "ripgrep"
-    "jq"
-    "wget"
-    "just"
-  ];
 
-  # Keep package names as strings so missing attrs on Darwin won't break eval.
   darwinExtraNames = [
     # Programming languages and toolchains
     "go"
@@ -38,31 +23,8 @@ let
     "procs"
   ];
 
-  desiredPackageNames = sharedNames ++ darwinExtraNames;
-  resolvePackage =
-    name:
-    let
-      pkgPath = lib.splitString "." name;
-      pkg = lib.attrByPath pkgPath null pkgs;
-      exists = pkg != null;
-      availability =
-        if exists
-        then builtins.tryEval (lib.meta.availableOn pkgs.stdenv.hostPlatform pkg)
-        else {
-          success = true;
-          value = false;
-        };
-      available = exists && availability.success && availability.value;
-    in
-    {
-      inherit name pkg available;
-    };
-
-  resolved = map resolvePackage desiredPackageNames;
-  packageSelection = {
-    packages = map (item: item.pkg) (builtins.filter (item: item.available) resolved);
-    skippedNames = map (item: item.name) (builtins.filter (item: !item.available) resolved);
-  };
+  desiredPackageNames = mylib.sharedPackageNames ++ darwinExtraNames;
+  packageSelection = mylib.resolvePackagesByName pkgs desiredPackageNames;
 in
 {
   imports = [

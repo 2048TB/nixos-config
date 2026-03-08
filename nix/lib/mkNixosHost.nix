@@ -9,7 +9,7 @@
 , extraModules ? [ ]
 , homeModules ? [ (mylib.relativeToRoot "nix/home/linux") ]
 , nixpkgsOverlays ? [ inputs.rust-overlay.overlays.default ]
-, nixpkgsConfig ? { allowUnfree = true; }
+, nixpkgsConfig ? { inherit (mylib) allowUnfreePredicate; }
 , ...
 }:
 let
