@@ -1,25 +1,31 @@
 { lib, mylib, inputs, system, mkApp, appRepoPreamble, ... }@args:
 let
+  common = import ../common.nix { inherit lib mylib; };
   hostsRoot = mylib.relativeToRoot "nix/hosts/nixos";
-  hostNames = mylib.discoverHostNamesBy hostsRoot [
-    "hardware.nix"
-    "disko.nix"
-    "vars.nix"
-  ];
-  hostNamePattern = "^[A-Za-z0-9][A-Za-z0-9_-]*$";
-  invalidHostNames = mylib.namesNotMatching hostNamePattern hostNames;
+  registryState = common.mkRegistryState {
+    kind = "nixos";
+    inherit hostsRoot system;
+    requiredFiles = [
+      "default.nix"
+      "hardware.nix"
+      "disko.nix"
+      "vars.nix"
+    ];
+  };
+  inherit (registryState) hostNames;
 
   mkHostData =
     name:
     let
       hostDir = "nix/hosts/nixos/${name}";
-      hostPath = mylib.relativeToRoot "${hostDir}/host.nix";
+      hostPath = mylib.relativeToRoot "${hostDir}/default.nix";
       hostVarsPath = mylib.relativeToRoot "${hostDir}/vars.nix";
       hostChecksPath = mylib.relativeToRoot "${hostDir}/checks.nix";
       hostMyvars = import hostVarsPath;
+      hostRegistry = mylib.hostRegistryEntry "nixos" name;
       hostCtx = mylib.mkNixosHost (args // {
-        inherit name hostMyvars;
-        hostPath = mylib.pathIfExists hostPath;
+        inherit name hostMyvars hostRegistry;
+        inherit hostPath;
       });
       hostChecks = mylib.importIfExists hostChecksPath (hostCtx // { inherit (args) lib mylib; });
     in
@@ -35,14 +41,14 @@ let
   mainUsers = mylib.mergeAttrFromList "mainUsers" dataWithoutPaths;
   resolvedHostNames = builtins.attrNames nixosConfigurations;
 
-  hostnameExpr = import ./tests/hostname-expr.nix { inherit lib nixosConfigurations; };
-  hostnameExpected = import ./tests/hostname-expected.nix { hostNames = resolvedHostNames; };
-  homeExpr = import ./tests/home-expr.nix { inherit lib nixosConfigurations; };
-  homeExpected = import ./tests/home-expected.nix { inherit mainUsers; };
-  kernelExpr = import ./tests/kernel-expr.nix { inherit lib nixosConfigurations; };
-  kernelExpected = import ./tests/kernel-expected.nix { inherit system; hostNames = resolvedHostNames; };
-  platformExpr = import ./tests/platform-expr.nix { inherit lib nixosConfigurations; };
-  platformExpected = import ./tests/platform-expected.nix { inherit system; hostNames = resolvedHostNames; };
+  hostnameExpr = import ./hostname-expr.nix { inherit lib nixosConfigurations; };
+  hostnameExpected = import ./hostname-expected.nix { hostNames = resolvedHostNames; };
+  homeExpr = import ./home-expr.nix { inherit lib nixosConfigurations; };
+  homeExpected = import ./home-expected.nix { inherit mainUsers; };
+  kernelExpr = import ./kernel-expr.nix { inherit lib nixosConfigurations; };
+  kernelExpected = import ./kernel-expected.nix { inherit system; hostNames = resolvedHostNames; };
+  platformExpr = import ./platform-expr.nix { inherit lib nixosConfigurations; };
+  platformExpected = import ./platform-expected.nix { inherit system; hostNames = resolvedHostNames; };
   hostEvalTests = {
     hostname = hostnameExpr == hostnameExpected;
     home = homeExpr == homeExpected;
@@ -55,15 +61,7 @@ let
     config.allowUnfreePredicate = mylib.allowUnfreePredicate;
   };
   mkAppLocal = mkApp pkgs;
-  mkEvalCheck =
-    { name, ok, message }:
-    pkgs.runCommand name { } ''
-      if [ "${if ok then "1" else "0"}" != "1" ]; then
-        echo "${message}" >&2
-        exit 1
-      fi
-      touch "$out"
-    '';
+  mkEvalCheck = common.mkEvalCheck pkgs;
   evalCheckSpecs = [
     {
       name = "evaltest-hostname";
@@ -86,7 +84,10 @@ let
       message = "platform eval test failed";
     }
   ];
-  resolveNixosHostStrict = ''host="$("$repo/nix/scripts/admin/resolve-host.sh" nixos "$repo" "${builtins.head resolvedHostNames}" --strict)"'';
+  resolveNixosHostStrict = common.resolveHostStrictSnippet {
+    kind = "nixos";
+    inherit resolvedHostNames;
+  };
   platformApps.${system} = {
     apply = mkAppLocal "apply" "Apply Linux host configuration (switch)" ''
       ${appRepoPreamble}
@@ -112,6 +113,10 @@ let
     clean = mkAppLocal "clean" "Clean old generations" ''
       ${appRepoPreamble}
       exec ${pkgs.just}/bin/just clean
+    '';
+    deploy = mkAppLocal "deploy" "Deploy one or more Linux hosts over SSH" ''
+      ${appRepoPreamble}
+      exec "$repo/nix/scripts/admin/deploy-hosts.sh" --repo "$repo" "$@"
     '';
   };
   evalTestChecks.${system} = mylib.specsToAttrs evalCheckSpecs mkEvalCheck;
@@ -146,10 +151,14 @@ let
 
   platformFormatter.${system} = pkgs.nixpkgs-fmt;
 in
-assert lib.assertMsg
-  (invalidHostNames == [ ])
-  "Invalid NixOS host names under nix/hosts/nixos: ${lib.concatStringsSep ", " invalidHostNames}. Allowed pattern: ${hostNamePattern}";
-assert lib.assertMsg (hostNames != [ ]) "No hosts found under nix/hosts/nixos";
+assert common.assertRegistryState
+{
+  state = registryState;
+  registryKey = "nixos";
+  kindDisplay = "NixOS";
+  hostsPath = "nix/hosts/nixos";
+  inherit system;
+};
 {
   inherit data;
   registeredHosts = resolvedHostNames;

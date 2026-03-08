@@ -1,5 +1,6 @@
-{ lib, pkgs, mylib, mainUser, myvars, ... }:
+{ lib, pkgs, mylib, mainUser, myvars, osConfig ? null, ... }:
 let
+  hostCfg = import ../base/resolve-host.nix { inherit myvars osConfig; };
   homeDir = "/Users/${mainUser}";
   brewPath = "/opt/homebrew/bin:/usr/local/bin";
 
@@ -48,10 +49,10 @@ in
   ];
 
   home = {
-    enableNixpkgsReleaseCheck = myvars.enableHmReleaseCheck or true;
+    enableNixpkgsReleaseCheck = hostCfg.enableHmReleaseCheck or true;
     username = mainUser;
     homeDirectory = homeDir;
-    stateVersion = myvars.homeStateVersion or "25.11";
+    stateVersion = hostCfg.homeStateVersion or "25.11";
 
     sessionVariables = {
       PYTHONUSERBASE = "${homeDir}/.local";

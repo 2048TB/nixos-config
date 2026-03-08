@@ -2,17 +2,16 @@
 , pkgs
 , lib
 , mylib
-, myvars
 , mainUser
 , ...
 }:
 let
+  hostCfg = config.my.host;
   homeDir = "/home/${mainUser}";
-  inherit (myvars) configRepoPath;
-  roleFlags = mylib.roleFlags myvars;
+  inherit (hostCfg) configRepoPath;
+  roleFlags = mylib.roleFlags hostCfg;
   inherit (roleFlags) enableProvider appVpn enableLibvirtd enableDocker enableFlatpak useRootfulDocker;
-  rootTmpfsSize = myvars.rootTmpfsSize or "2G";
-  enableHibernate = myvars.enableHibernate or true;
+  inherit (hostCfg) rootTmpfsSize enableHibernate;
 
   mkFixOwnershipScript = targetDir: {
     text = ''
@@ -124,7 +123,7 @@ in
       text = ''
         if [ -d /swap ] && [ ! -f /swap/swapfile ]; then
           ${pkgs.btrfs-progs}/bin/btrfs filesystem mkswapfile \
-            --size ${toString myvars.swapSizeGb}g \
+            --size ${toString hostCfg.swapSizeGb}g \
             --uuid clear \
             /swap/swapfile
           chmod 600 /swap/swapfile
@@ -135,8 +134,8 @@ in
 
     warnMissingResumeOffset = {
       text = ''
-        if [ "${if enableHibernate then "1" else "0"}" = "1" ] && [ -f /swap/swapfile ] && [ -z "${if myvars ? resumeOffset && myvars.resumeOffset != null then toString myvars.resumeOffset else ""}" ]; then
-          echo "WARNING: myvars.resumeOffset is not set on host ${myvars.hostname}." >&2
+        if [ "${if enableHibernate then "1" else "0"}" = "1" ] && [ -f /swap/swapfile ] && [ -z "${if hostCfg.resumeOffset != null then toString hostCfg.resumeOffset else ""}" ]; then
+          echo "WARNING: my.host.resumeOffset is not set on host ${hostCfg.hostname}." >&2
           echo "WARNING: hibernate may power off without resuming previous session." >&2
           echo "WARNING: run (as root): btrfs inspect-internal map-swapfile -r /swap/swapfile" >&2
         fi
@@ -148,10 +147,10 @@ in
       text = ''
         if [ "${if enableHibernate then "1" else "0"}" = "1" ] && [ -f /swap/swapfile ]; then
           current_size_bytes="$(${pkgs.coreutils}/bin/stat -c %s /swap/swapfile 2>/dev/null || echo 0)"
-          target_size_bytes=$(( ${toString myvars.swapSizeGb} * 1024 * 1024 * 1024 ))
+          target_size_bytes=$(( ${toString hostCfg.swapSizeGb} * 1024 * 1024 * 1024 ))
           if [ "$current_size_bytes" -ne "$target_size_bytes" ]; then
-            echo "WARNING: /swap/swapfile size ($current_size_bytes bytes) != configured ${toString myvars.swapSizeGb}GiB ($target_size_bytes bytes) on host ${myvars.hostname}." >&2
-            echo "WARNING: recreate swapfile and refresh myvars.resumeOffset before relying on hibernate." >&2
+            echo "WARNING: /swap/swapfile size ($current_size_bytes bytes) != configured ${toString hostCfg.swapSizeGb}GiB ($target_size_bytes bytes) on host ${hostCfg.hostname}." >&2
+            echo "WARNING: recreate swapfile and refresh my.host.resumeOffset before relying on hibernate." >&2
           fi
         fi
       '';
@@ -160,7 +159,7 @@ in
 
     warnResumeOffsetMismatch = {
       text = ''
-          configured_resume_offset="${if myvars ? resumeOffset && myvars.resumeOffset != null then toString myvars.resumeOffset else ""}"
+          configured_resume_offset="${if hostCfg.resumeOffset != null then toString hostCfg.resumeOffset else ""}"
           if [ "${if enableHibernate then "1" else "0"}" = "1" ] && [ -f /swap/swapfile ] && [ -n "$configured_resume_offset" ]; then
             btrfs_bin="${pkgs.btrfs-progs}/bin/btrfs"
             head_bin="${pkgs.coreutils}/bin/head"
@@ -170,8 +169,8 @@ in
                 ;;
               *)
                 if [ "$actual_resume_offset" != "$configured_resume_offset" ]; then
-                  echo "WARNING: myvars.resumeOffset ($configured_resume_offset) != actual swapfile resume offset ($actual_resume_offset) on host ${myvars.hostname}." >&2
-                  echo "WARNING: update hosts/nixos/${myvars.hostname}/vars.nix: resumeOffset = $actual_resume_offset;" >&2
+                  echo "WARNING: my.host.resumeOffset ($configured_resume_offset) != actual swapfile resume offset ($actual_resume_offset) on host ${hostCfg.hostname}." >&2
+                  echo "WARNING: update hosts/nixos/${hostCfg.hostname}/vars.nix: resumeOffset = $actual_resume_offset;" >&2
                 fi
                 ;;
             esac

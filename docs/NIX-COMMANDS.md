@@ -117,7 +117,18 @@ just diff
 
 ---
 
-## 9. Flake Apps
+## 9. 远程部署（NixOS）
+
+```bash
+just deploy                  # 部署全部 NixOS hosts（按 registry）
+just deploy HOSTS=zly,zky    # 只部署指定主机
+```
+
+`deploy` 会读取 `nixosConfigurations.<host>.config.my.host.deployHost/deployUser` 作为 SSH 目标。
+
+---
+
+## 10. Flake Apps
 
 ```bash
 nix run .#apply
@@ -125,6 +136,7 @@ nix run .#build
 nix run .#build-switch
 nix run .#install   # Linux 平台
 nix run .#clean
+nix run .#deploy -- --hosts zly,zky
 ```
 
 严格主机解析示例：
@@ -135,7 +147,7 @@ DARWIN_HOST=zly-mac nix run .#build-switch
 
 ---
 
-## 10. 常见工作流
+## 11. 常见工作流
 
 ```bash
 just quick                 # check + switch
@@ -146,7 +158,7 @@ just status && just log    # 查看仓库状态
 
 ---
 
-## 11. 术语
+## 12. 术语
 
 | 术语 | 含义 |
 |------|------|

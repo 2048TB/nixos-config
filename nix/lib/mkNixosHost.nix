@@ -6,6 +6,7 @@
 , name
 , hostPath ? null
 , hostMyvars ? { }
+, hostRegistry ? { }
 , extraModules ? [ ]
 , homeModules ? [ (mylib.relativeToRoot "nix/home/linux") ]
 , nixpkgsOverlays ? [ inputs.rust-overlay.overlays.default ]
@@ -24,9 +25,9 @@ let
     ;
 
   baseSpecialArgs = genSpecialArgs system;
-  resolvedMyvars = hostMyvars // {
+  resolvedMyvars = hostRegistry // hostMyvars // {
     hostname = name;
-    configRepoPath = hostMyvars.configRepoPath or "/persistent/nixos-config";
+    configRepoPath = hostMyvars.configRepoPath or hostRegistry.configRepoPath or "/persistent/nixos-config";
   };
   mainUser = resolvedMyvars.username;
 
@@ -42,6 +43,11 @@ let
   };
 
   hostDir = "nix/hosts/nixos/${name}";
+  hostEntryPath =
+    if hostPath != null then
+      hostPath
+    else
+      mylib.relativeToRoot "${hostDir}/default.nix";
   hostHardwarePath = mylib.relativeToRoot "${hostDir}/hardware.nix";
   hostDiskoPath = mylib.relativeToRoot "${hostDir}/disko.nix";
   hostModulesPath = mylib.relativeToRoot "${hostDir}/modules";
@@ -67,8 +73,7 @@ let
     (mylib.relativeToRoot "nix/modules/core")
     (mylib.relativeToRoot "nix/modules/core/hardware.nix")
     ({ modulesPath, ... }: { imports = [ (modulesPath + "/installer/scan/not-detected.nix") ]; })
-    hostHardwarePath
-    hostDiskoPath
+    hostEntryPath
     preservation.nixosModules.default
     sops-nix.nixosModules.sops
     lanzaboote.nixosModules.lanzaboote
@@ -77,7 +82,6 @@ let
     disko.nixosModules.disko
   ]
   ++ nixosHardwareModules
-  ++ lib.optionals (hostPath != null) [ hostPath ]
   ++ discoveredHostModules
   ++ extraModules;
 
@@ -93,30 +97,19 @@ let
     overlays = nixpkgsOverlays;
   };
 in
-assert lib.assertMsg (builtins.pathExists hostHardwarePath) "Missing ${hostDir}/hardware.nix";
-assert lib.assertMsg (builtins.pathExists hostDiskoPath) "Missing ${hostDir}/disko.nix";
-assert lib.assertMsg (hostMyvars != { }) "Missing or empty ${hostDir}/vars.nix";
-assert lib.assertMsg
-  (mylib.hasNonEmptyString hostMyvars "username")
-  "Invalid ${hostDir}/vars.nix: username must be a non-empty string";
-assert lib.assertMsg
-  (mylib.hasNonEmptyString hostMyvars "timezone")
-  "Invalid ${hostDir}/vars.nix: timezone must be a non-empty string";
-assert lib.assertMsg
-  (mylib.hasNonEmptyString hostMyvars "systemStateVersion")
-  "Invalid ${hostDir}/vars.nix: systemStateVersion must be a non-empty string";
-assert lib.assertMsg
-  (mylib.hasNonEmptyString hostMyvars "homeStateVersion")
-  "Invalid ${hostDir}/vars.nix: homeStateVersion must be a non-empty string";
-assert lib.assertMsg
-  (mylib.hasNonEmptyString hostMyvars "diskDevice")
-  "Invalid ${hostDir}/vars.nix: diskDevice must be a non-empty string";
-assert lib.assertMsg
-  (mylib.hasPositiveInt hostMyvars "swapSizeGb")
-  "Invalid ${hostDir}/vars.nix: swapSizeGb must be a positive integer";
-assert lib.assertMsg
-  (mylib.hasNonEmptyString resolvedMyvars "configRepoPath")
-  "Invalid ${hostDir}/vars.nix: configRepoPath must be a non-empty string";
+assert mylib.assertPathExists hostEntryPath "Missing ${hostDir}/default.nix";
+assert mylib.assertPathExists hostHardwarePath "Missing ${hostDir}/hardware.nix";
+assert mylib.assertPathExists hostDiskoPath "Missing ${hostDir}/disko.nix";
+assert mylib.assertNonEmptyAttrs hostMyvars "Missing or empty ${hostDir}/vars.nix";
+assert mylib.assertRequiredNonEmptyStrings hostMyvars [
+  "username"
+  "timezone"
+  "systemStateVersion"
+  "homeStateVersion"
+  "diskDevice"
+] "${hostDir}/vars.nix";
+assert mylib.assertRequiredPositiveInts hostMyvars [ "swapSizeGb" ] "${hostDir}/vars.nix";
+assert mylib.assertRequiredNonEmptyStrings resolvedMyvars [ "configRepoPath" ] "${hostDir}/vars.nix";
 {
   inherit
     name

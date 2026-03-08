@@ -1,5 +1,6 @@
-{ config, lib, pkgs, myvars, ... }:
+{ config, lib, pkgs, ... }:
 let
+  hostCfg = config.my.host;
   # GPU 驱动常量
   driverNvidia = "nvidia";
   driverAmdgpu = "amdgpu";
@@ -8,7 +9,7 @@ let
   driverModesetting = "modesetting";
   gpuDefaultValue = "auto";
 
-  gpuChoice = myvars.gpuMode or gpuDefaultValue;
+  gpuChoice = hostCfg.gpuMode or gpuDefaultValue;
   isNvidia = gpuChoice == driverNvidia;
   isNvidiaPrime = gpuChoice == driverNvidiaPrime;
   # 兼容历史配置/README 中的 "amd" 取值
@@ -16,10 +17,7 @@ let
   isAmdNvidiaHybrid = gpuChoice == driverAmdNvidiaHybrid;
   useNvidia = isNvidia || isNvidiaPrime || isAmdNvidiaHybrid;
   # 官方默认关闭 nvidia-container-toolkit。桌面场景按需开启，避免无用 CDI 生成告警。
-  enableNvidiaContainerToolkit = myvars.enableNvidiaContainerToolkit or false;
-  intelBusId = myvars.intelBusId or null;
-  amdgpuBusId = myvars.amdgpuBusId or null;
-  nvidiaBusId = myvars.nvidiaBusId or null;
+  inherit (hostCfg) enableNvidiaContainerToolkit intelBusId amdgpuBusId nvidiaBusId;
   hasPrimeBusIds = intelBusId != null && nvidiaBusId != null;
   hasAmdNvidiaHybridBusIds = amdgpuBusId != null && nvidiaBusId != null;
 
@@ -66,8 +64,7 @@ let
 
   # 是否启用 GPU 专用配置（启动菜单中切换驱动）
   # 默认禁用以减少 ISO 体积和安装时间
-  enableGpuSpecialisation = myvars.enableGpuSpecialisation or false;
-  enableBluetoothRfkillUnblock = lib.attrByPath [ "enableBluetoothRfkillUnblock" ] false myvars;
+  inherit (hostCfg) enableGpuSpecialisation enableBluetoothRfkillUnblock;
 in
 {
   hardware = {
@@ -95,7 +92,7 @@ in
     };
   };
 
-  # GPU 驱动来源：使用主机 vars.nix 的 myvars.gpuMode 固定配置
+  # GPU 驱动来源：使用主机配置 my.host.gpuMode 固定配置
   services = {
     xserver.videoDrivers = videoDrivers;
     blueman.enable = true;
@@ -132,15 +129,15 @@ in
 
   warnings =
     lib.optionals (isNvidiaPrime && !hasPrimeBusIds) [
-      "gpuMode=nvidia-prime requires myvars.intelBusId and myvars.nvidiaBusId (e.g. PCI:0:2:0 / PCI:1:0:0). Falling back to non-prime NVIDIA setup."
+      "gpuMode=nvidia-prime requires my.host.intelBusId and my.host.nvidiaBusId (e.g. PCI:0:2:0 / PCI:1:0:0). Falling back to non-prime NVIDIA setup."
     ]
     ++ lib.optionals (isAmdNvidiaHybrid && !hasAmdNvidiaHybridBusIds) [
-      "gpuMode=amd-nvidia-hybrid requires myvars.amdgpuBusId and myvars.nvidiaBusId (e.g. PCI:5:0:0 / PCI:1:0:0). Falling back to non-prime hybrid setup."
+      "gpuMode=amd-nvidia-hybrid requires my.host.amdgpuBusId and my.host.nvidiaBusId (e.g. PCI:5:0:0 / PCI:1:0:0). Falling back to non-prime hybrid setup."
     ];
 
   # GPU 专用配置：启动时在引导菜单中切换驱动
   # 默认禁用以减少 ISO 体积（~500MB）和安装时间
-  # 启用方式：在对应主机 vars.nix 中将 myvars.enableGpuSpecialisation 设为 true
+  # 启用方式：在对应主机 vars.nix（或 registry）中将 my.host.enableGpuSpecialisation 设为 true
   specialisation = lib.mkIf enableGpuSpecialisation {
     gpu-amd.configuration = {
       services.xserver.videoDrivers = [ driverAmdgpu ];

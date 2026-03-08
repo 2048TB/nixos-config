@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "nixos-config host registry",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "nixos": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/entry"
+      }
+    },
+    "darwin": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/entry"
+      }
+    }
+  },
+  "$defs": {
+    "entry": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "system"
+      ],
+      "properties": {
+        "system": {
+          "type": "string",
+          "pattern": "^[a-z0-9_\\-]+$"
+        },
+        "formFactor": {
+          "type": "string",
+          "enum": [
+            "desktop",
+            "laptop",
+            "server"
+          ]
+        },
+        "profiles": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "desktop",
+              "laptop",
+              "server"
+            ]
+          }
+        },
+        "deployHost": {
+          "type": "string",
+          "minLength": 1
+        },
+        "deployUser": {
+          "type": "string",
+          "minLength": 1
+        },
+        "configRepoPath": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  }
+}

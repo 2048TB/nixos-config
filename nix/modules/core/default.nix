@@ -1,15 +1,16 @@
 { config
 , pkgs
-, myvars
 , mainUser
 , ...
 }:
 let
   defaultUid = 1000;
   defaultGid = 1000;
+  hostCfg = config.my.host;
 in
 {
   imports = [
+    ./options.nix
     ./nix-settings.nix
     ./assertions.nix
     ./roles/firewall.nix
@@ -27,12 +28,12 @@ in
   ];
 
   networking = {
-    hostName = myvars.hostname;
+    hostName = hostCfg.hostname;
     networkmanager.enable = true;
     firewall.enable = true;
   };
 
-  time.timeZone = myvars.timezone;
+  time.timeZone = hostCfg.timezone;
 
   # 配合 tmpfs 根分区，用户数据库由配置统一管理，避免 passwd 修改丢失
   users = {

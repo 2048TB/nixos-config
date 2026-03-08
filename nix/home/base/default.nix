@@ -1,8 +1,9 @@
-{ config, myvars, ... }:
+{ config, myvars, osConfig ? null, ... }:
 let
   homeDir = config.home.homeDirectory;
   localShareDir = "${homeDir}/.local/share";
   localBinDir = "${homeDir}/.local/bin";
+  hostCfg = import ./resolve-host.nix { inherit myvars osConfig; };
 in
 {
   programs = {
@@ -49,7 +50,7 @@ in
   };
 
   home.sessionVariables = {
-    HOST_PROFILE = myvars.hostname;
+    HOST_PROFILE = hostCfg.hostname;
     NPM_CONFIG_PREFIX = "${homeDir}/.npm-global";
     BUN_INSTALL = "${homeDir}/.bun";
     BUN_INSTALL_BIN = "${homeDir}/.bun/bin";

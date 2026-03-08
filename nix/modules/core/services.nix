@@ -1,19 +1,20 @@
 { pkgs
 , lib
 , mylib
-, myvars
 , mytheme
 , mainUser
+, config
 , ...
 }:
 let
+  hostCfg = config.my.host;
   homeDir = "/home/${mainUser}";
-  inherit (myvars) configRepoPath;
-  roleFlags = mylib.roleFlags myvars;
+  inherit (config.my) profiles;
+  inherit (hostCfg) configRepoPath journaldSystemMaxUse journaldRuntimeMaxUse;
+  roleFlags = mylib.roleFlags hostCfg;
   inherit (roleFlags) enableProvider appVpn;
-  isLaptop = myvars.hostname == "zky";
-  journaldSystemMaxUse = myvars.journaldSystemMaxUse or "512M";
-  journaldRuntimeMaxUse = myvars.journaldRuntimeMaxUse or "256M";
+  isLaptop = profiles.laptop;
+  isDesktop = profiles.desktop;
 
   tuigreetPackage = pkgs.tuigreet or pkgs.greetd.tuigreet or (throw "tuigreet package not found in pkgs.tuigreet or pkgs.greetd.tuigreet");
   tuigreetTheme = let p = mytheme.palette; in
@@ -26,7 +27,7 @@ let
       --remember \
       --remember-session \
       --asterisks \
-      --greeting 'NixOS ${myvars.hostname} login' \
+      --greeting 'NixOS ${hostCfg.hostname} login' \
       --width 92 \
       --window-padding 5 \
       --container-padding 4 \
@@ -52,59 +53,62 @@ let
   ];
 in
 {
-  services = {
-    xserver.enable = false;
-
-    greetd = {
-      enable = true;
-      useTextGreeter = true;
-      settings.default_session = {
-        user = "greeter";
-        command = "${tuigreetCommand}";
-      };
-    };
-
-    pipewire = {
-      enable = true;
-      alsa.enable = true;
-      alsa.support32Bit = true;
-      pulse.enable = true;
-      lowLatency.enable = true;
-      extraConfig.pipewire."10-disable-rtportal" = {
-        "module.rt.args" = {
-          "rtportal.enabled" = false;
+  services = lib.mkMerge [
+    {
+      logind.settings = lib.mkIf isLaptop {
+        Login = {
+          HandleLidSwitch = "suspend-then-hibernate";
+          HandleLidSwitchExternalPower = "ignore";
+          HandleLidSwitchDocked = "ignore";
         };
       };
-      extraConfig.pipewire-pulse."10-disable-rtportal" = {
-        "module.rt.args" = {
-          "rtportal.enabled" = false;
+
+      journald.extraConfig = ''
+        SystemMaxUse=${journaldSystemMaxUse}
+        RuntimeMaxUse=${journaldRuntimeMaxUse}
+      '';
+    }
+    (lib.mkIf isDesktop {
+      xserver.enable = false;
+
+      greetd = {
+        enable = true;
+        useTextGreeter = true;
+        settings.default_session = {
+          user = "greeter";
+          command = "${tuigreetCommand}";
         };
       };
-      wireplumber.extraConfig."10-disable-libcamera-monitor"."wireplumber.profiles" = {
-        main."monitor.libcamera" = "disabled";
+
+      pipewire = {
+        enable = true;
+        alsa.enable = true;
+        alsa.support32Bit = true;
+        pulse.enable = true;
+        lowLatency.enable = true;
+        extraConfig.pipewire."10-disable-rtportal" = {
+          "module.rt.args" = {
+            "rtportal.enabled" = false;
+          };
+        };
+        extraConfig.pipewire-pulse."10-disable-rtportal" = {
+          "module.rt.args" = {
+            "rtportal.enabled" = false;
+          };
+        };
+        wireplumber.extraConfig."10-disable-libcamera-monitor"."wireplumber.profiles" = {
+          main."monitor.libcamera" = "disabled";
+        };
       };
-    };
-    pulseaudio.enable = false;
-    upower.enable = true;
+      pulseaudio.enable = false;
+      upower.enable = true;
 
-    gvfs.enable = true;
-    tumbler.enable = true;
-    udisks2.enable = true;
-
-    gnome.gnome-keyring.enable = true;
-    logind.settings = lib.mkIf isLaptop {
-      Login = {
-        HandleLidSwitch = "suspend-then-hibernate";
-        HandleLidSwitchExternalPower = "ignore";
-        HandleLidSwitchDocked = "ignore";
-      };
-    };
-
-    journald.extraConfig = ''
-      SystemMaxUse=${journaldSystemMaxUse}
-      RuntimeMaxUse=${journaldRuntimeMaxUse}
-    '';
-  };
+      gvfs.enable = true;
+      tumbler.enable = true;
+      udisks2.enable = true;
+      gnome.gnome-keyring.enable = true;
+    })
+  ];
 
   systemd = {
     sleep.extraConfig = ''
@@ -145,10 +149,12 @@ in
         wants = [ "systemd-tmpfiles-setup.service" ];
       };
 
-      upower.wantedBy = [ "multi-user.target" ];
+      upower = lib.mkIf isDesktop {
+        wantedBy = [ "multi-user.target" ];
+      };
     };
 
-    user.services = {
+    user.services = lib.mkIf isDesktop {
       wireplumber.serviceConfig.ExecStart = lib.mkForce [
         ""
         (lib.getExe wireplumberQuietLauncher)
@@ -159,13 +165,15 @@ in
       "L+ /var/run - - - - /run"
       "L+ /bin/bash - - - - /run/current-system/sw/bin/bash"
       "d /no-such-path 0755 root root -"
-      "L+ /usr/bin/gsettings - - - - ${gsettingsCompatWrapper}"
-      "L+ /no-such-path/gsettings - - - - ${gsettingsCompatWrapper}"
       "d ${configRepoPath} 0755 ${mainUser} ${mainUser} -"
       "L+ /etc/nixos - - - - ${configRepoPath}"
       "e ${homeDir}/.cache - - - 30d"
       "e /tmp - - - 1d"
       "e /var/tmp - - - 7d"
+    ]
+    ++ lib.optionals isDesktop [
+      "L+ /usr/bin/gsettings - - - - ${gsettingsCompatWrapper}"
+      "L+ /no-such-path/gsettings - - - - ${gsettingsCompatWrapper}"
     ];
   };
 }

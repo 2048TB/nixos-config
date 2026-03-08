@@ -6,6 +6,7 @@
 , name
 , hostPath ? null
 , hostMyvars ? { }
+, hostRegistry ? { }
 , extraModules ? [ ]
 , homeModules ? [ (mylib.relativeToRoot "nix/home/darwin") ]
 , ...
@@ -23,7 +24,7 @@ let
   resolvedHomeModules = homeModules ++ discoveredHostHomeModules;
 
   baseSpecialArgs = genSpecialArgs system;
-  resolvedMyvars = hostMyvars // { hostname = name; };
+  resolvedMyvars = hostRegistry // hostMyvars // { hostname = name; };
   mainUser = resolvedMyvars.username;
   hasNixHomebrew = builtins.hasAttr "nix-homebrew" inputs;
   nixHomebrewTaps =
@@ -76,16 +77,12 @@ let
     config.allowUnfreePredicate = mylib.allowUnfreePredicate;
   };
 in
-assert lib.assertMsg (hostMyvars != { }) "Missing or empty nix/hosts/darwin/${name}/vars.nix";
-assert lib.assertMsg
-  (mylib.hasNonEmptyString hostMyvars "username")
-  "Invalid nix/hosts/darwin/${name}/vars.nix: username must be a non-empty string";
-assert lib.assertMsg
-  (mylib.hasNonEmptyString hostMyvars "homeStateVersion")
-  "Invalid nix/hosts/darwin/${name}/vars.nix: homeStateVersion must be a non-empty string";
-assert lib.assertMsg
-  (mylib.hasNonEmptyString hostMyvars "timezone")
-  "Invalid nix/hosts/darwin/${name}/vars.nix: timezone must be a non-empty string";
+assert mylib.assertNonEmptyAttrs hostMyvars "Missing or empty nix/hosts/darwin/${name}/vars.nix";
+assert mylib.assertRequiredNonEmptyStrings hostMyvars [
+  "username"
+  "homeStateVersion"
+  "timezone"
+] "nix/hosts/darwin/${name}/vars.nix";
 {
   inherit
     name

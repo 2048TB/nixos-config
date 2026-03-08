@@ -1,12 +1,13 @@
 { pkgs
 , lib
-, myvars
+, config
 , mainUser
 , ...
 }:
 let
+  hostCfg = config.my.host;
   homeDir = "/home/${mainUser}";
-  inherit (myvars) configRepoPath;
+  inherit (hostCfg) configRepoPath;
   mainKeyPath = "/persistent/keys/main.agekey";
   expectedMainPub = builtins.replaceStrings [ "\n" "\r" ] [ "" "" ] (builtins.readFile ../../../secrets/keys/main.age.pub);
   bootstrapSourcePaths = [

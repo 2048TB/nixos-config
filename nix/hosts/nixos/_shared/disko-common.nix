@@ -1,10 +1,10 @@
-{ myvars, ... }:
+{ config, ... }:
 {
   disko.devices = {
     disk = {
       main = {
         type = "disk";
-        device = myvars.diskDevice;
+        device = config.my.host.diskDevice;
         content = {
           type = "gpt";
           partitions = {

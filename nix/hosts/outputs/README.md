@@ -9,14 +9,14 @@
 - `default.nix`：总入口（`genSpecialArgs`、`mkApp`、平台聚合）
 - `x86_64-linux/default.nix`：NixOS 聚合 + eval tests + pre-commit check + apps
 - `aarch64-darwin/default.nix`：Darwin 聚合 + eval tests + apps
-- `x86_64-linux/tests/*.nix`、`aarch64-darwin/tests/*.nix`：评估测试表达式与期望值
+- `x86_64-linux/*.nix`、`aarch64-darwin/*.nix`：评估测试表达式与期望值（已扁平化，移除 `tests/` 子目录）
 
 ---
 
 ## 自动发现
 
 聚合层自动扫描：
-- `nix/hosts/nixos/*`（需 `hardware.nix` + `disko.nix` + `vars.nix`）
+- `nix/hosts/nixos/*`（需 `default.nix` + `hardware.nix` + `disko.nix` + `vars.nix`）
 - `nix/hosts/darwin/*`（需 `default.nix` + `vars.nix`）
 
 ```bash

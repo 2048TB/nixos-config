@@ -3,20 +3,22 @@
 , lib
 , mylib
 , myvars
+, osConfig ? null
 , ...
 }:
 let
-  roleFlags = mylib.roleFlags myvars;
+  hostCfg = import ../base/resolve-host.nix { inherit myvars osConfig; };
+  roleFlags = mylib.roleFlags hostCfg;
   inherit (roleFlags) enableProvider appVpn enableSteam enableLibvirtd enableDocker;
   # App toggles (flat host vars, default true)
-  enableWpsOffice = myvars.enableWpsOffice or true;
-  enableZathura = myvars.enableZathura or true;
-  enableSplayer = myvars.enableSplayer or true;
-  enableTelegramDesktop = myvars.enableTelegramDesktop or true;
-  enableLocalSend = myvars.enableLocalSend or true;
+  enableWpsOffice = hostCfg.enableWpsOffice or true;
+  enableZathura = hostCfg.enableZathura or true;
+  enableSplayer = hostCfg.enableSplayer or true;
+  enableTelegramDesktop = hostCfg.enableTelegramDesktop or true;
+  enableLocalSend = hostCfg.enableLocalSend or true;
 
   # 仅在混合显卡（amd-nvidia-hybrid）时安装 GPU 加速相关软件
-  gpuChoice = myvars.gpuMode or "auto";
+  gpuChoice = hostCfg.gpuMode or "auto";
   isHybridGpu = gpuChoice == "amd-nvidia-hybrid";
   ollamaVulkan = pkgs.ollama or null;
   tensorflowCudaPkg = pkgs.python3Packages.tensorflowWithCuda or null;

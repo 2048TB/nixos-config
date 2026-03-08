@@ -1,0 +1,32 @@
+# Central host registry (source of truth for host discovery).
+# Host directories must be both:
+# 1) present on disk with required files
+# 2) declared in this registry
+
+[nixos.zky]
+system = "x86_64-linux"
+formFactor = "laptop"
+profiles = ["desktop", "laptop"]
+deployHost = "zky"
+deployUser = "root"
+
+[nixos.zly]
+system = "x86_64-linux"
+formFactor = "desktop"
+profiles = ["desktop"]
+deployHost = "zly"
+deployUser = "root"
+
+[nixos.zzly]
+system = "x86_64-linux"
+formFactor = "desktop"
+profiles = ["desktop"]
+deployHost = "zzly"
+deployUser = "root"
+
+[darwin.zly-mac]
+system = "aarch64-darwin"
+formFactor = "laptop"
+profiles = ["desktop", "laptop"]
+deployHost = "zly-mac"
+deployUser = "z"
