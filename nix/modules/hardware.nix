@@ -49,6 +49,7 @@ let
       prime = {
         offload = {
           enable = true;
+          enableOffloadCmd = true;
         };
         inherit intelBusId nvidiaBusId;
       };
@@ -57,6 +58,7 @@ let
       prime = {
         offload = {
           enable = true;
+          enableOffloadCmd = true;
         };
         inherit amdgpuBusId nvidiaBusId;
       };

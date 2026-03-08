@@ -51,11 +51,6 @@ in
         "git/config".source = ../configs/git/config;
         "zellij/config.kdl".text = mytheme.apply (builtins.readFile ../configs/zellij/config.kdl);
         "tmux/tmux.conf".text = mytheme.apply (builtins.readFile ../configs/tmux/tmux.conf);
-        "wallpapers" = {
-          source = ../../../wallpapers;
-          recursive = true;
-        };
-
         "pnpm/rc".text = ''
           global-dir=${localShareDir}/pnpm/global
           global-bin-dir=${localShareDir}/pnpm/bin
