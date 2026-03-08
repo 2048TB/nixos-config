@@ -43,10 +43,10 @@
   ];
 
   # App toggles (zly)
-  enableWpsOffice = true;
+  enableWpsOffice = false;
   enableZathura = true;
   enableSplayer = true;
-  enableTelegramDesktop = true;
+  enableTelegramDesktop = false;
   enableLocalSend = true;
 
   # Credentials are managed by sops secrets:
