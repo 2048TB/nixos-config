@@ -1,6 +1,6 @@
 # 多环境使用手册
 
-按 3 种环境拆分：Live ISO / 已安装 NixOS / macOS
+按 3 种环境拆分：Live ISO / 已安装 NixOS / macOS。
 
 ---
 
@@ -8,12 +8,12 @@
 
 推荐仓库路径：`/persistent/nixos-config`
 
-主机解析优先级：
-1. 显式指定（`just host=xxx`）
+主机解析来源：
+1. 显式指定（`just host=xxx` / `just darwin_host=xxx`）
 2. 环境变量（`NIXOS_HOST` / `DARWIN_HOST`）
-3. 当前 hostname
+3. 当前 hostname（由 `resolve-host.sh`）
 
-不匹配时报错（strict 模式），不做 fallback。安装命令必须显式指定 host。
+注意：当前 `justfile` 默认 `host := "zzly"`，所以 `just switch/check/test` 默认不会走自动检测。
 
 ---
 
@@ -38,6 +38,77 @@ just host=zly disk=/dev/nvme0n1 install
 /persistent/nixos-config/nix/scripts/admin/install-live.sh --host zky --disk /dev/nvme0n1 --repo /persistent/nixos-config
 ```
 
+### 完全手动安装（ISO，不使用 `just install`）
+
+> 危险：以下命令会重分区并清空目标磁盘。执行前务必确认 `DISK`。
+
+当前仓库的 NixOS 磁盘布局（由 `disko` 定义）为：
+- GPT + `ESP`（`512M`，`vfat`，挂载 `/boot`）
+- 其余空间为 `LUKS2`（`argon2id`，映射名 `crypted-nixos`）
+- LUKS 内 `btrfs` 子卷：`/`、`/nix`、`/persistent`、`/home`、`/swap` 等
+
+占位符示例（可按你的机器替换）：
+- `HOST=zly`（示例主机；可换成 `zky`/`zzly`）
+- `DISK=/dev/nvme0n1`（示例目标盘；SATA 常见为 `/dev/sda`）
+- `KEY_SRC=/run/media/nixos/USB/main.agekey`（示例 U 盘路径）
+
+```bash
+# 0) 准备变量
+export NIX_CONFIG="experimental-features = nix-command flakes"
+REPO=/persistent/nixos-config
+HOST=zly
+DISK=/dev/nvme0n1
+KEY_SRC=/run/media/nixos/USB/main.agekey
+
+# 1) 检查主机是否存在，并确认目标磁盘
+cd "$REPO"
+nix eval "path:$REPO#nixosConfigurations" --apply builtins.attrNames
+lsblk -o NAME,SIZE,TYPE,MOUNTPOINTS
+
+# 2) 准备 age 私钥（必须是 AGE-SECRET-KEY-*）
+install -D -m 0400 "$KEY_SRC" "$REPO/.keys/main.agekey"
+head -n1 "$REPO/.keys/main.agekey"
+
+# 3) 执行分区 + LUKS + 文件系统创建（会提示输入 LUKS 口令）
+DISKO_SCRIPT="$(env NIXOS_DISK_DEVICE="$DISK" nix build --impure --no-link --print-out-paths "path:$REPO#nixosConfigurations.$HOST.config.system.build.diskoScript")"
+sudo env NIXOS_DISK_DEVICE="$DISK" "$DISKO_SCRIPT"
+
+# 4) 确认挂载结果
+findmnt /mnt/boot
+findmnt /mnt/persistent
+findmnt /mnt/nix
+findmnt /mnt/home
+
+# 5) 将 sops 私钥放入目标系统持久目录
+sudo install -D -m 0400 -o root -g root "$REPO/.keys/main.agekey" /mnt/persistent/keys/main.agekey
+
+# 6) 安装系统
+sudo env NIXOS_DISK_DEVICE="$DISK" nixos-install --impure --flake "path:$REPO#$HOST"
+
+# 7) 同步仓库到目标系统，并保留 .keys/main.agekey
+TARGET=/mnt/persistent/nixos-config
+TMP="${TARGET}.tmp.$$"
+sudo rm -rf "$TMP"
+sudo mkdir -p "$TMP"
+sudo cp -a "$REPO/." "$TMP/"
+sudo install -D -m 0400 -o root -g root "$REPO/.keys/main.agekey" "$TMP/.keys/main.agekey"
+OWNER="$(sudo awk -F: '$3 >= 1000 && $3 < 60000 {print $3 \":\" $4; exit}' /mnt/etc/passwd || true)"
+[ -n "$OWNER" ] || OWNER="1000:1000"
+sudo chown -R "$OWNER" "$TMP"
+sudo rm -rf "$TARGET"
+sudo mv "$TMP" "$TARGET"
+
+# 8) 将目标系统 /etc/nixos 指向持久仓库并做干跑验证
+sudo rm -rf /mnt/etc/nixos
+sudo ln -sfn /persistent/nixos-config /mnt/etc/nixos
+sudo nixos-rebuild dry-build --flake /mnt/persistent/nixos-config#"$HOST"
+
+# 9) 重启后切换
+sudo reboot
+# reboot 后:
+# cd /persistent/nixos-config && just host="$HOST" switch
+```
+
 ### 密钥搜索路径
 
 `./.keys/main.agekey` → `<repo>/.keys/main.agekey` → `~/.keys/main.agekey`（需为 `AGE-SECRET-KEY-*` 私钥）
@@ -49,13 +120,7 @@ just host=zly disk=/dev/nvme0n1 install
 ### 日常更新
 
 ```bash
-just check && just test && just switch
-```
-
-### 指定主机
-
-```bash
-just host=zly switch
+just host=zly check && just host=zly test && just host=zly switch
 ```
 
 ### 质量检查
@@ -94,6 +159,6 @@ DARWIN_HOST=zly-mac nix run .#build-switch
 
 | 报错 | 处理 |
 |------|------|
-| `strict mode requires a valid host` | `just hosts` 查看主机，`just host=xxx` 指定 |
-| 找不到 `main.agekey` | 放到 `.keys/` 目录 |
-| 密码不生效 | `just password-set-hash '<hash>' && just switch` |
+| `strict mode requires a valid host` | `just hosts` 查看主机，显式指定 `host`/`darwin_host` |
+| 找不到 `main.agekey` | 放到 `.keys/main.agekey`（或脚本搜索路径中的其他位置） |
+| 密码不生效 | `just password-set-hash '<hash>' && just host=<nixos-host> switch` |

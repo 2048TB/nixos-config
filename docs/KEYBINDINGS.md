@@ -1,6 +1,6 @@
 # 快捷键说明
 
-先记住"必会 13 个"，其余按需查表。
+先记住“必会 13 个”，其余按需查表。
 
 `Mod` = `Super`（Windows 键）；winit 窗口环境中 = `Alt`。
 
@@ -17,7 +17,7 @@
 | `Mod + Left/Right` | 切换焦点 |
 | `Mod + 1..9` | 切到工作区 |
 | `Mod + S/G` | 列内/列外切换 |
-| `Mod + W/E` | 浮动/平铺切换 |
+| `Mod + W/E` | 浮动/平铺焦点切换 |
 | `Mod + T` | 全屏 |
 | `Print` | 截图 |
 | `XF86AudioRaiseVolume/LowerVolume` | 音量 |
@@ -36,8 +36,9 @@
 | `Mod + Shift + Slash` | 快捷键提示层 |
 | `Mod + .` | 文件管理器 |
 | `Mod + Shift + L` | 锁屏（Noctalia） |
-| `Mod + O` | 列 tabbed 切换 |
 | `Mod + Ctrl + E` | 会话菜单（Noctalia） |
+| `Mod + Ctrl + B` | 重启 `noctalia-shell` 用户服务 |
+| `Mod + Ctrl + S` | 打开 `pavucontrol` |
 | `Mod + Shift + E` | 退出 Niri |
 | `Ctrl + Alt + Delete` | 退出 Niri |
 
@@ -107,6 +108,7 @@
 | `Mod + Ctrl + F` | 列扩展到剩余宽度 |
 | `Mod + Shift + C` | 列居中 |
 | `Mod + Ctrl + Shift + C` | 可见列整体居中 |
+| `Mod + O` | 列 tabbed 显示切换 |
 
 ---
 
@@ -117,8 +119,7 @@
 | `Print` | 截图 |
 | `Ctrl + Print` | 当前屏幕截图 |
 | `Alt + Print` | 当前窗口截图 |
-| `Mod + A` | 截图（Niri 默认） |
-| `Mod + Ctrl + S` | 音量控制 |
+| `Mod + A` | 截图（Niri 默认 screenshot） |
 
 ---
 
@@ -141,9 +142,11 @@
 |--------|------|
 | `Prefix + W/E` | 水平/垂直分屏 |
 | `Prefix + Left/Down/Up/Right` | pane 焦点 |
+| `Prefix + H/J/K/L` | 调整 pane 大小 |
 | `Prefix + Q` | 关闭 pane |
 | `Prefix + C` | 新建 window |
 | `Prefix + D/S` | 下/上一个 window |
+| `Prefix + Tab` | 切回上一个 window |
 | `Prefix + G` | detach |
 | `Prefix + R` | 重载配置 |
 
@@ -154,10 +157,12 @@
 | 快捷键 | 功能 |
 |--------|------|
 | `Tmux + H/J/K/L` | pane 焦点 |
+| `Tmux + A/D/E/F` | 调整 pane 大小 |
 | `Tmux + S/V` | 分屏 |
 | `Tmux + X` | 关闭 pane |
 | `Tmux + C` | 新建 tab |
 | `Tmux + W/Q` | 下/上一个 tab |
+| `Tmux + R` | 切换布局 |
 | `Tmux + G` | detach |
 
 ---

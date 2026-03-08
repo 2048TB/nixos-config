@@ -15,8 +15,8 @@
     if envDiskDevice != "" then envDiskDevice else "/dev/nvme0n1";
   swapSizeGb = 32;
 
-  enableHibernate = false;
-  resumeOffset = null;
+  enableHibernate = true;
+  resumeOffset = 2990172;
   rootTmpfsSize = "2G";
   journaldSystemMaxUse = "512M";
   journaldRuntimeMaxUse = "256M";

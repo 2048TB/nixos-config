@@ -17,6 +17,7 @@
 | `docs/REDUCTION-REFACTOR-ANALYSIS.md` | 减法重构分析与目标结构 |
 | `nix/hosts/README.md` | 主机目录组织 |
 | `nix/home/README.md` | Home Manager 结构 |
+| `secrets/keys/README.md` | 公钥目录与 sops 流程 |
 
 ---
 
@@ -62,8 +63,8 @@ just password-set-hash '<sha512-hash>'
 ### 1.4 安装
 
 ```bash
-just host=zly install-check           # 预检
-just host=zly disk=/dev/nvme0n1 install  # 安装（会清盘）
+just host=zly install-check
+just host=zly disk=/dev/nvme0n1 install   # 会清盘
 ```
 
 安装后仓库同步到 `/persistent/nixos-config`，`/etc/nixos` 链接到该目录。
@@ -74,7 +75,7 @@ just host=zly disk=/dev/nvme0n1 install  # 安装（会清盘）
 
 ```bash
 sudo install -D -m 0400 .keys/main.agekey /persistent/keys/main.agekey
-just switch
+just host=zly switch
 ```
 
 ---
@@ -82,12 +83,14 @@ just switch
 ## 2. 日常更新
 
 ```bash
-just check        # 构建检查
-just test         # 临时激活（重启失效）
-just switch       # 正式切换
+just host=zly check
+just host=zly test
+just host=zly switch
 ```
 
-不指定 `host` 时自动检测当前主机（strict 模式）。手动指定：`just host=zly switch`
+说明：
+- 当前 `justfile` 默认 `host := "zzly"`，`just switch/check/test` 未显式指定时会使用该默认值。
+- 如需自动检测主机，请使用 flake apps（`nix run .#build-switch`）或在本地调整 `justfile` 的默认 `host`。
 
 ---
 
@@ -104,13 +107,13 @@ just darwin-switch
 
 ## 4. 常见问题
 
-**Q: `strict mode requires a valid host`**
-自动检测未匹配仓库主机。用 `just hosts` 查看可用主机，再 `just host=xxx <command>` 指定。
+**Q: `strict mode requires a valid host`**  
+自动检测未匹配仓库主机。先 `just hosts` 查看可用主机，再显式指定：`just host=xxx <command>`。
 
-**Q: 密码改了又变回去**
-密码来自声明式 secrets。正确做法：`just password-set-hash '<hash>' && just switch`
+**Q: 密码改了又变回去**  
+密码来自声明式 secrets。正确做法：`just password-set-hash '<hash>' && just host=<nixos-host> switch`。
 
-**Q: 找不到 `main.agekey`**
+**Q: 找不到 `main.agekey`**  
 放到 `./.keys/main.agekey`、`<repo>/.keys/main.agekey` 或 `~/.keys/main.agekey` 中任一位置。
 
 **Q: 如何防止密钥泄露**
@@ -132,7 +135,7 @@ just flake-check
 
 ## 6. 目录速览
 
-```
+```text
 nixos-config/
 ├── nix/
 │   ├── lib/              # Nix 库函数
