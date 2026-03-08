@@ -65,7 +65,6 @@ let
       exec "$@"
     '';
   };
-  noctaliaShell = pkgs.noctalia-shell;
 
   cherryStudioPackage = pkgsUnstable.cherry-studio;
   gamingPackages = with pkgs; [
@@ -191,7 +190,6 @@ in
 
       # === 桌面工作流 ===
       fuzzel
-      noctaliaShell
       gnome-calculator
 
       # === Wayland 基础设施 ===
