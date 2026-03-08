@@ -174,6 +174,7 @@ rec {
     "unrar"
     "vscode"
     "wpsoffice"
+    "wpsoffice-cn"
   ];
 
   allowedUnfreeLicenseNames = [

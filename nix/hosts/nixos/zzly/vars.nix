@@ -43,7 +43,7 @@
   enableWpsOffice = false;
   enableZathura = false;
   enableSplayer = false;
-  enableTelegramDesktop = false;
+  enableTelegramDesktop = true;
   enableLocalSend = false;
 
   # Credentials are managed by sops secrets:
