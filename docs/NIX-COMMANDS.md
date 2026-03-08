@@ -22,8 +22,9 @@ just rollback
 ## 2. 安装（Live ISO）
 
 ```bash
-just host=zly install-check
-just host=zly disk=/dev/nvme0n1 install
+export NIX_CONFIG="experimental-features = nix-command flakes"
+nix shell nixpkgs#just -c just host=zly install-check
+nix shell nixpkgs#just -c just host=zly disk=/dev/nvme0n1 install
 ```
 
 安装命令涉及分区与清盘，必须确认 `host` 和 `disk`。
@@ -134,7 +135,7 @@ just deploy HOSTS=zly,zky    # 只部署指定主机
 nix run .#apply
 nix run .#build
 nix run .#build-switch
-nix run .#install   # Linux 平台
+NIXOS_HOST=zly NIXOS_DISK_DEVICE=/dev/nvme0n1 nix run .#install
 nix run .#clean
 nix run .#deploy -- --hosts zly,zky
 ```
