@@ -12,6 +12,7 @@
 |------|------|
 | 本文档 | 安装与日常维护 |
 | `docs/NIX-COMMANDS.md` | 命令速查 |
+| `docs/CI.md` | GitHub Actions 与本地等价验证 |
 | `docs/ENV-USAGE.md` | 按环境操作指南 |
 | `docs/KEYBINDINGS.md` | 桌面快捷键 |
 | `docs/REDUCTION-REFACTOR-ANALYSIS.md` | 减法重构分析与目标结构 |
@@ -133,7 +134,15 @@ just flake-check
 
 ---
 
-## 6. 目录速览
+## 6. CI（GitHub Actions）
+
+- 主流程：`Nix CI`（`inventory -> flake-check -> nixos-build matrix -> darwin-eval matrix`）
+- 定时巡检：`Flake Lock Checker`（每周检查 lock freshness）
+- 详情见：`docs/CI.md`
+
+---
+
+## 7. 目录速览
 
 ```text
 nixos-config/
@@ -152,7 +161,7 @@ nixos-config/
 
 ---
 
-## 7. Binary Cache
+## 8. Binary Cache
 
 3 个二进制缓存（减少编译时间）：
 - `https://nix-community.cachix.org`
