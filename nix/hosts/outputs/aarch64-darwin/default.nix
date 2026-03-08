@@ -33,12 +33,12 @@ let
   darwinConfigurations = mylib.mergeAttrFromList "darwinConfigurations" dataWithoutPaths;
   mainUsers = mylib.mergeAttrFromList "mainUsers" dataWithoutPaths;
   resolvedHostNames = builtins.attrNames darwinConfigurations;
-  hostnameExpr = import ./tests/hostname/expr.nix { inherit lib darwinConfigurations; };
-  hostnameExpected = import ./tests/hostname/expected.nix { hostNames = resolvedHostNames; };
-  homeExpr = import ./tests/home/expr.nix { inherit lib darwinConfigurations; };
-  homeExpected = import ./tests/home/expected.nix { inherit mainUsers; };
-  platformExpr = import ./tests/platform/expr.nix { inherit lib darwinConfigurations; };
-  platformExpected = import ./tests/platform/expected.nix { inherit system; hostNames = resolvedHostNames; };
+  hostnameExpr = import ./tests/hostname-expr.nix { inherit lib darwinConfigurations; };
+  hostnameExpected = import ./tests/hostname-expected.nix { hostNames = resolvedHostNames; };
+  homeExpr = import ./tests/home-expr.nix { inherit lib darwinConfigurations; };
+  homeExpected = import ./tests/home-expected.nix { inherit mainUsers; };
+  platformExpr = import ./tests/platform-expr.nix { inherit lib darwinConfigurations; };
+  platformExpected = import ./tests/platform-expected.nix { inherit system; hostNames = resolvedHostNames; };
   hostEvalTests = {
     hostname = hostnameExpr == hostnameExpected;
     home = homeExpr == homeExpected;

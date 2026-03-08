@@ -14,30 +14,6 @@ age_key_rel := "{{key_dir_rel}}/main.agekey"
 
 # ========== 系统管理 ==========
 
-# 新建 NixOS 主机目录（复制现有模板主机，默认来自 zly）
-new-nixos-host name from="zly":
-    {{repo}}/nix/scripts/admin/new-host.sh nixos {{name}} --from {{from}} --repo {{repo}}
-
-# 预览 NixOS 主机脚手架（不写入文件）
-new-nixos-host-dry-run name from="zly":
-    {{repo}}/nix/scripts/admin/new-host.sh nixos {{name}} --from {{from}} --repo {{repo}} --dry-run
-
-# 强制覆盖 NixOS 主机目录
-new-nixos-host-force name from="zly":
-    {{repo}}/nix/scripts/admin/new-host.sh nixos {{name}} --from {{from}} --repo {{repo}} --force
-
-# 新建 Darwin 主机目录（复制现有模板主机，默认来自 zly-mac）
-new-darwin-host name from="zly-mac":
-    {{repo}}/nix/scripts/admin/new-host.sh darwin {{name}} --from {{from}} --repo {{repo}}
-
-# 预览 Darwin 主机脚手架（不写入文件）
-new-darwin-host-dry-run name from="zly-mac":
-    {{repo}}/nix/scripts/admin/new-host.sh darwin {{name}} --from {{from}} --repo {{repo}} --dry-run
-
-# 强制覆盖 Darwin 主机目录
-new-darwin-host-force name from="zly-mac":
-    {{repo}}/nix/scripts/admin/new-host.sh darwin {{name}} --from {{from}} --repo {{repo}} --force
-
 # 安装前构建校验（不落盘；需指定 host）
 install-check:
     @if [ -z "{{host}}" ]; then echo "error: 需要指定主机. 用法: just host=zly install-check" >&2; exit 2; fi
@@ -177,11 +153,6 @@ lint:
     statix check .
     @echo "✓ 静态检查通过"
 
-# Shell 脚本语法/静态检查（shellcheck 可选）
-scripts-check:
-    @{{repo}}/nix/scripts/admin/check-scripts.sh
-    @echo "✓ Shell 脚本检查通过"
-
 # 查找死代码
 dead:
     deadnix .
@@ -191,8 +162,8 @@ fix:
     statix fix .
     @echo "✓ 自动修复完成"
 
-# 完整代码检查（格式化 + 检查 + 死代码 + Shell）
-check-all: fmt lint dead scripts-check
+# 完整代码检查（格式化 + 检查 + 死代码）
+check-all: fmt lint dead
     @echo "✓ 完整代码检查完成"
 
 # ========== 查看信息 ==========
@@ -233,7 +204,7 @@ version:
 status:
     @git status
 
-# 启用仓库内 git hooks（pre-commit / pre-push）
+# 启用仓库内 git hooks（pre-commit）
 hooks-enable:
     git config core.hooksPath .githooks
     @echo "✓ 已启用 .githooks"

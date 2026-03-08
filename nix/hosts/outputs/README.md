@@ -9,7 +9,7 @@
 - `default.nix` — 总入口（genSpecialArgs、mkApp）
 - `x86_64-linux/default.nix` — NixOS 聚合 + eval tests + apps
 - `aarch64-darwin/default.nix` — Darwin 聚合 + eval tests + apps
-- `*/tests/` — 评估测试（hostname/home/kernel/platform）
+- `*/tests/*.nix` — 评估测试（hostname/home/kernel/platform）
 
 ---
 

@@ -30,15 +30,15 @@ nix/hosts/
 ## 新增主机
 
 ```bash
-just new-nixos-host devbox          # 从 zly 模板复制
-just new-darwin-host mac-mini       # 从 zly-mac 模板复制
-just new-nixos-host-dry-run devbox  # 预览
+cp -a nix/hosts/nixos/zly nix/hosts/nixos/devbox
+cp -a nix/hosts/darwin/zly-mac nix/hosts/darwin/mac-mini
 ```
 
 新增后需编辑：
 1. `vars.nix` — 主机名、用户名、硬件参数、roles（含 `gpuMode` 与可选 `intelBusId` / `amdgpuBusId` / `nvidiaBusId`）
 2. `disko.nix` — 磁盘布局
 3. `hardware.nix` — 硬件探测
+4. 将模板中的旧主机名替换为新主机名（`rg -n 'zly|zly-mac' nix/hosts/<platform>/<new-host>`）
 
 验证：`just hosts && just eval-tests && just host=devbox check`
 

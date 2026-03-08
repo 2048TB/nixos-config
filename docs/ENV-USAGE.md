@@ -61,7 +61,7 @@ just host=zly switch
 ### 质量检查
 
 ```bash
-just scripts-check && just eval-tests && just flake-check
+just eval-tests && just flake-check
 ```
 
 ### 回滚与清理

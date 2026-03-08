@@ -127,7 +127,7 @@ nix/
 最小校验集合：
 - `just eval-tests`
 - `just flake-check`
-- `just scripts-check`
+- `just lint`
 
 平台相关（按环境可用性）：
 - Linux：`just check`
