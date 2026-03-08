@@ -8,7 +8,7 @@
 
 flake-based 多主机配置仓库，所有 Nix/脚本代码在 `nix/` 下：
 
-```
+```text
 nix/
 ├── lib/           # Nix 库函数
 ├── hosts/         # 主机配置（nixos/ + darwin/ + outputs/）
@@ -56,9 +56,11 @@ just flake-check    # flake 完整检查
 ## 4. 常用命令
 
 ```bash
-just check && just switch    # 日常更新
-just darwin-switch            # macOS
+just host=zly check && just host=zly switch   # 日常更新（建议显式 host）
+just darwin-switch                             # macOS
 ```
+
+注意：当前 `justfile` 默认 `host := "zzly"`。为避免误操作，建议显式写 `host=...`。
 
 ---
 

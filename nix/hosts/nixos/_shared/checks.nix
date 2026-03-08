@@ -74,8 +74,19 @@ let
 
   expectedResumeKernelParam =
     if expectedResumeOffset == null then null else "resume_offset=${toString expectedResumeOffset}";
+  expectsHibernate = expectedResumeOffset != null;
+  hasResumeKernelParam =
+    builtins.any (param: lib.hasPrefix "resume=" param) cfg.boot.kernelParams;
   hasExpectedResumeKernelParam =
     if expectedResumeKernelParam == null then true else builtins.elem expectedResumeKernelParam cfg.boot.kernelParams;
+  hasExpectedResumeKernelParamState =
+    if expectsHibernate then hasResumeKernelParam else !hasResumeKernelParam;
+  hasExpectedResumeOffsetKernelParamState =
+    if expectsHibernate then hasExpectedResumeKernelParam else !(
+      builtins.any (param: lib.hasPrefix "resume_offset=" param) cfg.boot.kernelParams
+    );
+  hasExpectedResumeDeviceState =
+    if expectsHibernate then (cfg.boot.resumeDevice or "") != "" else (cfg.boot.resumeDevice or "") == "";
   hasExpectedAcceptFlakeConfig =
     (cfg.nix.settings.accept-flake-config or false) == expectedAcceptFlakeConfig;
   resolvedExpectedTrustedSubstituters =
@@ -178,6 +189,21 @@ in
     "eval-${name}-system-package-duplicates"
     unexpectedSystemDuplicateNames
     "Unexpected duplicate packages in environment.systemPackages";
+
+  "eval-${name}-resume-device" = pkgs.runCommand "eval-${name}-resume-device" { } ''
+    test "${if hasExpectedResumeDeviceState then "1" else "0"}" = "1"
+    touch "$out"
+  '';
+
+  "eval-${name}-resume-kernel-param" = pkgs.runCommand "eval-${name}-resume-kernel-param" { } ''
+    test "${if hasExpectedResumeKernelParamState then "1" else "0"}" = "1"
+    touch "$out"
+  '';
+
+  "eval-${name}-resume-offset-kernel-param" = pkgs.runCommand "eval-${name}-resume-offset-kernel-param" { } ''
+    test "${if hasExpectedResumeOffsetKernelParamState then "1" else "0"}" = "1"
+    touch "$out"
+  '';
 }
 // lib.optionalAttrs (expectedVideoDrivers != null) {
   "eval-${name}-video-drivers" = pkgs.runCommand "eval-${name}-video-drivers" { } ''
@@ -191,15 +217,9 @@ in
     touch "$out"
   '';
 }
-// lib.optionalAttrs (resolvedExpectedKvmModules != null) {
+  // lib.optionalAttrs (resolvedExpectedKvmModules != null) {
   "eval-${name}-kvm-modules" = pkgs.runCommand "eval-${name}-kvm-modules" { } ''
     test "${builtins.toJSON actualKvmModules}" = "${builtins.toJSON resolvedExpectedKvmModules}"
-    touch "$out"
-  '';
-}
-  // lib.optionalAttrs (expectedResumeKernelParam != null) {
-  "eval-${name}-resume-offset-kernel-param" = pkgs.runCommand "eval-${name}-resume-offset-kernel-param" { } ''
-    test "${if hasExpectedResumeKernelParam then "1" else "0"}" = "1"
     touch "$out"
   '';
 }

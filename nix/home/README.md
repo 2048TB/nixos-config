@@ -9,25 +9,17 @@ Home Manager 配置（用户级）。
 
 ## 结构
 
-```
+```text
 nix/home/
 ├── base/default.nix    # 跨平台共享（session 变量、PATH、zsh/vim）
 ├── linux/
 │   ├── default.nix     # 入口（session vars、home.file、dconf）
 │   ├── packages.nix    # home.packages + 脚本包
-│   ├── programs.nix    # fzf/mpv/lutris
+│   ├── programs.nix    # fzf/mpv/lutris 等
 │   ├── desktop.nix     # systemd 用户服务（noctalia-shell/udiskie/mullvad）
 │   └── xdg.nix         # portal/mimeApps/configFile
 ├── darwin/default.nix  # macOS 专用
-└── configs/            # 应用配置文件
-    ├── niri/           # 窗口管理器
-    ├── shell/          # zsh/vim
-    ├── tmux/           # tmux
-    ├── zellij/         # zellij
-    ├── ghostty/        # 终端
-    ├── foot/           # 备用终端
-    ├── fuzzel/         # 启动器
-    └── ...
+└── configs/            # 应用配置文件（niri/tmux/zellij/shell/...）
 ```
 
 ---
@@ -37,12 +29,13 @@ nix/home/
 | 目标 | 文件 |
 |------|------|
 | 终端 | `configs/ghostty/`、`configs/foot/`、`configs/shell/` |
-| 状态栏 | `linux/desktop.nix`（noctalia-shell service） |
+| 状态栏 | `linux/desktop.nix`（`noctalia-shell` service） |
 | 窗口快捷键 | `configs/niri/interaction.kdl` |
 | 窗口外观 | `configs/niri/appearance.kdl` |
 | Tmux | `configs/tmux/tmux.conf` |
+| Zellij | `configs/zellij/config.kdl` |
 
-改完后 `just switch` 生效。
+应用方式（建议显式 host）：`just host=<nixos-host> switch`
 
 ---
 

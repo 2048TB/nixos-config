@@ -8,7 +8,7 @@
 
 - `main.age.pub`：主运维公钥
 - `recovery.age.pub`：恢复公钥
-- `hosts/*.ssh_host_ed25519.pub`：各主机 SSH host 公钥
+- `hosts/*.ssh_host_ed25519.pub`：各主机 SSH host 公钥（可选，当前目录保留 `.gitkeep`）
 
 ---
 
@@ -18,7 +18,7 @@
 - 任意明文密码
 - 任意私有 token
 
-私钥只能放在本地仓库的 `./.keys/`（该目录被 `.gitignore` 忽略）。
+私钥只能放在本地仓库 `./.keys/`（被 `.gitignore` 忽略）。
 
 ---
 

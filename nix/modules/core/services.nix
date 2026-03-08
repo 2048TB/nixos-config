@@ -11,6 +11,7 @@ let
   inherit (myvars) configRepoPath;
   roleFlags = mylib.roleFlags myvars;
   inherit (roleFlags) enableMullvadVpn;
+  isLaptop = myvars.hostname == "zky";
   journaldSystemMaxUse = myvars.journaldSystemMaxUse or "512M";
   journaldRuntimeMaxUse = myvars.journaldRuntimeMaxUse or "256M";
 
@@ -91,6 +92,13 @@ in
     udisks2.enable = true;
 
     gnome.gnome-keyring.enable = true;
+    logind.settings = lib.mkIf isLaptop {
+      Login = {
+        HandleLidSwitch = "suspend-then-hibernate";
+        HandleLidSwitchExternalPower = "ignore";
+        HandleLidSwitchDocked = "ignore";
+      };
+    };
 
     journald.extraConfig = ''
       SystemMaxUse=${journaldSystemMaxUse}
@@ -99,6 +107,14 @@ in
   };
 
   systemd = {
+    sleep.extraConfig = ''
+      AllowSuspend=yes
+      AllowHibernation=yes
+      AllowSuspendThenHibernate=yes
+      AllowHybridSleep=no
+      HibernateDelaySec=90min
+    '';
+
     services = {
       systemd-machine-id-commit.enable = false;
       NetworkManager-wait-online.enable = false;

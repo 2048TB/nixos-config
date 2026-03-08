@@ -16,7 +16,7 @@
 - 可借鉴点：主机层只描述“事实”（hostname、硬件、角色），功能启用逻辑尽量收敛到模块层，避免 host 侧散落条件分支。
 
 ### 1.2 Misterio77/nix-config
-- 特征：明确强调 simple、可读、低认知负担，避免 overengineered；不依赖复杂的自定义框架。
+- 特征：强调 simple、可读、低认知负担，避免 overengineered；不依赖复杂自定义框架。
 - 可借鉴点：减少“抽象为了抽象”的 helper；保持“读 1-2 个文件就能理解装配路径”。
 
 ### 1.3 ryan4yin/nix-config
@@ -25,38 +25,38 @@
 
 ---
 
-## 2. 当前仓库现状（量化）
+## 2. 当前仓库现状（量化快照）
 
-基于当前仓库统计：
-- `nix` 总文件数：106
-- `nix/hosts`：41
+基于当前仓库统计（`find nix -type f`）：
+- `nix` 总文件数：92
+- `nix/hosts`：38
 - `nix/home`：27
-- `nix/modules`：18
-- `nix/scripts`：16
-- `nix/lib`：4
+- `nix/modules`：17
+- `nix/scripts`：5
+- `nix/lib`：5
 
 现状判断：
 - 优点：
-  - 已有清晰主干：`nix/hosts`、`nix/modules`、`nix/home`、`nix/scripts`
-  - 已实现多平台（NixOS + Darwin）和 host 自动发现
-  - 已有 eval tests 与 just 命令入口
+  - 主干清晰：`nix/hosts`、`nix/modules`、`nix/home`、`nix/scripts`
+  - 已实现多平台（NixOS + Darwin）与 host 自动发现
+  - 已有 eval tests 与 `just` 命令入口
 - 主要复杂度：
-  - `nix/lib/default.nix` 承担了过多职责（装配、验证、schema、工具函数混放）
-  - 两个平台 `outputs` 历史上存在重复模板（已部分减掉，但仍可继续抽离）
+  - `nix/lib/default.nix` 仍承载较多职责（装配/校验/helper）
+  - 两个平台 `outputs` 的共性模板仍可继续收敛
   - `hosts` 与 `outputs` 的边界对新贡献者仍有学习成本
 
 ---
 
-## 3. 已完成的减法重构（本轮之前 + 本轮）
+## 3. 已完成的减法重构（历史累计）
 
 1. 角色模块去中转，入口直连  
-   - 移除 `nix/modules/core/role-services.nix` 与 `nix/modules/core/roles/default.nix`
+   - 移除 `nix/modules/core/role-services.nix` 与 `nix/modules/core/roles/default.nix`  
    - 在 `nix/modules/core/default.nix` 直接导入 roles
 
 2. 输出层重复模板收敛  
-   - `nix/hosts/outputs/x86_64-linux/default.nix`
-   - `nix/hosts/outputs/aarch64-darwin/default.nix`
-   - 统一了 eval-check 生成与合并套路
+   - `nix/hosts/outputs/x86_64-linux/default.nix`  
+   - `nix/hosts/outputs/aarch64-darwin/default.nix`  
+   - 统一 eval checks 生成与合并套路
 
 3. lib 层补齐通用小函数并复用  
    - 非空字符串/正整数校验 helper
@@ -65,24 +65,23 @@
 
 ---
 
-## 4. 目标结构（减法版，保持最小迁移成本）
+## 4. 目标结构（减法版，最小迁移成本）
 
-建议目标（不是推翻式重构）：
+建议目标（非推翻式重构）：
 
 ```text
 nix/
 ├── hosts/
-│   ├── nixos/<host>/              # 主机事实（vars/hardware/disko/home/checks）
-│   ├── darwin/<host>/             # 主机事实（vars/default/home/checks）
+│   ├── nixos/<host>/
+│   ├── darwin/<host>/
 │   └── outputs/
-│       ├── default.nix            # 仅聚合平台输出
+│       ├── default.nix
 │       ├── x86_64-linux/default.nix
 │       ├── aarch64-darwin/default.nix
-│       └── common.nix             # 下一步建议新增：shared builders
+│       └── common.nix             # 建议新增：shared builders
 ├── modules/
-│   ├── core/                      # NixOS 通用系统模块
-│   ├── darwin/                    # Darwin 通用系统模块
-│   └── hardware.nix
+│   ├── core/
+│   └── darwin/
 ├── home/
 │   ├── base/
 │   ├── linux/
@@ -90,18 +89,17 @@ nix/
 │   └── configs/
 ├── lib/
 │   ├── default.nix                # 导出层（re-export）
-│   ├── host-meta.nix              # 下一步建议拆出 schema/roleFlags
-│   ├── attrs.nix                  # 下一步建议拆出 merge/map helpers
-│   ├── validation.nix             # 下一步建议拆出断言 helper
-│   └── launchers.nix              # 下一步建议拆出 log-filter launcher
+│   ├── host-meta.nix              # 建议拆出 schema/roleFlags
+│   ├── attrs.nix                  # 建议拆出 merge/map helpers
+│   ├── validation.nix             # 建议拆出断言 helper
+│   └── launchers.nix              # 建议拆出 launcher helpers
 └── scripts/
-    ├── admin/
-    └── session/
+    └── admin/
 ```
 
 ---
 
-## 5. 迁移路线（推荐按阶段执行）
+## 5. 迁移路线（推荐分阶段）
 
 ### Phase A（已完成）
 - 入口去中转
@@ -110,14 +108,14 @@ nix/
 
 ### Phase B（下一步，低风险）
 - 新增 `nix/hosts/outputs/common.nix`，把 `mkEvalCheck`、`resolve-host` 模板、apps 组装共性下沉
-- 保持 `x86_64-linux/default.nix`、`aarch64-darwin/default.nix` 仅描述平台差异
+- 保持平台文件仅描述差异
 
 ### Phase C（中风险）
-- 将 `nix/lib/default.nix` 按职责拆分为 `host-meta.nix`/`attrs.nix`/`validation.nix`/`launchers.nix`
-- `default.nix` 只做 re-export，降低单文件认知负担
+- 将 `nix/lib/default.nix` 按职责拆分为 `host-meta.nix` / `attrs.nix` / `validation.nix` / `launchers.nix`
+- `default.nix` 仅做 re-export，降低单文件认知负担
 
 ### Phase D（可选）
-- 为 host 目录增加薄 `default.nix`（仅 import 当前 `vars/hardware/disko/home/checks`），提升“单入口可读性”
+- 为 host 目录增加薄 `default.nix`（仅 import `vars/hardware/disko/home/checks`）
 - 同步 `nix/hosts/README.md` 与 `docs/README.md`
 
 ---
@@ -130,7 +128,7 @@ nix/
 - `just lint`
 
 平台相关（按环境可用性）：
-- Linux：`just check`
+- Linux：`just host=<nixos-host> check`
 - Darwin：`just darwin-check`
 
 ---
