@@ -32,6 +32,7 @@ in
         "passwords/user" = {
           sopsFile = userPasswordSecretFile;
           key = "value";
+          neededForUsers = true;
           mode = "0400";
           owner = "root";
           group = "root";
@@ -39,6 +40,7 @@ in
         "passwords/root" = {
           sopsFile = rootPasswordSecretFile;
           key = "value";
+          neededForUsers = true;
           mode = "0400";
           owner = "root";
           group = "root";
@@ -67,7 +69,7 @@ in
   };
 
   system.activationScripts = {
-    setupSecrets.deps = lib.mkAfter [ "sopsKeyBootstrap" ];
+    setupSecretsForUsers.deps = lib.mkAfter [ "sopsKeyBootstrap" ];
 
     sopsKeyBootstrap = {
       text = ''
