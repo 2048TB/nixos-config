@@ -80,7 +80,7 @@ binds {
     Mod+E { switch-focus-between-floating-and-tiling; }
 
     // 手动锁屏（对齐 Hyprland: Mod+Shift+L）
-    Mod+Shift+L { spawn "lock-screen"; }
+    Mod+Shift+L { spawn "noctalia-shell" "ipc" "call" "lockScreen" "lock"; }
 
     // 使用 spawn-sh 运行 shell 命令，如需管道、多条命令等。
     // 注意：整条命令作为单个参数传递，原样交给 `sh -c`。
@@ -240,7 +240,7 @@ binds {
     // 使其“填满剩余空间”。
     Mod+Ctrl+F { expand-column-to-available-width; }
 
-    // 将所有完整可见的列居中显示（为 Ctrl+C 让位给 cliphist）
+    // 将所有完整可见的列居中显示（Ctrl+C 留给 Noctalia 剪贴板）
     Mod+Shift+C { center-column; }
     Mod+Ctrl+Shift+C { center-visible-columns; }
 
@@ -309,10 +309,9 @@ binds {
     Mod+Shift+P { power-off-monitors; }
 
     // 实用快捷键（对齐 Hyprland）
-    Mod+Ctrl+C { spawn "river-cliphist-menu"; }
-    Mod+Ctrl+B { spawn-sh "pkill -SIGUSR1 waybar || true"; }
+    Mod+Ctrl+B { spawn-sh "systemctl --user restart noctalia-shell.service || true"; }
     Mod+Ctrl+S { spawn "pavucontrol"; }
-    Mod+Ctrl+E { spawn "wlogout-menu"; }
+    Mod+Ctrl+E { spawn "noctalia-shell" "ipc" "call" "sessionMenu" "toggle"; }
 }
 
 // 窗口规则用于调整单个窗口的行为。

@@ -7,7 +7,7 @@ include "./interaction.kdl"
 // 外观与显示：布局、动画、输出。
 include "./appearance.kdl"
 
-// Waybar 由 Home Manager 的 systemd --user 服务管理。
+// Noctalia shell 由 Home Manager 的 systemd --user 服务管理。
 
 cursor {
     // 设置光标主题与大小，并同时设置

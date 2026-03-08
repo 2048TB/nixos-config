@@ -32,8 +32,6 @@
   enableBluetoothRfkillUnblock = true;
   enableAggressiveApparmorKill = false;
   dockerMode = "rootless";
-  enableWaybarBacklight = false;
-  enableWaybarBattery = false;
 
   # Roles
   roles = [
