@@ -7,7 +7,7 @@ let
     "vars.nix"
   ];
   hostNamePattern = "^[A-Za-z0-9][A-Za-z0-9_-]*$";
-  invalidHostNames = builtins.filter (name: builtins.match hostNamePattern name == null) hostNames;
+  invalidHostNames = mylib.namesNotMatching hostNamePattern hostNames;
 
   mkHostData =
     name:
@@ -19,31 +19,20 @@ let
       hostMyvars = import hostVarsPath;
       hostCtx = mylib.mkNixosHost (args // {
         inherit name hostMyvars;
-        hostPath = if builtins.pathExists hostPath then hostPath else null;
+        hostPath = mylib.pathIfExists hostPath;
       });
-      hostChecks =
-        if builtins.pathExists hostChecksPath
-        then import hostChecksPath (hostCtx // { inherit (args) lib mylib; })
-        else { };
+      hostChecks = mylib.importIfExists hostChecksPath (hostCtx // { inherit (args) lib mylib; });
     in
-    {
-      nixosConfigurations.${hostCtx.name} = hostCtx.nixosSystem;
-      checks.${hostCtx.system} = hostChecks;
-      mainUsers.${hostCtx.name} = hostCtx.mainUser;
+    mylib.mkHostDataEntry {
+      configAttrName = "nixosConfigurations";
+      hostSystemAttr = "nixosSystem";
+      inherit hostCtx hostChecks;
     };
 
-  data = builtins.listToAttrs (
-    map
-      (name: {
-        inherit name;
-        value = mkHostData name;
-      })
-      hostNames
-  );
+  data = mylib.mapNamesToAttrs hostNames mkHostData;
   dataWithoutPaths = builtins.attrValues data;
-  nixosConfigurations =
-    mylib.mergeRecursiveAttrsList (map (it: it.nixosConfigurations or { }) dataWithoutPaths);
-  mainUsers = mylib.mergeRecursiveAttrsList (map (it: it.mainUsers or { }) dataWithoutPaths);
+  nixosConfigurations = mylib.mergeAttrFromList "nixosConfigurations" dataWithoutPaths;
+  mainUsers = mylib.mergeAttrFromList "mainUsers" dataWithoutPaths;
   resolvedHostNames = builtins.attrNames nixosConfigurations;
 
   hostnameExpr = import ./tests/hostname/expr.nix { inherit lib nixosConfigurations; };
@@ -66,6 +55,37 @@ let
     config.allowUnfree = true;
   };
   mkAppLocal = mkApp pkgs;
+  mkEvalCheck =
+    { name, ok, message }:
+    pkgs.runCommand name { } ''
+      if [ "${if ok then "1" else "0"}" != "1" ]; then
+        echo "${message}" >&2
+        exit 1
+      fi
+      touch "$out"
+    '';
+  evalCheckSpecs = [
+    {
+      name = "evaltest-hostname";
+      ok = hostEvalTests.hostname;
+      message = "hostname eval test failed";
+    }
+    {
+      name = "evaltest-home";
+      ok = hostEvalTests.home;
+      message = "home eval test failed";
+    }
+    {
+      name = "evaltest-kernel";
+      ok = hostEvalTests.kernel;
+      message = "kernel eval test failed";
+    }
+    {
+      name = "evaltest-platform";
+      ok = hostEvalTests.platform;
+      message = "platform eval test failed";
+    }
+  ];
   resolveNixosHostStrict = ''host="$("$repo/nix/scripts/admin/resolve-host.sh" nixos "$repo" "${builtins.head resolvedHostNames}" --strict)"'';
   platformApps.${system} = {
     apply = mkAppLocal "apply" "Apply Linux host configuration (switch)" ''
@@ -94,36 +114,7 @@ let
       exec ${pkgs.just}/bin/just clean
     '';
   };
-  evalTestChecks.${system} = {
-    evaltest-hostname = pkgs.runCommand "evaltest-hostname" { } ''
-      if [ "${if hostEvalTests.hostname then "1" else "0"}" != "1" ]; then
-        echo "hostname eval test failed" >&2
-        exit 1
-      fi
-      touch "$out"
-    '';
-    evaltest-home = pkgs.runCommand "evaltest-home" { } ''
-      if [ "${if hostEvalTests.home then "1" else "0"}" != "1" ]; then
-        echo "home eval test failed" >&2
-        exit 1
-      fi
-      touch "$out"
-    '';
-    evaltest-kernel = pkgs.runCommand "evaltest-kernel" { } ''
-      if [ "${if hostEvalTests.kernel then "1" else "0"}" != "1" ]; then
-        echo "kernel eval test failed" >&2
-        exit 1
-      fi
-      touch "$out"
-    '';
-    evaltest-platform = pkgs.runCommand "evaltest-platform" { } ''
-      if [ "${if hostEvalTests.platform then "1" else "0"}" != "1" ]; then
-        echo "platform eval test failed" >&2
-        exit 1
-      fi
-      touch "$out"
-    '';
-  };
+  evalTestChecks.${system} = mylib.specsToAttrs evalCheckSpecs mkEvalCheck;
 
   preCommitCheck = inputs.pre-commit-hooks.lib.${system}.run {
     src = mylib.relativeToRoot ".";
@@ -164,20 +155,10 @@ assert lib.assertMsg (hostNames != [ ]) "No hosts found under nix/hosts/nixos";
   registeredHosts = resolvedHostNames;
   inherit nixosConfigurations;
   apps = platformApps;
-  checks =
-    mylib.mergeRecursiveAttrsList (
-      (map (it: it.checks or { }) dataWithoutPaths)
-      ++ [
-        evalTestChecks
-        platformChecks
-      ]
-    );
-  devShells =
-    mylib.mergeRecursiveAttrsList (
-      [ platformDevShells ] ++ map (it: it.devShells or { }) dataWithoutPaths
-    );
-  formatter =
-    mylib.mergeRecursiveAttrsList (
-      [ platformFormatter ] ++ map (it: it.formatter or { }) dataWithoutPaths
-    );
+  checks = mylib.mergeAttrFromListWithExtra "checks" dataWithoutPaths [
+    evalTestChecks
+    platformChecks
+  ];
+  devShells = mylib.mergeAttrFromListWithExtra "devShells" dataWithoutPaths [ platformDevShells ];
+  formatter = mylib.mergeAttrFromListWithExtra "formatter" dataWithoutPaths [ platformFormatter ];
 }

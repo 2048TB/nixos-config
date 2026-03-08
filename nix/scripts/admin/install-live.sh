@@ -128,6 +128,8 @@ fi
 sudo rm -rf "$TARGET_FLAKE_TMP"
 sudo mkdir -p "$TARGET_FLAKE_TMP"
 sudo cp -a "$repo/." "$TARGET_FLAKE_TMP/"
+# Keep decrypt key in repo copy for post-install agenix workflows.
+sudo install -D -m 0400 -o root -g root "$age_key_src" "$TARGET_FLAKE_TMP/.keys/main.agekey"
 if [ ! -f "$TARGET_FLAKE_TMP/flake.nix" ]; then
   echo "error: synced target flake is incomplete: missing flake.nix" >&2
   exit 1

@@ -66,11 +66,6 @@ let
     runtimeInputs = with pkgs; [ swaylock-effects ];
     text = mytheme.apply (builtins.readFile ../../scripts/session/lock-screen.sh);
   };
-  riverScreenshot = pkgs.writeShellApplication {
-    name = "river-screenshot";
-    runtimeInputs = with pkgs; [ grim slurp wl-clipboard coreutils ];
-    text = builtins.readFile ../../scripts/session/screenshot.sh;
-  };
   riverCliphistMenu = pkgs.writeShellApplication {
     name = "river-cliphist-menu";
     runtimeInputs = with pkgs; [ cliphist fuzzel wl-clipboard ];
@@ -210,8 +205,6 @@ in
       # === Wayland 工具 ===
       satty
       swaylock-effects # Niri 手动锁屏（支持 --clock）
-      grim
-      slurp
       wl-screenrec
 
       # === 基础图形工具 ===
@@ -272,7 +265,6 @@ in
     ++ [
       wlogoutMenu
       lockScreen
-      riverScreenshot
       riverCliphistMenu
       waybarClockCalendar
       waybarTemperatureStatus
