@@ -1,6 +1,7 @@
 { config
 , pkgs
 , lib
+, noctalia
 , myvars
 , mainUser
 , ...
@@ -37,6 +38,7 @@ in
 
   imports = [
     ../base
+    noctalia.homeModules.default
     ./desktop.nix
     ./packages.nix
     ./programs.nix

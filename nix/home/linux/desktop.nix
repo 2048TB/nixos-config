@@ -1,4 +1,5 @@
 { pkgs
+, noctalia
 , lib
 , mylib
 , myvars
@@ -10,7 +11,7 @@ let
   inherit (roleFlags) enableProvider appVpn;
 
   mkLogFilteredLauncher = mylib.mkLogFilteredLauncher pkgs;
-  noctaliaShellPkg = pkgs.noctalia-shell;
+  noctaliaShellPkg = noctalia.packages.${pkgs.system}.default;
 
   # ===== Quiet launcher 定义 =====
   udiskieQuiet = mkLogFilteredLauncher "udiskie-quiet" "${pkgs.udiskie}/bin/udiskie" [
@@ -33,6 +34,13 @@ in
     };
   };
 
+  programs.noctalia-shell = {
+    enable = true;
+    package = noctaliaShellPkg;
+    # 官方 HM 模块负责生成/管理 noctalia-shell.service
+    systemd.enable = true;
+  };
+
   systemd = {
     user.services =
       {
@@ -50,21 +58,6 @@ in
             Restart = "on-failure";
             RestartSec = 1;
             TimeoutStopSec = 10;
-          };
-        };
-
-        noctalia-shell = {
-          Unit = {
-            Description = "Noctalia shell";
-            After = [ "graphical-session.target" ];
-            PartOf = [ "graphical-session.target" ];
-          };
-          Install.WantedBy = [ "graphical-session.target" ];
-          Service = {
-            Type = "simple";
-            ExecStart = lib.getExe noctaliaShellPkg;
-            Restart = "on-failure";
-            RestartSec = 2;
           };
         };
 
