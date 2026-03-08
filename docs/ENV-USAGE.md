@@ -29,13 +29,15 @@ export NIX_CONFIG="experimental-features = nix-command flakes"
 
 ```bash
 nix shell nixpkgs#just -c just hosts
-just host=zly disk=/dev/nvme0n1 install
+nix shell nixpkgs#just -c just host=zly install-check
+nix shell nixpkgs#just -c just host=zly disk=/dev/nvme0n1 install
 ```
 
 或直接调用脚本（无需 just）：
 
 ```bash
-/persistent/nixos-config/nix/scripts/admin/install-live.sh --host zky --disk /dev/nvme0n1 --repo /persistent/nixos-config
+REPO=/persistent/nixos-config
+"$REPO"/nix/scripts/admin/install-live.sh --host zky --disk /dev/nvme0n1 --repo "$REPO"
 ```
 
 ### 完全手动安装（ISO，不使用 `just install`）

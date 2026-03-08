@@ -63,9 +63,15 @@ just password-set-hash '<sha512-hash>'
 
 ### 1.4 安装
 
+若当前环境尚未开启 flakes（如 Live ISO），先执行：
+
 ```bash
-just host=zly install-check
-just host=zly disk=/dev/nvme0n1 install   # 会清盘
+export NIX_CONFIG="experimental-features = nix-command flakes"
+```
+
+```bash
+nix shell nixpkgs#just -c just host=zly install-check
+nix shell nixpkgs#just -c just host=zly disk=/dev/nvme0n1 install   # 会清盘
 ```
 
 安装后仓库同步到 `/persistent/nixos-config`，`/etc/nixos` 链接到该目录。
@@ -75,7 +81,8 @@ just host=zly disk=/dev/nvme0n1 install   # 会清盘
 ### 1.5 重启后
 
 ```bash
-sudo install -D -m 0400 .keys/main.agekey /persistent/keys/main.agekey
+# 仅当缺失时补装：
+[ -f /persistent/keys/main.agekey ] || sudo install -D -m 0400 .keys/main.agekey /persistent/keys/main.agekey
 just host=zly switch
 ```
 
