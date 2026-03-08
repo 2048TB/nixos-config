@@ -31,6 +31,8 @@ nixos-config/
 │   │   ├── linux/             # Linux HM（default/packages/programs/desktop/xdg）
 │   │   ├── darwin/            # macOS HM
 │   │   └── configs/           # 应用配置文件（niri/tmux/zellij/shell...）
+│   ├── overlays/              # Nixpkgs overlays（临时/兼容性修复）
+│   ├── patches/               # 本地 patch（供 overlay/package 引用）
 │   └── scripts/
 │       └── admin/             # 管理脚本（sops/install/resolve-host/guard-secrets/common）
 ├── secrets/                   # 加密 secrets（可提交）
@@ -84,5 +86,5 @@ bash -n nix/scripts/admin/*.sh
 
 ## 6. 执行提醒
 
-- 当前 `justfile` 默认 `host := "zzly"`，执行 `just switch/check/test` 时建议显式指定 `host=...`
+- 当前 `justfile` 默认 `host := ""`，执行 `just switch/check/test` 未显式指定时会自动解析当前主机；跨主机操作建议显式指定 `host=...`
 - 未被要求时不主动推送；用户要求“同步到 GitHub”时才执行 Conventional Commit + `git push origin HEAD`
