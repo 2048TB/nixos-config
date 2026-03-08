@@ -1,0 +1,136 @@
+name: Nix CI
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths-ignore:
+      - "docs/**"
+      - "**/*.md"
+      - "wallpapers/**"
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - "docs/**"
+      - "**/*.md"
+      - "wallpapers/**"
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  inventory:
+    name: Inventory
+    runs-on: ubuntu-latest
+    outputs:
+      nixos_hosts: ${{ steps.inventory.outputs.nixos_hosts }}
+      darwin_hosts: ${{ steps.inventory.outputs.darwin_hosts }}
+      has_nixos: ${{ steps.inventory.outputs.has_nixos }}
+      has_darwin: ${{ steps.inventory.outputs.has_darwin }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v31
+        with:
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+
+      - name: Discover hosts
+        id: inventory
+        run: |
+          set -euo pipefail
+
+          nixos_hosts="$(nix eval --json .#nixosConfigurations --apply builtins.attrNames | tr -d '\n')"
+          darwin_hosts="$(nix eval --json .#darwinConfigurations --apply builtins.attrNames | tr -d '\n')"
+
+          has_nixos="false"
+          has_darwin="false"
+          if [ "$nixos_hosts" != "[]" ]; then
+            has_nixos="true"
+          fi
+          if [ "$darwin_hosts" != "[]" ]; then
+            has_darwin="true"
+          fi
+
+          {
+            echo "nixos_hosts=$nixos_hosts"
+            echo "darwin_hosts=$darwin_hosts"
+            echo "has_nixos=$has_nixos"
+            echo "has_darwin=$has_darwin"
+          } >> "$GITHUB_OUTPUT"
+
+  flake-check:
+    name: Flake Check
+    runs-on: ubuntu-latest
+    needs: inventory
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v31
+        with:
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+
+      - name: Run flake checks
+        run: |
+          set -euo pipefail
+          nix flake check --all-systems --show-trace
+
+  nixos-build:
+    name: NixOS Build (${{ matrix.host }})
+    runs-on: ubuntu-latest
+    needs:
+      - inventory
+      - flake-check
+    if: needs.inventory.outputs.has_nixos == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        host: ${{ fromJSON(needs.inventory.outputs.nixos_hosts) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v31
+        with:
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+
+      - name: Build host toplevel
+        run: |
+          set -euo pipefail
+          nix build --no-link -L ".#nixosConfigurations.${{ matrix.host }}.config.system.build.toplevel"
+
+  darwin-eval:
+    name: Darwin Eval (${{ matrix.host }})
+    runs-on: ubuntu-latest
+    needs:
+      - inventory
+      - flake-check
+    if: needs.inventory.outputs.has_darwin == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        host: ${{ fromJSON(needs.inventory.outputs.darwin_hosts) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v31
+        with:
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+
+      - name: Evaluate darwin derivation
+        run: |
+          set -euo pipefail
+          nix eval --raw ".#darwinConfigurations.${{ matrix.host }}.system.drvPath" >/dev/null

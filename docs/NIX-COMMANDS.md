@@ -82,7 +82,26 @@ just lock
 
 ---
 
-## 7. 清理维护
+## 7. CI（GitHub Actions）
+
+文档入口：`docs/CI.md`
+
+常用命令：
+
+```bash
+# 触发工作流（指定分支）
+gh workflow run "Nix CI" --ref <branch>
+gh workflow run "Flake Lock Checker" --ref <branch>
+
+# 查看与跟踪运行
+gh run list --limit 10
+gh run watch <run-id>
+gh run view <run-id> --log
+```
+
+---
+
+## 8. 清理维护
 
 ```bash
 just clean
@@ -96,7 +115,7 @@ just diff
 
 ---
 
-## 8. Flake Apps
+## 9. Flake Apps
 
 ```bash
 nix run .#apply
@@ -114,7 +133,7 @@ DARWIN_HOST=zly-mac nix run .#build-switch
 
 ---
 
-## 9. 常见工作流
+## 10. 常见工作流
 
 ```bash
 just quick                 # check + switch
@@ -125,7 +144,7 @@ just status && just log    # 查看仓库状态
 
 ---
 
-## 10. 术语
+## 11. 术语
 
 | 术语 | 含义 |
 |------|------|
