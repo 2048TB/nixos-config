@@ -28,14 +28,12 @@
 ## 2. 当前仓库现状（量化快照）
 
 基于当前仓库统计（`find nix -type f`）：
-- `nix` 总文件数：107
+- `nix` 总文件数：105
 - `nix/hosts`：44
 - `nix/home`：28
 - `nix/modules`：18
 - `nix/scripts`：6
 - `nix/lib`：9
-- `nix/overlays`：1
-- `nix/patches`：1
 
 现状判断：
 - 优点：

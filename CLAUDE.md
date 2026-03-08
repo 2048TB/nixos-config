@@ -31,8 +31,6 @@ nixos-config/
 │   │   ├── linux/             # Linux HM（default/packages/programs/desktop/xdg）
 │   │   ├── darwin/            # macOS HM
 │   │   └── configs/           # 应用配置文件（niri/tmux/zellij/shell...）
-│   ├── overlays/              # Nixpkgs overlays（临时/兼容性修复）
-│   ├── patches/               # 本地 patch（供 overlay/package 引用）
 │   └── scripts/
 │       └── admin/             # 管理脚本（sops/install/resolve-host/guard-secrets/common）
 ├── secrets/                   # 加密 secrets（可提交）
