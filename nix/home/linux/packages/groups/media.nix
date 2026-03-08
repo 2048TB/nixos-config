@@ -1,0 +1,10 @@
+[
+  "pavucontrol"
+  "pulsemixer"
+  "imv"
+  "libva-utils"
+  "vdpauinfo"
+  "vulkan-tools"
+  "mesa-demos"
+  "nvitop"
+]

@@ -1,0 +1,10 @@
+[
+  "p7zip-rar"
+  "unrar"
+  "unar"
+  "arj"
+  "zip"
+  "unzip"
+  "lrzip"
+  "lzop"
+]

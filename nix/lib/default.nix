@@ -52,7 +52,7 @@ let
             {
               nixpkgs.pkgs = import nixpkgs-darwin {
                 inherit system;
-                config.allowUnfree = true;
+                config.allowUnfreePredicate = specialArgs.mylib.allowUnfreePredicate;
               };
             }
           )
@@ -91,6 +91,88 @@ in
 rec {
   inherit nixosSystem macosSystem;
   inherit mkNixosHost mkDarwinHost;
+
+  # Linux/Darwin 共享的高频 CLI 包，统一来源以减少平台漂移。
+  sharedPackageNames = [
+    "git"
+    "gh"
+    "tmux"
+    "zellij"
+    "yazi"
+    "bat"
+    "fd"
+    "eza"
+    "ripgrep"
+    "jq"
+    "wget"
+    "just"
+  ];
+
+  resolvePackageByName =
+    pkgs: name:
+    let
+      pkgPath = lib.splitString "." name;
+      pkg = lib.attrByPath pkgPath null pkgs;
+      exists = pkg != null;
+      availability =
+        if exists
+        then builtins.tryEval (lib.meta.availableOn pkgs.stdenv.hostPlatform pkg)
+        else {
+          success = true;
+          value = false;
+        };
+      available = exists && availability.success && availability.value;
+    in
+    {
+      inherit name pkg available;
+    };
+
+  resolvePackagesByName =
+    pkgs: names:
+    let
+      resolved = map (resolvePackageByName pkgs) names;
+    in
+    {
+      packages = map (item: item.pkg) (builtins.filter (item: item.available) resolved);
+      skippedNames = map (item: item.name) (builtins.filter (item: !item.available) resolved);
+    };
+
+  allowedUnfreePackageNames = [
+    "google-chrome"
+    "nvidia-settings"
+    "nvidia-x11"
+    "p7zip"
+    "steam"
+    "steam-unwrapped"
+    "unrar"
+    "vscode"
+    "wpsoffice"
+  ];
+
+  allowedUnfreeLicenseNames = [
+    "CUDA EULA"
+    "cuDNN EULA"
+  ];
+
+  hasAllowedUnfreeLicense =
+    license:
+    if builtins.isList license then
+      builtins.any hasAllowedUnfreeLicense license
+    else if builtins.isAttrs license then
+      builtins.elem (license.shortName or "") allowedUnfreeLicenseNames
+      || builtins.elem (license.fullName or "") allowedUnfreeLicenseNames
+      || builtins.elem (license.spdxId or "") [ "CUDA-EULA" ]
+    else
+      false;
+
+  allowUnfreePredicate =
+    pkg:
+    let
+      pkgName = lib.getName pkg;
+      pkgLicense = pkg.meta.license or null;
+    in
+    builtins.elem pkgName allowedUnfreePackageNames
+    || hasAllowedUnfreeLicense pkgLicense;
 
   hasNonEmptyString =
     attrs: key:

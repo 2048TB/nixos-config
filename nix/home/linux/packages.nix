@@ -84,146 +84,37 @@ let
     dive # Docker 镜像分析
     lazydocker # Docker TUI 管理器
   ];
+
+  basePackageNames = lib.flatten [
+    mylib.sharedPackageNames
+    (import ./packages/groups/cli.nix)
+    (import ./packages/groups/dev.nix)
+    (import ./packages/groups/desktop.nix)
+    (import ./packages/groups/media.nix)
+    (import ./packages/groups/archive.nix)
+  ];
+  basePackageSelection = mylib.resolvePackagesByName pkgs basePackageNames;
+  basePackages = basePackageSelection.packages ++ [ cherryStudioPackage ];
 in
 {
+  warnings = lib.optionals (basePackageSelection.skippedNames != [ ]) [
+    "Linux skipped unavailable packages: ${lib.concatStringsSep ", " basePackageSelection.skippedNames}"
+  ];
+
   home = {
-    packages = with pkgs; [
-      # === 终端复用器 ===
-      tmux # 终端复用器（会话保持、多窗格）
-      zellij # 现代化终端复用器（Rust）
-
-      # === 文件管理 ===
-      yazi # 终端文件管理器
-      bat # `cat` 增强版（语法高亮）
-      fd # `find` 增强版（更快、更友好）
-      eza # `ls` 增强版（彩色、树状图）
-      ripgrep # `grep` 增强版（递归搜索）
-      ripgrep-all # rg 扩展：搜索 PDF/Office 等
-
-      # === 系统监控 ===
-      btop # 系统资源监控（CPU、内存、进程）
-      duf # 磁盘使用查看（替代 `df`）
-      dust # 磁盘空间树状图（替代 `du`，可视化目录大小）
-      procs # 进程查看（替代 `ps`，彩色表格化）
-      fastfetch # 系统信息展示
-
-      # === 文本处理 ===
-      jq # JSON 处理器（查询、格式化）
-      yq # YAML 处理器（查询、格式化、校验）
-      yamllint # YAML lint/语法检查
-      taplo # TOML 工具（fmt/lint/validate）
-      check-jsonschema # JSON/YAML 的 JSON Schema 校验
-      sd # 查找替换（替代 `sed`）
-      tealdeer # 命令示例（`tldr`，简化版 `man` 页面）
-
-      # === 网络工具 ===
-      wget # 文件下载工具
-      pciutils # PCI 设备查询（提供 `lspci`）
-
-      # === 基础工具 ===
-      git # 版本控制
-      gh # GitHub 命令行工具
-      gnumake # 构建工具
-      cmake
-      ninja
-      pkg-config
-      openssl
-      autoconf
-      gettext
-      libtool
-      automake
-      ccache
-      clang
-      meson
-      gitui # Git TUI（Rust）
-      delta # git diff 美化（语法高亮、并排对比）
-      tokei # 代码统计（行数、语言分布）
-      brightnessctl # 屏幕亮度控制
-      xdg-user-dirs # 用户目录管理
-
-      # === Nix 生态工具 ===
-      nix-output-monitor # nom - 构建日志美化
-      nix-tree # 依赖树可视化
-      nix-melt # flake.lock 查看器
-      cachix # 二进制缓存管理
-      nil # Nix LSP
-      nixpkgs-fmt # Nix 格式化
-      statix # Nix linter
-      deadnix # 死代码检测
-
-      # === 开发效率 ===
-      just # 命令运行器（替代 `Makefile`）
-      nix-index # nix-locate 查询工具
-      shellcheck # Shell 脚本静态检查
-      git-lfs # Git 大文件支持
-
-      # === 图形界面应用 ===
-      google-chrome
-      vscode
-      remmina
-      nomacs
-      nautilus # GNOME 文件管理器（Wayland 原生，简洁现代）
-      wsdd # 提供 gvfs-wsdd-wrapper 依赖，避免 Nautilus 网络发现报错
-      file-roller # GNOME 压缩管理器（Nautilus 集成必需）
-      ghostty
-      foot # 轻量 Wayland 终端（备用）
-      papirus-icon-theme # dconf/qt6ct 使用 Papirus 图标主题
-      cherryStudioPackage # 多 LLM 提供商桌面客户端（来自 nixpkgs-unstable）
-
-      # === Wayland 工具 ===
-      satty
-      wl-screenrec
-
-      # === 基础图形工具 ===
-      gnome-text-editor
-
-      # 压缩/解压工具（命令行 + Nautilus file-roller 集成）
-      p7zip-rar # 包含 7-Zip + RAR 支持（非自由许可）
-      unrar
-      unar
-      arj
-      zip
-      unzip
-      lrzip
-      lzop
-
-      # === 桌面工作流 ===
-      fuzzel
-      gnome-calculator
-
-      # === Wayland 基础设施 ===
-      qt6Packages.qt6ct
-      app2unit
-      polkit_gnome # Polkit 认证代理（权限提升对话框，virt-manager/Nautilus 等需要）
-      networkmanagerapplet # nm-connection-editor（WiFi GUI 管理入口）
-
-      # 媒体 / 图形
-      pavucontrol
-      pulsemixer
-      imv
-      libva-utils
-      vdpauinfo
-      vulkan-tools
-      mesa-demos
-      nvitop
-
-      # === 语言/包管理补齐 ===
-      bun
-      pnpm
-      pipx
-    ]
-    ++ hybridPackages
-    ++ lib.optional enableLocalSend pkgs.localsend
-    ++ lib.optional enableZathura pkgs.zathura
-    ++ lib.optional enableSplayer pkgs.splayer
-    ++ lib.optional enableTelegramDesktop pkgs.telegram-desktop
-    ++ lib.optional enableWpsOffice pkgs.wpsoffice
-    ++ lib.optionals enableSteam gamingPackages
-    ++ lib.optionals enableLibvirtd virtualisationPackages
-    ++ lib.optionals enableDocker dockerPackages
-    ++ lib.optional isPrimeOffloadGpu nvidiaOffload
-    ++ lib.optional enableMullvadVpn pkgs.mullvad-vpn
-    ++ lib.optionals enableWpsOffice wpsWrappedBins; # WPS steam-run 包装器（覆盖原始二进制，修复启动问题）
+    packages = basePackages
+      ++ hybridPackages
+      ++ lib.optional enableLocalSend pkgs.localsend
+      ++ lib.optional enableZathura pkgs.zathura
+      ++ lib.optional enableSplayer pkgs.splayer
+      ++ lib.optional enableTelegramDesktop pkgs.telegram-desktop
+      ++ lib.optional enableWpsOffice pkgs.wpsoffice
+      ++ lib.optionals enableSteam gamingPackages
+      ++ lib.optionals enableLibvirtd virtualisationPackages
+      ++ lib.optionals enableDocker dockerPackages
+      ++ lib.optional isPrimeOffloadGpu nvidiaOffload
+      ++ lib.optional enableMullvadVpn pkgs.mullvad-vpn
+      ++ lib.optionals enableWpsOffice wpsWrappedBins; # WPS steam-run 包装器（覆盖原始二进制，修复启动问题）
 
     file = lib.optionalAttrs enableWpsOffice {
       ".local/share/applications/wps-office-wps.desktop".source =

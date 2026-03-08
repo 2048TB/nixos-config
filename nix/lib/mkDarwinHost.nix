@@ -73,7 +73,7 @@ let
 
   pkgs = import inputs.nixpkgs-darwin {
     inherit system;
-    config.allowUnfree = true;
+    config.allowUnfreePredicate = mylib.allowUnfreePredicate;
   };
 in
 assert lib.assertMsg (hostMyvars != { }) "Missing or empty nix/hosts/darwin/${name}/vars.nix";
