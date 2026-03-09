@@ -16,6 +16,7 @@ nix/home/
 ├── linux/
 │   ├── default.nix     # 入口（session vars、home.file、dconf）
 │   ├── packages.nix    # home.packages（含主账号开发环境）
+│   ├── package-groups.nix # Linux 包分类清单（纯数据）
 │   ├── programs.nix    # fzf/mpv/lutris 等
 │   ├── desktop.nix     # systemd 用户服务（noctalia-shell/udiskie/mullvad）
 │   └── xdg.nix         # portal/mimeApps/configFile
@@ -33,6 +34,7 @@ nix/home/
 | 状态栏 | `linux/desktop.nix`（`noctalia-shell` service） |
 | 窗口快捷键 | `configs/niri/interaction.kdl` |
 | 窗口外观 | `configs/niri/appearance.kdl` |
+| Linux 包分类 | `linux/package-groups.nix` |
 | Tmux | `configs/tmux/tmux.conf` |
 | Zellij | `configs/zellij/config.kdl` |
 
