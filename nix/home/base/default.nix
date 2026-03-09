@@ -1,4 +1,4 @@
-{ config, myvars, osConfig ? null, ... }:
+{ config, mylib, myvars, osConfig ? null, ... }:
 let
   homeDir = config.home.homeDirectory;
   localShareDir = "${homeDir}/.local/share";
@@ -49,21 +49,25 @@ in
     };
   };
 
-  home.sessionVariables = {
-    HOST_PROFILE = hostCfg.hostname;
-    NPM_CONFIG_PREFIX = "${homeDir}/.npm-global";
-    BUN_INSTALL = "${homeDir}/.bun";
-    BUN_INSTALL_BIN = "${homeDir}/.bun/bin";
-    BUN_INSTALL_GLOBAL_DIR = "${homeDir}/.bun/install/global";
-    BUN_INSTALL_CACHE_DIR = "${homeDir}/.bun/install/cache";
-    UV_TOOL_DIR = "${localShareDir}/uv/tools";
-    UV_TOOL_BIN_DIR = "${localShareDir}/uv/bin";
-    UV_PYTHON_DOWNLOADS = "never";
-    CARGO_HOME = "${homeDir}/.cargo";
-    GOPATH = "${homeDir}/go";
-    GOBIN = "${homeDir}/go/bin";
-    PIPX_HOME = "${localShareDir}/pipx";
-    PIPX_BIN_DIR = "${localShareDir}/pipx/bin";
+  home = {
+    stateVersion = hostCfg.homeStateVersion or mylib.defaultHomeStateVersion;
+    sessionVariables = {
+      HOST_PROFILE = hostCfg.hostname;
+      NPM_CONFIG_PREFIX = "${homeDir}/.npm-global";
+      BUN_INSTALL = "${homeDir}/.bun";
+      BUN_INSTALL_BIN = "${homeDir}/.bun/bin";
+      BUN_INSTALL_GLOBAL_DIR = "${homeDir}/.bun/install/global";
+      BUN_INSTALL_CACHE_DIR = "${homeDir}/.bun/install/cache";
+      UV_TOOL_DIR = "${localShareDir}/uv/tools";
+      UV_TOOL_BIN_DIR = "${localShareDir}/uv/bin";
+      UV_PYTHON_DOWNLOADS = "never";
+      PYTHONUSERBASE = "${homeDir}/.local";
+      CARGO_HOME = "${homeDir}/.cargo";
+      GOPATH = "${homeDir}/go";
+      GOBIN = "${homeDir}/go/bin";
+      PIPX_HOME = "${localShareDir}/pipx";
+      PIPX_BIN_DIR = "${localShareDir}/pipx/bin";
+    };
   };
 
   home.sessionPath = [

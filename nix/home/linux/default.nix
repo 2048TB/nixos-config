@@ -9,7 +9,6 @@
 }:
 let
   hostCfg = import ../base/resolve-host.nix { inherit myvars osConfig; };
-  homeStateVersion = hostCfg.homeStateVersion or "25.11";
   homeDir = config.home.homeDirectory;
   configRepoPath = hostCfg.configRepoPath or "/persistent/nixos-config";
 
@@ -51,9 +50,8 @@ in
     enableNixpkgsReleaseCheck = true;
     username = mainUser;
     homeDirectory = "/home/${mainUser}";
-    stateVersion = homeStateVersion;
 
-    # 会话变量（仅 Linux 特有：Wayland/输入法/OpenSSL/PYTHONUSERBASE）
+    # 会话变量（仅 Linux 特有：Wayland/输入法/OpenSSL）
     sessionVariables = {
       # Wayland 支持
       # 在分数缩放（如 1.25）下，优先让 Chromium/Electron 应用走原生 Wayland，
@@ -67,8 +65,6 @@ in
       XMODIFIERS = "@im=fcitx";
       SDL_IM_MODULE = "fcitx";
 
-      # Linux 特有工具链路径
-      PYTHONUSERBASE = "${homeDir}/.local";
       # OpenSSL for Rust openssl-sys on NixOS (user-wide)
       OPENSSL_INCLUDE_DIR = "${pkgs.openssl.dev}/include";
       OPENSSL_LIB_DIR = "${pkgs.openssl.out}/lib";

@@ -57,11 +57,6 @@ in
     enableNixpkgsReleaseCheck = hostCfg.enableHmReleaseCheck or true;
     username = mainUser;
     homeDirectory = homeDir;
-    stateVersion = hostCfg.homeStateVersion or "25.11";
-
-    sessionVariables = {
-      PYTHONUSERBASE = "${homeDir}/.local";
-    };
 
     sessionPath = [
       "/opt/homebrew/bin"
