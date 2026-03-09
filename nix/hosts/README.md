@@ -23,7 +23,7 @@ nix/hosts/
 
 ## 必需文件
 
-**NixOS**：`default.nix` + `hardware.nix` + `disko.nix` + `vars.nix`
+**NixOS**：`default.nix` + `hardware.nix` + `hardware-modules.nix` + `disko.nix` + `vars.nix`
 **Darwin**：`default.nix` + `vars.nix`
 
 可选：`home.nix`、`checks.nix`
@@ -42,9 +42,10 @@ cp -a nix/hosts/darwin/zly-mac nix/hosts/darwin/mac-mini
 新增后需编辑：
 1. `vars.nix`：主机名、用户名、硬件参数、roles（含 `gpuMode` 与可选 `amdgpuBusId` / `nvidiaBusId`）
 2. `disko.nix`：磁盘布局（NixOS）
-3. `hardware.nix`：该主机自己的硬件声明；只放硬件事实或该机专属 workaround
-4. `nix/hosts/registry/systems.toml`：新增该主机条目（`nixos.<host>` 或 `darwin.<host>`）
-5. 模板中的旧主机名替换为新主机名（`rg -n 'zly|zly-mac' nix/hosts/<platform>/<new-host>`）
+3. `hardware-modules.nix`：显式列出该主机启用的 `nixos-hardware` 模块
+4. `hardware.nix`：该主机自己的硬件声明；只放硬件事实或该机专属 workaround
+5. `nix/hosts/registry/systems.toml`：新增该主机条目（`nixos.<host>` 或 `darwin.<host>`）
+6. 模板中的旧主机名替换为新主机名（`rg -n 'zly|zly-mac' nix/hosts/<platform>/<new-host>`）
 
 验证：`just hosts && just eval-tests && just host=devbox check`
 
