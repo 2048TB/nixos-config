@@ -56,6 +56,7 @@ in
 
   # GPU 驱动来源：使用主机配置 my.host.gpuMode 固定配置
   services = {
+    fwupd.enable = lib.mkIf (!isServer) true;
     xserver.videoDrivers = lib.mkIf isDesktop videoDrivers;
   };
 

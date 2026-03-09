@@ -27,6 +27,8 @@ in
     ./secrets.nix
   ];
 
+  system.stateVersion = hostCfg.systemStateVersion;
+
   networking = {
     hostName = hostCfg.hostname;
     networkmanager.enable = true;

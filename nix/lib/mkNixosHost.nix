@@ -34,10 +34,20 @@ let
   mainUser = resolvedMyvars.username;
 
   cpuVendor = resolvedMyvars.cpuVendor or "auto";
+  gpuMode = resolvedMyvars.gpuMode or "auto";
+  useAmdGpu = builtins.elem gpuMode [
+    "amd"
+    "amdgpu"
+    "amd-nvidia-hybrid"
+  ];
   nixosHardwareModules =
-    [ nixos-hardware.nixosModules.common-pc-ssd ]
+    [
+      nixos-hardware.nixosModules.common-pc
+      nixos-hardware.nixosModules.common-pc-ssd
+    ]
     ++ lib.optionals (cpuVendor == "amd") [ nixos-hardware.nixosModules.common-cpu-amd ]
-    ++ lib.optionals (cpuVendor == "intel") [ nixos-hardware.nixosModules.common-cpu-intel ];
+    ++ lib.optionals (cpuVendor == "intel") [ nixos-hardware.nixosModules.common-cpu-intel ]
+    ++ lib.optionals useAmdGpu [ nixos-hardware.nixosModules.common-gpu-amd ];
 
   specialArgs = baseSpecialArgs // {
     myvars = resolvedMyvars;

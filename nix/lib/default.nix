@@ -91,6 +91,14 @@ let
   hostMetaLib = import ./host-meta.nix { };
   launchersLib = import ./launchers.nix { inherit lib; };
   validationLib = import ./validation.nix { inherit lib attrsLib; };
+  defaultInitrdAvailableKernelModules = [
+    "nvme"
+    "xhci_pci"
+    "ahci"
+    "usbhid"
+    "usb_storage"
+    "sd_mod"
+  ];
 in
 rec {
   inherit nixosSystem macosSystem;
@@ -225,5 +233,34 @@ rec {
     if vendor == "amd" then [ "kvm-amd" ]
     else if vendor == "intel" then [ "kvm-intel" ]
     else [ "kvm-amd" "kvm-intel" ];
+
+  mkNixosHardwareModule =
+    { extraImports ? [ ]
+    , availableKernelModules ? defaultInitrdAvailableKernelModules
+    ,
+    }:
+    { config, lib, ... }:
+    let
+      inherit (config.my.host) cpuVendor;
+    in
+    {
+      imports = extraImports;
+
+      boot = {
+        initrd.availableKernelModules = availableKernelModules;
+        initrd.kernelModules = [ ];
+        extraModulePackages = [ ];
+      };
+
+      hardware = {
+        enableRedistributableFirmware = lib.mkDefault true;
+        cpu.amd.updateMicrocode = lib.mkDefault (
+          config.hardware.enableRedistributableFirmware && cpuVendor != "intel"
+        );
+        cpu.intel.updateMicrocode = lib.mkDefault (
+          config.hardware.enableRedistributableFirmware && cpuVendor != "amd"
+        );
+      };
+    };
 
 }
