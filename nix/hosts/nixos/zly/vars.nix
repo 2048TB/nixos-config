@@ -15,7 +15,7 @@
     if envDiskDevice != "" then envDiskDevice else "/dev/nvme0n1";
   swapSizeGb = 32;
 
-  resumeOffset = 7709952;
+  resumeOffset = 10113490;
 
   # Hardware
   cpuVendor = "amd";

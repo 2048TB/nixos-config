@@ -44,6 +44,10 @@ in
     ];
   };
 
+  # /etc/machine-id 已持久化到 /persistent；systemd-machine-id-commit 仅适用于临时 machine-id。
+  # 保留该服务会在 switch 阶段误报失败并导致 nixos-rebuild 返回非零。
+  systemd.services.systemd-machine-id-commit.enable = lib.mkForce false;
+
   fileSystems = {
     "/" = lib.mkForce {
       device = "tmpfs";
