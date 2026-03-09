@@ -41,14 +41,14 @@ let
   mainUsers = mylib.mergeAttrFromList "mainUsers" dataWithoutPaths;
   resolvedHostNames = builtins.attrNames nixosConfigurations;
 
-  hostnameExpr = import ./hostname-expr.nix { inherit lib nixosConfigurations; };
-  hostnameExpected = import ./hostname-expected.nix { hostNames = resolvedHostNames; };
-  homeExpr = import ./home-expr.nix { inherit lib nixosConfigurations; };
-  homeExpected = import ./home-expected.nix { inherit mainUsers; };
-  kernelExpr = import ./kernel-expr.nix { inherit lib nixosConfigurations; };
-  kernelExpected = import ./kernel-expected.nix { inherit system; hostNames = resolvedHostNames; };
-  platformExpr = import ./platform-expr.nix { inherit lib nixosConfigurations; };
-  platformExpected = import ./platform-expected.nix { inherit system; hostNames = resolvedHostNames; };
+  hostnameExpr = common.mapHostValuesByPath [ "config" "networking" "hostName" ] nixosConfigurations;
+  hostnameExpected = common.mkExpectedHostNames resolvedHostNames;
+  homeExpr = common.mapHomeDirectories nixosConfigurations;
+  homeExpected = common.mkExpectedHomeDirectories "/home" mainUsers;
+  kernelExpr = common.mapHostValuesByPath [ "config" "boot" "kernelPackages" "kernel" "system" ] nixosConfigurations;
+  kernelExpected = common.mkExpectedAttrSet resolvedHostNames system;
+  platformExpr = common.mapHostValuesByPath [ "pkgs" "stdenv" "hostPlatform" "system" ] nixosConfigurations;
+  platformExpected = common.mkExpectedAttrSet resolvedHostNames system;
   hostEvalTests = {
     hostname = hostnameExpr == hostnameExpected;
     home = homeExpr == homeExpected;

@@ -24,7 +24,7 @@ let
       hostCtx = mylib.mkDarwinHost (args // {
         inherit name hostPath hostMyvars hostRegistry;
       });
-      hostChecks = mylib.importIfExists hostChecksPath hostCtx;
+      hostChecks = mylib.importIfExists hostChecksPath (hostCtx // { inherit (args) lib mylib; });
     in
     mylib.mkHostDataEntry {
       configAttrName = "darwinConfigurations";
@@ -38,12 +38,12 @@ let
   darwinConfigurations = mylib.mergeAttrFromList "darwinConfigurations" dataWithoutPaths;
   mainUsers = mylib.mergeAttrFromList "mainUsers" dataWithoutPaths;
   resolvedHostNames = builtins.attrNames darwinConfigurations;
-  hostnameExpr = import ./hostname-expr.nix { inherit lib darwinConfigurations; };
-  hostnameExpected = import ./hostname-expected.nix { hostNames = resolvedHostNames; };
-  homeExpr = import ./home-expr.nix { inherit lib darwinConfigurations; };
-  homeExpected = import ./home-expected.nix { inherit mainUsers; };
-  platformExpr = import ./platform-expr.nix { inherit lib darwinConfigurations; };
-  platformExpected = import ./platform-expected.nix { inherit system; hostNames = resolvedHostNames; };
+  hostnameExpr = common.mapHostValuesByPath [ "config" "networking" "hostName" ] darwinConfigurations;
+  hostnameExpected = common.mkExpectedHostNames resolvedHostNames;
+  homeExpr = common.mapHomeDirectories darwinConfigurations;
+  homeExpected = common.mkExpectedHomeDirectories "/Users" mainUsers;
+  platformExpr = common.mapHostValuesByPath [ "pkgs" "stdenv" "hostPlatform" "system" ] darwinConfigurations;
+  platformExpected = common.mkExpectedAttrSet resolvedHostNames system;
   hostEvalTests = {
     hostname = hostnameExpr == hostnameExpected;
     home = homeExpr == homeExpected;
