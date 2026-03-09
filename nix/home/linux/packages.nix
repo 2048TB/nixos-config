@@ -8,6 +8,14 @@
 }:
 let
   hostCfg = import ../base/resolve-host.nix { inherit myvars osConfig; };
+  packageGroups = import ./package-groups.nix;
+  packageGroupOrder = [
+    "cli"
+    "dev"
+    "desktop"
+    "media"
+    "archive"
+  ];
   enableProvider appVpn = hostCfg.enableProvider appVpn or false;
   enableSteam = hostCfg.enableSteam or false;
   enableLibvirtd = hostCfg.enableLibvirtd or false;
@@ -88,11 +96,7 @@ let
 
   basePackageNames = lib.flatten [
     mylib.sharedPackageNames
-    (import ./packages/cli.nix)
-    (import ./packages/dev.nix)
-    (import ./packages/desktop.nix)
-    (import ./packages/media.nix)
-    (import ./packages/archive.nix)
+    (map (groupName: packageGroups.${groupName}) packageGroupOrder)
   ];
   basePackageSelection = mylib.resolvePackagesByName pkgs basePackageNames;
   basePackages = basePackageSelection.packages ++ [ cherryStudioPackage ];
