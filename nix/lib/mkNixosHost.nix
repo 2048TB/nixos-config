@@ -33,22 +33,6 @@ let
   };
   mainUser = resolvedMyvars.username;
 
-  cpuVendor = resolvedMyvars.cpuVendor or "auto";
-  gpuMode = resolvedMyvars.gpuMode or "auto";
-  useAmdGpu = builtins.elem gpuMode [
-    "amd"
-    "amdgpu"
-    "amd-nvidia-hybrid"
-  ];
-  nixosHardwareModules =
-    [
-      nixos-hardware.nixosModules.common-pc
-      nixos-hardware.nixosModules.common-pc-ssd
-    ]
-    ++ lib.optionals (cpuVendor == "amd") [ nixos-hardware.nixosModules.common-cpu-amd ]
-    ++ lib.optionals (cpuVendor == "intel") [ nixos-hardware.nixosModules.common-cpu-intel ]
-    ++ lib.optionals useAmdGpu [ nixos-hardware.nixosModules.common-gpu-amd ];
-
   specialArgs = baseSpecialArgs // {
     myvars = resolvedMyvars;
     inherit mainUser;
@@ -61,8 +45,17 @@ let
     else
       mylib.relativeToRoot "${hostDir}/default.nix";
   hostHardwarePath = mylib.relativeToRoot "${hostDir}/hardware.nix";
+  hostHardwareModulesPath = mylib.relativeToRoot "${hostDir}/hardware-modules.nix";
   hostDiskoPath = mylib.relativeToRoot "${hostDir}/disko.nix";
   hostHomePath = mylib.relativeToRoot "${hostDir}/home.nix";
+  hostHardwareModuleNames = import hostHardwareModulesPath;
+  hostHardwareModules =
+    map
+      (moduleName:
+        lib.attrByPath [ moduleName ] (throw "Unknown nixos-hardware module '${moduleName}' in ${hostDir}/hardware-modules.nix")
+          nixos-hardware.nixosModules
+      )
+      hostHardwareModuleNames;
 
   resolvedHomeModules = homeModules ++ lib.optionals (builtins.pathExists hostHomePath) [ hostHomePath ];
 
@@ -86,7 +79,7 @@ let
     nix-gaming.nixosModules.platformOptimizations
     disko.nixosModules.disko
   ]
-  ++ nixosHardwareModules
+  ++ hostHardwareModules
   ++ extraModules;
 
   nixosSystem = mylib.nixosSystem {
@@ -103,6 +96,7 @@ let
 in
 assert mylib.assertPathExists hostEntryPath "Missing ${hostDir}/default.nix";
 assert mylib.assertPathExists hostHardwarePath "Missing ${hostDir}/hardware.nix";
+assert mylib.assertPathExists hostHardwareModulesPath "Missing ${hostDir}/hardware-modules.nix";
 assert mylib.assertPathExists hostDiskoPath "Missing ${hostDir}/disko.nix";
 assert mylib.assertNonEmptyAttrs hostMyvars "Missing or empty ${hostDir}/vars.nix";
 assert mylib.assertRequiredNonEmptyStrings hostMyvars [

@@ -1,2 +1,4 @@
 args@{ mylib, ... }:
-(mylib.mkNixosHardwareModule { }) args
+(mylib.mkNixosHardwareModule {
+  extraImports = [ ./hardware-workarounds.nix ];
+}) args
