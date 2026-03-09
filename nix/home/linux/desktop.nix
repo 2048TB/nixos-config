@@ -23,9 +23,19 @@ let
   ];
 in
 {
-  xdg.dataFile."applications/dev.noctalia.noctalia-qs.desktop".source =
-    # 上游 HM 模块已将 package 注入 home.packages；这里只补 desktop metadata，避免 portal 无法解析 app ID。
-    "${noctaliaShellPkg}/share/applications/dev.noctalia.noctalia-qs.desktop";
+  xdg.dataFile."applications/dev.noctalia.noctalia-qs.desktop".text =
+    # portal host app registry 要求 app_id 能匹配一个可解析的 .desktop basename；
+    # 上游当前未安装该文件，这里直接生成最小合法 desktop entry。
+    ''
+      [Desktop Entry]
+      Version=1.5
+      Type=Application
+      Name=Noctalia Shell
+      NoDisplay=true
+      TryExec=${lib.getExe noctaliaShellPkg}
+      Exec=${lib.getExe noctaliaShellPkg}
+      Terminal=false
+    '';
 
   services = {
     playerctld.enable = true;
