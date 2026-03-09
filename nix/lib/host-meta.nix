@@ -51,8 +51,6 @@ let
 
     optionalStringOptions = [
       "rootTmpfsSize"
-      "journaldSystemMaxUse"
-      "journaldRuntimeMaxUse"
       "gcRetentionDays"
       "diskDevice"
     ];

@@ -49,8 +49,6 @@ in
     nvidia-container-toolkit.enable = lib.mkIf (useNvidia && enableNvidiaContainerToolkit) true;
     bluetooth = lib.mkIf (!isServer) {
       enable = true;
-      # 避免适配器默认掉电，减少桌面层蓝牙开关“点了无效”的概率
-      powerOnBoot = true;
     };
   };
 

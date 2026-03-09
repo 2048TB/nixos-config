@@ -8,7 +8,7 @@ let
   hostCfg = config.my.host;
   homeDir = "/home/${mainUser}";
   inherit (config.my) profiles;
-  inherit (hostCfg) configRepoPath journaldSystemMaxUse journaldRuntimeMaxUse;
+  inherit (hostCfg) configRepoPath;
   isLaptop = profiles.laptop;
   isDesktop = profiles.desktop;
 
@@ -36,11 +36,6 @@ in
           HandleLidSwitchDocked = "ignore";
         };
       };
-
-      journald.extraConfig = ''
-        SystemMaxUse=${journaldSystemMaxUse}
-        RuntimeMaxUse=${journaldRuntimeMaxUse}
-      '';
     }
     (lib.mkIf isDesktop {
       xserver.enable = false;
@@ -80,7 +75,6 @@ in
       AllowHibernation=yes
       AllowSuspendThenHibernate=yes
       AllowHybridSleep=no
-      HibernateDelaySec=90min
     '';
 
     services = { };
