@@ -47,9 +47,6 @@ lib.mkIf isDesktop {
     enable = true;
     xdgOpenUsePortal = true;
     config = portalConfig;
-    extraPortals = lib.mkForce (with pkgs; [
-      xdg-desktop-portal-gnome
-    ]);
   };
 
   fonts.packages = with pkgs; [
