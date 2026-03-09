@@ -24,10 +24,9 @@ let
   ];
 in
 {
-  home.packages = [
-    # 暴露 package 的 desktop metadata 到 user profile，避免 portal 无法解析 app ID。
-    noctaliaShellPkg
-  ];
+  xdg.dataFile."applications/dev.noctalia.noctalia-qs.desktop".source =
+    # 上游 HM 模块已将 package 注入 home.packages；这里只补 desktop metadata，避免 portal 无法解析 app ID。
+    "${noctaliaShellPkg}/share/applications/dev.noctalia.noctalia-qs.desktop";
 
   services = {
     playerctld.enable = true;
