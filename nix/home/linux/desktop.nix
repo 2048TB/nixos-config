@@ -1,4 +1,5 @@
-{ pkgs
+{ config
+, pkgs
 , noctalia
 , lib
 , mylib
@@ -10,6 +11,7 @@
 let
   hostCfg = import ../base/resolve-host.nix { inherit myvars osConfig; };
   enableMullvadVpn = hostCfg.enableMullvadVpn or false;
+  configRepoPath = hostCfg.configRepoPath or "/persistent/nixos-config";
 
   mkLogFilteredLauncher = mylib.mkLogFilteredLauncher pkgs;
   noctaliaShellPkg = noctalia.packages.${pkgs.stdenv.hostPlatform.system}.default;
@@ -23,6 +25,9 @@ let
   ];
 in
 {
+  xdg.configFile."noctalia/settings.json".source =
+    config.lib.file.mkOutOfStoreSymlink "${configRepoPath}/nix/home/configs/noctalia/settings.json";
+
   xdg.dataFile."applications/dev.noctalia.noctalia-qs.desktop".text =
     # portal host app registry 要求 app_id 能匹配一个可解析的 .desktop basename；
     # 上游当前未安装该文件，这里直接生成最小合法 desktop entry。
@@ -54,10 +59,6 @@ in
     package = noctaliaShellPkg;
     # 官方 HM 模块负责生成/管理 noctalia-shell.service
     systemd.enable = true;
-    settings = {
-      # 对齐官方 Niri 集成：在 compositor overview 中渲染 Noctalia 的模糊/染色壁纸层。
-      wallpaper.overviewEnabled = true;
-    };
   };
 
   systemd = {
