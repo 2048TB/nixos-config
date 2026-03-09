@@ -7,9 +7,9 @@
 ## 文件
 
 - `default.nix`：总入口（`genSpecialArgs`、`mkApp`、平台聚合）
+- `common.nix`：共享 registry 校验、eval helper、strict host 解析
 - `x86_64-linux/default.nix`：NixOS 聚合 + eval tests + pre-commit check + apps
 - `aarch64-darwin/default.nix`：Darwin 聚合 + eval tests + apps
-- `x86_64-linux/*.nix`、`aarch64-darwin/*.nix`：评估测试表达式与期望值（已扁平化，移除 `tests/` 子目录）
 
 ---
 
@@ -31,5 +31,6 @@ just hosts
 - Darwin：`apply`、`build`、`build-switch`、`clean`
 
 apps 内部通过 `nix/scripts/admin/resolve-host.sh ... --strict` 解析主机。
+eval tests 的通用表达式在 `common.nix`，平台目录只保留各自入口。
 
 通常无需手动修改此目录，除非新增平台级逻辑（apps/checks/devShell/formatter）。

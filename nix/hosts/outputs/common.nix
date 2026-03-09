@@ -64,6 +64,50 @@
       touch "$out"
     '';
 
+  mapHostValuesByPath =
+    path: configurations:
+    lib.mapAttrs (_: cfg: lib.attrByPath path null cfg) configurations;
+
+  mapHomeDirectories =
+    configurations:
+    lib.mapAttrs
+      (
+        _:
+        cfg:
+        let
+          users = builtins.attrNames (cfg.config.home-manager.users or { });
+          user = builtins.head users;
+        in
+        cfg.config.home-manager.users.${user}.home.homeDirectory
+      )
+      configurations;
+
+  mkExpectedAttrSet =
+    hostNames: value:
+    builtins.listToAttrs (
+      map
+        (name: {
+          inherit name;
+          inherit value;
+        })
+        hostNames
+    );
+
+  mkExpectedHostNames =
+    hostNames:
+    builtins.listToAttrs (
+      map
+        (name: {
+          inherit name;
+          value = name;
+        })
+        hostNames
+    );
+
+  mkExpectedHomeDirectories =
+    homeRoot: mainUsers:
+    builtins.mapAttrs (_host: user: "${homeRoot}/${user}") mainUsers;
+
   resolveHostStrictSnippet =
     { kind, resolvedHostNames }:
     ''host="$("$repo/nix/scripts/admin/resolve-host.sh" ${kind} "$repo" "${builtins.head resolvedHostNames}" --strict)"'';
