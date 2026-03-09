@@ -1,4 +1,4 @@
-{ config, lib, pkgs, ... }:
+{ config, lib, ... }:
 let
   hostCfg = config.my.host;
   inherit (hostCfg) cpuVendor;
@@ -32,12 +32,6 @@ in
 
   # 固件更新服务（BIOS/SSD/外设通过 LVFS 推送）
   services.fwupd.enable = true;
-
-  # Host-level tools.
-  environment.systemPackages = with pkgs; [
-    sbctl
-  ];
-
   # Keep stateVersion pinned for stable upgrades.
   system.stateVersion = hostCfg.systemStateVersion;
 }

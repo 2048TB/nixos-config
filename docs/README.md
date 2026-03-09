@@ -15,7 +15,6 @@
 | `docs/CI.md` | GitHub Actions 与本地等价验证 |
 | `docs/ENV-USAGE.md` | 按环境操作指南 |
 | `docs/KEYBINDINGS.md` | 桌面快捷键 |
-| `docs/REDUCTION-REFACTOR-ANALYSIS.md` | 减法重构分析与目标结构 |
 | `nix/hosts/README.md` | 主机目录组织 |
 | `nix/home/README.md` | Home Manager 结构 |
 | `secrets/keys/README.md` | 公钥目录与 sops 流程 |
@@ -27,6 +26,7 @@
 - 优先使用 `just` 命令
 - 危险操作需明确目标主机和磁盘
 - 密码和 SSH 私钥走 `sops-nix`，不要明文放进 Git
+- 主账号开发环境（语言/工具链）默认由 Home Manager 提供，system layer 仅保留桌面运行基线
 
 ---
 
@@ -97,14 +97,20 @@ just host=zly switch
 ```
 
 说明：
-- 当前 `justfile` 默认 `host := ""`，`just switch/check/test` 未显式指定时会自动检测当前主机。
-- 跨主机执行时，建议显式指定 `host=...`。
+- 当前 `justfile` 默认 `host := ""`、`darwin_host := ""`；`just switch/check/test` 与 `just darwin-switch/darwin-check` 未显式指定时会自动检测当前主机。
+- 跨主机执行时，建议显式指定 `host=...` / `darwin_host=...`。
 
 远程部署（按主机元数据）：
 ```bash
 just deploy
 just deploy HOSTS=zly,zky
 ```
+
+## 2.1 开发环境归属
+
+- Linux/macOS 主账号的一致开发环境（如 `neovim`、Rust、Go、Node.js、Python、`uv`）由 Home Manager 的 `home.packages` 提供
+- system layer 保留桌面运行基线（如 `fcitx5`、fonts、portal、`xwayland-satellite`）
+- 查看当前声明的 system 包与主用户 HM 包：`just packages`
 
 ---
 
@@ -115,7 +121,7 @@ just darwin-check
 just darwin-switch
 ```
 
-手动指定：`just darwin_host=zly-mac darwin-switch`
+说明：在 `zly-mac` 本机上可直接运行以上命令；跨主机执行时请显式指定：`just darwin_host=zly-mac darwin-switch`
 
 ---
 

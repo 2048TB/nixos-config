@@ -1,40 +1,12 @@
 { config
 , pkgs
 , lib
-, mylib
-, mainUser
 , ...
 }:
 let
   hostCfg = config.my.host;
-  homeDir = "/home/${mainUser}";
-  inherit (hostCfg) configRepoPath;
-  roleFlags = mylib.roleFlags hostCfg;
-  inherit (roleFlags) enableProvider appVpn enableLibvirtd enableDocker enableFlatpak useRootfulDocker;
-  inherit (hostCfg) rootTmpfsSize enableHibernate;
-
-  mkFixOwnershipScript = targetDir: {
-    text = ''
-      if [ -d "${targetDir}" ] && id -u ${mainUser} >/dev/null 2>&1; then
-        marker_root="/persistent/.nixos-activation/ownership-fix"
-        marker_name="$(printf '%s' "${targetDir}" | tr '/ ' '__')"
-        current_uid=$(stat -c %u "${targetDir}" 2>/dev/null || echo "")
-        current_gid=$(stat -c %g "${targetDir}" 2>/dev/null || echo "")
-        target_uid=$(id -u ${mainUser})
-        target_gid=$(id -g ${mainUser})
-        marker_file="$marker_root/$marker_name.uid$target_uid.gid$target_gid.done"
-        if [ ! -f "$marker_file" ]; then
-          if [ -n "$current_uid" ] && [ -n "$current_gid" ] && { [ "$current_uid" != "$target_uid" ] || [ "$current_gid" != "$target_gid" ]; }; then
-            find "${targetDir}" -xdev \( -not -user ${mainUser} -o -not -group ${mainUser} \) \
-              -exec chown ${mainUser}:${mainUser} {} + || true
-          fi
-          mkdir -p "$marker_root"
-          touch "$marker_file"
-        fi
-      fi
-    '';
-    deps = [ "users" ];
-  };
+  inherit (hostCfg) enableProvider appVpn enableLibvirtd enableDocker enableFlatpak rootTmpfsSize enableHibernate;
+  useRootfulDocker = hostCfg.dockerMode == "rootful";
 in
 {
   preservation.enable = true;
@@ -177,8 +149,5 @@ in
       '';
       deps = [ "specialfs" ];
     };
-
-    fixUserHomePerms = mkFixOwnershipScript homeDir;
-    fixPersistentConfigRepoPerms = mkFixOwnershipScript configRepoPath;
   };
 }

@@ -4,6 +4,7 @@ Home Manager 配置（用户级）。
 
 - 改系统级（服务/内核/磁盘）→ `nix/modules/` 或 `nix/hosts/`
 - 改用户级（终端/主题/快捷键）→ 本目录
+- 主账号一致开发环境（语言/工具链）→ 优先放在 Home Manager
 
 ---
 
@@ -14,7 +15,7 @@ nix/home/
 ├── base/default.nix    # 跨平台共享（session 变量、PATH、zsh/vim）
 ├── linux/
 │   ├── default.nix     # 入口（session vars、home.file、dconf）
-│   ├── packages.nix    # home.packages + 脚本包
+│   ├── packages.nix    # home.packages（含主账号开发环境）
 │   ├── programs.nix    # fzf/mpv/lutris 等
 │   ├── desktop.nix     # systemd 用户服务（noctalia-shell/udiskie/provider-app）
 │   └── xdg.nix         # portal/mimeApps/configFile

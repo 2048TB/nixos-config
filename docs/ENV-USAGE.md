@@ -13,7 +13,12 @@
 2. 环境变量（`NIXOS_HOST` / `DARWIN_HOST`）
 3. 当前 hostname（由 `resolve-host.sh`）
 
-注意：当前 `justfile` 默认 `host := ""`，所以 `just switch/check/test` 未显式指定时会自动检测当前主机。
+注意：当前 `justfile` 默认 `host := ""`、`darwin_host := ""`，所以 `just switch/check/test` 与 `just darwin-switch/darwin-check` 未显式指定时都会自动检测当前主机。
+
+主账号开发环境约定：
+- Linux/macOS 的语言工具链默认由 Home Manager 提供
+- system layer 仅保留桌面运行基线与系统服务
+- 可用 `just packages` 同时查看 `environment.systemPackages` 与主用户 `home.packages`
 
 ---
 

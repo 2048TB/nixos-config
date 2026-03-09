@@ -39,6 +39,8 @@ just darwin-switch
 just darwin_host=zly-mac darwin-switch
 ```
 
+说明：当前 `justfile` 默认 `darwin_host := ""`。未显式指定 `darwin_host` 时会自动检测当前主机。
+
 ---
 
 ## 4. 密钥管理（sops）
@@ -107,6 +109,7 @@ gh run view <run-id> --log
 ## 8. 清理维护
 
 ```bash
+just packages
 just clean
 just clean-all
 just optimize
@@ -115,6 +118,10 @@ just disk
 just generations
 just diff
 ```
+
+`just packages` 会同时显示：
+- `environment.systemPackages`：系统/桌面运行基线
+- 主用户 `home.packages`：Home Manager 提供的用户软件与开发环境
 
 ---
 

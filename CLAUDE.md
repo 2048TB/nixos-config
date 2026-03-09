@@ -22,13 +22,14 @@ nixos-config/
 │   │   ├── nixos/<host>/      # NixOS（必须含 hardware.nix + disko.nix + vars.nix）
 │   │   ├── darwin/<host>/     # macOS（必须含 default.nix + vars.nix）
 │   │   ├── nixos/_shared/     # 共享模板
-│   │   └── outputs/           # flake 输出聚合（自动发现，无需注册）
+│   │   ├── registry/          # 主机注册表（systems.toml + schema）
+│   │   └── outputs/           # flake 输出聚合
 │   ├── modules/
 │   │   ├── core/              # NixOS 系统模块（boot/services/desktop/security/storage/hardware）
 │   │   └── darwin/            # macOS 系统模块
 │   ├── home/
 │   │   ├── base/              # 跨平台共享（session 变量 + PATH）
-│   │   ├── linux/             # Linux HM（default/packages/programs/desktop/xdg）
+│   │   ├── linux/             # Linux HM（default/packages/programs/desktop/xdg；含主账号开发环境）
 │   │   ├── darwin/            # macOS HM
 │   │   └── configs/           # 应用配置文件（niri/tmux/zellij/shell...）
 │   └── scripts/
@@ -85,4 +86,5 @@ bash -n nix/scripts/admin/*.sh
 ## 6. 执行提醒
 
 - 当前 `justfile` 默认 `host := ""`，执行 `just switch/check/test` 未显式指定时会自动解析当前主机；跨主机操作建议显式指定 `host=...`
+- 当前 Linux/macOS 主账号的一致开发环境默认由 Home Manager 提供；system layer 保留桌面运行基线
 - 未被要求时不主动推送；用户要求“同步到 GitHub”时才执行 Conventional Commit + `git push origin HEAD`

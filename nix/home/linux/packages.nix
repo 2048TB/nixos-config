@@ -8,8 +8,10 @@
 }:
 let
   hostCfg = import ../base/resolve-host.nix { inherit myvars osConfig; };
-  roleFlags = mylib.roleFlags hostCfg;
-  inherit (roleFlags) enableProvider appVpn enableSteam enableLibvirtd enableDocker;
+  enableProvider appVpn = hostCfg.enableProvider appVpn or false;
+  enableSteam = hostCfg.enableSteam or false;
+  enableLibvirtd = hostCfg.enableLibvirtd or false;
+  enableDocker = hostCfg.enableDocker or false;
   # App toggles (flat host vars, default false; aligned with nix/modules/core/options.nix)
   enableWpsOffice = hostCfg.enableWpsOffice or false;
   enableZathura = hostCfg.enableZathura or false;
@@ -53,6 +55,36 @@ let
     dive # Docker 镜像分析
     lazydocker # Docker TUI 管理器
   ];
+  # 仅将 MinGW 交叉编译器的可执行文件加入 user profile，避免与本机 gcc 的文档路径冲突告警。
+  mingwToolchainBinOnly = pkgs.buildEnv {
+    name = "mingw-w64-toolchain-bin-only";
+    paths = [ pkgs.pkgsCross.mingwW64.stdenv.cc ];
+    pathsToLink = [ "/bin" ];
+  };
+  devToolchainPackages = with pkgs; [
+    neovim
+    (rust-bin.stable.latest.default.override {
+      targets = [ "x86_64-pc-windows-gnu" ];
+    })
+    rust-bin.stable.latest.rust-analyzer
+    mingwToolchainBinOnly
+    zig
+    zls
+    go
+    gcc
+    gopls
+    delve
+    gotools
+    nodejs
+    nodePackages.typescript
+    nodePackages.typescript-language-server
+    python3
+    python3Packages.pip
+    pyright
+    ruff
+    black
+    uv
+  ];
 
   basePackageNames = lib.flatten [
     mylib.sharedPackageNames
@@ -72,6 +104,7 @@ in
 
   home = {
     packages = basePackages
+      ++ devToolchainPackages
       ++ hybridPackages
       ++ lib.optional enableLocalSend pkgs.localsend
       ++ lib.optional enableZathura pkgs.zathura

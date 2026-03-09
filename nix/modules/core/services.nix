@@ -1,7 +1,5 @@
 { pkgs
 , lib
-, mylib
-, mytheme
 , mainUser
 , config
 , ...
@@ -11,15 +9,10 @@ let
   homeDir = "/home/${mainUser}";
   inherit (config.my) profiles;
   inherit (hostCfg) configRepoPath journaldSystemMaxUse journaldRuntimeMaxUse;
-  roleFlags = mylib.roleFlags hostCfg;
-  inherit (roleFlags) enableProvider appVpn;
   isLaptop = profiles.laptop;
   isDesktop = profiles.desktop;
 
   tuigreetPackage = pkgs.tuigreet or pkgs.greetd.tuigreet or (throw "tuigreet package not found in pkgs.tuigreet or pkgs.greetd.tuigreet");
-  tuigreetTheme = let p = mytheme.palette; in
-    "border=#${p.bg3.hex};text=#${p.fg.hex};prompt=#${p.blue.hex};time=#${p.fg.hex};action=#${p.blue.hex};"
-    + "button=#${p.green.hex};container=#${p.bg.hex};input=#${p.yellow.hex};greet=#${p.cyan.hex};title=#${p.deep.hex}";
   tuigreetCommand = pkgs.writeShellScript "greetd-tuigreet-session" ''
     exec ${lib.getExe tuigreetPackage} \
       --time \
@@ -28,29 +21,10 @@ let
       --remember-session \
       --asterisks \
       --greeting 'NixOS ${hostCfg.hostname} login' \
-      --width 92 \
-      --window-padding 5 \
-      --container-padding 4 \
-      --prompt-padding 2 \
-      --greet-align center \
-      --theme '${tuigreetTheme}' \
       --power-shutdown '${pkgs.systemd}/bin/systemctl poweroff' \
       --power-reboot '${pkgs.systemd}/bin/systemctl reboot' \
       --cmd ${homeDir}/.wayland-session
   '';
-
-  # 部分 Electron 应用（如 Provider app）会在空 PATH 环境里调用 `gsettings`。
-  gsettingsCompatWrapper = pkgs.writeShellScript "gsettings-compat" ''
-    export GSETTINGS_SCHEMA_DIR="${pkgs.gsettings-desktop-schemas}/share/gsettings-schemas/${pkgs.gsettings-desktop-schemas.name}/glib-2.0/schemas"
-    exec ${pkgs.glib}/bin/gsettings "$@"
-  '';
-
-  mkLogFilteredLauncher = mylib.mkLogFilteredLauncher pkgs;
-  wireplumberQuietLauncher = mkLogFilteredLauncher "wireplumber-quiet-launcher" "${pkgs.wireplumber}/bin/wireplumber" [
-    "wp_event_dispatcher_unregister_hook: assertion 'already_registered_dispatcher == self' failed"
-    "wp-event-dispatcher: wp_event_dispatcher_unregister_hook: assertion 'already_registered_dispatcher == self' failed"
-    "wp-event-dispatcher: <WpAsyncEventHook:.*> failed: failed to activate item: Object activation aborted: proxy destroyed"
-  ];
 in
 {
   services = lib.mkMerge [
@@ -85,33 +59,23 @@ in
         alsa.enable = true;
         alsa.support32Bit = true;
         pulse.enable = true;
-        lowLatency.enable = true;
-        extraConfig.pipewire."10-disable-rtportal" = {
-          "module.rt.args" = {
-            "rtportal.enabled" = false;
-          };
-        };
-        extraConfig.pipewire-pulse."10-disable-rtportal" = {
-          "module.rt.args" = {
-            "rtportal.enabled" = false;
-          };
-        };
-        wireplumber.extraConfig."10-disable-libcamera-monitor"."wireplumber.profiles" = {
-          main."monitor.libcamera" = "disabled";
-        };
       };
       pulseaudio.enable = false;
-      upower.enable = true;
+      blueman.enable = true;
 
       gvfs.enable = true;
       tumbler.enable = true;
       udisks2.enable = true;
       gnome.gnome-keyring.enable = true;
     })
+    (lib.mkIf isLaptop {
+      upower.enable = true;
+      power-profiles-daemon.enable = true;
+    })
   ];
 
   systemd = {
-    sleep.extraConfig = ''
+    sleep.extraConfig = lib.mkIf isLaptop ''
       AllowSuspend=yes
       AllowHibernation=yes
       AllowSuspendThenHibernate=yes
@@ -119,61 +83,14 @@ in
       HibernateDelaySec=90min
     '';
 
-    services = {
-      systemd-machine-id-commit.enable = false;
-      NetworkManager-wait-online.enable = false;
-
-      provider-app-daemon = lib.mkIf enableProvider appVpn {
-        serviceConfig = {
-          ExecStartPre = pkgs.writeShellScript "disable-provider-app-lockdown" ''
-            settings_dir="/etc/provider-app-vpn"
-            settings_file="$settings_dir/settings.json"
-            mkdir -p "$settings_dir"
-            if [ ! -f "$settings_file" ]; then
-              echo '{}' > "$settings_file"
-            fi
-
-            if ${pkgs.jq}/bin/jq '.block_when_disconnected = false | .auto_connect = true' "$settings_file" > "$settings_file.tmp"; then
-              mv "$settings_file.tmp" "$settings_file"
-              echo "Provider app autoconnect 已启用，lockdown mode 已禁用"
-            else
-              rm -f "$settings_file.tmp"
-              echo "WARNING: Failed to update Provider app settings (invalid JSON). Keeping existing file." >&2
-            fi
-          '';
-        };
-      };
-
-      nscd = {
-        after = [ "systemd-tmpfiles-setup.service" ];
-        wants = [ "systemd-tmpfiles-setup.service" ];
-      };
-
-      upower = lib.mkIf isDesktop {
-        wantedBy = [ "multi-user.target" ];
-      };
-    };
-
-    user.services = lib.mkIf isDesktop {
-      wireplumber.serviceConfig.ExecStart = lib.mkForce [
-        ""
-        (lib.getExe wireplumberQuietLauncher)
-      ];
-    };
+    services = { };
 
     tmpfiles.rules = [
-      "L+ /var/run - - - - /run"
-      "L+ /bin/bash - - - - /run/current-system/sw/bin/bash"
-      "d /no-such-path 0755 root root -"
       "d ${configRepoPath} 0755 ${mainUser} ${mainUser} -"
       "L+ /etc/nixos - - - - ${configRepoPath}"
       "e ${homeDir}/.cache - - - 30d"
       "e /tmp - - - 1d"
       "e /var/tmp - - - 7d"
-    ]
-    ++ lib.optionals isDesktop [
-      "L+ /usr/bin/gsettings - - - - ${gsettingsCompatWrapper}"
-      "L+ /no-such-path/gsettings - - - - ${gsettingsCompatWrapper}"
     ];
   };
 }

@@ -9,7 +9,7 @@
 ```text
 nix/hosts/
 ├── nixos/<host>/     # NixOS 主机
-├── nixos/_shared/    # 共享模板（hardware-common/disko-common/checks）
+├── nixos/_shared/    # 共享模板（hardware-common/hardware-workarounds/checks）
 ├── darwin/<host>/    # macOS 主机
 ├── registry/         # 主机注册表（systems.toml + schema）
 └── outputs/          # flake 输出聚合（common.nix + platform outputs）
@@ -26,7 +26,7 @@ nix/hosts/
 **NixOS**：`default.nix` + `hardware.nix` + `disko.nix` + `vars.nix`
 **Darwin**：`default.nix` + `vars.nix`
 
-可选：`home.nix`、`checks.nix`、`modules/`、`home-modules/`
+可选：`home.nix`、`checks.nix`
 
 说明：NixOS 的 `default.nix` 是薄入口，统一 import `hardware.nix` 与 `disko.nix`。
 
@@ -40,7 +40,7 @@ cp -a nix/hosts/darwin/zly-mac nix/hosts/darwin/mac-mini
 ```
 
 新增后需编辑：
-1. `vars.nix`：主机名、用户名、硬件参数、roles（含 `gpuMode` 与可选 `intelBusId` / `amdgpuBusId` / `nvidiaBusId`）
+1. `vars.nix`：主机名、用户名、硬件参数、roles（含 `gpuMode` 与可选 `amdgpuBusId` / `nvidiaBusId`）
 2. `disko.nix`：磁盘布局（NixOS）
 3. `hardware.nix`：硬件探测（NixOS）
 4. `nix/hosts/registry/systems.toml`：新增该主机条目（`nixos.<host>` 或 `darwin.<host>`）
@@ -69,8 +69,8 @@ cp -a nix/hosts/darwin/zly-mac nix/hosts/darwin/mac-mini
 
 ### GPU 字段说明（`vars.nix`）
 
-- `gpuMode` 常见值：`auto`、`modesetting`、`amd`、`nvidia`、`nvidia-prime`、`amd-nvidia-hybrid`
-- `intelBusId` / `amdgpuBusId` / `nvidiaBusId`：仅在 Prime/Hybrid 场景需要，格式 `PCI:<bus>:<device>:<function>`（十进制）
+- `gpuMode` 常见值：`auto`、`modesetting`、`amd`、`nvidia`、`amd-nvidia-hybrid`
+- `amdgpuBusId` / `nvidiaBusId`：仅在 hybrid 场景需要，格式 `PCI:<bus>:<device>:<function>`（十进制）
 - 获取方式：`lspci -D` 后将槽位（如 `0000:12:00.0`）换算为 `PCI:18:0:0`
 
 ---

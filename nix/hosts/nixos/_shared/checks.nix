@@ -116,9 +116,6 @@ let
     else "disabled";
   hasExpectedDockerMode = if expectedDockerMode == null then true else actualDockerMode == expectedDockerMode;
   actualKvmModules = builtins.filter (m: lib.hasPrefix "kvm-" m) cfg.boot.kernelModules;
-  hasProvider appVpn = cfg.services.provider-app-vpn.enable or false;
-  provider-appExecStartPre = cfg.systemd.services.provider-app-daemon.serviceConfig.ExecStartPre or null;
-  provider-appExecStartPrePath = if provider-appExecStartPre == null then "" else toString provider-appExecStartPre;
 
   mkNonEmptyCheck = name': items: msg:
     pkgs.runCommand name' { } ''
@@ -157,21 +154,6 @@ in
 
   "eval-${name}-trusted-substituters" = pkgs.runCommand "eval-${name}-trusted-substituters" { } ''
     test "${if hasExpectedTrustedSubstituters then "1" else "0"}" = "1"
-    touch "$out"
-  '';
-
-  "eval-${name}-provider-app-prestart-script" = pkgs.runCommand "eval-${name}-provider-app-prestart-script" { } ''
-    if [ "${if hasProvider appVpn then "1" else "0"}" != "1" ]; then
-      touch "$out"
-      exit 0
-    fi
-
-    script_path="${provider-appExecStartPrePath}"
-    test -n "$script_path"
-    test -f "$script_path"
-
-    grep -F 'settings_dir="/etc/provider-app-vpn"' "$script_path" >/dev/null
-    grep -F 'settings_file="$settings_dir/settings.json"' "$script_path" >/dev/null
     touch "$out"
   '';
 

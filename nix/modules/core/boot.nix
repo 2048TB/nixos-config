@@ -6,13 +6,7 @@
 let
   hostCfg = config.my.host;
   inherit (hostCfg) cpuVendor enableHibernate;
-  hasAmd = cpuVendor != "intel";
-  hasIntel = cpuVendor != "amd";
   kvmModules = mylib.kvmModulesForVendor cpuVendor;
-  kvmExtraModprobeConfig = lib.concatStringsSep "\n" (lib.flatten [
-    (lib.optional hasAmd "options kvm_amd nested=1")
-    (lib.optional hasIntel "options kvm_intel nested=1")
-  ]);
   resumeDevice =
     if config.fileSystems ? "/swap" && config.fileSystems."/swap" ? device
     then config.fileSystems."/swap".device
@@ -42,7 +36,6 @@ in
 
     # KVM 内核模块（AMD/Intel）
     kernelModules = kvmModules;
-    extraModprobeConfig = kvmExtraModprobeConfig;
     resumeDevice = lib.mkIf enableHibernate (lib.mkDefault resumeDevice);
     kernelParams = lib.mkIf enableHibernate resumeKernelParams;
 
@@ -59,13 +52,5 @@ in
 
     # preservation 需要 initrd 的 systemd
     initrd.systemd.enable = true;
-
-    # zram 场景下的内核内存回收参数
-    kernel.sysctl = {
-      "vm.swappiness" = 180;
-      "vm.watermark_boost_factor" = 0;
-      "vm.watermark_scale_factor" = 125;
-      "vm.page-cluster" = 0;
-    };
   };
 }
