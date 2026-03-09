@@ -1,6 +1,7 @@
 { lib, pkgs, mylib, mainUser, myvars, osConfig ? null, ... }:
 let
   hostCfg = import ../base/resolve-host.nix { inherit myvars osConfig; };
+  configFiles = import ../base/config-files.nix;
   homeDir = "/Users/${mainUser}";
   brewPath = "/opt/homebrew/bin:/usr/local/bin";
 
@@ -39,6 +40,9 @@ let
 
   desiredPackageNames = mylib.sharedPackageNames ++ darwinExtraNames;
   packageSelection = mylib.resolvePackagesByName pkgs desiredPackageNames;
+  sourceConfigFiles =
+    lib.mapAttrs (_: source: { inherit source; })
+      (configFiles.sharedSourceFiles // configFiles.darwinSourceFiles);
 in
 {
   imports = [
@@ -80,12 +84,5 @@ in
     };
   };
 
-  xdg.configFile = {
-    "git/config".source = ../configs/git/config;
-    "ghostty/config".source = ../configs/ghostty/config;
-    "tmux/tmux.conf".source = ../configs/tmux/tmux.conf;
-    "zellij/config.kdl".source = ../configs/zellij/config.kdl;
-    "yazi/yazi.toml".source = ../configs/yazi/yazi.toml;
-    "yazi/keymap.toml".source = ../configs/yazi/keymap.toml;
-  };
+  xdg.configFile = sourceConfigFiles;
 }

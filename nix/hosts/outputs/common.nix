@@ -79,7 +79,7 @@
           user = builtins.head users;
         in
         assert lib.assertMsg (users != [ ]) "No Home Manager users found for host ${hostName}"
-        && lib.assertMsg
+          && lib.assertMsg
           (builtins.length users == 1)
           "Expected exactly one Home Manager user for host ${hostName}, got ${toString (builtins.length users)}";
         cfg.config.home-manager.users.${user}.home.homeDirectory

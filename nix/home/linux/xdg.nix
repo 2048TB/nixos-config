@@ -7,6 +7,7 @@
 let
   homeDir = config.home.homeDirectory;
   localShareDir = "${homeDir}/.local/share";
+  configFiles = import ../base/config-files.nix;
 
   imageMimeTypes = [
     "image/jpeg"
@@ -18,11 +19,26 @@ let
   ];
   imageApps = [ "org.nomacs.ImageLounge.desktop" "nomacs.desktop" ];
   portalConfig = import ../../lib/portal-config.nix;
+  sourceConfigFiles =
+    lib.mapAttrs (_: source: { inherit source; })
+      (configFiles.sharedSourceFiles // configFiles.linuxSourceFiles);
+  forcedSourceConfigFiles = lib.mapAttrs
+    (_: source: {
+      inherit source;
+      force = true;
+    })
+    configFiles.linuxForcedSourceFiles;
+  themedConfigFiles =
+    lib.mapAttrs (_: sourcePath: { text = mytheme.apply (builtins.readFile sourcePath); })
+      configFiles.linuxThemedFiles;
 in
 {
   xdg = {
     configFile =
-      {
+      sourceConfigFiles
+      // forcedSourceConfigFiles
+      // themedConfigFiles
+      // {
         "qt6ct/colors/darker.conf".source = "${pkgs.qt6Packages.qt6ct}/share/qt6ct/colors/darker.conf";
         # 覆盖上游桌面自启动：避免与 provider-app-vpn-ui.service 双启动导致日志噪音与崩溃。
         "autostart/provider-app-vpn.desktop" = {
@@ -34,23 +50,6 @@ in
           '';
           force = true;
         };
-        "niri/config.kdl".source = ../configs/niri/config.kdl;
-        "niri/interaction.kdl".source = ../configs/niri/interaction.kdl;
-        "niri/appearance.kdl".text = mytheme.apply (builtins.readFile ../configs/niri/appearance.kdl);
-
-        "fcitx5/profile" = {
-          source = ../configs/fcitx5/profile;
-          force = true;
-        };
-
-        "fuzzel/fuzzel.ini".text = mytheme.apply (builtins.readFile ../configs/fuzzel/fuzzel.ini);
-        "foot/foot.ini".text = mytheme.apply (builtins.readFile ../configs/foot/foot.ini);
-        "ghostty/config".text = mytheme.apply (builtins.readFile ../configs/ghostty/config);
-        "yazi/yazi.toml".source = ../configs/yazi/yazi.toml;
-        "yazi/keymap.toml".source = ../configs/yazi/keymap.toml;
-        "git/config".source = ../configs/git/config;
-        "zellij/config.kdl".text = mytheme.apply (builtins.readFile ../configs/zellij/config.kdl);
-        "tmux/tmux.conf".text = mytheme.apply (builtins.readFile ../configs/tmux/tmux.conf);
         "pnpm/rc".text = ''
           global-dir=${localShareDir}/pnpm/global
           global-bin-dir=${localShareDir}/pnpm/bin
