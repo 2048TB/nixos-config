@@ -27,6 +27,12 @@ in
     # 上游 HM 模块已将 package 注入 home.packages；这里只补 desktop metadata，避免 portal 无法解析 app ID。
     "${noctaliaShellPkg}/share/applications/dev.noctalia.noctalia-qs.desktop";
 
+  xdg.configFile."systemd/user/xdg-document-portal.service.d/override.conf".text = ''
+    [Service]
+    KillMode=mixed
+    TimeoutStopSec=10
+  '';
+
   services = {
     playerctld.enable = true;
 
@@ -73,13 +79,6 @@ in
           "LC_ALL=C.UTF-8"
         ];
         udiskie.Service.ExecStart = lib.mkForce "${lib.getExe udiskieQuiet}";
-
-        # xdg-document-portal 偶发会在退出时卡住 FUSE unmount，拖住整个 user@UID stop job。
-        # 缩短 stop timeout，避免关机被默认 90s 超时拖住。
-        xdg-document-portal.Service = {
-          KillMode = "mixed";
-          TimeoutStopSec = 10;
-        };
 
         provider-app-vpn-ui = lib.mkIf enableProvider appVpn {
           Unit = {
