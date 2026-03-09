@@ -9,6 +9,11 @@ include "./appearance.kdl"
 
 // Noctalia shell 由 Home Manager 的 systemd --user 服务管理。
 
+debug {
+    // 允许 Noctalia 的通知动作与窗口激活在 Niri 下正常工作。
+    honor-xdg-activation-with-invalid-serial
+}
+
 cursor {
     // 设置光标主题与大小，并同时设置
     // `XCURSOR_THEME` 与 `XCURSOR_SIZE` 环境变量。

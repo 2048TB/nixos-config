@@ -2,6 +2,7 @@
 let
   hostCfg = config.my.host;
   trustedUserAllowlist = [ hostCfg.username ];
+  usesNvidia = builtins.elem hostCfg.gpuMode [ "nvidia" "amd-nvidia-hybrid" ];
 
   userPasswordSecretFile = ../../../secrets/passwords/user-password.yaml;
   rootPasswordSecretFile = ../../../secrets/passwords/root-password.yaml;
@@ -25,6 +26,10 @@ in
     {
       assertion = hostCfg.deployHost != "" && hostCfg.deployUser != "";
       message = "my.host.deployHost and my.host.deployUser must be non-empty strings.";
+    }
+    {
+      assertion = (!usesNvidia) || hostCfg.nvidiaOpen != null;
+      message = "When my.host.gpuMode uses NVIDIA, set my.host.nvidiaOpen explicitly (true for Turing+ GPUs that should use the open kernel module, false for hosts that require the proprietary-only kernel modules).";
     }
     {
       assertion = lib.subtractLists trustedUserAllowlist hostCfg.extraTrustedUsers == [ ];

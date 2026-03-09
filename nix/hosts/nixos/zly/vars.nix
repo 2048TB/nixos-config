@@ -20,9 +20,12 @@
   # Hardware
   cpuVendor = "amd";
   gpuMode = "amd-nvidia-hybrid";
-  # Hybrid GPU Bus IDs (set from `lspci -D`; format: PCI:<bus>:<device>:<function>)
-  amdgpuBusId = "PCI:18:0:0";
-  nvidiaBusId = "PCI:1:0:0";
+  # Hybrid GPU Bus IDs for PRIME.
+  # Official NixOS form is `PCI:<bus>@<domain>:<device>:<function>` and uses decimal numbers.
+  # Example: lspci `0000:01:00.0` -> `PCI:1@0:0:0`.
+  amdgpuBusId = "PCI:18@0:0:0";
+  nvidiaBusId = "PCI:1@0:0:0";
+  nvidiaOpen = true;
   dockerMode = "rootless";
 
   # Roles

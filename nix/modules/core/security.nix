@@ -1,6 +1,4 @@
-{ pkgs
-, ...
-}:
+_:
 {
   security = {
     apparmor.enable = true;

@@ -50,6 +50,10 @@ in
     package = noctaliaShellPkg;
     # 官方 HM 模块负责生成/管理 noctalia-shell.service
     systemd.enable = true;
+    settings = {
+      # 对齐官方 Niri 集成：在 compositor overview 中渲染 Noctalia 的模糊/染色壁纸层。
+      wallpaper.overviewEnabled = true;
+    };
   };
 
   systemd = {

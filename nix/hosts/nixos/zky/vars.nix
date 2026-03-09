@@ -20,6 +20,7 @@
   # Hardware
   cpuVendor = "intel";
   gpuMode = "nvidia";
+  nvidiaOpen = true;
 
   # Roles
   roles = [

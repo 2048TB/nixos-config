@@ -52,6 +52,7 @@ let
   allowedSystemDuplicateNames = [
     "dosfstools"
     "fuse"
+    "gnome-keyring"
     "niri"
     "iptables"
     "less"
@@ -63,6 +64,7 @@ let
     "xwayland"
     "xdg-desktop-portal"
     "xdg-desktop-portal-gnome"
+    "xdg-desktop-portal-gtk"
     "python3"
     "zsh"
     "nix-zsh-completions"
