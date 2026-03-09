@@ -6,18 +6,19 @@ default:
     @just --list
 
 host := ""
-darwin_host := ""
+darwin_host := "zly"
 disk := "/dev/nvme0n1"
 repo := env_var_or_default("NIXOS_CONFIG_REPO", justfile_directory())
 key_dir_rel := ".keys"
 age_key_rel := "{{key_dir_rel}}/main.agekey"
+nix_cmd := "nix --extra-experimental-features 'nix-command flakes'"
 
 # ========== 系统管理 ==========
 
 # 安装前构建校验（不落盘；需指定 host）
 install-check:
     @if [ -z "{{host}}" ]; then echo "error: 需要指定主机. 用法: just host=zly install-check" >&2; exit 2; fi
-    nix build --no-link .#nixosConfigurations.{{host}}.config.system.build.toplevel
+    {{nix_cmd}} build --no-link .#nixosConfigurations.{{host}}.config.system.build.toplevel
 
 # 一键安装（危险：会清空 {{disk}}；需指定 host）
 install:
@@ -38,7 +39,7 @@ test:
 
 # 检查配置但不应用（快速验证）
 check:
-    h="{{host}}"; if [ -z "$h" ]; then h="$({{repo}}/nix/scripts/admin/resolve-host.sh nixos {{repo}} auto --strict)"; fi; echo ">>> host=$h"; nix build --no-link "path:{{repo}}#nixosConfigurations.$h.config.system.build.toplevel"
+    h="{{host}}"; if [ -z "$h" ]; then h="$({{repo}}/nix/scripts/admin/resolve-host.sh nixos {{repo}} auto --strict)"; fi; echo ">>> host=$h"; {{nix_cmd}} build --no-link "path:{{repo}}#nixosConfigurations.$h.config.system.build.toplevel"
 
 # 远程批量部署（HOSTS 为空时部署全部 NixOS 主机）
 deploy HOSTS="":
@@ -47,16 +48,16 @@ deploy HOSTS="":
 # 快速执行 eval tests（hostname/home 映射一致性）
 eval-tests:
     @echo "=== checks.x86_64-linux (eval tests) ==="
-    nix build --no-link \
+    {{nix_cmd}} build --no-link \
       path:{{repo}}#checks.x86_64-linux.evaltest-hostname \
       path:{{repo}}#checks.x86_64-linux.evaltest-home \
       path:{{repo}}#checks.x86_64-linux.evaltest-kernel \
       path:{{repo}}#checks.x86_64-linux.evaltest-platform
     @echo ""
     @echo "=== checks.aarch64-darwin (eval only) ==="
-    nix eval path:{{repo}}#checks.aarch64-darwin.evaltest-darwin-hostname.drvPath >/dev/null
-    nix eval path:{{repo}}#checks.aarch64-darwin.evaltest-darwin-home.drvPath >/dev/null
-    nix eval path:{{repo}}#checks.aarch64-darwin.evaltest-darwin-platform.drvPath >/dev/null
+    {{nix_cmd}} eval path:{{repo}}#checks.aarch64-darwin.evaltest-darwin-hostname.drvPath >/dev/null
+    {{nix_cmd}} eval path:{{repo}}#checks.aarch64-darwin.evaltest-darwin-home.drvPath >/dev/null
+    {{nix_cmd}} eval path:{{repo}}#checks.aarch64-darwin.evaltest-darwin-platform.drvPath >/dev/null
 
 # 回滚到上一个系统世代
 rollback:
@@ -70,15 +71,15 @@ darwin-switch:
 
 # 构建 macOS 配置（不切换）
 darwin-check:
-    h="{{darwin_host}}"; if [ -z "$h" ]; then h="$({{repo}}/nix/scripts/admin/resolve-host.sh darwin {{repo}} auto --strict)"; fi; echo ">>> darwin_host=$h"; nix build --no-link "path:{{repo}}#darwinConfigurations.$h.system"
+    h="{{darwin_host}}"; if [ -z "$h" ]; then h="$({{repo}}/nix/scripts/admin/resolve-host.sh darwin {{repo}} auto --strict)"; fi; echo ">>> darwin_host=$h"; {{nix_cmd}} build --no-link "path:{{repo}}#darwinConfigurations.$h.system"
 
 # 列出可用 darwin 主机
 darwin-hosts:
-    nix eval path:{{repo}}#darwinConfigurations --apply builtins.attrNames
+    {{nix_cmd}} eval path:{{repo}}#darwinConfigurations --apply builtins.attrNames
 
 # 列出可用 nixos 主机
 nixos-hosts:
-    nix eval path:{{repo}}#nixosConfigurations --apply builtins.attrNames
+    {{nix_cmd}} eval path:{{repo}}#nixosConfigurations --apply builtins.attrNames
 
 # 列出全部主机
 hosts:
@@ -115,30 +116,30 @@ disk:
     @du -sh /nix/store
     @echo ""
     @echo "=== 占用空间最大的 20 个包 ==="
-    @nix path-info -rsSh /run/current-system | sort -hk2 | tail -20
+    @{{nix_cmd}} path-info -rsSh /run/current-system | sort -hk2 | tail -20
 
 # ========== Flake 操作 ==========
 
 # 更新所有 flake 输入
 update:
-    nix flake update --flake path:{{repo}}
+    {{nix_cmd}} flake update --flake path:{{repo}}
     @echo "✓ flake.lock 已更新"
 
 # 只更新 nixpkgs
 update-nixpkgs:
-    nix flake update nixpkgs --flake path:{{repo}}
+    {{nix_cmd}} flake update nixpkgs --flake path:{{repo}}
     @echo "✓ nixpkgs 已更新"
 
 # 查看 flake 信息
 info:
-    nix flake show path:{{repo}}
+    {{nix_cmd}} flake show path:{{repo}}
     @echo ""
     @echo "=== Flake 元数据 ==="
-    nix flake metadata path:{{repo}}
+    {{nix_cmd}} flake metadata path:{{repo}}
 
 # 检查 flake 配置
 flake-check:
-    nix flake check --all-systems path:{{repo}}
+    {{nix_cmd}} flake check --all-systems path:{{repo}}
     @echo "✓ Flake 配置检查通过"
 
 # 查看 flake.lock 依赖树
@@ -178,17 +179,17 @@ generations:
 
 # 对比最近两个世代的差异
 diff:
-    @bash -c 'gens=($(ls -d /nix/var/nix/profiles/system-*-link 2>/dev/null | sort -t- -k2 -n)); n=${#gens[@]}; if (( n < 2 )); then echo "Need at least 2 generations to diff"; exit 1; fi; nix store diff-closures "${gens[$((n-2))]}" "${gens[$((n-1))]}"'
+    @bash -c 'gens=($(ls -d /nix/var/nix/profiles/system-*-link 2>/dev/null | sort -t- -k2 -n)); n=${#gens[@]}; if (( n < 2 )); then echo "Need at least 2 generations to diff"; exit 1; fi; {{nix_cmd}} store diff-closures "${gens[$((n-2))]}" "${gens[$((n-1))]}"'
 
 # 查看当前系统包列表
 packages:
     h="{{host}}"; if [ -z "$h" ]; then h="$({{repo}}/nix/scripts/admin/resolve-host.sh nixos {{repo}} auto --strict)"; fi; \
     echo "=== declared environment.systemPackages (host=$h) ==="; \
-    nix eval --raw "path:{{repo}}#nixosConfigurations.$h.config.environment.systemPackages" --apply 'pkgs: builtins.concatStringsSep "\n" (map (p: (builtins.parseDrvName p.name).name) pkgs)' | awk 'NF && !seen[$0]++'; \
+    {{nix_cmd}} eval --raw "path:{{repo}}#nixosConfigurations.$h.config.environment.systemPackages" --apply 'pkgs: builtins.concatStringsSep "\n" (map (p: (builtins.parseDrvName p.name).name) pkgs)' | awk 'NF && !seen[$0]++'; \
     echo ""; \
-    u="$(nix eval --raw "path:{{repo}}#nixosConfigurations.$h.config.home-manager.users" --apply 'users: builtins.head (builtins.attrNames users)')"; \
+    u="$({{nix_cmd}} eval --raw "path:{{repo}}#nixosConfigurations.$h.config.home-manager.users" --apply 'users: builtins.head (builtins.attrNames users)')"; \
     echo "=== declared home.packages (host=$h user=$u) ==="; \
-    nix eval --raw "path:{{repo}}#nixosConfigurations.$h.config.home-manager.users.$u.home.packages" --apply 'pkgs: builtins.concatStringsSep "\n" (map (p: (builtins.parseDrvName p.name).name) pkgs)' | awk 'NF && !seen[$0]++'
+    {{nix_cmd}} eval --raw "path:{{repo}}#nixosConfigurations.$h.config.home-manager.users.$u.home.packages" --apply 'pkgs: builtins.concatStringsSep "\n" (map (p: (builtins.parseDrvName p.name).name) pkgs)' | awk 'NF && !seen[$0]++'
 
 # 查看包依赖树（需要先 switch）
 tree:
@@ -317,7 +318,7 @@ dev: fmt flake-check test
 
 # 进入开发环境
 shell:
-    nix develop
+    {{nix_cmd}} develop
 
 # ========== 文档查看 ==========
 

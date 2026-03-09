@@ -24,6 +24,11 @@ let
   ];
 in
 {
+  home.packages = [
+    # 暴露 package 的 desktop metadata 到 user profile，避免 portal 无法解析 app ID。
+    noctaliaShellPkg
+  ];
+
   services = {
     playerctld.enable = true;
 

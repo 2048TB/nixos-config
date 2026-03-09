@@ -43,7 +43,6 @@ in
       "/root"
       "/etc/NetworkManager/system-connections"
       "/etc/ssh"
-      "/etc/nix"
       "/etc/secureboot"
 
       "/var/log"
