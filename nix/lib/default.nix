@@ -77,7 +77,9 @@ let
                 home = {
                   username = lib.mkDefault mainUser;
                   homeDirectory = lib.mkDefault "/Users/${mainUser}";
-                  stateVersion = lib.mkDefault (specialArgs.myvars.homeStateVersion or "25.11");
+                  stateVersion = lib.mkDefault (
+                    specialArgs.myvars.homeStateVersion or defaultHomeStateVersion
+                  );
                 };
               };
             };
@@ -91,6 +93,7 @@ let
   hostMetaLib = import ./host-meta.nix { };
   launchersLib = import ./launchers.nix { inherit lib; };
   validationLib = import ./validation.nix { inherit lib attrsLib; };
+  defaultHomeStateVersion = "25.11";
   defaultInitrdAvailableKernelModules = [
     "nvme"
     "xhci_pci"
@@ -125,6 +128,7 @@ rec {
     assertRequiredNonEmptyStrings
     assertRequiredPositiveInts
     ;
+  inherit defaultHomeStateVersion;
 
   # Linux/Darwin 共享的高频 CLI 包，统一来源以减少平台漂移。
   sharedPackageNames = [
