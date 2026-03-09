@@ -74,6 +74,13 @@ in
         ];
         udiskie.Service.ExecStart = lib.mkForce "${lib.getExe udiskieQuiet}";
 
+        # xdg-document-portal 偶发会在退出时卡住 FUSE unmount，拖住整个 user@UID stop job。
+        # 缩短 stop timeout，避免关机被默认 90s 超时拖住。
+        xdg-document-portal.Service = {
+          KillMode = "mixed";
+          TimeoutStopSec = 10;
+        };
+
         provider-app-vpn-ui = lib.mkIf enableProvider appVpn {
           Unit = {
             Description = "Provider app VPN GUI";
