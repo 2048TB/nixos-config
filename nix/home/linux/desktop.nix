@@ -27,12 +27,6 @@ in
     # 上游 HM 模块已将 package 注入 home.packages；这里只补 desktop metadata，避免 portal 无法解析 app ID。
     "${noctaliaShellPkg}/share/applications/dev.noctalia.noctalia-qs.desktop";
 
-  xdg.configFile."systemd/user/xdg-document-portal.service.d/override.conf".text = ''
-    [Service]
-    KillMode=mixed
-    TimeoutStopSec=10
-  '';
-
   services = {
     playerctld.enable = true;
 
