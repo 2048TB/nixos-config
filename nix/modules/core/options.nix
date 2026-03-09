@@ -118,18 +118,6 @@ in
         description = "tmpfs size for root filesystem.";
       };
 
-      journaldSystemMaxUse = lib.mkOption {
-        type = types.str;
-        default = myvars.journaldSystemMaxUse or "512M";
-        description = "journald SystemMaxUse.";
-      };
-
-      journaldRuntimeMaxUse = lib.mkOption {
-        type = types.str;
-        default = myvars.journaldRuntimeMaxUse or "256M";
-        description = "journald RuntimeMaxUse.";
-      };
-
       gcRetentionDays = lib.mkOption {
         type = types.str;
         default = myvars.gcRetentionDays or "14d";
