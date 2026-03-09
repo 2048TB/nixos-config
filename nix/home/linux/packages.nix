@@ -126,7 +126,7 @@ in
       ++ lib.optional enableLocalSend pkgs.localsend
       ++ lib.optional enableZathura pkgs.zathura
       ++ lib.optional enableSplayer pkgs.splayer
-      ++ lib.optional enableTelegramDesktop pkgs.telegram-desktop
+      ++ lib.optional enableTelegramDesktop pkgsUnstable.telegram-desktop
       ++ lib.optional enableWpsOffice wpsOfficePackage
       ++ lib.optionals enableSteam gamingPackages
       ++ lib.optionals enableLibvirtd virtualisationPackages
