@@ -136,6 +136,12 @@ in
         description = "NVIDIA GPU bus id for PRIME.";
       };
 
+      nvidiaOpen = lib.mkOption {
+        type = types.nullOr types.bool;
+        default = myvars.nvidiaOpen or null;
+        description = "Override hardware.nvidia.open when a host requires proprietary-only kernel modules.";
+      };
+
       enableHibernate = lib.mkOption {
         type = types.bool;
         default = myvars.enableHibernate or true;

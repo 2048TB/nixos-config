@@ -8,7 +8,7 @@ let
   hostCfg = config.my.host;
   homeDir = "/home/${mainUser}";
   inherit (config.my) profiles;
-  inherit (hostCfg) configRepoPath;
+  inherit (hostCfg) configRepoPath enableHibernate;
   isLaptop = profiles.laptop;
   isDesktop = profiles.desktop;
 
@@ -31,7 +31,7 @@ in
     {
       logind.settings = lib.mkIf isLaptop {
         Login = {
-          HandleLidSwitch = "suspend-then-hibernate";
+          HandleLidSwitch = if enableHibernate then "suspend-then-hibernate" else "suspend";
           HandleLidSwitchExternalPower = "ignore";
           HandleLidSwitchDocked = "ignore";
         };
@@ -72,8 +72,8 @@ in
   systemd = {
     sleep.extraConfig = lib.mkIf isLaptop ''
       AllowSuspend=yes
-      AllowHibernation=yes
-      AllowSuspendThenHibernate=yes
+      AllowHibernation=${if enableHibernate then "yes" else "no"}
+      AllowSuspendThenHibernate=${if enableHibernate then "yes" else "no"}
       AllowHybridSleep=no
     '';
 

@@ -22,9 +22,11 @@ let
 
   # 统一 NVIDIA 配置，避免专用配置与默认配置漂移
   nvidiaBase = {
-    open = true;
     package = config.boot.kernelPackages.nvidiaPackages.production;
     modesetting.enable = true;
+  } // lib.optionalAttrs (hostCfg.nvidiaOpen != null) {
+    # 交由主机侧显式声明；未声明时保留 upstream 对 >=560 驱动的强制决策。
+    open = hostCfg.nvidiaOpen;
   };
 
   # "auto" 不建议用于实际配置，但为向后兼容保留
