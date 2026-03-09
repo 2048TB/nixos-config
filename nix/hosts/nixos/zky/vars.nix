@@ -15,19 +15,11 @@
     if envDiskDevice != "" then envDiskDevice else "/dev/nvme0n1";
   swapSizeGb = 32;
 
-  enableHibernate = true;
   resumeOffset = 2990172;
-  rootTmpfsSize = "2G";
-  journaldSystemMaxUse = "512M";
-  journaldRuntimeMaxUse = "256M";
 
   # Hardware
   cpuVendor = "intel";
   gpuMode = "nvidia";
-  # Hybrid GPU Bus IDs (set from `lspci -D`; format: PCI:<bus>:<device>:<function>)
-  amdgpuBusId = null;
-  nvidiaBusId = null;
-  dockerMode = "rootless";
 
   # Roles
   roles = [

@@ -9,7 +9,7 @@
 ```text
 nix/hosts/
 ├── nixos/<host>/     # NixOS 主机
-├── nixos/_shared/    # 共享模板（hardware-common/hardware-workarounds/checks）
+├── nixos/_shared/    # 共享模板（checks）
 ├── darwin/<host>/    # macOS 主机
 ├── registry/         # 主机注册表（systems.toml + schema）
 └── outputs/          # flake 输出聚合（common.nix + platform outputs）
@@ -42,11 +42,18 @@ cp -a nix/hosts/darwin/zly-mac nix/hosts/darwin/mac-mini
 新增后需编辑：
 1. `vars.nix`：主机名、用户名、硬件参数、roles（含 `gpuMode` 与可选 `amdgpuBusId` / `nvidiaBusId`）
 2. `disko.nix`：磁盘布局（NixOS）
-3. `hardware.nix`：硬件探测（NixOS）
+3. `hardware.nix`：该主机自己的硬件声明；只放硬件事实或该机专属 workaround
 4. `nix/hosts/registry/systems.toml`：新增该主机条目（`nixos.<host>` 或 `darwin.<host>`）
 5. 模板中的旧主机名替换为新主机名（`rg -n 'zly|zly-mac' nix/hosts/<platform>/<new-host>`）
 
 验证：`just hosts && just eval-tests && just host=devbox check`
+
+### 硬件层原则
+
+- 每台机器的 `hardware.nix` 自己声明 initrd 驱动、microcode 与主机特有硬件项
+- 对多台机器重复的基础硬件块，优先提成 `nix/lib/` helper，由各主机 `hardware.nix` 显式调用
+- 不在 `_shared/` 放任何硬件基线或机器级 workaround（如特定蓝牙、USB、散热器、rfkill 兜底）
+- 某台机器需要特殊驱动、黑名单或 PRIME 配置时，直接写在该主机 `hardware.nix` 或其本地拆分文件中
 
 ### registry 字段说明（`nix/hosts/registry/systems.toml`）
 
