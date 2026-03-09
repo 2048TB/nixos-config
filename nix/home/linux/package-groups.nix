@@ -28,7 +28,6 @@
     "libtool"
     "automake"
     "ccache"
-    "clang"
     "meson"
     "gitui"
     "delta"

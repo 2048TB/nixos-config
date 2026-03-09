@@ -37,10 +37,13 @@ let
     if tensorflowCudaPkg != null
     then pkgs.python3.withPackages (_: [ tensorflowCudaPkg ])
     else null;
+  primaryPythonPackage =
+    if tensorflowCudaEnv != null
+    then tensorflowCudaEnv
+    else pkgs.python3;
   hashcatPkg = pkgs.hashcat or null;
   hybridPackages = lib.optionals isHybridGpu (
     lib.optional (ollamaVulkan != null) ollamaVulkan
-    ++ lib.optional (tensorflowCudaEnv != null) tensorflowCudaEnv
     ++ lib.optional (hashcatPkg != null) hashcatPkg
   );
 
@@ -69,6 +72,15 @@ let
     paths = [ pkgs.pkgsCross.mingwW64.stdenv.cc ];
     pathsToLink = [ "/bin" ];
   };
+  # clang-wrapper 会提供 cc/c++/cpp 通用别名，和 gcc-wrapper 在 HM buildEnv 中冲突。
+  # 这里保留 clang/clang++ 等专用入口，只移除通用兼容名，避免牺牲任一工具链。
+  clangWithoutCompatAliases = pkgs.symlinkJoin {
+    name = "clang-without-compat-aliases";
+    paths = [ pkgs.clang ];
+    postBuild = ''
+      rm -f "$out/bin/cc" "$out/bin/c++" "$out/bin/cpp"
+    '';
+  };
   devToolchainPackages = with pkgs; [
     neovim
     (rust-bin.stable.latest.default.override {
@@ -76,6 +88,7 @@ let
     })
     rust-bin.stable.latest.rust-analyzer
     mingwToolchainBinOnly
+    clangWithoutCompatAliases
     zig
     zls
     go
@@ -86,7 +99,7 @@ let
     nodejs
     nodePackages.typescript
     nodePackages.typescript-language-server
-    python3
+    primaryPythonPackage
     python3Packages.pip
     pyright
     ruff
