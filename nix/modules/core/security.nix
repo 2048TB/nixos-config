@@ -3,13 +3,7 @@
 }:
 {
   security = {
-    apparmor = {
-      enable = true;
-      packages = with pkgs; [
-        apparmor-utils
-        apparmor-profiles
-      ];
-    };
+    apparmor.enable = true;
 
     polkit = {
       enable = true;
