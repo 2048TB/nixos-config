@@ -6,7 +6,7 @@ default:
     @just --list
 
 host := ""
-darwin_host := "zly"
+darwin_host := ""
 disk := "/dev/nvme0n1"
 repo := env_var_or_default("NIXOS_CONFIG_REPO", justfile_directory())
 key_dir_rel := ".keys"
@@ -184,11 +184,11 @@ diff:
 # 查看当前系统包列表
 packages:
     h="{{host}}"; if [ -z "$h" ]; then h="$({{repo}}/nix/scripts/admin/resolve-host.sh nixos {{repo}} auto --strict)"; fi; \
-    echo "=== declared environment.systemPackages (host=$h) ==="; \
+    echo "=== declared environment.systemPackages (system baseline, host=$h) ==="; \
     {{nix_cmd}} eval --raw "path:{{repo}}#nixosConfigurations.$h.config.environment.systemPackages" --apply 'pkgs: builtins.concatStringsSep "\n" (map (p: (builtins.parseDrvName p.name).name) pkgs)' | awk 'NF && !seen[$0]++'; \
     echo ""; \
     u="$({{nix_cmd}} eval --raw "path:{{repo}}#nixosConfigurations.$h.config.home-manager.users" --apply 'users: builtins.head (builtins.attrNames users)')"; \
-    echo "=== declared home.packages (host=$h user=$u) ==="; \
+    echo "=== declared home.packages (user environment, host=$h user=$u) ==="; \
     {{nix_cmd}} eval --raw "path:{{repo}}#nixosConfigurations.$h.config.home-manager.users.$u.home.packages" --apply 'pkgs: builtins.concatStringsSep "\n" (map (p: (builtins.parseDrvName p.name).name) pkgs)' | awk 'NF && !seen[$0]++'
 
 # 查看包依赖树（需要先 switch）

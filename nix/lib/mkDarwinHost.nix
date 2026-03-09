@@ -13,15 +13,8 @@
 }:
 let
   hostDir = "nix/hosts/darwin/${name}";
-  hostModulesPath = mylib.relativeToRoot "${hostDir}/modules";
   hostHomePath = mylib.relativeToRoot "${hostDir}/home.nix";
-  hostHomeModulesPath = mylib.relativeToRoot "${hostDir}/home-modules";
-  discoveredHostModules =
-    lib.optionals (builtins.pathExists hostModulesPath) (mylib.scanPaths hostModulesPath);
-  discoveredHostHomeModules =
-    (lib.optionals (builtins.pathExists hostHomePath) [ hostHomePath ])
-    ++ (lib.optionals (builtins.pathExists hostHomeModulesPath) (mylib.scanPaths hostHomeModulesPath));
-  resolvedHomeModules = homeModules ++ discoveredHostHomeModules;
+  resolvedHomeModules = homeModules ++ lib.optionals (builtins.pathExists hostHomePath) [ hostHomePath ];
 
   baseSpecialArgs = genSpecialArgs system;
   resolvedMyvars = hostRegistry // hostMyvars // { hostname = name; };
@@ -67,7 +60,6 @@ let
       darwinBootstrapModules
       ++ [ (mylib.relativeToRoot "nix/modules/darwin") ]
       ++ lib.optionals (hostPath != null) [ hostPath ]
-      ++ discoveredHostModules
       ++ extraModules;
     homeModules = resolvedHomeModules;
   };

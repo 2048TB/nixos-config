@@ -41,7 +41,7 @@ just flake-check    # flake 完整检查
 | 系统服务/内核/持久化 | `nix/modules/core/`（入口 `default.nix`） |
 | 角色逻辑 | `nix/lib/default.nix`（roleFlags）+ `nix/modules/core/roles/*.nix` |
 | 硬件/显卡 | `nix/modules/core/hardware.nix` |
-| 用户软件包 | `nix/home/linux/packages.nix` |
+| 用户软件包 / 主账号开发环境 | `nix/home/linux/packages.nix` |
 | 桌面服务 | `nix/home/linux/desktop.nix` |
 | 程序配置 | `nix/home/linux/programs.nix` |
 | XDG/portal | `nix/home/linux/xdg.nix` |
@@ -60,7 +60,9 @@ just host=zly check && just host=zly switch   # 日常更新（建议显式 host
 just darwin-switch                             # macOS
 ```
 
-注意：当前 `justfile` 默认 `host := ""`。`just switch/check/test` 未显式指定时会自动解析当前主机；跨主机操作仍建议显式写 `host=...`。
+注意：当前 `justfile` 默认 `host := ""`、`darwin_host := ""`。`just switch/check/test` 与 `just darwin-switch/darwin-check` 未显式指定时都会自动解析当前主机；跨主机操作仍建议显式写 `host=...` / `darwin_host=...`。
+
+补充：当前 Linux/macOS 主账号的一致开发环境默认由 Home Manager 提供；system layer 仅保留桌面运行基线与系统服务。
 
 ---
 

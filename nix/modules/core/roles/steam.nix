@@ -1,8 +1,7 @@
-{ lib, pkgs, mylib, config, mainUser, ... }:
+{ lib, pkgs, config, mainUser, ... }:
 let
   hostCfg = config.my.host;
-  roleFlags = mylib.roleFlags hostCfg;
-  inherit (roleFlags) enableSteam;
+  inherit (hostCfg) enableSteam;
 in
 {
   programs = {

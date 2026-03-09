@@ -52,16 +52,9 @@ let
       mylib.relativeToRoot "${hostDir}/default.nix";
   hostHardwarePath = mylib.relativeToRoot "${hostDir}/hardware.nix";
   hostDiskoPath = mylib.relativeToRoot "${hostDir}/disko.nix";
-  hostModulesPath = mylib.relativeToRoot "${hostDir}/modules";
   hostHomePath = mylib.relativeToRoot "${hostDir}/home.nix";
-  hostHomeModulesPath = mylib.relativeToRoot "${hostDir}/home-modules";
 
-  discoveredHostModules =
-    lib.optionals (builtins.pathExists hostModulesPath) (mylib.scanPaths hostModulesPath);
-  discoveredHostHomeModules =
-    (lib.optionals (builtins.pathExists hostHomePath) [ hostHomePath ])
-    ++ (lib.optionals (builtins.pathExists hostHomeModulesPath) (mylib.scanPaths hostHomeModulesPath));
-  resolvedHomeModules = homeModules ++ discoveredHostHomeModules;
+  resolvedHomeModules = homeModules ++ lib.optionals (builtins.pathExists hostHomePath) [ hostHomePath ];
 
   nixpkgsModule = {
     nixpkgs = {
@@ -84,7 +77,6 @@ let
     disko.nixosModules.disko
   ]
   ++ nixosHardwareModules
-  ++ discoveredHostModules
   ++ extraModules;
 
   nixosSystem = mylib.nixosSystem {

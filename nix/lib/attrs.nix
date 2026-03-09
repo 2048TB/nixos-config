@@ -67,26 +67,6 @@ rec {
         specs
     );
 
-  scanPaths =
-    path:
-    builtins.map (name: (path + "/${name}")) (
-      builtins.attrNames (
-        lib.attrsets.filterAttrs
-          (
-            name: type:
-            (
-              type == "directory"
-              && builtins.pathExists (path + "/${name}/default.nix")
-            )
-            || (
-              name != "default.nix"
-              && lib.strings.hasSuffix ".nix" name
-            )
-          )
-          (builtins.readDir path)
-      )
-    );
-
   discoverHostNamesBy =
     hostsRoot: requiredFiles:
     let

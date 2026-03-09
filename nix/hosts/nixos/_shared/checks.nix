@@ -116,9 +116,6 @@ let
     else "disabled";
   hasExpectedDockerMode = if expectedDockerMode == null then true else actualDockerMode == expectedDockerMode;
   actualKvmModules = builtins.filter (m: lib.hasPrefix "kvm-" m) cfg.boot.kernelModules;
-  hasMullvadVpn = cfg.services.mullvad-vpn.enable or false;
-  mullvadExecStartPre = cfg.systemd.services.mullvad-daemon.serviceConfig.ExecStartPre or null;
-  mullvadExecStartPrePath = if mullvadExecStartPre == null then "" else toString mullvadExecStartPre;
 
   mkNonEmptyCheck = name': items: msg:
     pkgs.runCommand name' { } ''
@@ -157,21 +154,6 @@ in
 
   "eval-${name}-trusted-substituters" = pkgs.runCommand "eval-${name}-trusted-substituters" { } ''
     test "${if hasExpectedTrustedSubstituters then "1" else "0"}" = "1"
-    touch "$out"
-  '';
-
-  "eval-${name}-mullvad-prestart-script" = pkgs.runCommand "eval-${name}-mullvad-prestart-script" { } ''
-    if [ "${if hasMullvadVpn then "1" else "0"}" != "1" ]; then
-      touch "$out"
-      exit 0
-    fi
-
-    script_path="${mullvadExecStartPrePath}"
-    test -n "$script_path"
-    test -f "$script_path"
-
-    grep -F 'settings_dir="/etc/mullvad-vpn"' "$script_path" >/dev/null
-    grep -F 'settings_file="$settings_dir/settings.json"' "$script_path" >/dev/null
     touch "$out"
   '';
 

@@ -16,7 +16,6 @@ let
       "amd"
       "amdgpu"
       "nvidia"
-      "nvidia-prime"
       "modesetting"
       "amd-nvidia-hybrid"
     ];
@@ -36,9 +35,6 @@ let
 
     optionalBoolOptions = [
       "enableHibernate"
-      "enableGpuSpecialisation"
-      "enableBluetoothRfkillUnblock"
-      "enableAggressiveApparmorKill"
       "enableNvidiaContainerToolkit"
       "acceptFlakeConfig"
       "enableMullvadVpn"
@@ -62,7 +58,6 @@ let
     ];
 
     optionalNullableStringOptions = [
-      "intelBusId"
       "amdgpuBusId"
       "nvidiaBusId"
     ];
@@ -71,19 +66,21 @@ in
 rec {
   inherit hostMetaSchema;
 
-  roleFlags = myvars:
+  roleFlags = host:
     let
-      hostRoles = myvars.roles or hostMetaSchema.defaultRoles;
+      hostRoles = host.roles or hostMetaSchema.defaultRoles;
       hasRole = role: builtins.elem role hostRoles;
-      dockerMode = myvars.dockerMode or hostMetaSchema.defaultDockerMode;
+      dockerMode = host.dockerMode or hostMetaSchema.defaultDockerMode;
+      boolFlag = name: fallback:
+        if builtins.hasAttr name host then host.${name} else fallback;
     in
     {
       inherit hostRoles hasRole dockerMode;
-      enableMullvadVpn = myvars.enableMullvadVpn or (hasRole "vpn");
-      enableLibvirtd = myvars.enableLibvirtd or (hasRole "virt");
-      enableDocker = myvars.enableDocker or (hasRole "container");
-      enableFlatpak = myvars.enableFlatpak or (hasRole "desktop");
-      enableSteam = myvars.enableSteam or (hasRole "gaming");
+      enableMullvadVpn = boolFlag "enableMullvadVpn" (hasRole "vpn");
+      enableLibvirtd = boolFlag "enableLibvirtd" (hasRole "virt");
+      enableDocker = boolFlag "enableDocker" (hasRole "container");
+      enableFlatpak = boolFlag "enableFlatpak" (hasRole "desktop");
+      enableSteam = boolFlag "enableSteam" (hasRole "gaming");
       useRootfulDocker = dockerMode == "rootful";
       useRootlessDocker = dockerMode == "rootless";
     };

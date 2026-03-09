@@ -107,7 +107,6 @@ rec {
     importIfExists
     mkHostDataEntry
     specsToAttrs
-    scanPaths
     discoverHostNamesBy
     ;
   inherit (hostMetaLib) hostMetaSchema roleFlags;

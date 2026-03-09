@@ -6,6 +6,7 @@ let
 
   darwinExtraNames = [
     # Programming languages and toolchains
+    "neovim"
     "go"
     "rust-bin.stable.latest.default"
     "rust-bin.stable.latest.rust-analyzer"

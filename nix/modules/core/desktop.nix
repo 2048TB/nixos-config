@@ -7,12 +7,6 @@ let
   isDesktop = config.my.profiles.desktop;
   gnupgCacheTtlSeconds = 4 * 60 * 60; # 4 小时
   portalConfig = import ../../lib/portal-config.nix;
-  # 仅将 MinGW 交叉编译器的可执行文件加入 system path，避免与本机 gcc 的文档路径冲突告警。
-  mingwToolchainBinOnly = pkgs.buildEnv {
-    name = "mingw-w64-toolchain-bin-only";
-    paths = [ pkgs.pkgsCross.mingwW64.stdenv.cc ];
-    pathsToLink = [ "/bin" ];
-  };
 in
 lib.mkIf isDesktop {
   programs = {
@@ -90,29 +84,6 @@ lib.mkIf isDesktop {
   };
 
   environment.systemPackages = with pkgs; [
-    neovim
-
-    (rust-bin.stable.latest.default.override {
-      targets = [ "x86_64-pc-windows-gnu" ];
-    })
-    rust-bin.stable.latest.rust-analyzer
-    mingwToolchainBinOnly
-    zig
-    zls
-    go
-    gcc
-    gopls
-    delve
-    gotools
-    nodejs
-    nodePackages.typescript
-    nodePackages.typescript-language-server
-    python3
-    python3Packages.pip
-    pyright
-    ruff
-    black
-    uv
     xwayland-satellite
   ];
 }

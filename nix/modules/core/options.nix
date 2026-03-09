@@ -3,6 +3,7 @@ let
   inherit (lib) types;
   schema = mylib.hostMetaSchema;
   defaultRoles = myvars.roles or schema.defaultRoles;
+  roleFlags = mylib.roleFlags myvars;
   defaultFormFactor = myvars.formFactor or "desktop";
   defaultProfileList =
     myvars.profiles or (
@@ -135,12 +136,6 @@ in
         description = "Nix GC retention period.";
       };
 
-      intelBusId = lib.mkOption {
-        type = types.nullOr types.str;
-        default = myvars.intelBusId or null;
-        description = "Intel iGPU bus id for PRIME.";
-      };
-
       amdgpuBusId = lib.mkOption {
         type = types.nullOr types.str;
         default = myvars.amdgpuBusId or null;
@@ -159,24 +154,6 @@ in
         description = "Enable hibernate-related boot/storage logic.";
       };
 
-      enableGpuSpecialisation = lib.mkOption {
-        type = types.bool;
-        default = myvars.enableGpuSpecialisation or false;
-        description = "Enable GPU specialisation boot entries.";
-      };
-
-      enableBluetoothRfkillUnblock = lib.mkOption {
-        type = types.bool;
-        default = myvars.enableBluetoothRfkillUnblock or false;
-        description = "Run rfkill unblock helper at boot.";
-      };
-
-      enableAggressiveApparmorKill = lib.mkOption {
-        type = types.bool;
-        default = myvars.enableAggressiveApparmorKill or false;
-        description = "Enable killUnconfinedConfinables for AppArmor.";
-      };
-
       enableNvidiaContainerToolkit = lib.mkOption {
         type = types.bool;
         default = myvars.enableNvidiaContainerToolkit or false;
@@ -191,31 +168,31 @@ in
 
       enableMullvadVpn = lib.mkOption {
         type = types.bool;
-        default = myvars.enableMullvadVpn or (builtins.elem "vpn" defaultRoles);
+        default = roleFlags.enableMullvadVpn;
         description = "Explicit Mullvad toggle.";
       };
 
       enableLibvirtd = lib.mkOption {
         type = types.bool;
-        default = myvars.enableLibvirtd or (builtins.elem "virt" defaultRoles);
+        default = roleFlags.enableLibvirtd;
         description = "Explicit libvirtd toggle.";
       };
 
       enableDocker = lib.mkOption {
         type = types.bool;
-        default = myvars.enableDocker or (builtins.elem "container" defaultRoles);
+        default = roleFlags.enableDocker;
         description = "Explicit Docker toggle.";
       };
 
       enableFlatpak = lib.mkOption {
         type = types.bool;
-        default = myvars.enableFlatpak or (builtins.elem "desktop" defaultRoles);
+        default = roleFlags.enableFlatpak;
         description = "Explicit Flatpak toggle.";
       };
 
       enableSteam = lib.mkOption {
         type = types.bool;
-        default = myvars.enableSteam or (builtins.elem "gaming" defaultRoles);
+        default = roleFlags.enableSteam;
         description = "Explicit Steam toggle.";
       };
 

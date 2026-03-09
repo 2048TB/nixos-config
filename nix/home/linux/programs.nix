@@ -1,8 +1,7 @@
-{ pkgs, lib, mylib, myvars, osConfig ? null, ... }:
+{ pkgs, lib, myvars, osConfig ? null, ... }:
 let
   hostCfg = import ../base/resolve-host.nix { inherit myvars osConfig; };
-  roleFlags = mylib.roleFlags hostCfg;
-  inherit (roleFlags) enableSteam;
+  enableSteam = hostCfg.enableSteam or false;
 in
 {
   programs = {

@@ -24,13 +24,9 @@
   # Hardware
   cpuVendor = "intel";
   gpuMode = "nvidia";
-  # Hybrid/Prime GPU Bus IDs (set from `lspci -D`; format: PCI:<bus>:<device>:<function>)
-  intelBusId = null;
+  # Hybrid GPU Bus IDs (set from `lspci -D`; format: PCI:<bus>:<device>:<function>)
   amdgpuBusId = null;
   nvidiaBusId = null;
-  enableGpuSpecialisation = false;
-  enableBluetoothRfkillUnblock = true;
-  enableAggressiveApparmorKill = false;
   dockerMode = "rootless";
 
   # Roles
