@@ -1,9 +1,10 @@
-{ config, lib, ... }:
+{ config, lib, mylib, ... }:
 let
   hostCfg = config.my.host;
+  roleFlags = mylib.roleFlags hostCfg;
   isDesktop = config.my.profiles.desktop;
   isServer = config.my.profiles.server;
-  inherit (hostCfg) enableSteam;
+  inherit (roleFlags) enableSteam;
   # GPU 驱动常量
   driverNvidia = "nvidia";
   driverAmdgpu = "amdgpu";
@@ -13,12 +14,9 @@ let
 
   gpuChoice = hostCfg.gpuMode or gpuDefaultValue;
   isNvidia = gpuChoice == driverNvidia;
-  # 兼容历史配置/README 中的 "amd" 取值
-  isAmd = gpuChoice == "amd" || gpuChoice == driverAmdgpu;
+  isAmd = gpuChoice == driverAmdgpu;
   isAmdNvidiaHybrid = gpuChoice == driverAmdNvidiaHybrid;
   useNvidia = isNvidia || isAmdNvidiaHybrid;
-  # 官方默认关闭 nvidia-container-toolkit。桌面场景按需开启，避免无用 CDI 生成告警。
-  inherit (hostCfg) enableNvidiaContainerToolkit;
 
   # 统一 NVIDIA 配置，避免专用配置与默认配置漂移
   nvidiaBase = {
@@ -48,7 +46,6 @@ in
       enable32Bit = enableSteam;
     };
     nvidia = lib.mkIf (isDesktop && useNvidia) nvidiaBase;
-    nvidia-container-toolkit.enable = lib.mkIf (useNvidia && enableNvidiaContainerToolkit) true;
     bluetooth = lib.mkIf (!isServer) {
       enable = true;
     };
@@ -59,6 +56,4 @@ in
     fwupd.enable = lib.mkIf (!isServer) true;
     xserver.videoDrivers = lib.mkIf isDesktop videoDrivers;
   };
-
-  warnings = [ ];
 }

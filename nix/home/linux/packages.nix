@@ -8,6 +8,7 @@
 }:
 let
   hostCfg = import ../base/resolve-host.nix { inherit myvars osConfig; };
+  roleFlags = mylib.roleFlags hostCfg;
   packageGroups = import ./package-groups.nix;
   packageGroupOrder = [
     "cli"
@@ -16,16 +17,13 @@ let
     "media"
     "archive"
   ];
-  enableProvider appVpn = hostCfg.enableProvider appVpn or false;
-  enableSteam = hostCfg.enableSteam or false;
-  enableLibvirtd = hostCfg.enableLibvirtd or false;
-  enableDocker = hostCfg.enableDocker or false;
-  # App toggles (flat host vars, default false; aligned with nix/modules/core/options.nix)
-  enableWpsOffice = hostCfg.enableWpsOffice or false;
-  enableZathura = hostCfg.enableZathura or false;
-  enableSplayer = hostCfg.enableSplayer or false;
-  enableTelegramDesktop = hostCfg.enableTelegramDesktop or false;
-  enableLocalSend = hostCfg.enableLocalSend or false;
+  inherit (roleFlags) enableProvider appVpn enableSteam enableLibvirtd enableDocker;
+  # App toggles stay in host vars and are consumed only by Home Manager.
+  enableWpsOffice = myvars.enableWpsOffice or false;
+  enableZathura = myvars.enableZathura or false;
+  enableSplayer = myvars.enableSplayer or false;
+  enableTelegramDesktop = myvars.enableTelegramDesktop or false;
+  enableLocalSend = myvars.enableLocalSend or false;
   wpsOfficePackage = pkgs.wpsoffice;
 
   # 仅在混合显卡（amd-nvidia-hybrid）时安装 GPU 加速相关软件

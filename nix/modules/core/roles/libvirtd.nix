@@ -1,7 +1,8 @@
-{ lib, config, mainUser, ... }:
+{ lib, config, mainUser, mylib, ... }:
 let
   hostCfg = config.my.host;
-  inherit (hostCfg) enableLibvirtd;
+  roleFlags = mylib.roleFlags hostCfg;
+  inherit (roleFlags) enableLibvirtd;
 in
 {
   programs.virt-manager.enable = enableLibvirtd;

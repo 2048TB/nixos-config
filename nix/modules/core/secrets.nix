@@ -1,13 +1,11 @@
 { pkgs
 , lib
-, config
 , mainUser
 , ...
 }:
 let
-  hostCfg = config.my.host;
   homeDir = "/home/${mainUser}";
-  inherit (hostCfg) configRepoPath;
+  configRepoPath = "/persistent/nixos-config";
   mainKeyPath = "/persistent/keys/main.agekey";
   expectedMainPub = builtins.replaceStrings [ "\n" "\r" ] [ "" "" ] (builtins.readFile ../../../secrets/keys/main.age.pub);
   bootstrapSourcePaths = [

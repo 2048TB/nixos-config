@@ -55,10 +55,16 @@ list_hosts() {
     --apply 'cfgs: builtins.concatStringsSep "\n" (builtins.attrNames cfgs)'
 }
 
-get_host_field() {
+get_registry_field() {
   local host="$1"
   local field="$2"
-  nix eval --raw "path:${repo}#nixosConfigurations.${host}.config.my.host.${field}" 2>/dev/null || true
+  nix eval --impure --raw --expr "
+    let
+      registry = builtins.fromTOML (builtins.readFile \"${repo}/nix/hosts/registry/systems.toml\");
+      hostEntry = (registry.nixos or {}).${host} or {};
+    in
+    hostEntry.${field} or \"\"
+  " 2>/dev/null || true
 }
 
 declare -a hosts=()
@@ -89,8 +95,8 @@ echo ">>> repo=$repo"
 echo ">>> hosts=${hosts[*]}"
 
 for host in "${hosts[@]}"; do
-  target_host="$(get_host_field "$host" "deployHost")"
-  target_user="$(get_host_field "$host" "deployUser")"
+  target_host="$(get_registry_field "$host" "deployHost")"
+  target_user="$(get_registry_field "$host" "deployUser")"
 
   if [ -z "$target_host" ]; then
     target_host="$host"

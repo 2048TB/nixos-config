@@ -18,8 +18,7 @@
   resumeOffset = 1513128;
 
   # Hardware
-  cpuVendor = "amd";
-  gpuMode = "amd";
+  # Pure AMD host: gpuMode defaults to "amdgpu" via hardware-modules.nix.
 
   # Roles
   roles = [

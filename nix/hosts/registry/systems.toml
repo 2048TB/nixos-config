@@ -7,22 +7,16 @@
 system = "x86_64-linux"
 formFactor = "laptop"
 profiles = ["desktop", "laptop"]
-deployHost = "zky"
-deployUser = "root"
 
 [nixos.zly]
 system = "x86_64-linux"
 formFactor = "desktop"
 profiles = ["desktop"]
-deployHost = "zly"
-deployUser = "root"
 
 [nixos.zzly]
 system = "x86_64-linux"
 formFactor = "desktop"
 profiles = ["desktop"]
-deployHost = "zzly"
-deployUser = "root"
 
 [darwin.zly-mac]
 system = "aarch64-darwin"

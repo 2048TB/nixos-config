@@ -18,7 +18,6 @@
   resumeOffset = 10113490;
 
   # Hardware
-  cpuVendor = "amd";
   gpuMode = "amd-nvidia-hybrid";
   # Hybrid GPU Bus IDs for PRIME.
   # Official NixOS form is `PCI:<bus>@<domain>:<device>:<function>` and uses decimal numbers.

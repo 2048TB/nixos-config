@@ -135,13 +135,8 @@ if [ ! -f "$TARGET_FLAKE_TMP/flake.nix" ]; then
   exit 1
 fi
 
-target_owner="1000:1000"
-if sudo test -f /mnt/etc/passwd; then
-  target_owner="$(sudo awk -F: '$3 >= 1000 && $3 < 60000 {print $3 ":" $4; exit}' /mnt/etc/passwd || true)"
-  if [ -z "$target_owner" ]; then
-    target_owner="1000:1000"
-  fi
-fi
+target_user="$(nix eval --raw "path:${repo}#nixosConfigurations.${host}.config.my.host.username")"
+target_owner="$(resolve_target_owner_from_config "$repo" "$host" "$target_user")"
 sudo chown -R "$target_owner" "$TARGET_FLAKE_TMP"
 sudo rm -rf "$TARGET_FLAKE_DIR"
 sudo mv "$TARGET_FLAKE_TMP" "$TARGET_FLAKE_DIR"

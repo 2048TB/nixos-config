@@ -10,8 +10,9 @@
 }:
 let
   hostCfg = import ../base/resolve-host.nix { inherit myvars osConfig; };
-  enableProvider appVpn = hostCfg.enableProvider appVpn or false;
-  configRepoPath = hostCfg.configRepoPath or "/persistent/nixos-config";
+  roleFlags = mylib.roleFlags hostCfg;
+  inherit (roleFlags) enableProvider appVpn;
+  configRepoPath = "/persistent/nixos-config";
 
   mkLogFilteredLauncher = mylib.mkLogFilteredLauncher pkgs;
   noctaliaShellPkg = noctalia.packages.${pkgs.stdenv.hostPlatform.system}.default;

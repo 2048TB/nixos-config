@@ -18,7 +18,6 @@
   resumeOffset = 2990172;
 
   # Hardware
-  cpuVendor = "intel";
   gpuMode = "nvidia";
   nvidiaOpen = true;
 

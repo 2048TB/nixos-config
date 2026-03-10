@@ -1,18 +1,21 @@
 { config
 , lib
 , mylib
+, derivedCpuVendor
 , ...
 }:
 let
   hostCfg = config.my.host;
-  inherit (hostCfg) cpuVendor enableHibernate;
+  cpuVendor = derivedCpuVendor;
+  hibernateEnabled = hostCfg.resumeOffset != null;
   kvmModules = mylib.kvmModulesForVendor cpuVendor;
+  luksMapperDevice = "/dev/mapper/${hostCfg.luksName}";
   resumeDevice =
     if config.fileSystems ? "/swap" && config.fileSystems."/swap" ? device
     then config.fileSystems."/swap".device
-    else "/dev/mapper/crypted-nixos";
+    else luksMapperDevice;
   resumeKernelParams =
-    if enableHibernate && hostCfg.resumeOffset != null
+    if hibernateEnabled
     then [ "resume_offset=${toString hostCfg.resumeOffset}" ]
     else [ ];
 in
@@ -36,8 +39,8 @@ in
 
     # KVM 内核模块（AMD/Intel）
     kernelModules = kvmModules;
-    resumeDevice = lib.mkIf enableHibernate (lib.mkDefault resumeDevice);
-    kernelParams = lib.mkIf enableHibernate resumeKernelParams;
+    resumeDevice = lib.mkIf hibernateEnabled (lib.mkDefault resumeDevice);
+    kernelParams = lib.mkIf hibernateEnabled resumeKernelParams;
 
     # 支持的文件系统
     supportedFilesystems = [

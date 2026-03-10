@@ -2,15 +2,12 @@
 , pkgs
 , lib
 , noctalia
-, myvars
-, osConfig ? null
 , mainUser
 , ...
 }:
 let
-  hostCfg = import ../base/resolve-host.nix { inherit myvars osConfig; };
   homeDir = config.home.homeDirectory;
-  configRepoPath = hostCfg.configRepoPath or "/persistent/nixos-config";
+  configRepoPath = "/persistent/nixos-config";
 
   waylandSession = pkgs.writeScript "wayland-session" ''
     #!/usr/bin/env bash
