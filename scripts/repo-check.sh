@@ -34,7 +34,12 @@ echo "==> shell syntax"
 bash -n scripts/*.sh
 
 echo "==> nix formatting check"
-nix shell .#formatter.x86_64-linux -c nixfmt --check $(rg --files -g '*.nix')
+mapfile -t nix_files < <(./scripts/list-nix-files.sh)
+if [[ ${#nix_files[@]} -eq 0 ]]; then
+  echo "no .nix files found for formatting check" >&2
+  exit 1
+fi
+nix shell .#formatter.x86_64-linux -c nixfmt --check "${nix_files[@]}"
 
 echo "==> hosts doc drift check"
 ./scripts/generate-hosts-doc.sh --check
