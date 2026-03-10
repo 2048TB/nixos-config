@@ -9,7 +9,7 @@ layout {
     // - "never"：默认行为，聚焦屏幕外列时保持在屏幕左/右边缘。
     // - "always"：始终居中当前列。
     // - "on-overflow"：当与前一个聚焦列无法同时完整显示时才居中。
-    center-focused-column "always"
+    center-focused-column "never"
 
     // 可自定义 "switch-preset-column-width"（Mod+R）在不同宽度间切换的预设值。
     preset-column-widths {
