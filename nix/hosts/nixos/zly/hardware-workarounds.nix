@@ -9,7 +9,6 @@ in
 
   boot = {
     # 该主机的 MT7922 蓝牙端已确认坏掉；禁用蓝牙相关模块，避免无意义加载。
-    kernelModules = lib.mkForce [ ];
     blacklistedKernelModules = [
       "btusb"
       "btmtk"
