@@ -28,7 +28,7 @@ hotkey-overlay {
 
 // 请求客户端省略客户端装饰（CSD），统一使用 server-side 边框。
 // 启用或禁用后需重启应用才能生效。
-// prefer-no-csd
+prefer-no-csd
 
 // 可更改截图保存路径。
 // 路径开头的 ~ 会展开为主目录。
