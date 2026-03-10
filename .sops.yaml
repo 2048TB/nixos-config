@@ -1,0 +1,18 @@
+keys:
+  users:
+    z:
+      - &user_z_age age1xe6pwcr23etcsnave3f76ztf7q566ug6vxgxewtyawnrk96wt53sxhh6ju
+
+creation_rules:
+  - path_regex: secrets/common\.yaml$
+    key_groups:
+      - age:
+          - *user_z_age
+  - path_regex: secrets/darwin/.*\.yaml$
+    key_groups:
+      - age:
+          - *user_z_age
+  - path_regex: secrets/nixos/.*\.yaml$
+    key_groups:
+      - age:
+          - *user_z_age

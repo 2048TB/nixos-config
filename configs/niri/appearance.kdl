@@ -1,0 +1,124 @@
+// 外观与显示配置：布局、动画、输出。
+
+// 影响窗口位置与尺寸的设置。
+layout {
+    // 设置窗口外边距（逻辑像素）。
+    gaps 10
+
+    // 切换焦点时是否居中列，选项：
+    // - "never"：默认行为，聚焦屏幕外列时保持在屏幕左/右边缘。
+    // - "always"：始终居中当前列。
+    // - "on-overflow"：当与前一个聚焦列无法同时完整显示时才居中。
+    center-focused-column "never"
+
+    // 可自定义 "switch-preset-column-width"（Mod+R）在不同宽度间切换的预设值。
+    preset-column-widths {
+        // proportion 以输出宽度的比例设置列宽，并考虑 gaps。
+        // 例如 proportion 0.25 可在一个输出上正好放下四个窗口。
+        // 预设宽度：50%、83%、100%（适配 2560x1440）。
+        proportion 0.500000
+        proportion 0.830000
+        proportion 1.000000
+
+        // fixed 以逻辑像素设置固定宽度。
+        // fixed 1920
+    }
+
+    // 可以修改新窗口的默认宽度。
+    // 默认 83%，通过 Mod+R 快捷键在 50%, 83%, 100% 之间切换
+    default-column-width { proportion 0.83; }
+    // 若花括号留空，由窗口自身决定初始宽度。
+    // default-column-width {}
+
+    // 默认情况下，焦点环与边框作为实心背景矩形绘制在窗口后方，
+    // 因此会透过半透明窗口显示。
+    // 这是因为使用客户端装饰（CSD）的窗口形状可能是任意的。
+    //
+    // 如果不喜欢这样，可取消下面的 `prefer-no-csd`。
+    // Niri 会对同意省略客户端装饰的窗口在外围绘制焦点环与边框。
+    //
+    // 也可以用名为 `draw-border-with-background` 的窗口规则覆盖。
+
+    // 可以调整焦点环外观。
+    focus-ring {
+        off
+        width 4
+        active-gradient from="#@THEME_BLUE@cc" to="#@THEME_CYAN@cc" angle=135
+        inactive-color "#@THEME_BG3@"
+        urgent-color "#@THEME_RED@"
+    }
+
+    // 也可以添加边框，类似焦点环但始终可见。
+    border {
+        // 设置项与焦点环相同。
+        // 启用边框时通常应关闭焦点环。
+        off
+
+        width 4
+        active-color "#@THEME_BLUE@"
+        inactive-color "#@THEME_BG3@"
+
+        // 请求注意的窗口边框颜色。
+        urgent-color "#@THEME_RED@"
+
+        // 渐变可使用不同的插值色彩空间。
+        // 例如通过 in="oklch longer hue" 可实现柔和的彩虹渐变。
+        //
+        // active-gradient from="#e5989b" to="#ffb4a2" angle=45 relative-to="workspace-view" in="oklch longer hue"
+
+        // inactive-gradient from="#505050" to="#808080" angle=45 relative-to="workspace-view"
+    }
+
+    // struts 会缩小窗口可用区域，类似 layer-shell 面板。
+    // 可将其理解为外边距，单位为逻辑像素。
+    // 左/右 struts 会让相邻侧的下一个窗口始终可见。
+    // 上/下 struts 则会在 layer-shell 面板与常规 gaps 之外再增加外边距。
+    struts {
+        // left 64
+        // right 64
+        // top 64
+        // bottom 64
+    }
+
+    // 窗口阴影用于增强层次感
+    shadow {
+        softness 24
+        spread 3
+        offset x=0 y=0
+        color "#0006"
+    }
+}
+
+// 动画设置。
+// 维基说明了如何配置单项动画：
+animations {
+    slowdown 1.0
+    workspace-switch {
+        spring damping-ratio=0.88 stiffness=420 epsilon=0.0001
+    }
+    horizontal-view-movement {
+        spring damping-ratio=0.90 stiffness=360 epsilon=0.0001
+    }
+}
+
+// 最近窗口切换器（Alt+Tab）样式
+recent-windows {
+    highlight {
+        active-color "#@THEME_BLUE@33"
+        urgent-color "#@THEME_RED@"
+    }
+}
+
+// 让 Noctalia 的 overview wallpaper 落到 Niri overview backdrop 层。
+layer-rule {
+    match namespace="^noctalia-overview*"
+    place-within-backdrop true
+}
+
+// 输出缩放（百分比 = scale * 100）
+// 使用 niri msg outputs 中的"厂商 型号 序列号"匹配，避免 DP-1/DP-2 端口号切换导致重复配置。
+output "HKC OVERSEAS LIMITED MG27Q 0000000000001" {
+    // 高刷屏常把 60Hz 标为 preferred，这里显式锁到 165Hz 以获得稳定高刷体验。
+    mode "2560x1440@165.000"
+    scale 1.25
+}

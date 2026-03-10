@@ -1,0 +1,35 @@
+[nixos.zky]
+platform = "nixos"
+system = "x86_64-linux"
+formFactor = "laptop"
+languageTools = ["go", "node", "rust", "python"]
+roles = ["desktop", "vpn"]
+deployHost = "zky"
+deployUser = "root"
+
+[nixos.zly]
+platform = "nixos"
+system = "x86_64-linux"
+formFactor = "desktop"
+languageTools = ["go", "node", "rust", "python"]
+roles = ["desktop", "vpn", "virt", "container"]
+deployHost = "zly"
+deployUser = "root"
+
+[nixos.zzly]
+platform = "nixos"
+system = "x86_64-linux"
+formFactor = "desktop"
+languageTools = ["go", "node", "rust", "python"]
+roles = ["desktop", "vpn"]
+deployHost = "zzly"
+deployUser = "root"
+
+[darwin.mbp-work]
+platform = "darwin"
+system = "aarch64-darwin"
+formFactor = "laptop"
+languageTools = ["go", "node", "rust", "python"]
+roles = []
+deployHost = "mbp-work"
+deployUser = "z"
