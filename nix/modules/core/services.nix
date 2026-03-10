@@ -57,6 +57,7 @@ in
         pulse.enable = true;
       };
       pulseaudio.enable = false;
+      blueman.enable = true;
 
       gvfs.enable = true;
       tumbler.enable = true;

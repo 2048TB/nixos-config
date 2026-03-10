@@ -292,6 +292,9 @@
                     "id": "WiFi"
                 },
                 {
+                    "id": "Bluetooth"
+                },
+                {
                     "id": "WallpaperSelector"
                 }
             ],
