@@ -58,7 +58,7 @@ registry_value() {
 deploy_host=$(registry_value "deployHost")
 deploy_user=$(registry_value "deployUser")
 
-cmd=(nix run github:nix-community/nixos-anywhere --)
+cmd=(nix run "$repo_root#nixos-anywhere" --)
 if [[ "$run_vm_test" == true ]]; then
   cmd+=(--vm-test)
 fi
@@ -74,4 +74,5 @@ if [[ "$execute" != true ]]; then
 fi
 
 echo "About to run a destructive install for host '$host'." >&2
+./scripts/preflight-switch.sh nixos "$host"
 "${cmd[@]}"

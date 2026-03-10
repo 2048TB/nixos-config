@@ -33,6 +33,11 @@ cd "$repo_root"
 echo "==> shell syntax"
 bash -n scripts/*.sh
 
+echo "==> shell regression tests"
+for test_script in scripts/tests/*.sh; do
+  bash "$test_script"
+done
+
 echo "==> nix formatting check"
 mapfile -t nix_files < <(./scripts/list-nix-files.sh)
 if [[ ${#nix_files[@]} -eq 0 ]]; then
@@ -48,17 +53,15 @@ echo "==> flake check"
 nix flake check
 
 if [[ "$full_check" == true ]]; then
-  echo "==> dry-run nixosConfigurations.zky"
-  nix build --dry-run .#nixosConfigurations.zky.config.system.build.toplevel
+  while IFS= read -r host; do
+    echo "==> dry-run nixosConfigurations.${host}"
+    nix build --dry-run ".#nixosConfigurations.${host}.config.system.build.toplevel"
+  done < <(bash ./scripts/list-hosts.sh nixos "$repo_root")
 
-  echo "==> dry-run nixosConfigurations.zly"
-  nix build --dry-run .#nixosConfigurations.zly.config.system.build.toplevel
-
-  echo "==> dry-run nixosConfigurations.zzly"
-  nix build --dry-run .#nixosConfigurations.zzly.config.system.build.toplevel
-
-  echo "==> dry-run darwinConfigurations.mbp-work"
-  nix build --dry-run '.#darwinConfigurations.mbp-work.system'
+  while IFS= read -r host; do
+    echo "==> dry-run darwinConfigurations.${host}"
+    nix build --dry-run ".#darwinConfigurations.${host}.system"
+  done < <(bash ./scripts/list-hosts.sh darwin "$repo_root")
 
   echo "==> dry-run homeConfigurations.z@template-linux"
   nix build --dry-run '.#homeConfigurations."z@template-linux".activationPackage'

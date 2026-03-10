@@ -24,6 +24,11 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    nixos-anywhere = {
+      url = "github:nix-community/nixos-anywhere";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     nixos-hardware.url = "github:NixOS/nixos-hardware/master";
   };
 
@@ -38,10 +43,8 @@
     let
       inherit (nixpkgs) lib;
       registry = builtins.fromTOML (builtins.readFile ./nix/registry/systems.toml);
-      supportedSystems = [
-        "x86_64-linux"
-        "aarch64-darwin"
-      ];
+      supportedSystems = [ "x86_64-linux" ];
+      checkSystem = "x86_64-linux";
       requiredRuntimePrefixes = [
         "bun"
         "cargo"
@@ -162,6 +165,34 @@
 
           touch "$out"
         '';
+      mkNixosRuntimeChecks =
+        pkgs:
+        lib.listToAttrs (
+          map (
+            host:
+            let
+              hostVars = import (mkHostPath "nixos" host + "/vars.nix");
+            in
+            lib.nameValuePair "nixos-${host}-runtimes" (
+              mkRuntimeCheck pkgs "nixos-${host}"
+                nixosConfigurations.${host}.config.home-manager.users.${hostVars.username}.home.packages
+            )
+          ) nixosHosts
+        );
+      mkDarwinRuntimeChecks =
+        pkgs:
+        lib.listToAttrs (
+          map (
+            host:
+            let
+              hostVars = import (mkHostPath "darwin" host + "/vars.nix");
+            in
+            lib.nameValuePair "darwin-${host}-runtimes" (
+              mkRuntimeCheck pkgs "darwin-${host}"
+                darwinConfigurations.${host}.config.home-manager.users.${hostVars.username}.home.packages
+            )
+          ) darwinHosts
+        );
       nixosConfigurations = lib.genAttrs nixosHosts mkNixosSystem;
       darwinConfigurations = lib.genAttrs darwinHosts mkDarwinSystem;
       homeConfigurations = {
@@ -185,6 +216,19 @@
 
       formatter = forEachSystem (pkgs: pkgs.nixfmt);
 
+      apps = forEachSystem (
+        pkgs:
+        lib.optionalAttrs pkgs.stdenv.isLinux {
+          nixos-anywhere = {
+            type = "app";
+            program = "${
+              inputs.nixos-anywhere.packages.${pkgs.stdenv.hostPlatform.system}.default
+            }/bin/nixos-anywhere";
+            meta.description = "Pinned nixos-anywhere installer from this flake lock";
+          };
+        }
+      );
+
       devShells = forEachSystem (pkgs: {
         default = pkgs.mkShell {
           packages = with pkgs; [
@@ -202,35 +246,34 @@
         };
       });
 
-      checks = forEachSystem (pkgs: {
-        deadnix = pkgs.runCommand "deadnix-check" { nativeBuildInputs = [ pkgs.deadnix ]; } ''
-          cd ${self}
-          deadnix --fail .
-          touch "$out"
-        '';
-        statix = pkgs.runCommand "statix-check" { nativeBuildInputs = [ pkgs.statix ]; } ''
-          cd ${self}
-          statix check .
-          touch "$out"
-        '';
-        standalone-template-linux-runtimes =
-          mkRuntimeCheck pkgs "standalone-template-linux"
-            homeConfigurations."z@template-linux".config.home.packages;
-        standalone-mbp-work-runtimes =
-          mkRuntimeCheck pkgs "standalone-mbp-work"
-            homeConfigurations."z@mbp-work".config.home.packages;
-        nixos-zky-runtimes =
-          mkRuntimeCheck pkgs "nixos-zky"
-            nixosConfigurations.zky.config.home-manager.users.z.home.packages;
-        nixos-zly-runtimes =
-          mkRuntimeCheck pkgs "nixos-zly"
-            nixosConfigurations.zly.config.home-manager.users.z.home.packages;
-        nixos-zzly-runtimes =
-          mkRuntimeCheck pkgs "nixos-zzly"
-            nixosConfigurations.zzly.config.home-manager.users.z.home.packages;
-        darwin-mbp-work-runtimes =
-          mkRuntimeCheck pkgs "darwin-mbp-work"
-            darwinConfigurations.mbp-work.config.home-manager.users.z.home.packages;
-      });
+      checks = lib.genAttrs [ checkSystem ] (
+        system:
+        let
+          pkgs = import nixpkgs {
+            inherit system;
+            config.allowUnfree = true;
+          };
+        in
+        {
+          deadnix = pkgs.runCommand "deadnix-check" { nativeBuildInputs = [ pkgs.deadnix ]; } ''
+            cd ${self}
+            deadnix --fail .
+            touch "$out"
+          '';
+          statix = pkgs.runCommand "statix-check" { nativeBuildInputs = [ pkgs.statix ]; } ''
+            cd ${self}
+            statix check .
+            touch "$out"
+          '';
+          standalone-template-linux-runtimes =
+            mkRuntimeCheck pkgs "standalone-template-linux"
+              homeConfigurations."z@template-linux".config.home.packages;
+          standalone-mbp-work-runtimes =
+            mkRuntimeCheck pkgs "standalone-mbp-work"
+              homeConfigurations."z@mbp-work".config.home.packages;
+        }
+        // mkNixosRuntimeChecks pkgs
+        // mkDarwinRuntimeChecks pkgs
+      );
     };
 }

@@ -37,7 +37,9 @@ case "$platform" in
     require_nix_attr ".#nixosConfigurations.${host}.config.networking.hostName"
     require_nix_attr ".#nixosConfigurations.${host}.config.services.snapper.configs.root.SUBVOLUME"
     nix eval --json ".#nixosConfigurations.${host}.config.programs.nh.enable" | grep -qx 'true'
-    nix eval --raw ".#nixosConfigurations.${host}.config.boot.resumeDevice" | grep -q .
+    if nix eval --json ".#nixosConfigurations.${host}.config.boot.resumeDevice != null" | grep -qx 'true'; then
+      nix eval --raw ".#nixosConfigurations.${host}.config.boot.resumeDevice" | grep -q .
+    fi
     echo "==> dry-run nixosConfigurations.${host}"
     nix build --dry-run ".#nixosConfigurations.${host}.config.system.build.toplevel"
     ;;

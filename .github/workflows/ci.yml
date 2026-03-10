@@ -15,18 +15,19 @@ jobs:
         uses: cachix/install-nix-action@v31
 
       - name: Repo Check
-        run: ./scripts/repo-check.sh
+        run: ./scripts/repo-check.sh --full
 
-      - name: Dry-Run NixOS Hosts
-        run: |
-          nix build --dry-run .#nixosConfigurations.zky.config.system.build.toplevel
-          nix build --dry-run .#nixosConfigurations.zly.config.system.build.toplevel
-          nix build --dry-run .#nixosConfigurations.zzly.config.system.build.toplevel
+  darwin-checks:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v31
 
       - name: Dry-Run Darwin Host
         run: nix build --dry-run '.#darwinConfigurations.mbp-work.system'
 
       - name: Dry-Run Standalone Home Manager
-        run: |
-          nix build --dry-run '.#homeConfigurations."z@template-linux".activationPackage'
-          nix build --dry-run '.#homeConfigurations."z@mbp-work".activationPackage'
+        run: nix build --dry-run '.#homeConfigurations."z@mbp-work".activationPackage'
