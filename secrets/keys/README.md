@@ -20,6 +20,8 @@
 
 私钥只能放在本地仓库 `./.keys/`（被 `.gitignore` 忽略）。
 
+运行时主密钥位置：`/persistent/keys/main.agekey`
+
 ---
 
 ## 3. 常用命令
@@ -43,6 +45,11 @@ just sops-rekey
 # 查看 recipients
 just sops-recipients
 ```
+
+安装/初始化时主密钥搜索顺序：
+- `./.keys/main.agekey`
+- `<repo>/.keys/main.agekey`
+- `~/.keys/main.agekey`
 
 ---
 

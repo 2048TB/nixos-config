@@ -6,7 +6,8 @@
 
 ## 通用约定
 
-推荐仓库路径：`/persistent/nixos-config`
+- 已安装系统的推荐仓库路径：`/persistent/nixos-config`
+- Live ISO / 临时环境可直接在任意可写目录使用当前 checkout，例如 `~/nixos`
 
 主机解析来源：
 1. 显式指定（`just host=xxx` / `just darwin_host=xxx`）
@@ -41,18 +42,20 @@ nix shell nixpkgs#just -c just host=zly disk=/dev/nvme0n1 install
 或直接调用脚本（无需 just）：
 
 ```bash
-REPO=/persistent/nixos-config
+REPO="$PWD"
 "$REPO"/nix/scripts/admin/install-live.sh --host zky --disk /dev/nvme0n1 --repo "$REPO"
 ```
 
 ### 完全手动安装（ISO，不使用 `just install`）
 
 > 危险：以下命令会重分区并清空目标磁盘。执行前务必确认 `DISK`。
+> 优先使用 `just install` 或 `install-live.sh`；以下流程仅用于调试或恢复。
 
 当前仓库的 NixOS 磁盘布局（由 `disko` 定义）为：
 - GPT + `ESP`（`512M`，`vfat`，挂载 `/boot`）
 - 其余空间为 `LUKS2`（`argon2id`，映射名 `crypted-nixos`）
-- LUKS 内 `btrfs` 子卷：`/`、`/nix`、`/persistent`、`/home`、`/swap` 等
+- LUKS 内 `btrfs` 子卷：`@root`、`@nix`、`@persistent`、`@home`、`@swap` 等
+- 运行时 `/` 由 `tmpfs` 提供，持久数据写入 `/persistent`
 
 占位符示例（可按你的机器替换）：
 - `HOST=zly`（示例主机；可换成 `zky`/`zzly`）
@@ -62,7 +65,7 @@ REPO=/persistent/nixos-config
 ```bash
 # 0) 准备变量
 export NIX_CONFIG="experimental-features = nix-command flakes"
-REPO=/persistent/nixos-config
+REPO="$PWD"
 HOST=zly
 DISK=/dev/nvme0n1
 KEY_SRC=/run/media/nixos/USB/main.agekey
@@ -131,6 +134,12 @@ just host=zly check && just host=zly test && just host=zly switch
 ```
 
 ### 质量检查
+
+```bash
+just repo-check
+```
+
+最小检查：
 
 ```bash
 just eval-tests && just flake-check

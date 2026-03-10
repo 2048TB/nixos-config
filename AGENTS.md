@@ -27,6 +27,7 @@ nix/
 just hosts          # 确认主机列表
 just eval-tests     # eval 测试
 just flake-check    # flake 完整检查
+just repo-check     # 仓库级自检（脚本 + eval + flake）
 ```
 
 改了 Nix 文件再补：`just fmt && just lint`
@@ -39,8 +40,8 @@ just flake-check    # flake 完整检查
 |------|----------|
 | 某台机器参数 | `nix/hosts/<platform>/<host>/vars.nix` |
 | 系统服务/内核/持久化 | `nix/modules/core/`（入口 `default.nix`） |
-| 角色逻辑 | `nix/lib/default.nix`（roleFlags）+ `nix/modules/core/roles/*.nix` |
-| 硬件/显卡 | `nix/modules/core/hardware.nix` |
+| 角色逻辑 | `nix/lib/host-meta.nix`（roleFlags）+ `nix/modules/core/roles/*.nix` |
+| 硬件/显卡 | `nix/modules/core/hardware.nix` + `nix/hosts/nixos/<host>/hardware*.nix` |
 | 用户软件包 / 主账号开发环境 | `nix/home/linux/packages.nix` |
 | 桌面服务 | `nix/home/linux/desktop.nix` |
 | 程序配置 | `nix/home/linux/programs.nix` |
@@ -49,6 +50,7 @@ just flake-check    # flake 完整检查
 | macOS 配置 | `nix/home/darwin/default.nix` |
 | 密钥管理 | `nix/scripts/admin/sops.sh` |
 | 安装流程 | `nix/scripts/admin/install-live.sh` |
+| 仓库级检查 | `nix/scripts/admin/repo-check.sh` |
 | 新增主机参考 | `nix/hosts/README.md` |
 
 ---

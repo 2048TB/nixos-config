@@ -7,6 +7,8 @@
 3. `Flake Lock Checker Heavy (Manual)`：lock 健康检查（保留，仅手动）
 4. `Cleanup Old Workflow Runs`：自动清理旧 Actions runs（启用）
 
+补充：`Nix CI Light` 对 `docs/**`、`**/*.md`、`wallpapers/**` 使用了 `paths-ignore`，所以文档-only 变更默认不会触发该工作流。
+
 ---
 
 ## 1. 默认轻量 CI
@@ -70,6 +72,18 @@
 
 ```bash
 just eval-tests
+```
+
+仓库级建议：
+
+```bash
+just repo-check
+```
+
+完整本地重检查（含 dry-build）：
+
+```bash
+bash nix/scripts/admin/repo-check.sh --full
 ```
 
 ---

@@ -21,7 +21,7 @@ nixos-config/
 │   ├── hosts/                 # 主机配置
 │   │   ├── nixos/<host>/      # NixOS（必须含 hardware.nix + disko.nix + vars.nix）
 │   │   ├── darwin/<host>/     # macOS（必须含 default.nix + vars.nix）
-│   │   ├── nixos/_shared/     # 共享模板
+│   │   ├── nixos/_shared/     # 共享 checks / disko 模板 / 通用 workaround
 │   │   ├── registry/          # 主机注册表（systems.toml + schema）
 │   │   └── outputs/           # flake 输出聚合
 │   ├── modules/
@@ -33,7 +33,8 @@ nixos-config/
 │   │   ├── darwin/            # macOS HM
 │   │   └── configs/           # 应用配置文件（niri/tmux/zellij/shell...）
 │   └── scripts/
-│       └── admin/             # 管理脚本（sops/install/resolve-host/guard-secrets/common）
+│       ├── admin/             # 管理脚本（install/deploy/resolve-host/preflight/repo-check）
+│       └── tests/             # Shell 回归测试
 ├── secrets/                   # 加密 secrets（可提交）
 ├── wallpapers/                # 壁纸
 ├── docs/                      # 文档（README/KEYBINDINGS/NIX-COMMANDS/ENV-USAGE/...）
@@ -42,18 +43,13 @@ nixos-config/
 └── AGENTS.md                  # 贡献者指南
 ```
 
-主题系统：`nix/lib/theme.nix`（Nord 调色板，单一来源）
-- 内联引用：`mytheme.palette.<color>.hex` / `.rgb`
-- 模板替换：`mytheme.apply` + `@THEME_<COLOR>@` 占位符
-
----
-
 ## 3. 文档同步规则
 
 | 改动范围 | 需同步的文档 |
 |----------|-------------|
 | 快捷键（Niri/Tmux/Zellij） | `docs/KEYBINDINGS.md` |
 | 主机发现/脚手架/安装流程 | `docs/README.md`、`docs/NIX-COMMANDS.md`、`docs/ENV-USAGE.md` |
+| hosts/hardware/disko 布局 | `nix/hosts/README.md`、`nix/hosts/nixos/README.md`、`docs/ENV-USAGE.md` |
 | justfile 命令或 flake apps | `docs/NIX-COMMANDS.md`、`docs/ENV-USAGE.md` |
 | 流程规则 | `CLAUDE.md`、`AGENTS.md` |
 
@@ -71,14 +67,12 @@ nixos-config/
 ## 5. 验证要求
 
 ```bash
-# 文档改动
+# Nix / 文档 / justfile 改动
+just fmt && just lint
 just eval-tests && just flake-check
 
-# Nix 逻辑改动
-just fmt && just lint
-
-# Shell 脚本改动（仓库当前无 just scripts-check）
-bash -n nix/scripts/admin/*.sh
+# 脚本、工作流或仓库级改动
+just repo-check
 ```
 
 ---
