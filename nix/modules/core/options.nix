@@ -3,14 +3,9 @@ let
   inherit (lib) types;
   schema = mylib.hostMetaSchema;
   defaultRoles = myvars.roles or schema.defaultRoles;
-  roleFlags = mylib.roleFlags myvars;
-  defaultFormFactor = myvars.formFactor or "desktop";
   defaultProfileList =
-    myvars.profiles or (
-      (lib.optionals (builtins.elem "desktop" defaultRoles) [ "desktop" ])
-      ++ (lib.optionals (defaultFormFactor == "laptop") [ "laptop" ])
-      ++ (lib.optionals (defaultFormFactor == "server") [ "server" ])
-    );
+    myvars.profiles
+      or (lib.optionals (builtins.elem "desktop" defaultRoles) [ "desktop" ]);
   hasProfile = profile: builtins.elem profile defaultProfileList;
 in
 {
@@ -46,16 +41,16 @@ in
         description = "Home Manager stateVersion.";
       };
 
-      configRepoPath = lib.mkOption {
-        type = types.str;
-        default = myvars.configRepoPath or "/persistent/nixos-config";
-        description = "Persistent repository path on target system.";
-      };
-
       diskDevice = lib.mkOption {
         type = types.str;
         default = myvars.diskDevice or "/dev/nvme0n1";
         description = "Primary installation disk device.";
+      };
+
+      luksName = lib.mkOption {
+        type = types.str;
+        default = myvars.luksName or "crypted-nixos";
+        description = "LUKS mapper name used by disko, swap, and resume wiring.";
       };
 
       swapSizeGb = lib.mkOption {
@@ -68,12 +63,6 @@ in
         type = types.nullOr types.ints.positive;
         default = myvars.resumeOffset or null;
         description = "Btrfs swapfile resume offset for hibernate.";
-      };
-
-      cpuVendor = lib.mkOption {
-        type = types.enum schema.allowedCpuVendors;
-        default = myvars.cpuVendor or "auto";
-        description = "CPU vendor selector for KVM modules.";
       };
 
       gpuMode = lib.mkOption {
@@ -100,30 +89,6 @@ in
         description = "High-level host profiles.";
       };
 
-      formFactor = lib.mkOption {
-        type = types.enum [ "desktop" "laptop" "server" ];
-        default = defaultFormFactor;
-        description = "Physical/logical form factor.";
-      };
-
-      extraTrustedUsers = lib.mkOption {
-        type = types.listOf types.str;
-        default = myvars.extraTrustedUsers or [ ];
-        description = "Extra trusted users for nix settings.";
-      };
-
-      rootTmpfsSize = lib.mkOption {
-        type = types.str;
-        default = myvars.rootTmpfsSize or "2G";
-        description = "tmpfs size for root filesystem.";
-      };
-
-      gcRetentionDays = lib.mkOption {
-        type = types.str;
-        default = myvars.gcRetentionDays or "14d";
-        description = "Nix GC retention period.";
-      };
-
       amdgpuBusId = lib.mkOption {
         type = types.nullOr types.str;
         default = myvars.amdgpuBusId or null;
@@ -142,95 +107,6 @@ in
         description = "Override hardware.nvidia.open when a host requires proprietary-only kernel modules.";
       };
 
-      enableHibernate = lib.mkOption {
-        type = types.bool;
-        default = myvars.enableHibernate or true;
-        description = "Enable hibernate-related boot/storage logic.";
-      };
-
-      enableNvidiaContainerToolkit = lib.mkOption {
-        type = types.bool;
-        default = myvars.enableNvidiaContainerToolkit or false;
-        description = "Enable nvidia-container-toolkit.";
-      };
-
-      acceptFlakeConfig = lib.mkOption {
-        type = types.bool;
-        default = myvars.acceptFlakeConfig or false;
-        description = "Whether to accept flake-provided nixConfig values.";
-      };
-
-      enableMullvadVpn = lib.mkOption {
-        type = types.bool;
-        default = roleFlags.enableMullvadVpn;
-        description = "Explicit Mullvad toggle.";
-      };
-
-      enableLibvirtd = lib.mkOption {
-        type = types.bool;
-        default = roleFlags.enableLibvirtd;
-        description = "Explicit libvirtd toggle.";
-      };
-
-      enableDocker = lib.mkOption {
-        type = types.bool;
-        default = roleFlags.enableDocker;
-        description = "Explicit Docker toggle.";
-      };
-
-      enableFlatpak = lib.mkOption {
-        type = types.bool;
-        default = roleFlags.enableFlatpak;
-        description = "Explicit Flatpak toggle.";
-      };
-
-      enableSteam = lib.mkOption {
-        type = types.bool;
-        default = roleFlags.enableSteam;
-        description = "Explicit Steam toggle.";
-      };
-
-      enableWpsOffice = lib.mkOption {
-        type = types.bool;
-        default = myvars.enableWpsOffice or false;
-        description = "Enable WPS Office package.";
-      };
-
-      enableZathura = lib.mkOption {
-        type = types.bool;
-        default = myvars.enableZathura or false;
-        description = "Enable Zathura package.";
-      };
-
-      enableSplayer = lib.mkOption {
-        type = types.bool;
-        default = myvars.enableSplayer or false;
-        description = "Enable Splayer package.";
-      };
-
-      enableTelegramDesktop = lib.mkOption {
-        type = types.bool;
-        default = myvars.enableTelegramDesktop or false;
-        description = "Enable Telegram Desktop package.";
-      };
-
-      enableLocalSend = lib.mkOption {
-        type = types.bool;
-        default = myvars.enableLocalSend or false;
-        description = "Enable LocalSend package.";
-      };
-
-      deployHost = lib.mkOption {
-        type = types.str;
-        default = myvars.deployHost or (myvars.hostname or "");
-        description = "Remote deploy target host/IP.";
-      };
-
-      deployUser = lib.mkOption {
-        type = types.str;
-        default = myvars.deployUser or "root";
-        description = "Remote deploy SSH user.";
-      };
     };
 
     profiles = {

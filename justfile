@@ -23,23 +23,24 @@ install-check:
 # 一键安装（危险：会清空 {{disk}}；需指定 host）
 install:
     @if [ -z "{{host}}" ]; then echo "error: 需要指定主机. 用法: just host=zly disk=/dev/nvme0n1 install" >&2; exit 2; fi
-    {{repo}}/nix/scripts/admin/install-live.sh --host {{host}} --disk {{disk}} --repo {{repo}}
+    @bash {{repo}}/nix/scripts/admin/preflight-switch.sh nixos {{host}}
+    bash {{repo}}/nix/scripts/admin/install-live.sh --host {{host}} --disk {{disk}} --repo {{repo}}
 
 # 应用配置并立即切换（不指定 host 则自动检测当前主机）
 switch:
-    h="{{host}}"; if [ -z "$h" ]; then h="$({{repo}}/nix/scripts/admin/resolve-host.sh nixos {{repo}} auto --strict)"; fi; echo ">>> host=$h"; sudo nixos-rebuild switch --flake "path:{{repo}}#$h" |& nom
+    h="{{host}}"; if [ -z "$h" ]; then h="$(bash {{repo}}/nix/scripts/admin/resolve-host.sh nixos {{repo}} auto --strict)"; fi; echo ">>> host=$h"; bash {{repo}}/nix/scripts/admin/preflight-switch.sh nixos "$h"; sudo nixos-rebuild switch --flake "path:{{repo}}#$h" |& nom
 
 # 应用配置但下次启动生效
 boot:
-    h="{{host}}"; if [ -z "$h" ]; then h="$({{repo}}/nix/scripts/admin/resolve-host.sh nixos {{repo}} auto --strict)"; fi; echo ">>> host=$h"; sudo nixos-rebuild boot --flake "path:{{repo}}#$h" |& nom
+    h="{{host}}"; if [ -z "$h" ]; then h="$(bash {{repo}}/nix/scripts/admin/resolve-host.sh nixos {{repo}} auto --strict)"; fi; echo ">>> host=$h"; bash {{repo}}/nix/scripts/admin/preflight-switch.sh nixos "$h"; sudo nixos-rebuild boot --flake "path:{{repo}}#$h" |& nom
 
 # 临时测试配置（重启后失效）
 test:
-    h="{{host}}"; if [ -z "$h" ]; then h="$({{repo}}/nix/scripts/admin/resolve-host.sh nixos {{repo}} auto --strict)"; fi; echo ">>> host=$h"; sudo nixos-rebuild test --flake "path:{{repo}}#$h" |& nom
+    h="{{host}}"; if [ -z "$h" ]; then h="$(bash {{repo}}/nix/scripts/admin/resolve-host.sh nixos {{repo}} auto --strict)"; fi; echo ">>> host=$h"; bash {{repo}}/nix/scripts/admin/preflight-switch.sh nixos "$h"; sudo nixos-rebuild test --flake "path:{{repo}}#$h" |& nom
 
 # 检查配置但不应用（快速验证）
 check:
-    h="{{host}}"; if [ -z "$h" ]; then h="$({{repo}}/nix/scripts/admin/resolve-host.sh nixos {{repo}} auto --strict)"; fi; echo ">>> host=$h"; {{nix_cmd}} build --no-link "path:{{repo}}#nixosConfigurations.$h.config.system.build.toplevel"
+    h="{{host}}"; if [ -z "$h" ]; then h="$(bash {{repo}}/nix/scripts/admin/resolve-host.sh nixos {{repo}} auto --strict)"; fi; echo ">>> host=$h"; {{nix_cmd}} build --no-link "path:{{repo}}#nixosConfigurations.$h.config.system.build.toplevel"
 
 # 远程批量部署（HOSTS 为空时部署全部 NixOS 主机）
 deploy HOSTS="":
@@ -67,11 +68,11 @@ rollback:
 
 # 应用 macOS 配置（不指定 darwin_host 则自动检测）
 darwin-switch:
-    h="{{darwin_host}}"; if [ -z "$h" ]; then h="$({{repo}}/nix/scripts/admin/resolve-host.sh darwin {{repo}} auto --strict)"; fi; echo ">>> darwin_host=$h"; darwin-rebuild switch --flake "path:{{repo}}#$h"
+    h="{{darwin_host}}"; if [ -z "$h" ]; then h="$(bash {{repo}}/nix/scripts/admin/resolve-host.sh darwin {{repo}} auto --strict)"; fi; echo ">>> darwin_host=$h"; bash {{repo}}/nix/scripts/admin/preflight-switch.sh darwin "$h"; darwin-rebuild switch --flake "path:{{repo}}#$h"
 
 # 构建 macOS 配置（不切换）
 darwin-check:
-    h="{{darwin_host}}"; if [ -z "$h" ]; then h="$({{repo}}/nix/scripts/admin/resolve-host.sh darwin {{repo}} auto --strict)"; fi; echo ">>> darwin_host=$h"; {{nix_cmd}} build --no-link "path:{{repo}}#darwinConfigurations.$h.system"
+    h="{{darwin_host}}"; if [ -z "$h" ]; then h="$(bash {{repo}}/nix/scripts/admin/resolve-host.sh darwin {{repo}} auto --strict)"; fi; echo ">>> darwin_host=$h"; {{nix_cmd}} build --no-link "path:{{repo}}#darwinConfigurations.$h.system"
 
 # 列出可用 darwin 主机
 darwin-hosts:
@@ -141,6 +142,10 @@ info:
 flake-check:
     {{nix_cmd}} flake check --all-systems path:{{repo}}
     @echo "✓ Flake 配置检查通过"
+
+# 仓库级完整检查（shell test + eval + flake check）
+repo-check:
+    @bash {{repo}}/nix/scripts/admin/repo-check.sh
 
 # 查看 flake.lock 依赖树
 lock:

@@ -1,47 +1,53 @@
 { config
 , pkgs
 , lib
+, mylib
 , ...
 }:
 let
   hostCfg = config.my.host;
-  inherit (hostCfg) enableMullvadVpn enableLibvirtd enableDocker enableFlatpak rootTmpfsSize enableHibernate;
+  roleFlags = mylib.roleFlags hostCfg;
+  inherit (roleFlags) enableMullvadVpn enableLibvirtd enableDocker enableFlatpak;
+  hibernateEnabled = hostCfg.resumeOffset != null;
   useRootfulDocker = hostCfg.dockerMode == "rootful";
+  luksMapperDevice = "/dev/mapper/${hostCfg.luksName}";
 in
 {
   preservation.enable = true;
-  preservation.preserveAt."/persistent" = {
-    directories = [
-      "/root"
-      "/etc/NetworkManager/system-connections"
-      "/etc/ssh"
-      "/etc/secureboot"
+  preservation.preserveAt = {
+    "/persistent" = {
+      directories = [
+        "/root"
+        "/etc/NetworkManager/system-connections"
+        "/etc/ssh"
+        "/etc/secureboot"
 
-      "/var/log"
-      "/var/lib/nixos"
-      "/var/lib/systemd"
-      "/var/lib/NetworkManager"
-      "/var/lib/bluetooth"
-    ]
-    ++ lib.optionals enableLibvirtd [
-      "/var/lib/libvirt"
-    ]
-    ++ lib.optionals (enableDocker && useRootfulDocker) [
-      "/var/lib/docker"
-    ]
-    ++ lib.optionals enableMullvadVpn [
-      "/etc/mullvad-vpn"
-      "/var/cache/mullvad-vpn"
-    ]
-    ++ lib.optionals enableFlatpak [
-      "/var/lib/flatpak"
-    ];
-    files = [
-      {
-        file = "/etc/machine-id";
-        inInitrd = true;
-      }
-    ];
+        "/var/log"
+        "/var/lib/nixos"
+        "/var/lib/systemd"
+        "/var/lib/NetworkManager"
+        "/var/lib/bluetooth"
+      ]
+      ++ lib.optionals enableLibvirtd [
+        "/var/lib/libvirt"
+      ]
+      ++ lib.optionals (enableDocker && useRootfulDocker) [
+        "/var/lib/docker"
+      ]
+      ++ lib.optionals enableMullvadVpn [
+        "/etc/mullvad-vpn"
+        "/var/cache/mullvad-vpn"
+      ]
+      ++ lib.optionals enableFlatpak [
+        "/var/lib/flatpak"
+      ];
+      files = [
+        {
+          file = "/etc/machine-id";
+          inInitrd = true;
+        }
+      ];
+    };
   };
 
   # /etc/machine-id 已持久化到 /persistent；systemd-machine-id-commit 仅适用于临时 machine-id。
@@ -55,7 +61,7 @@ in
       options = [
         "relatime"
         "mode=755"
-        "size=${rootTmpfsSize}"
+        "size=2G"
       ];
     };
 
@@ -63,7 +69,7 @@ in
       device =
         if config.fileSystems ? "/nix" && config.fileSystems."/nix" ? device
         then config.fileSystems."/nix".device
-        else "/dev/mapper/crypted-nixos";
+        else luksMapperDevice;
       fsType = "btrfs";
       options = [
         "subvol=@swap"
@@ -82,9 +88,7 @@ in
     };
   };
 
-  swapDevices = [
-    { device = "/swap/swapfile"; }
-  ];
+  swapDevices = [{ device = "/swap/swapfile"; }];
 
   zramSwap = {
     enable = true;
@@ -107,20 +111,9 @@ in
       deps = [ "specialfs" ];
     };
 
-    warnMissingResumeOffset = {
-      text = ''
-        if [ "${if enableHibernate then "1" else "0"}" = "1" ] && [ -f /swap/swapfile ] && [ -z "${if hostCfg.resumeOffset != null then toString hostCfg.resumeOffset else ""}" ]; then
-          echo "WARNING: my.host.resumeOffset is not set on host ${hostCfg.hostname}." >&2
-          echo "WARNING: hibernate may power off without resuming previous session." >&2
-          echo "WARNING: run (as root): btrfs inspect-internal map-swapfile -r /swap/swapfile" >&2
-        fi
-      '';
-      deps = [ "specialfs" ];
-    };
-
     warnSwapfileSizeMismatch = {
       text = ''
-        if [ "${if enableHibernate then "1" else "0"}" = "1" ] && [ -f /swap/swapfile ]; then
+        if [ "${if hibernateEnabled then "1" else "0"}" = "1" ] && [ -f /swap/swapfile ]; then
           current_size_bytes="$(${pkgs.coreutils}/bin/stat -c %s /swap/swapfile 2>/dev/null || echo 0)"
           target_size_bytes=$(( ${toString hostCfg.swapSizeGb} * 1024 * 1024 * 1024 ))
           if [ "$current_size_bytes" -ne "$target_size_bytes" ]; then
@@ -135,7 +128,7 @@ in
     warnResumeOffsetMismatch = {
       text = ''
           configured_resume_offset="${if hostCfg.resumeOffset != null then toString hostCfg.resumeOffset else ""}"
-          if [ "${if enableHibernate then "1" else "0"}" = "1" ] && [ -f /swap/swapfile ] && [ -n "$configured_resume_offset" ]; then
+          if [ "${if hibernateEnabled then "1" else "0"}" = "1" ] && [ -f /swap/swapfile ] && [ -n "$configured_resume_offset" ]; then
             btrfs_bin="${pkgs.btrfs-progs}/bin/btrfs"
             head_bin="${pkgs.coreutils}/bin/head"
             actual_resume_offset="$("$btrfs_bin" inspect-internal map-swapfile -r /swap/swapfile 2>/dev/null | "$head_bin" -n 1 || true)"

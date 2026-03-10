@@ -87,3 +87,19 @@ run_sops_encrypt_yaml() {
 
   run_sops --encrypt --age "$recipients" --input-type yaml --output-type yaml /dev/stdin >"$target_file"
 }
+
+resolve_target_owner_from_config() {
+  local repo_root="${1:?repo root required}"
+  local host="${2:?host required}"
+  local username="${3:?username required}"
+  local uid=""
+  local gid=""
+
+  uid="$(
+    nix eval --raw "path:${repo_root}#nixosConfigurations.${host}.config.users.users.\"${username}\".uid"
+  )"
+  gid="$(
+    nix eval --raw "path:${repo_root}#nixosConfigurations.${host}.config.users.groups.\"${username}\".gid"
+  )"
+  printf '%s:%s\n' "$uid" "$gid"
+}

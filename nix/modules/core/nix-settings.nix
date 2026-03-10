@@ -1,7 +1,5 @@
-{ lib, config, nixpkgs, ... }:
+{ lib, nixpkgs, ... }:
 let
-  hostCfg = config.my.host;
-  inherit (hostCfg) gcRetentionDays acceptFlakeConfig extraTrustedUsers;
   cacheSubstituters = [
     "https://nix-community.cachix.org"
     "https://nixpkgs-wayland.cachix.org"
@@ -27,12 +25,12 @@ in
       ] ++ cacheTrustedPublicKeys;
 
       # mkForce：精确控制安全敏感设置，避免与 NixOS 默认 ["root"] 合并产生重复导致 eval check 失败
-      trusted-users = lib.mkForce (lib.unique ([ "root" ] ++ extraTrustedUsers));
+      trusted-users = lib.mkForce [ "root" ];
       # mkForce：安全可审计，精确控制可信 substituter 列表
       trusted-substituters = lib.mkForce (lib.unique cacheSubstituters);
 
       # 默认关闭，避免不受控地接受外部 flake 内嵌配置。
-      accept-flake-config = acceptFlakeConfig;
+      accept-flake-config = false;
 
       # 自动优化存储（硬链接重复文件）
       auto-optimise-store = true;
@@ -49,7 +47,7 @@ in
     gc = {
       automatic = true;
       dates = "weekly"; # 每周执行一次
-      options = "--delete-older-than ${gcRetentionDays}";
+      options = "--delete-older-than 14d";
     };
 
   };

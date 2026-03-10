@@ -1,7 +1,8 @@
-{ lib, config, mainUser, ... }:
+{ lib, config, mainUser, mylib, ... }:
 let
   hostCfg = config.my.host;
-  inherit (hostCfg) enableDocker;
+  roleFlags = mylib.roleFlags hostCfg;
+  inherit (roleFlags) enableDocker;
   useRootlessDocker = hostCfg.dockerMode == "rootless";
   useRootfulDocker = hostCfg.dockerMode == "rootful";
 in

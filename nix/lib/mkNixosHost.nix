@@ -27,17 +27,21 @@ let
     ;
 
   baseSpecialArgs = genSpecialArgs system;
-  resolvedMyvars = hostRegistry // hostMyvars // {
-    hostname = name;
-    configRepoPath = hostMyvars.configRepoPath or hostRegistry.configRepoPath or "/persistent/nixos-config";
-  };
-  mainUser = resolvedMyvars.username;
-
-  specialArgs = baseSpecialArgs // {
-    myvars = resolvedMyvars;
-    inherit mainUser;
-  };
-
+  registryOwnedKeys = [
+    "system"
+    "formFactor"
+    "profiles"
+    "deployHost"
+    "deployUser"
+  ];
+  conflictingRegistryKeys = builtins.filter
+    (
+      key:
+      builtins.hasAttr key hostMyvars
+      && builtins.hasAttr key hostRegistry
+      && hostMyvars.${key} != hostRegistry.${key}
+    )
+    registryOwnedKeys;
   hostDir = "nix/hosts/nixos/${name}";
   hostEntryPath =
     if hostPath != null then
@@ -49,6 +53,8 @@ let
   hostDiskoPath = mylib.relativeToRoot "${hostDir}/disko.nix";
   hostHomePath = mylib.relativeToRoot "${hostDir}/home.nix";
   hostHardwareModuleNames = import hostHardwareModulesPath;
+  derivedCpuVendor = mylib.cpuVendorFromHardwareModules hostHardwareModuleNames;
+  derivedGpuMode = mylib.gpuModeFromHardwareModules hostHardwareModuleNames;
   hostHardwareModules =
     map
       (moduleName:
@@ -56,6 +62,17 @@ let
           nixos-hardware.nixosModules
       )
       hostHardwareModuleNames;
+
+  resolvedMyvars = hostMyvars // hostRegistry // {
+    hostname = name;
+    gpuMode = hostMyvars.gpuMode or derivedGpuMode;
+  };
+  mainUser = resolvedMyvars.username;
+
+  specialArgs = baseSpecialArgs // {
+    myvars = resolvedMyvars;
+    inherit mainUser derivedCpuVendor;
+  };
 
   resolvedHomeModules = homeModules ++ lib.optionals (builtins.pathExists hostHomePath) [ hostHomePath ];
 
@@ -94,6 +111,9 @@ let
     overlays = nixpkgsOverlays;
   };
 in
+assert lib.assertMsg
+  (conflictingRegistryKeys == [ ])
+  "Host ${hostDir}/vars.nix overrides registry-owned keys: ${lib.concatStringsSep ", " conflictingRegistryKeys}";
 assert mylib.assertPathExists hostEntryPath "Missing ${hostDir}/default.nix";
 assert mylib.assertPathExists hostHardwarePath "Missing ${hostDir}/hardware.nix";
 assert mylib.assertPathExists hostHardwareModulesPath "Missing ${hostDir}/hardware-modules.nix";
@@ -107,7 +127,6 @@ assert mylib.assertRequiredNonEmptyStrings hostMyvars [
   "diskDevice"
 ] "${hostDir}/vars.nix";
 assert mylib.assertRequiredPositiveInts hostMyvars [ "swapSizeGb" ] "${hostDir}/vars.nix";
-assert mylib.assertRequiredNonEmptyStrings resolvedMyvars [ "configRepoPath" ] "${hostDir}/vars.nix";
 {
   inherit
     name

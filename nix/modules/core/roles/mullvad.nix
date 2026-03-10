@@ -1,7 +1,8 @@
-{ lib, config, ... }:
+{ lib, config, mylib, ... }:
 let
   hostCfg = config.my.host;
-  inherit (hostCfg) enableMullvadVpn;
+  roleFlags = mylib.roleFlags hostCfg;
+  inherit (roleFlags) enableMullvadVpn;
 in
 {
   services = {

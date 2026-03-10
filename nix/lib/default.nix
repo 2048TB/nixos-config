@@ -238,14 +238,28 @@ rec {
     else if vendor == "intel" then [ "kvm-intel" ]
     else [ "kvm-amd" "kvm-intel" ];
 
+  cpuVendorFromHardwareModules =
+    moduleNames:
+    let
+      hasAmd = builtins.elem "common-cpu-amd" moduleNames;
+      hasIntel = builtins.elem "common-cpu-intel" moduleNames;
+    in
+    if hasAmd && !hasIntel then "amd"
+    else if hasIntel && !hasAmd then "intel"
+    else "auto";
+
+  gpuModeFromHardwareModules =
+    moduleNames:
+    if builtins.elem "common-gpu-amd" moduleNames then "amdgpu" else "auto";
+
   mkNixosHardwareModule =
     { extraImports ? [ ]
     , availableKernelModules ? defaultInitrdAvailableKernelModules
     ,
     }:
-    { config, lib, ... }:
+    { config, lib, derivedCpuVendor, ... }:
     let
-      inherit (config.my.host) cpuVendor;
+      cpuVendor = derivedCpuVendor;
     in
     {
       imports = extraImports;

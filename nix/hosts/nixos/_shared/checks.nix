@@ -4,10 +4,10 @@
 , name
 , mainUser
 , nixosSystem
+, expectedLuksName ? "crypted-nixos"
 , expectedVideoDrivers ? null
 , expectedResumeOffset ? null
 , expectedHostProfile ? name
-, expectedAcceptFlakeConfig ? false
 , expectedDockerMode ? null
 , expectedTrustedUsers ? [ "root" ]
 , expectedTrustedSubstituters ? null
@@ -90,7 +90,7 @@ let
   hasExpectedResumeDeviceState =
     if expectsHibernate then (cfg.boot.resumeDevice or "") != "" else (cfg.boot.resumeDevice or "") == "";
   hasExpectedAcceptFlakeConfig =
-    (cfg.nix.settings.accept-flake-config or false) == expectedAcceptFlakeConfig;
+    !(cfg.nix.settings.accept-flake-config or false);
   resolvedExpectedTrustedSubstituters =
     if expectedTrustedSubstituters != null then
       expectedTrustedSubstituters
@@ -129,6 +129,16 @@ let
     '';
 in
 {
+  "eval-${name}-impermanence-flag" = pkgs.runCommand "eval-${name}-impermanence-flag" { } ''
+    test "${if cfg.preservation.enable then "1" else "0"}" = "1"
+    touch "$out"
+  '';
+
+  "eval-${name}-luks-name" = pkgs.runCommand "eval-${name}-luks-name" { } ''
+    test "${cfg.my.host.luksName}" = "${expectedLuksName}"
+    touch "$out"
+  '';
+
   "eval-${name}-hostname" = pkgs.runCommand "eval-${name}-hostname" { } ''
     test "${cfg.networking.hostName}" = "${name}"
     touch "$out"
@@ -175,6 +185,11 @@ in
     "Unexpected duplicate packages in environment.systemPackages";
 
   "eval-${name}-resume-device" = pkgs.runCommand "eval-${name}-resume-device" { } ''
+    if [ "${if expectsHibernate then "1" else "0"}" = "1" ]; then
+      test "${cfg.boot.resumeDevice or ""}" = "/dev/mapper/${expectedLuksName}"
+    else
+      test "${cfg.boot.resumeDevice or ""}" = ""
+    fi
     test "${if hasExpectedResumeDeviceState then "1" else "0"}" = "1"
     touch "$out"
   '';
@@ -186,6 +201,11 @@ in
 
   "eval-${name}-resume-offset-kernel-param" = pkgs.runCommand "eval-${name}-resume-offset-kernel-param" { } ''
     test "${if hasExpectedResumeOffsetKernelParamState then "1" else "0"}" = "1"
+    touch "$out"
+  '';
+
+  "eval-${name}-swap-device" = pkgs.runCommand "eval-${name}-swap-device" { } ''
+    test "${cfg.fileSystems."/swap".device}" = "/dev/mapper/${expectedLuksName}"
     touch "$out"
   '';
 }

@@ -8,7 +8,8 @@ let
   hostCfg = config.my.host;
   homeDir = "/home/${mainUser}";
   inherit (config.my) profiles;
-  inherit (hostCfg) configRepoPath enableHibernate;
+  configRepoPath = "/persistent/nixos-config";
+  hibernateEnabled = hostCfg.resumeOffset != null;
   isLaptop = profiles.laptop;
   isDesktop = profiles.desktop;
 
@@ -31,7 +32,7 @@ in
     {
       logind.settings = lib.mkIf isLaptop {
         Login = {
-          HandleLidSwitch = if enableHibernate then "suspend-then-hibernate" else "suspend";
+          HandleLidSwitch = if hibernateEnabled then "suspend-then-hibernate" else "suspend";
           HandleLidSwitchExternalPower = "ignore";
           HandleLidSwitchDocked = "ignore";
         };
@@ -72,8 +73,8 @@ in
   systemd = {
     sleep.extraConfig = lib.mkIf isLaptop ''
       AllowSuspend=yes
-      AllowHibernation=${if enableHibernate then "yes" else "no"}
-      AllowSuspendThenHibernate=${if enableHibernate then "yes" else "no"}
+      AllowHibernation=${if hibernateEnabled then "yes" else "no"}
+      AllowSuspendThenHibernate=${if hibernateEnabled then "yes" else "no"}
       AllowHybridSleep=no
     '';
 
