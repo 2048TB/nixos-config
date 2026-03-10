@@ -67,10 +67,12 @@ just lint
 just dead
 just eval-tests
 just flake-check
+just repo-check
 just check-all
 ```
 
 `check-all` 当前等价于：`fmt + lint + dead`（不包含 `eval-tests` 与 `flake-check`）。
+`repo-check` 会串联 shell syntax / shell tests / eval-tests / flake-check。
 
 ---
 
@@ -132,7 +134,7 @@ just deploy                  # 部署全部 NixOS hosts（按 registry）
 just deploy HOSTS=zly,zky    # 只部署指定主机
 ```
 
-`deploy` 会读取 `nixosConfigurations.<host>.config.my.host.deployHost/deployUser` 作为 SSH 目标。
+`deploy` 会读取 `nix/hosts/registry/systems.toml` 中的 `deployHost` / `deployUser`；未设置时回退到 `<host>` / `root`。
 
 ---
 
@@ -161,6 +163,8 @@ DARWIN_HOST=zly-mac nix run .#build-switch
 just quick                 # check + switch
 just full                  # check-all + switch + clean
 just dev                   # fmt + flake-check + test
+just repo-check            # 仓库级检查
+bash nix/scripts/admin/repo-check.sh --full
 just status && just log    # 查看仓库状态
 ```
 

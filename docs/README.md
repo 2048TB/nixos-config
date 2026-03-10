@@ -147,6 +147,12 @@ just guard-secrets
 ## 5. 提交前验证
 
 ```bash
+just repo-check
+```
+
+最小检查：
+
+```bash
 just eval-tests
 just flake-check
 ```
@@ -159,6 +165,7 @@ just flake-check
 - 保留重型：`Nix CI Heavy (Manual)`（仅手动触发）
 - 保留 lock 检查：`Flake Lock Checker Heavy (Manual)`（仅手动触发）
 - 自动清理：`Cleanup Old Workflow Runs`（按周期清理旧 runs）
+- 文档/Markdown-only 变更默认不会触发 `Nix CI Light`
 - 详情见：`docs/CI.md`
 
 ---
