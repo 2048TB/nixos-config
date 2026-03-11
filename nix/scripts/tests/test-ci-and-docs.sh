@@ -34,7 +34,7 @@ if ! rg -n --fixed-strings '.#nixosConfigurations.zly.config.system.build.toplev
   exit 1
 fi
 
-for path in README.md docs/README.md docs/architecture.md docs/operations.md docs/ci.md; do
+for path in README.md docs/README.md docs/architecture.md docs/operations.md docs/CI.md; do
   if [ ! -f "$repo_root/$path" ]; then
     echo "expected documentation entrypoint: $path" >&2
     exit 1

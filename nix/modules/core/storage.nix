@@ -7,7 +7,8 @@
 let
   hostCfg = config.my.host;
   roleFlags = mylib.roleFlags hostCfg;
-  inherit (roleFlags) enableProvider appVpn enableLibvirtd enableDocker enableFlatpak;
+  inherit (roleFlags) enableProvider appVpn enableLibvirtd enableDocker;
+  enableFlatpak = config.my.profiles.desktop;
   hibernateEnabled = hostCfg.resumeOffset != null;
   useRootfulDocker = hostCfg.dockerMode == "rootful";
   luksMapperDevice = "/dev/mapper/${hostCfg.luksName}";

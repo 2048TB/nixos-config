@@ -3,9 +3,7 @@ let
   inherit (lib) types;
   schema = mylib.hostMetaSchema;
   defaultRoles = myvars.roles or schema.defaultRoles;
-  defaultProfileList =
-    myvars.profiles
-      or (lib.optionals (builtins.elem "desktop" defaultRoles) [ "desktop" ]);
+  defaultProfileList = myvars.profiles or [ ];
   hasProfile = profile: builtins.elem profile defaultProfileList;
 in
 {

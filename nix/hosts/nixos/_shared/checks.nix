@@ -12,11 +12,35 @@
 , expectedTrustedUsers ? [ "root" ]
 , expectedTrustedSubstituters ? null
 , expectedKvmModules ? null
-, cpuVendor ? null
+, derivedCpuVendor ? null
+, cpuVendor ? derivedCpuVendor
 , ...
 }:
 let
   cfg = nixosSystem.config;
+  hostCfg = cfg.my.host;
+  hostRoles = hostCfg.roles or [ ];
+  isDesktop = cfg.my.profiles.desktop or false;
+  resolvedExpectedVideoDrivers =
+    if expectedVideoDrivers != null then
+      expectedVideoDrivers
+    else if !isDesktop then
+      null
+    else if hostCfg.gpuMode == "nvidia" then
+      [ "nvidia" ]
+    else if hostCfg.gpuMode == "amdgpu" then
+      [ "amdgpu" ]
+    else if hostCfg.gpuMode == "amd-nvidia-hybrid" then
+      [ "nvidia" "amdgpu" ]
+    else
+      [ "modesetting" ];
+  resolvedExpectedDockerMode =
+    if expectedDockerMode != null then
+      expectedDockerMode
+    else if builtins.elem "container" hostRoles then
+      hostCfg.dockerMode or "rootless"
+    else
+      "disabled";
 
   resolvedExpectedKvmModules =
     if expectedKvmModules != null then expectedKvmModules
@@ -116,7 +140,7 @@ let
     else if (cfg.virtualisation.docker.enable or false)
     then "rootful"
     else "disabled";
-  hasExpectedDockerMode = if expectedDockerMode == null then true else actualDockerMode == expectedDockerMode;
+  hasExpectedDockerMode = actualDockerMode == resolvedExpectedDockerMode;
   actualKvmModules = builtins.filter (m: lib.hasPrefix "kvm-" m) cfg.boot.kernelModules;
 
   mkNonEmptyCheck = name': items: msg:
@@ -209,13 +233,13 @@ in
     touch "$out"
   '';
 }
-// lib.optionalAttrs (expectedVideoDrivers != null) {
+// lib.optionalAttrs (resolvedExpectedVideoDrivers != null) {
   "eval-${name}-video-drivers" = pkgs.runCommand "eval-${name}-video-drivers" { } ''
-    test "${builtins.toJSON cfg.services.xserver.videoDrivers}" = "${builtins.toJSON expectedVideoDrivers}"
+    test "${builtins.toJSON cfg.services.xserver.videoDrivers}" = "${builtins.toJSON resolvedExpectedVideoDrivers}"
     touch "$out"
   '';
 }
-// lib.optionalAttrs (expectedDockerMode != null) {
+// lib.optionalAttrs true {
   "eval-${name}-docker-mode" = pkgs.runCommand "eval-${name}-docker-mode" { } ''
     test "${if hasExpectedDockerMode then "1" else "0"}" = "1"
     touch "$out"

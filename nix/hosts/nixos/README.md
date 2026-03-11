@@ -8,14 +8,6 @@
 
 ---
 
-## 当前 3 台主机
-
-- `zky`
-- `zly`
-- `zzly`
-
----
-
 ## AI 创建新主机时需要产出的文件
 
 1. `default.nix`
@@ -52,20 +44,14 @@
 ### `vars.nix`
 
 ```nix
-{
-  # Identity
-  username = "z";
-  timezone = "Asia/Shanghai";
+let
+  common = import ../_shared/vars-common.nix;
+in
+common // {
   systemStateVersion = "25.11";
   homeStateVersion = "25.11";
 
   # Storage / Hibernate
-  diskDevice =
-    let
-      envDiskDevice = builtins.getEnv "NIXOS_DISK_DEVICE";
-    in
-    if envDiskDevice != "" then envDiskDevice else "/dev/nvme0n1";
-  swapSizeGb = 32;
   # Optional: set only when enabling hibernate with a btrfs swapfile.
   # resumeOffset = 1234567;
 
@@ -83,11 +69,12 @@
 
   # Roles
   roles = [
-    "desktop"
     "vpn"
   ];
 }
 ```
+
+说明：`../_shared/vars-common.nix` 只放稳定共享默认值；`systemStateVersion`、`homeStateVersion`、`resumeOffset`、GPU 参数和角色列表仍建议在每台主机中显式定义。
 
 ### `hardware-modules.nix`
 
@@ -127,7 +114,6 @@ args@{ mylib, ... }:
 ```toml
 [nixos.<new-host>]
 system = "x86_64-linux"
-formFactor = "desktop"
 profiles = ["desktop"]
 deployEnabled = true
 deployHost = "<new-host>"
@@ -135,63 +121,21 @@ deployUser = "root"
 deployPort = 22
 ```
 
----
+## 实际数据入口
 
-## 三台主机参数对照
+不要在 README 中抄写当前主机参数；以下文件才是事实源：
 
-### registry
-
-| host | system | formFactor | profiles | deployEnabled | deployHost | deployUser | deployPort |
-|---|---|---|---|---|---|---|---|
-| `zky` | `x86_64-linux` | `laptop` | `["desktop", "laptop"]` | `true` | `zky` | `root` | `22` |
-| `zly` | `x86_64-linux` | `desktop` | `["desktop"]` | `true` | `zly` | `root` | `22` |
-| `zzly` | `x86_64-linux` | `desktop` | `["desktop"]` | `true` | `zzly` | `root` | `22` |
-
-### `vars.nix`
-
-| host | username | timezone | systemStateVersion | homeStateVersion | diskDevice | swapSizeGb | resumeOffset |
-|---|---|---|---|---|---|---|---|
-| `zky` | `z` | `Asia/Shanghai` | `25.11` | `25.11` | `/dev/nvme0n1` | `32` | `2990172` |
-| `zly` | `z` | `Asia/Shanghai` | `25.11` | `25.11` | `/dev/nvme0n1` | `32` | `10113490` |
-| `zzly` | `z` | `Asia/Shanghai` | `25.11` | `25.11` | `/dev/nvme0n1` | `32` | `1513128` |
-
-### 硬件参数
-
-| host | gpuMode | nvidiaOpen | dockerMode | amdgpuBusId | nvidiaBusId |
-|---|---|---|---|---|---|
-| `zky` | `nvidia` | `true` |  |  |  |
-| `zly` | `amd-nvidia-hybrid` | `true` | `rootless` | `PCI:18@0:0:0` | `PCI:1@0:0:0` |
-| `zzly` | `amdgpu` |  |  |  |  |
-
-### roles
-
-| host | roles |
-|---|---|
-| `zky` | `["desktop", "vpn"]` |
-| `zly` | `["desktop", "gaming", "vpn", "virt", "container"]` |
-| `zzly` | `["desktop", "vpn"]` |
-
-### `hardware-modules.nix`
-
-| host | modules |
-|---|---|
-| `zky` | `common-pc`, `common-pc-ssd`, `common-cpu-intel` |
-| `zly` | `common-pc`, `common-pc-ssd`, `common-cpu-amd`, `common-gpu-amd` |
-| `zzly` | `common-pc`, `common-pc-ssd`, `common-cpu-amd`, `common-gpu-amd` |
-
-### `hardware.nix` 额外 import
-
-| host | extraImports |
-|---|---|
-| `zky` | `hardware-workarounds.nix` |
-| `zly` | `hardware-workarounds.nix`, `hardware-gpu-hybrid.nix` |
-| `zzly` | `hardware-workarounds.nix` |
+- 主机注册与 profile/deploy 信息：`nix/hosts/registry/systems.toml`
+- 某台主机运行时参数：`nix/hosts/nixos/<host>/vars.nix`
+- NixOS 主机共享默认值：`nix/hosts/nixos/_shared/vars-common.nix`
+- 某台主机硬件模块清单：`nix/hosts/nixos/<host>/hardware-modules.nix`
+- 某台主机额外硬件 import：`nix/hosts/nixos/<host>/hardware.nix`
 
 ---
 
 ## 磁盘布局共性
 
-三台主机的 `disko.nix` 当前一致：
+当前各台 NixOS 主机的 `disko.nix` 默认都直接 import `../_shared/disko-luks-btrfs.nix`，其共享布局为：
 
 - GPT
 - `ESP` 分区大小 `512M`

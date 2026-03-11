@@ -1,9 +1,4 @@
-{ config, mylib, ... }:
-let
-  hostCfg = config.my.host;
-  roleFlags = mylib.roleFlags hostCfg;
-  inherit (roleFlags) enableFlatpak;
-in
+{ config, ... }:
 {
-  services.flatpak.enable = enableFlatpak;
+  services.flatpak.enable = config.my.profiles.desktop;
 }

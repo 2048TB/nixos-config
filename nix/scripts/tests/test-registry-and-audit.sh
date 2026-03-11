@@ -42,7 +42,6 @@ touch "$tmprepo/flake.nix"
 cat >"$tmprepo/nix/hosts/registry/systems.toml" <<'EOF'
 [nixos.zly]
 system = "x86_64-linux"
-formFactor = "desktop"
 profiles = ["desktop"]
 deployEnabled = true
 deployHost = "builder.internal"
@@ -51,7 +50,6 @@ deployPort = 2222
 
 [nixos.zky]
 system = "x86_64-linux"
-formFactor = "desktop"
 profiles = ["desktop"]
 deployEnabled = false
 deployHost = "skip.internal"

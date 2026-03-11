@@ -1,20 +1,12 @@
-{
+let
+  common = import ../_shared/vars-common.nix;
+in
+common // {
   # zly 独立主机变量（保持与 zky 同结构，便于对比与后续分化）
-
-  # Identity
-  username = "z";
-  timezone = "Asia/Shanghai";
   systemStateVersion = "25.11";
   homeStateVersion = "25.11";
 
   # Storage / Hibernate
-  diskDevice =
-    let
-      envDiskDevice = builtins.getEnv "NIXOS_DISK_DEVICE";
-    in
-    if envDiskDevice != "" then envDiskDevice else "/dev/nvme0n1";
-  swapSizeGb = 32;
-
   resumeOffset = 10113490;
 
   # Hardware
@@ -29,7 +21,6 @@
 
   # Roles
   roles = [
-    "desktop"
     "gaming"
     "vpn"
     "virt"
