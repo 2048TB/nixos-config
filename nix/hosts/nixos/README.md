@@ -95,7 +95,16 @@ args@{ mylib, ... }:
 }) args
 ```
 
-说明：`hardware.nix` 通常保持薄包装；通用 initrd / microcode 由 helper 统一提供，主机只追加自己的 workaround 或 hybrid 模块。
+说明：`hardware.nix` 通常保持薄包装；通用 initrd kernel modules、firmware 默认值以及按 CPU vendor 收紧后的 microcode 默认值由 helper 统一提供，主机只追加自己的 workaround 或 hybrid 模块。
+
+如果该主机没有本地 workaround，且只想复用共享项，也可以直接 import `_shared/`：
+
+```nix
+args@{ mylib, ... }:
+(mylib.mkNixosHardwareModule {
+  extraImports = [ ../_shared/hardware-workarounds-common.nix ];
+}) args
+```
 
 如果是 hybrid GPU 主机：
 
