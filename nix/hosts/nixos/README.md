@@ -129,9 +129,10 @@ args@{ mylib, ... }:
 system = "x86_64-linux"
 formFactor = "desktop"
 profiles = ["desktop"]
-# Optional overrides for deploy-hosts.sh:
-# deployHost = "<new-host>"
-# deployUser = "root"
+deployEnabled = true
+deployHost = "<new-host>"
+deployUser = "root"
+deployPort = 22
 ```
 
 ---
@@ -140,11 +141,11 @@ profiles = ["desktop"]
 
 ### registry
 
-| host | system | formFactor | profiles | deployHost | deployUser |
-|---|---|---|---|---|---|
-| `zky` | `x86_64-linux` | `laptop` | `["desktop", "laptop"]` |  |  |
-| `zly` | `x86_64-linux` | `desktop` | `["desktop"]` |  |  |
-| `zzly` | `x86_64-linux` | `desktop` | `["desktop"]` |  |  |
+| host | system | formFactor | profiles | deployEnabled | deployHost | deployUser | deployPort |
+|---|---|---|---|---|---|---|---|
+| `zky` | `x86_64-linux` | `laptop` | `["desktop", "laptop"]` | `true` | `zky` | `root` | `22` |
+| `zly` | `x86_64-linux` | `desktop` | `["desktop"]` | `true` | `zly` | `root` | `22` |
+| `zzly` | `x86_64-linux` | `desktop` | `["desktop"]` | `true` | `zzly` | `root` | `22` |
 
 ### `vars.nix`
 

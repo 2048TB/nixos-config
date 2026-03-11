@@ -46,6 +46,8 @@ REPO="$PWD"
 "$REPO"/nix/scripts/admin/install-live.sh --host zky --disk /dev/nvme0n1 --repo "$REPO"
 ```
 
+说明：交互执行时脚本会再次确认目标磁盘；若在自动化环境中使用，需要显式传 `--yes`。
+
 ### 完全手动安装（ISO，不使用 `just install`）
 
 > 危险：以下命令会重分区并清空目标磁盘。执行前务必确认 `DISK`。

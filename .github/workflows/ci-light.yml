@@ -23,27 +23,28 @@ concurrency:
 
 jobs:
   eval-tests:
-    name: Eval Tests
+    name: Light Checks
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install Nix
-        uses: cachix/install-nix-action@v31
-        with:
-          extra_nix_config: |
-            experimental-features = nix-command flakes
+      - name: Setup Nix
+        uses: ./.github/actions/setup-nix
 
       - name: Run lightweight eval checks
         run: |
           set -euo pipefail
+
+          bash nix/scripts/checks/registry-check.sh
 
           nix build --no-link \
             .#checks.x86_64-linux.evaltest-hostname \
             .#checks.x86_64-linux.evaltest-home \
             .#checks.x86_64-linux.evaltest-kernel \
             .#checks.x86_64-linux.evaltest-platform
+
+          nix build --no-link .#nixosConfigurations.zly.config.system.build.toplevel
 
           nix eval .#checks.aarch64-darwin.evaltest-darwin-hostname.drvPath >/dev/null
           nix eval .#checks.aarch64-darwin.evaltest-darwin-home.drvPath >/dev/null

@@ -7,20 +7,34 @@
 system = "x86_64-linux"
 formFactor = "laptop"
 profiles = ["desktop", "laptop"]
+deployEnabled = true
+deployHost = "zky"
+deployUser = "root"
+deployPort = 22
 
 [nixos.zly]
 system = "x86_64-linux"
 formFactor = "desktop"
 profiles = ["desktop"]
+deployEnabled = true
+deployHost = "zly"
+deployUser = "root"
+deployPort = 22
 
 [nixos.zzly]
 system = "x86_64-linux"
 formFactor = "desktop"
 profiles = ["desktop"]
+deployEnabled = true
+deployHost = "zzly"
+deployUser = "root"
+deployPort = 22
 
 [darwin.zly-mac]
 system = "aarch64-darwin"
 formFactor = "laptop"
 profiles = ["desktop", "laptop"]
+deployEnabled = true
 deployHost = "zly-mac"
 deployUser = "z"
+deployPort = 22

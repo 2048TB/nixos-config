@@ -14,10 +14,10 @@ nix/
 ├── hosts/         # 主机配置（nixos/ + darwin/ + outputs/）
 ├── modules/       # 系统模块（core/ + darwin/）
 ├── home/          # Home Manager（base/ + linux/ + darwin/ + configs/）
-└── scripts/       # Shell 脚本（admin/）
+└── scripts/       # Shell 脚本（admin/ + checks/ + tests/）
 ```
 
-其他顶层目录：`secrets/`、`wallpapers/`、`docs/`
+其他顶层目录：`secrets/`、`wallpapers/`、`docs/`、`.github/`
 
 ---
 
@@ -27,7 +27,7 @@ nix/
 just hosts          # 确认主机列表
 just eval-tests     # eval 测试
 just flake-check    # flake 完整检查
-just repo-check     # 仓库级自检（脚本 + eval + flake）
+just repo-check     # 仓库级自检（shell syntax + tests + registry + eval + flake）
 ```
 
 改了 Nix 文件再补：`just fmt && just lint`
@@ -51,6 +51,7 @@ just repo-check     # 仓库级自检（脚本 + eval + flake）
 | 密钥管理 | `nix/scripts/admin/sops.sh` |
 | 安装流程 | `nix/scripts/admin/install-live.sh` |
 | 仓库级检查 | `nix/scripts/admin/repo-check.sh` |
+| registry / input 审计 | `nix/scripts/checks/*.sh` |
 | 新增主机参考 | `nix/hosts/README.md` |
 
 ---
@@ -65,6 +66,7 @@ just darwin-switch                             # macOS
 注意：当前 `justfile` 默认 `host := ""`、`darwin_host := ""`。`just switch/check/test` 与 `just darwin-switch/darwin-check` 未显式指定时都会自动解析当前主机；跨主机操作仍建议显式写 `host=...` / `darwin_host=...`。
 
 补充：当前 Linux/macOS 主账号的一致开发环境默认由 Home Manager 提供；system layer 仅保留桌面运行基线与系统服务。
+补充：`repo-check` 会覆盖 `nix/scripts/admin/*.sh`、`nix/scripts/checks/*.sh`、`nix/scripts/tests/*.sh` 的 shell 语法检查。
 
 ---
 

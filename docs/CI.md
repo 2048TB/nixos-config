@@ -21,16 +21,18 @@
 - `workflow_dispatch`
 
 检查内容：
-1. build Linux eval checks（`evaltest-hostname/home/kernel/platform`）
-2. eval Darwin checks（`evaltest-darwin-hostname/home/platform`）
+1. 解析并校验 host registry（`bash nix/scripts/checks/registry-check.sh`）
+2. build Linux eval checks（`evaltest-hostname/home/kernel/platform`）
+3. build 1 台代表性 NixOS host（当前固定为 `zly`）
+4. eval Darwin checks（`evaltest-darwin-hostname/home/platform`）
 
-设计目标：尽快反馈，不做每台主机 toplevel build。
+设计目标：尽快反馈，同时保证至少有 1 个真实 Linux toplevel build。
 
 ---
 
 ## 2. 保留的重型 CI（手动）
 
-工作流文件：`.github/workflows/ci.yml`
+工作流文件：`.github/workflows/ci-heavy.yml`
 
 触发方式：仅 `workflow_dispatch`
 

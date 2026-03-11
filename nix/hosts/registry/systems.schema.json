@@ -20,9 +20,12 @@
   "$defs": {
     "entry": {
       "type": "object",
-      "additionalProperties": true,
+      "additionalProperties": false,
       "required": [
-        "system"
+        "system",
+        "formFactor",
+        "profiles",
+        "deployEnabled"
       ],
       "properties": {
         "system": {
@@ -48,6 +51,9 @@
             ]
           }
         },
+        "deployEnabled": {
+          "type": "boolean"
+        },
         "deployHost": {
           "type": "string",
           "minLength": 1
@@ -55,6 +61,10 @@
         "deployUser": {
           "type": "string",
           "minLength": 1
+        },
+        "deployPort": {
+          "type": "integer",
+          "minimum": 1
         },
         "configRepoPath": {
           "type": "string",

@@ -58,7 +58,14 @@ list_hosts() {
 get_registry_field() {
   local host="$1"
   local field="$2"
-  nix eval --impure --raw --expr "
+  local mode="${3:-raw}"
+  local flag="--raw"
+
+  if [ "$mode" = "json" ]; then
+    flag="--json"
+  fi
+
+  nix eval --impure "$flag" --expr "
     let
       registry = builtins.fromTOML (builtins.readFile \"${repo}/nix/hosts/registry/systems.toml\");
       hostEntry = (registry.nixos or {}).${host} or {};
@@ -95,8 +102,19 @@ echo ">>> repo=$repo"
 echo ">>> hosts=${hosts[*]}"
 
 for host in "${hosts[@]}"; do
+  deploy_enabled="$(get_registry_field "$host" "deployEnabled" "json")"
   target_host="$(get_registry_field "$host" "deployHost")"
   target_user="$(get_registry_field "$host" "deployUser")"
+  target_port="$(get_registry_field "$host" "deployPort" "json")"
+
+  if [ -z "$deploy_enabled" ] || [ "$deploy_enabled" = "null" ]; then
+    deploy_enabled="true"
+  fi
+  if [ "$deploy_enabled" = "false" ]; then
+    echo ""
+    echo "=== skip host=${host} (deployEnabled=false) ==="
+    continue
+  fi
 
   if [ -z "$target_host" ]; then
     target_host="$host"
@@ -104,9 +122,12 @@ for host in "${hosts[@]}"; do
   if [ -z "$target_user" ]; then
     target_user="root"
   fi
+  if [ -z "$target_port" ] || [ "$target_port" = "null" ]; then
+    target_port="22"
+  fi
 
   echo ""
-  echo "=== deploy host=${host} target=${target_user}@${target_host} ==="
+  echo "=== deploy host=${host} target=${target_user}@${target_host} port=${target_port} ==="
 
   cmd=(
     nixos-rebuild
@@ -122,5 +143,5 @@ for host in "${hosts[@]}"; do
     cmd+=("${extra_args[@]}")
   fi
 
-  "${cmd[@]}"
+  NIX_SSHOPTS="${NIX_SSHOPTS:+$NIX_SSHOPTS }-p ${target_port}" "${cmd[@]}"
 done

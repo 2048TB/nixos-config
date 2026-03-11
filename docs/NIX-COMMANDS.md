@@ -72,7 +72,7 @@ just check-all
 ```
 
 `check-all` 当前等价于：`fmt + lint + dead`（不包含 `eval-tests` 与 `flake-check`）。
-`repo-check` 会串联 shell syntax / shell tests / eval-tests / flake-check。
+`repo-check` 会串联 shell syntax / shell tests / registry check / eval-tests / flake-check。
 
 ---
 
@@ -89,7 +89,7 @@ just lock
 
 ## 7. CI（GitHub Actions）
 
-文档入口：`docs/CI.md`
+文档入口：`docs/ci.md`（摘要） / `docs/CI.md`（详细）
 
 常用命令：
 
@@ -134,7 +134,7 @@ just deploy                  # 部署全部 NixOS hosts（按 registry）
 just deploy HOSTS=zly,zky    # 只部署指定主机
 ```
 
-`deploy` 会读取 `nix/hosts/registry/systems.toml` 中的 `deployHost` / `deployUser`；未设置时回退到 `<host>` / `root`。
+`deploy` 会读取 `nix/hosts/registry/systems.toml` 中的 `deployEnabled` / `deployHost` / `deployUser` / `deployPort`；`deployEnabled = false` 时会跳过该主机，端口默认 `22`。
 
 ---
 
