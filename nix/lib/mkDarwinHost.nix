@@ -18,7 +18,6 @@ let
   registryState = hostRegistryLib.mkRegistryState {
     inherit hostRegistry hostMyvars;
   };
-  inherit (registryState) deployEnabled deployHost deployUser deployPort;
   hostHomePath = mylib.relativeToRoot "${hostDir}/home.nix";
   resolvedHomeModules = homeModules ++ lib.optionals (builtins.pathExists hostHomePath) [ hostHomePath ];
 
@@ -78,7 +77,7 @@ in
 assert hostRegistryLib.assertCommonRegistry
 {
   inherit hostDir hostRegistry;
-  registryPath = registryPath;
+  inherit registryPath;
   hostName = "darwin.${name}";
   state = registryState;
 };
