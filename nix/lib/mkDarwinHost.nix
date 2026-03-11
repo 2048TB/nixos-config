@@ -12,38 +12,13 @@
 , ...
 }:
 let
-  allowedRegistryKeys = [
-    "system"
-    "profiles"
-    "deployEnabled"
-    "deployHost"
-    "deployUser"
-    "deployPort"
-  ];
-  registryOwnedKeys = [
-    "system"
-    "profiles"
-    "deployEnabled"
-    "deployHost"
-    "deployUser"
-    "deployPort"
-  ];
-  unknownRegistryKeys = builtins.filter
-    (key: !(builtins.elem key allowedRegistryKeys))
-    (builtins.attrNames hostRegistry);
-  conflictingRegistryKeys = builtins.filter
-    (
-      key:
-      builtins.hasAttr key hostMyvars
-      && builtins.hasAttr key hostRegistry
-      && hostMyvars.${key} != hostRegistry.${key}
-    )
-    registryOwnedKeys;
-  deployEnabled = hostRegistry.deployEnabled or true;
-  deployHost = hostRegistry.deployHost or "";
-  deployUser = hostRegistry.deployUser or "";
-  deployPort = hostRegistry.deployPort or 22;
+  hostRegistryLib = import ./host-registry.nix { inherit lib; };
   hostDir = "nix/hosts/darwin/${name}";
+  registryPath = "nix/hosts/registry/systems.toml";
+  registryState = hostRegistryLib.mkRegistryState {
+    inherit hostRegistry hostMyvars;
+  };
+  inherit (registryState) deployEnabled deployHost deployUser deployPort;
   hostHomePath = mylib.relativeToRoot "${hostDir}/home.nix";
   resolvedHomeModules = homeModules ++ lib.optionals (builtins.pathExists hostHomePath) [ hostHomePath ];
 
@@ -100,30 +75,15 @@ let
     config.allowUnfreePredicate = mylib.allowUnfreePredicate;
   };
 in
-assert lib.assertMsg
-  (unknownRegistryKeys == [ ])
-  "Host ${hostDir} registry entry has unsupported keys: ${lib.concatStringsSep ", " unknownRegistryKeys}";
-assert lib.assertMsg
-  (conflictingRegistryKeys == [ ])
-  "Host ${hostDir}/vars.nix overrides registry-owned keys: ${lib.concatStringsSep ", " conflictingRegistryKeys}";
+assert hostRegistryLib.assertCommonRegistry {
+  inherit hostDir hostRegistry;
+  registryPath = registryPath;
+  hostName = "darwin.${name}";
+  state = registryState;
+};
 assert mylib.assertRequiredNonEmptyStrings hostRegistry [
   "system"
-] "nix/hosts/registry/systems.toml[darwin.${name}]";
-assert lib.assertMsg
-  (builtins.isList (hostRegistry.profiles or null))
-  "nix/hosts/registry/systems.toml[darwin.${name}].profiles must be a list";
-assert lib.assertMsg
-  (builtins.all builtins.isString (hostRegistry.profiles or [ ]))
-  "nix/hosts/registry/systems.toml[darwin.${name}].profiles must only contain strings";
-assert lib.assertMsg
-  (builtins.isBool deployEnabled)
-  "nix/hosts/registry/systems.toml[darwin.${name}].deployEnabled must be a boolean";
-assert lib.assertMsg
-  (builtins.isInt deployPort && deployPort > 0)
-  "nix/hosts/registry/systems.toml[darwin.${name}].deployPort must be a positive integer";
-assert lib.assertMsg
-  (!deployEnabled || (deployHost != "" && deployUser != ""))
-  "nix/hosts/registry/systems.toml[darwin.${name}] requires deployHost and deployUser when deployEnabled = true";
+] "${registryPath}[darwin.${name}]";
 assert mylib.assertNonEmptyAttrs hostMyvars "Missing or empty nix/hosts/darwin/${name}/vars.nix";
 assert mylib.assertRequiredNonEmptyStrings hostMyvars [
   "username"

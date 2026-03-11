@@ -16,6 +16,7 @@
 , ...
 }:
 let
+  hostRegistryLib = import ./host-registry.nix { inherit lib; };
   inherit (inputs)
     nixpkgs
     nixos-hardware
@@ -27,38 +28,12 @@ let
     ;
 
   baseSpecialArgs = genSpecialArgs system;
-  allowedRegistryKeys = [
-    "system"
-    "profiles"
-    "deployEnabled"
-    "deployHost"
-    "deployUser"
-    "deployPort"
-  ];
-  registryOwnedKeys = [
-    "system"
-    "profiles"
-    "deployEnabled"
-    "deployHost"
-    "deployUser"
-    "deployPort"
-  ];
-  unknownRegistryKeys = builtins.filter
-    (key: !(builtins.elem key allowedRegistryKeys))
-    (builtins.attrNames hostRegistry);
-  conflictingRegistryKeys = builtins.filter
-    (
-      key:
-      builtins.hasAttr key hostMyvars
-      && builtins.hasAttr key hostRegistry
-      && hostMyvars.${key} != hostRegistry.${key}
-    )
-    registryOwnedKeys;
-  deployEnabled = hostRegistry.deployEnabled or true;
-  deployHost = hostRegistry.deployHost or "";
-  deployUser = hostRegistry.deployUser or "";
-  deployPort = hostRegistry.deployPort or 22;
   hostDir = "nix/hosts/nixos/${name}";
+  registryPath = "nix/hosts/registry/systems.toml";
+  registryState = hostRegistryLib.mkRegistryState {
+    inherit hostRegistry hostMyvars;
+  };
+  inherit (registryState) deployEnabled deployHost deployUser deployPort;
   hostEntryPath =
     if hostPath != null then
       hostPath
@@ -127,30 +102,15 @@ let
     overlays = nixpkgsOverlays;
   };
 in
-assert lib.assertMsg
-  (unknownRegistryKeys == [ ])
-  "Host ${hostDir} registry entry has unsupported keys: ${lib.concatStringsSep ", " unknownRegistryKeys}";
-assert lib.assertMsg
-  (conflictingRegistryKeys == [ ])
-  "Host ${hostDir}/vars.nix overrides registry-owned keys: ${lib.concatStringsSep ", " conflictingRegistryKeys}";
+assert hostRegistryLib.assertCommonRegistry {
+  inherit hostDir hostRegistry;
+  registryPath = registryPath;
+  hostName = "nixos.${name}";
+  state = registryState;
+};
 assert mylib.assertRequiredNonEmptyStrings hostRegistry [
   "system"
-] "nix/hosts/registry/systems.toml[nixos.${name}]";
-assert lib.assertMsg
-  (builtins.isList (hostRegistry.profiles or null))
-  "nix/hosts/registry/systems.toml[nixos.${name}].profiles must be a list";
-assert lib.assertMsg
-  (builtins.all builtins.isString (hostRegistry.profiles or [ ]))
-  "nix/hosts/registry/systems.toml[nixos.${name}].profiles must only contain strings";
-assert lib.assertMsg
-  (builtins.isBool deployEnabled)
-  "nix/hosts/registry/systems.toml[nixos.${name}].deployEnabled must be a boolean";
-assert lib.assertMsg
-  (builtins.isInt deployPort && deployPort > 0)
-  "nix/hosts/registry/systems.toml[nixos.${name}].deployPort must be a positive integer";
-assert lib.assertMsg
-  (!deployEnabled || (deployHost != "" && deployUser != ""))
-  "nix/hosts/registry/systems.toml[nixos.${name}] requires deployHost and deployUser when deployEnabled = true";
+] "${registryPath}[nixos.${name}]";
 assert mylib.assertPathExists hostEntryPath "Missing ${hostDir}/default.nix";
 assert mylib.assertPathExists hostHardwarePath "Missing ${hostDir}/hardware.nix";
 assert mylib.assertPathExists hostHardwareModulesPath "Missing ${hostDir}/hardware-modules.nix";
