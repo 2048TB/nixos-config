@@ -272,12 +272,12 @@ rec {
 
       hardware = {
         enableRedistributableFirmware = lib.mkDefault true;
-        cpu.amd.updateMicrocode = lib.mkDefault (
-          config.hardware.enableRedistributableFirmware && cpuVendor != "intel"
-        );
-        cpu.intel.updateMicrocode = lib.mkDefault (
-          config.hardware.enableRedistributableFirmware && cpuVendor != "amd"
-        );
+      }
+      // lib.optionalAttrs (cpuVendor == "amd") {
+        cpu.amd.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
+      }
+      // lib.optionalAttrs (cpuVendor == "intel") {
+        cpu.intel.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
       };
     };
 

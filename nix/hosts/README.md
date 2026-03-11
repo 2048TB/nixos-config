@@ -46,7 +46,7 @@ cp -a nix/hosts/darwin/zly-mac nix/hosts/darwin/mac-mini
 1. `vars.nix`：主机名、用户名、硬件参数、roles（不含 desktop；含 `gpuMode` 与可选 `amdgpuBusId` / `nvidiaBusId`）
 2. `disko.nix`：磁盘布局（NixOS；通常直接 import `_shared/disko-luks-btrfs.nix`）
 3. `hardware-modules.nix`：显式列出该主机启用的 `nixos-hardware` 模块；CPU vendor 与纯 AMD 默认 `gpuMode` 从这里推导
-4. `hardware.nix`：该主机的硬件入口；通常保持薄包装，只追加该机专属 import
+4. `hardware.nix`：该主机的硬件入口；通常保持薄包装，只追加该机专属 import；若某个 workaround 完全共享且没有主机增量，也可直接 import `_shared/` 下的文件
 5. `nix/hosts/registry/systems.toml`：新增该主机条目（`nixos.<host>` 或 `darwin.<host>`）
 6. 模板中的旧主机名替换为新主机名（`rg -n 'zly|zly-mac' nix/hosts/<platform>/<new-host>`）
 
@@ -55,7 +55,8 @@ cp -a nix/hosts/darwin/zly-mac nix/hosts/darwin/mac-mini
 ### 硬件层原则
 
 - `hardware-modules.nix` 是硬件事实入口：只放 `nixos-hardware` 模块名
-- `hardware.nix` 通常是 `mylib.mkNixosHardwareModule` 的薄包装；主机特有硬件项放在本机拆分文件中
+- `hardware.nix` 通常是 `mylib.mkNixosHardwareModule` 的薄包装；helper 统一提供 initrd kernel module 车队基线、firmware 默认值与按 CPU vendor 收紧后的 microcode 默认值
+- `hardware.nix` 当前同时承载少量设备服务基线（如 `bluetooth` / `fwupd`）；在没有明确收益前，不建议为了层次纯度拆得更碎
 - `_shared/` 可以放跨主机复用的硬件模板或 common workaround；机器专属问题仍留在主机目录
 - Hybrid/NVIDIA 这类需要 bus ID 或额外约束的逻辑，放在主机目录下的显式拆分文件中
 
