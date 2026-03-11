@@ -1,7 +1,7 @@
 args@{ mylib, ... }:
 (mylib.mkNixosHardwareModule {
   extraImports = [
-    ./hardware-workarounds.nix
+    ../_shared/hardware-workarounds-common.nix
     ./hardware-gpu-hybrid.nix
   ];
 }) args
