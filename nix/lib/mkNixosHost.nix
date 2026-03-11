@@ -33,7 +33,6 @@ let
   registryState = hostRegistryLib.mkRegistryState {
     inherit hostRegistry hostMyvars;
   };
-  inherit (registryState) deployEnabled deployHost deployUser deployPort;
   hostEntryPath =
     if hostPath != null then
       hostPath
@@ -105,7 +104,7 @@ in
 assert hostRegistryLib.assertCommonRegistry
 {
   inherit hostDir hostRegistry;
-  registryPath = registryPath;
+  inherit registryPath;
   hostName = "nixos.${name}";
   state = registryState;
 };
