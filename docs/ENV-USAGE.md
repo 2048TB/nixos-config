@@ -1,6 +1,6 @@
 # 多环境使用手册
 
-按 3 种环境拆分：Live ISO / 已安装 NixOS / macOS。
+按 3 种环境拆分：Live ISO / 已安装 NixOS / macOS。本文档只保留环境差异和手动恢复流程；通用日常命令见 `docs/README.md`。
 
 ---
 
@@ -129,25 +129,9 @@ sudo reboot
 
 ## 2. 已安装 NixOS
 
-### 日常更新
+常规 `check/test/switch`、最小验证与仓库级检查请直接参考 `docs/README.md`。
 
-```bash
-just host=zly check && just host=zly test && just host=zly switch
-```
-
-### 质量检查
-
-```bash
-just repo-check
-```
-
-最小检查：
-
-```bash
-just eval-tests && just flake-check
-```
-
-### 回滚与清理
+这里仅保留环境特有操作，例如回滚与清理：
 
 ```bash
 just rollback
@@ -158,11 +142,7 @@ just clean
 
 ## 3. macOS（nix-darwin）
 
-```bash
-just darwin-check
-just darwin-switch
-just darwin_host=zly-mac darwin-switch
-```
+常规 `darwin-check` / `darwin-switch` 用法见 `docs/README.md`。
 
 Flake apps：
 

@@ -50,3 +50,18 @@ if ! rg -n --fixed-strings 'nix/hosts/README.md' "$repo_root/README.md" >/dev/nu
   echo "expected root README to link to host docs" >&2
   exit 1
 fi
+
+if ! rg -n --fixed-strings 'docs/README.md' "$repo_root/docs/operations.md" >/dev/null; then
+  echo "expected operations summary to point back to docs/README.md" >&2
+  exit 1
+fi
+
+if ! rg -n --fixed-strings 'docs/README.md' "$repo_root/docs/ENV-USAGE.md" >/dev/null; then
+  echo "expected env usage guide to defer common operations to docs/README.md" >&2
+  exit 1
+fi
+
+if ! rg -n --fixed-strings 'docs/README.md' "$repo_root/docs/NIX-COMMANDS.md" >/dev/null; then
+  echo "expected command cheat sheet to defer routine operations to docs/README.md" >&2
+  exit 1
+fi

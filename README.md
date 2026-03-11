@@ -14,15 +14,13 @@
 - Home Manager 结构: `nix/home/README.md`
 - 命令速查: `docs/NIX-COMMANDS.md`
 
-高频命令：
+日常入口：
 
 ```bash
 just hosts
 just eval-tests
-just flake-check
-just repo-check
-just host=zly check
-just host=zly switch
+just host=<nixos-host> check
+just host=<nixos-host> switch
 ```
 
 危险操作说明：
@@ -31,4 +29,4 @@ just host=zly switch
 - `just clean-all` 会删除旧 generations，并要求确认
 - `just deploy` 读取 `nix/hosts/registry/systems.toml` 中的 deploy 元数据
 
-进一步说明见 `docs/README.md`。
+安装、日常维护、验证矩阵与常见问题统一见 `docs/README.md`。
