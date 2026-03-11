@@ -53,10 +53,9 @@ nixos-config/
 |----------|-------------|
 | 快捷键（Niri/Tmux/Zellij） | `docs/KEYBINDINGS.md` |
 | 主机发现/脚手架/安装流程 | `README.md`、`docs/README.md`、`docs/NIX-COMMANDS.md`、`docs/ENV-USAGE.md` |
-| hosts/hardware/disko/registry 布局 | `nix/hosts/README.md`、`nix/hosts/nixos/README.md`、`docs/architecture.md`、`docs/ENV-USAGE.md` |
-| justfile 命令或 flake apps | `docs/NIX-COMMANDS.md`、`docs/operations.md`、`docs/ENV-USAGE.md` |
-| CI / workflow / checks 脚本 | `docs/ci.md`、`docs/CI.md`、`docs/README.md`、必要时 `CLAUDE.md` / `AGENTS.md` |
-| flake inputs 审计 | `docs/flake-input-audit.md` |
+| hosts/hardware/disko/registry 布局 | `nix/hosts/README.md`、`nix/hosts/nixos/README.md`、`docs/ENV-USAGE.md` |
+| justfile 命令或 flake apps | `docs/NIX-COMMANDS.md`、`docs/ENV-USAGE.md` |
+| CI / workflow / checks 脚本 | `docs/CI.md`、`docs/README.md`、必要时 `CLAUDE.md` / `AGENTS.md` |
 | 流程规则 | `CLAUDE.md`、`AGENTS.md` |
 
 ---

@@ -6,10 +6,6 @@
 |------|------|
 | `README.md` | 仓库根入口 |
 | 本文档 | 安装与日常维护 |
-| `docs/architecture.md` | 架构与目录入口 |
-| `docs/operations.md` | 运维入口 |
-| `docs/ci.md` | CI 摘要入口 |
-| `docs/flake-input-audit.md` | flake inputs 审计记录 |
 | `docs/NIX-COMMANDS.md` | 命令速查 |
 | `docs/CI.md` | CI 详细说明与本地等价验证 |
 | `docs/ENV-USAGE.md` | 按环境操作指南 |
@@ -172,8 +168,7 @@ just repo-check
 - 保留 lock 检查：`Flake Lock Checker Heavy (Manual)`（仅手动触发）
 - 自动清理：`Cleanup Old Workflow Runs`（按周期清理旧 runs）
 - 文档/Markdown-only 变更默认不会触发 `Nix CI Light`
-- CI 摘要见：`docs/ci.md`
-- 详细说明见：`docs/CI.md`
+- 详情见：`docs/CI.md`
 
 ---
 
