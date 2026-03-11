@@ -7,10 +7,10 @@
 | `README.md` | 仓库根入口 |
 | 本文档 | 安装与日常维护 |
 | `docs/architecture.md` | 仓库分层与配置装配路径 |
-| `docs/operations.md` | 日常运维与验证入口 |
-| `docs/NIX-COMMANDS.md` | 命令速查 |
+| `docs/operations.md` | 运维摘要与入口约束 |
+| `docs/NIX-COMMANDS.md` | 非日常命令速查 |
 | `docs/CI.md` | CI 详细说明与本地等价验证 |
-| `docs/ENV-USAGE.md` | 按环境操作指南 |
+| `docs/ENV-USAGE.md` | 按环境差异与恢复流程 |
 | `docs/KEYBINDINGS.md` | 桌面快捷键 |
 | `nix/hosts/README.md` | 主机目录组织 |
 | `nix/home/README.md` | Home Manager 结构 |
