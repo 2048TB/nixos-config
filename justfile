@@ -30,13 +30,25 @@ install:
 switch:
     @bash {{repo}}/nix/scripts/admin/rebuild-nixos.sh switch "{{host}}" "{{repo}}"
 
+# 应用配置并立即切换（切换前先跑仓库级预检）
+switch-safe:
+    @REBUILD_PREFLIGHT=1 bash {{repo}}/nix/scripts/admin/rebuild-nixos.sh switch "{{host}}" "{{repo}}"
+
 # 应用配置但下次启动生效
 boot:
     @bash {{repo}}/nix/scripts/admin/rebuild-nixos.sh boot "{{host}}" "{{repo}}"
 
+# 应用配置但下次启动生效（切换前先跑仓库级预检）
+boot-safe:
+    @REBUILD_PREFLIGHT=1 bash {{repo}}/nix/scripts/admin/rebuild-nixos.sh boot "{{host}}" "{{repo}}"
+
 # 临时测试配置（重启后失效）
 test:
     @bash {{repo}}/nix/scripts/admin/rebuild-nixos.sh test "{{host}}" "{{repo}}"
+
+# 临时测试配置（切换前先跑仓库级预检）
+test-safe:
+    @REBUILD_PREFLIGHT=1 bash {{repo}}/nix/scripts/admin/rebuild-nixos.sh test "{{host}}" "{{repo}}"
 
 # 检查配置但不应用（快速验证）
 check:
@@ -69,6 +81,10 @@ rollback:
 # 应用 macOS 配置（不指定 darwin_host 则自动检测）
 darwin-switch:
     @bash {{repo}}/nix/scripts/admin/rebuild-darwin.sh switch "{{darwin_host}}" "{{repo}}"
+
+# 应用 macOS 配置（切换前先跑仓库级预检）
+darwin-switch-safe:
+    @REBUILD_PREFLIGHT=1 bash {{repo}}/nix/scripts/admin/rebuild-darwin.sh switch "{{darwin_host}}" "{{repo}}"
 
 # 构建 macOS 配置（不切换）
 darwin-check:

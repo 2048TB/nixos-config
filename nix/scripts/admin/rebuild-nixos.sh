@@ -45,7 +45,9 @@ echo ">>> host=$host"
 
 case "$action" in
   switch | boot | test)
-    bash "$script_dir/preflight-switch.sh" nixos "$host"
+    if [ "${REBUILD_PREFLIGHT:-0}" = "1" ]; then
+      bash "$script_dir/preflight-switch.sh" nixos "$host"
+    fi
     sudo nixos-rebuild "$action" --flake "path:${repo}#$host" |& nom
     ;;
   check)

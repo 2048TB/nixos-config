@@ -45,7 +45,9 @@ echo ">>> darwin_host=$host"
 
 case "$action" in
   switch)
-    bash "$script_dir/preflight-switch.sh" darwin "$host"
+    if [ "${REBUILD_PREFLIGHT:-0}" = "1" ]; then
+      bash "$script_dir/preflight-switch.sh" darwin "$host"
+    fi
     darwin-rebuild switch --flake "path:${repo}#$host"
     ;;
   check)
