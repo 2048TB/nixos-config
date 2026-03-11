@@ -5,12 +5,13 @@ let
   inherit (nixpkgs) lib;
   mylib = import ../../lib { inherit lib; };
   mytheme = import ../../lib/theme.nix { inherit lib; };
+  configRepoPath = "/persistent/nixos-config";
 
   genSpecialArgs =
     system:
     inputs
     // {
-      inherit mylib mytheme;
+      inherit mylib mytheme configRepoPath;
       pkgsUnstable = import inputs.nixpkgs-unstable {
         inherit system;
         config.allowUnfreePredicate = mylib.allowUnfreePredicate;

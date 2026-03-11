@@ -29,17 +29,14 @@ let
   baseSpecialArgs = genSpecialArgs system;
   allowedRegistryKeys = [
     "system"
-    "formFactor"
     "profiles"
     "deployEnabled"
     "deployHost"
     "deployUser"
     "deployPort"
-    "configRepoPath"
   ];
   registryOwnedKeys = [
     "system"
-    "formFactor"
     "profiles"
     "deployEnabled"
     "deployHost"
@@ -138,7 +135,6 @@ assert lib.assertMsg
   "Host ${hostDir}/vars.nix overrides registry-owned keys: ${lib.concatStringsSep ", " conflictingRegistryKeys}";
 assert mylib.assertRequiredNonEmptyStrings hostRegistry [
   "system"
-  "formFactor"
 ] "nix/hosts/registry/systems.toml[nixos.${name}]";
 assert lib.assertMsg
   (builtins.isList (hostRegistry.profiles or null))
@@ -173,6 +169,7 @@ assert mylib.assertRequiredPositiveInts hostMyvars [ "swapSizeGb" ] "${hostDir}/
     name
     system
     mainUser
+    derivedCpuVendor
     specialArgs
     nixpkgsConfig
     nixpkgsOverlays

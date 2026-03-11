@@ -23,7 +23,6 @@
       "additionalProperties": false,
       "required": [
         "system",
-        "formFactor",
         "profiles",
         "deployEnabled"
       ],
@@ -31,14 +30,6 @@
         "system": {
           "type": "string",
           "pattern": "^[a-z0-9_\\-]+$"
-        },
-        "formFactor": {
-          "type": "string",
-          "enum": [
-            "desktop",
-            "laptop",
-            "server"
-          ]
         },
         "profiles": {
           "type": "array",
@@ -65,10 +56,6 @@
         "deployPort": {
           "type": "integer",
           "minimum": 1
-        },
-        "configRepoPath": {
-          "type": "string",
-          "minLength": 1
         }
       }
     }

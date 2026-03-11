@@ -6,13 +6,13 @@
 , myvars
 , osConfig ? null
 , userProfileBin
+, configRepoPath
 , ...
 }:
 let
   hostCfg = import ../base/resolve-host.nix { inherit myvars osConfig; };
   roleFlags = mylib.roleFlags hostCfg;
   inherit (roleFlags) enableMullvadVpn;
-  configRepoPath = "/persistent/nixos-config";
 
   mkLogFilteredLauncher = mylib.mkLogFilteredLauncher pkgs;
   noctaliaShellPkg = noctalia.packages.${pkgs.stdenv.hostPlatform.system}.default;

@@ -15,7 +15,9 @@ nix/home/
 ├── base/default.nix    # 跨平台共享（session 变量、PATH、zsh/vim）
 ├── base/config-files.nix # 跨平台 configFile 映射清单
 ├── linux/
-│   ├── default.nix     # 入口（session vars、home.file、dconf）
+│   ├── default.nix     # 入口（identity、imports、dconf、assertions）
+│   ├── session.nix     # Linux session vars、wayland-session、activation
+│   ├── files.nix       # repo link / wallpapers / user-level dotfiles
 │   ├── packages.nix    # home.packages（含主账号开发环境）
 │   ├── package-groups.nix # Linux 包分类清单（纯数据）
 │   ├── programs.nix    # fzf/mpv/lutris 等

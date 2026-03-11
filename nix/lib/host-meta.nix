@@ -1,7 +1,7 @@
 _:
 let
   hostMetaSchema = {
-    defaultRoles = [ "desktop" ];
+    defaultRoles = [ ];
     defaultDockerMode = "rootless";
 
     allowedGpuModes = [
@@ -19,7 +19,6 @@ let
     ];
 
     knownHostRoles = [
-      "desktop"
       "gaming"
       "vpn"
       "virt"
@@ -51,7 +50,6 @@ rec {
       enableMullvadVpn = hasRole "vpn";
       enableLibvirtd = hasRole "virt";
       enableDocker = hasRole "container";
-      enableFlatpak = hasRole "desktop";
       enableSteam = hasRole "gaming";
       useRootfulDocker = dockerMode == "rootful";
       useRootlessDocker = dockerMode == "rootless";

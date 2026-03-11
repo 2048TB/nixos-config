@@ -16,6 +16,7 @@ nix/hosts/
 ```
 
 当前主机：NixOS `zly`、`zky`、`zzly` | Darwin `zly-mac`
+当前主机清单与 profile/deploy 信息以 `nix/hosts/registry/systems.toml` 为准。
 
 `outputs/common.nix`：平台共享的 registry 校验、eval-check 构造与 strict host 解析模板。
 
@@ -40,7 +41,7 @@ cp -a nix/hosts/darwin/zly-mac nix/hosts/darwin/mac-mini
 ```
 
 新增后需编辑：
-1. `vars.nix`：主机名、用户名、硬件参数、roles（含 `gpuMode` 与可选 `amdgpuBusId` / `nvidiaBusId`）
+1. `vars.nix`：主机名、用户名、硬件参数、roles（不含 desktop；含 `gpuMode` 与可选 `amdgpuBusId` / `nvidiaBusId`）
 2. `disko.nix`：磁盘布局（NixOS；通常直接 import `_shared/disko-luks-btrfs.nix`）
 3. `hardware-modules.nix`：显式列出该主机启用的 `nixos-hardware` 模块；CPU vendor 与纯 AMD 默认 `gpuMode` 从这里推导
 4. `hardware.nix`：该主机的硬件入口；通常保持薄包装，只追加该机专属 import
@@ -59,8 +60,7 @@ cp -a nix/hosts/darwin/zly-mac nix/hosts/darwin/mac-mini
 ### registry 字段说明（`nix/hosts/registry/systems.toml`）
 
 - `system`：平台（如 `x86_64-linux`、`aarch64-darwin`）
-- `formFactor`：`desktop` / `laptop` / `server`
-- `profiles`：高层 profile 列表（驱动 `my.profiles.*`）
+- `profiles`：高层机器形态（如 `desktop` / `laptop` / `server`，驱动 `my.profiles.*`）
 - `deployEnabled`：是否允许被 `deploy-hosts.sh` 批量部署
 - `deployHost` / `deployUser` / `deployPort`：远程部署目标（仅 registry 使用；`deploy-hosts.sh` 直接读取）
 
@@ -69,8 +69,8 @@ cp -a nix/hosts/darwin/zly-mac nix/hosts/darwin/mac-mini
 ### 字段分组建议（统一分类）
 
 - `Identity`：`hostname`、`username`、`timezone`
-- `Platform`：`system`、`formFactor`、`gpuMode`
-- `Profile/Role`：`profiles`、`roles`
+- `Platform`：`system`、`gpuMode`
+- `Profile/Role`：`profiles` 表示机器形态，`roles` 表示功能开关（如 `gaming` / `vpn` / `virt` / `container`）
 - `Deploy`：`deployEnabled`、`deployHost`、`deployUser`、`deployPort`（registry only）
 - `Runtime`：`diskDevice`、`swapSizeGb`、`resumeOffset`
 

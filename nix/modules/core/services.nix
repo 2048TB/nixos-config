@@ -2,13 +2,13 @@
 , lib
 , mainUser
 , config
+, configRepoPath
 , ...
 }:
 let
   hostCfg = config.my.host;
   homeDir = "/home/${mainUser}";
   inherit (config.my) profiles;
-  configRepoPath = "/persistent/nixos-config";
   hibernateEnabled = hostCfg.resumeOffset != null;
   isLaptop = profiles.laptop;
   isDesktop = profiles.desktop;
