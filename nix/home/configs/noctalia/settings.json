@@ -8,7 +8,7 @@
         "customLaunchPrefixEnabled": false,
         "density": "default",
         "enableClipPreview": true,
-        "enableClipboardHistory": true,
+        "enableClipboardHistory": false,
         "enableSessionSearch": true,
         "enableSettingsSearch": true,
         "enableWindowsSearch": true,
@@ -47,6 +47,7 @@
         "contentPadding": 2,
         "density": "comfortable",
         "displayMode": "always_visible",
+        "enableExclusionZoneInset": true,
         "floating": false,
         "fontScale": 1,
         "frameRadius": 12,
@@ -238,11 +239,7 @@
                 "id": "calendar-month-card"
             },
             {
-                "enabled": true,
-                "id": "timer-card"
-            },
-            {
-                "enabled": true,
+                "enabled": false,
                 "id": "weather-card"
             }
         ]
@@ -485,13 +482,13 @@
         "firstDayOfWeek": 1,
         "hideWeatherCityName": false,
         "hideWeatherTimezone": false,
-        "name": "Changsha",
+        "name": "Tokyo",
         "showCalendarEvents": true,
         "showCalendarWeather": true,
         "showWeekNumberInCalendar": false,
         "use12hourFormat": false,
         "useFahrenheit": false,
-        "weatherEnabled": true,
+        "weatherEnabled": false,
         "weatherShowEffects": true
     },
     "network": {
@@ -667,7 +664,7 @@
     },
     "wallpaper": {
         "automationEnabled": true,
-        "directory": "/home/ryan/Pictures/Wallpapers",
+        "directory": "/home/z/nixos/wallpapers",
         "enableMultiMonitorDirectories": false,
         "enabled": true,
         "favorites": [
@@ -681,7 +678,7 @@
         "overviewEnabled": true,
         "overviewTint": 0.6,
         "panelPosition": "follow_bar",
-        "randomIntervalSec": 600,
+        "randomIntervalSec": 5400,
         "setWallpaperOnAllMonitors": true,
         "showHiddenFiles": false,
         "skipStartupTransition": false,
