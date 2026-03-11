@@ -29,7 +29,9 @@ nix/hosts/
 
 可选：`home.nix`、`checks.nix`
 
-说明：NixOS 的 `default.nix` 是薄入口，统一 import `hardware.nix` 与 `disko.nix`。
+说明：
+- NixOS 的 `default.nix` 是薄入口，统一 import `hardware.nix` 与 `disko.nix`
+- `checks.nix` 仅在该主机需要额外 eval 断言时才创建；通用 checks 已由 `nix/hosts/nixos/_shared/checks.nix` 统一装配
 
 ---
 
