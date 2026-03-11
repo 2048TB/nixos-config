@@ -6,7 +6,6 @@
 let
   isDesktop = config.my.profiles.desktop;
   gnupgCacheTtlSeconds = 4 * 60 * 60; # 4 小时
-  portalConfig = import ../../lib/portal-config.nix;
 in
 lib.mkIf isDesktop {
   programs = {
@@ -46,7 +45,6 @@ lib.mkIf isDesktop {
   xdg.portal = {
     enable = true;
     xdgOpenUsePortal = true;
-    config = portalConfig;
   };
 
   fonts.packages = with pkgs; [
