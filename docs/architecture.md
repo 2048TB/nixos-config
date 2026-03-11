@@ -8,6 +8,7 @@
 - `nix/modules/` 放 system-level 基线与 role/profile 逻辑
 - `nix/home/` 放 Home Manager 用户层配置
 - `nix/hosts/<platform>/<host>/` 只保留主机特有参数、硬件入口，以及少数确有例外时才需要的 host-local checks
+- NixOS 硬件装配默认由 `mylib.mkNixosHardwareModule` 提供 initrd kernel module 车队基线、firmware 默认值与按 CPU vendor 收紧后的 microcode 默认值；当前主机默认直接复用 `_shared/hardware-workarounds-common.nix`
 
 设计原则：
 

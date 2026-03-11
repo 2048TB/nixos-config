@@ -22,7 +22,7 @@ nixos-config/
 ├── nix/
 │   ├── lib/                   # Nix 库（mkNixosHost/mkDarwinHost/roleFlags/theme）
 │   ├── hosts/                 # 主机配置
-│   │   ├── nixos/<host>/      # NixOS（必须含 hardware.nix + disko.nix + vars.nix）
+│   │   ├── nixos/<host>/      # NixOS（必须含 default.nix + hardware.nix + hardware-modules.nix + disko.nix + vars.nix）
 │   │   ├── darwin/<host>/     # macOS（必须含 default.nix + vars.nix）
 │   │   ├── nixos/_shared/     # 共享 checks / disko 模板 / 通用 workaround
 │   │   ├── registry/          # 主机注册表（systems.toml + schema）
@@ -53,7 +53,7 @@ nixos-config/
 |----------|-------------|
 | 快捷键（Niri/Tmux/Zellij） | `docs/KEYBINDINGS.md` |
 | 主机发现/脚手架/安装流程 | `README.md`、`docs/README.md`、`docs/NIX-COMMANDS.md`、`docs/ENV-USAGE.md` |
-| hosts/hardware/disko/registry 布局 | `nix/hosts/README.md`、`nix/hosts/nixos/README.md`、`docs/ENV-USAGE.md` |
+| hosts/hardware/disko/registry 布局 | `nix/hosts/README.md`、`nix/hosts/nixos/README.md`、`docs/architecture.md`、必要时 `docs/ENV-USAGE.md` |
 | justfile 命令或 flake apps | `docs/NIX-COMMANDS.md`、`docs/ENV-USAGE.md` |
 | CI / workflow / checks 脚本 | `docs/CI.md`、`docs/README.md`、必要时 `CLAUDE.md` / `AGENTS.md` |
 | 流程规则 | `CLAUDE.md`、`AGENTS.md` |
@@ -86,5 +86,6 @@ just repo-check
 
 - 当前 `justfile` 默认 `host := ""`，执行 `just switch/check/test` 未显式指定时会自动解析当前主机；跨主机操作建议显式指定 `host=...`
 - 当前 Linux/macOS 主账号的一致开发环境默认由 Home Manager 提供；system layer 保留桌面运行基线
+- 当前 NixOS 主机默认直接 import `nix/hosts/nixos/_shared/hardware-workarounds-common.nix`；host-local `hardware-workarounds.nix` 仅在确有主机专属例外时才保留
 - `repo-check` 当前会覆盖 `nix/scripts/admin/*.sh`、`nix/scripts/checks/*.sh`、`nix/scripts/tests/*.sh` 的 shell 语法检查，并串联 shell regression tests、registry check、eval-tests、flake-check
 - 未被要求时不主动推送；用户要求“同步到 GitHub”时才执行 Conventional Commit + `git push origin HEAD`

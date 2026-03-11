@@ -10,6 +10,13 @@
 
 ---
 
+## Status
+
+- 2026-03-12：Chunk 1 与 Chunk 2 已落地，`zky` / `zly` / `zzly` 现均直接 import `_shared/hardware-workarounds-common.nix`
+- 2026-03-12：`mkNixosHardwareModule` 已收紧为仅在 CPU vendor 明确时才写 microcode 默认值
+- 2026-03-12：文档层采用保守结论，`bluetooth` / `fwupd` 仍留在 `nix/modules/core/hardware.nix`
+- 本计划后续步骤保留为执行记录；若与当前仓库状态冲突，以代码和 README 为准
+
 ## Scope And Non-Goals
 
 - In scope:
@@ -217,4 +224,3 @@ Expected: 全部通过
 ```bash
 git push origin HEAD
 ```
-

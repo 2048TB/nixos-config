@@ -41,7 +41,7 @@ just repo-check     # 仓库级自检（shell syntax + tests + registry + eval +
 | 某台机器参数 | `nix/hosts/<platform>/<host>/vars.nix` |
 | 系统服务/内核/持久化 | `nix/modules/core/`（入口 `default.nix`） |
 | 角色逻辑 | `nix/lib/host-meta.nix`（roleFlags）+ `nix/modules/core/roles/*.nix` |
-| 硬件/显卡 | `nix/modules/core/hardware.nix` + `nix/hosts/nixos/<host>/hardware*.nix` |
+| 硬件/显卡 | `nix/modules/core/hardware.nix` + `nix/lib/default.nix` + `nix/hosts/nixos/<host>/hardware*.nix` + `nix/hosts/nixos/_shared/` |
 | 用户软件包 / 主账号开发环境 | `nix/home/linux/packages.nix` |
 | 桌面服务 | `nix/home/linux/desktop.nix` |
 | 程序配置 | `nix/home/linux/programs.nix` |
@@ -66,6 +66,7 @@ just darwin-switch                             # macOS
 注意：当前 `justfile` 默认 `host := ""`、`darwin_host := ""`。`just switch/check/test` 与 `just darwin-switch/darwin-check` 未显式指定时都会自动解析当前主机；跨主机操作仍建议显式写 `host=...` / `darwin_host=...`。
 
 补充：当前 Linux/macOS 主账号的一致开发环境默认由 Home Manager 提供；system layer 仅保留桌面运行基线与系统服务。
+补充：当前 NixOS 主机默认直接复用 `nix/hosts/nixos/_shared/hardware-workarounds-common.nix`；只有出现主机专属硬件问题时才再创建本地 `hardware-workarounds.nix`。
 补充：`repo-check` 会覆盖 `nix/scripts/admin/*.sh`、`nix/scripts/checks/*.sh`、`nix/scripts/tests/*.sh` 的 shell 语法检查。
 
 ---
