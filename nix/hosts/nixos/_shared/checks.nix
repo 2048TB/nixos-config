@@ -4,12 +4,12 @@
 , name
 , mainUser
 , nixosSystem
-, expectedLuksName ? "crypted-nixos"
+, expectedLuksName ? null
 , expectedVideoDrivers ? null
 , expectedResumeOffset ? null
 , expectedHostProfile ? name
 , expectedDockerMode ? null
-, expectedTrustedUsers ? [ "root" ]
+, expectedTrustedUsers ? null
 , expectedTrustedSubstituters ? null
 , expectedKvmModules ? null
 , derivedCpuVendor ? null
@@ -21,6 +21,12 @@ let
   hostCfg = cfg.my.host;
   hostRoles = hostCfg.roles or [ ];
   isDesktop = cfg.my.profiles.desktop or false;
+  resolvedExpectedLuksName =
+    if expectedLuksName != null then expectedLuksName else hostCfg.luksName;
+  resolvedExpectedResumeOffset =
+    if expectedResumeOffset != null then expectedResumeOffset else hostCfg.resumeOffset or null;
+  resolvedExpectedTrustedUsers =
+    if expectedTrustedUsers != null then expectedTrustedUsers else [ "root" ];
   resolvedExpectedVideoDrivers =
     if expectedVideoDrivers != null then
       expectedVideoDrivers
@@ -99,8 +105,8 @@ let
   unexpectedOverlapByNameFiltered = excludeAllowed allowedSystemHomeOverlapNames unexpectedOverlapByName;
 
   expectedResumeKernelParam =
-    if expectedResumeOffset == null then null else "resume_offset=${toString expectedResumeOffset}";
-  expectsHibernate = expectedResumeOffset != null;
+    if resolvedExpectedResumeOffset == null then null else "resume_offset=${toString resolvedExpectedResumeOffset}";
+  expectsHibernate = resolvedExpectedResumeOffset != null;
   hasResumeKernelParam =
     builtins.any (param: lib.hasPrefix "resume=" param) cfg.boot.kernelParams;
   hasExpectedResumeKernelParam =
@@ -125,7 +131,7 @@ let
         "https://cache.garnix.io"
       ];
   sortedTrustedUsers = builtins.sort builtins.lessThan (cfg.nix.settings.trusted-users or [ ]);
-  sortedExpectedTrustedUsers = builtins.sort builtins.lessThan expectedTrustedUsers;
+  sortedExpectedTrustedUsers = builtins.sort builtins.lessThan resolvedExpectedTrustedUsers;
   hasExpectedTrustedUsers = sortedTrustedUsers == sortedExpectedTrustedUsers;
   sortedTrustedSubstituters = builtins.sort builtins.lessThan (cfg.nix.settings.trusted-substituters or [ ]);
   sortedExpectedTrustedSubstituters =
@@ -159,7 +165,7 @@ in
   '';
 
   "eval-${name}-luks-name" = pkgs.runCommand "eval-${name}-luks-name" { } ''
-    test "${cfg.my.host.luksName}" = "${expectedLuksName}"
+    test "${cfg.my.host.luksName}" = "${resolvedExpectedLuksName}"
     touch "$out"
   '';
 
@@ -210,7 +216,7 @@ in
 
   "eval-${name}-resume-device" = pkgs.runCommand "eval-${name}-resume-device" { } ''
     if [ "${if expectsHibernate then "1" else "0"}" = "1" ]; then
-      test "${cfg.boot.resumeDevice or ""}" = "/dev/mapper/${expectedLuksName}"
+      test "${cfg.boot.resumeDevice or ""}" = "/dev/mapper/${resolvedExpectedLuksName}"
     else
       test "${cfg.boot.resumeDevice or ""}" = ""
     fi
@@ -229,7 +235,7 @@ in
   '';
 
   "eval-${name}-swap-device" = pkgs.runCommand "eval-${name}-swap-device" { } ''
-    test "${cfg.fileSystems."/swap".device}" = "/dev/mapper/${expectedLuksName}"
+    test "${cfg.fileSystems."/swap".device}" = "/dev/mapper/${resolvedExpectedLuksName}"
     touch "$out"
   '';
 }

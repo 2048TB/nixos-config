@@ -21,13 +21,17 @@ let
       hostPath = mylib.relativeToRoot "${hostDir}/default.nix";
       hostVarsPath = mylib.relativeToRoot "${hostDir}/vars.nix";
       hostChecksPath = mylib.relativeToRoot "${hostDir}/checks.nix";
+      sharedChecksPath = mylib.relativeToRoot "nix/hosts/nixos/_shared/checks.nix";
       hostMyvars = import hostVarsPath;
       hostRegistry = mylib.hostRegistryEntry "nixos" name;
       hostCtx = mylib.mkNixosHost (args // {
         inherit name hostMyvars hostRegistry;
         inherit hostPath;
       });
-      hostChecks = mylib.importIfExists hostChecksPath (hostCtx // { inherit (args) lib mylib; });
+      hostCheckArgs = hostCtx // { inherit (args) lib mylib; };
+      hostChecks =
+        (import sharedChecksPath hostCheckArgs)
+        // (mylib.importIfExists hostChecksPath hostCheckArgs);
     in
     mylib.mkHostDataEntry {
       configAttrName = "nixosConfigurations";
