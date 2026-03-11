@@ -40,12 +40,15 @@ repo_root="$(resolve_repo_path "${NIXOS_CONFIG_REPO:-$PWD}")"
 cd "$repo_root"
 
 echo "==> shell syntax"
-bash -n nix/scripts/admin/*.sh
+bash -n nix/scripts/admin/*.sh nix/scripts/checks/*.sh nix/scripts/tests/*.sh
 
 echo "==> shell regression tests"
 for test_script in nix/scripts/tests/*.sh; do
   bash "$test_script"
 done
+
+echo "==> registry check"
+bash nix/scripts/checks/registry-check.sh
 
 echo "==> nix formatting check"
 nix shell "path:$repo_root#formatter.x86_64-linux" -c \

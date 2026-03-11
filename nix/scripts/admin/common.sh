@@ -88,6 +88,47 @@ run_sops_encrypt_yaml() {
   run_sops --encrypt --age "$recipients" --input-type yaml --output-type yaml /dev/stdin >"$target_file"
 }
 
+confirm_destructive_action() {
+  local token="${1:?confirmation token required}"
+  local message="${2:-}"
+  local assume_yes="${3:-0}"
+  local answer=""
+
+  if [ "$assume_yes" = "1" ]; then
+    return 0
+  fi
+
+  if [ -n "$message" ]; then
+    printf '%s\n' "$message" >&2
+  fi
+
+  if [ ! -t 0 ]; then
+    echo "error: destructive action requires confirmation; rerun with --yes if intended" >&2
+    return 1
+  fi
+
+  printf 'Type "%s" to continue: ' "$token" >&2
+  IFS= read -r answer
+  if [ "$answer" != "$token" ]; then
+    echo "error: confirmation token mismatch" >&2
+    return 1
+  fi
+}
+
+validate_block_device_path() {
+  local disk="${1:-}"
+
+  if [[ "$disk" != /dev/* ]]; then
+    echo "error: disk path must start with /dev/: $disk" >&2
+    return 1
+  fi
+
+  if [ ! -b "$disk" ]; then
+    echo "error: disk path is not a block device: $disk" >&2
+    return 1
+  fi
+}
+
 resolve_target_owner_from_config() {
   local repo_root="${1:?repo root required}"
   local host="${2:?host required}"

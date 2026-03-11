@@ -9,7 +9,7 @@ source "$script_dir/common.sh"
 usage() {
   cat <<'EOF'
 usage:
-  install-live.sh --host <name> --disk <device> [--repo <path>]
+  install-live.sh --host <name> --disk <device> [--repo <path>] [--yes]
 
 examples:
   install-live.sh --host zly --disk /dev/nvme0n1
@@ -20,6 +20,7 @@ EOF
 host=""
 disk=""
 repo="${NIXOS_CONFIG_REPO:-$PWD}"
+assume_yes=0
 key_dir_rel=".keys"
 age_key_rel="$key_dir_rel/main.agekey"
 
@@ -72,6 +73,7 @@ while [ "$#" -gt 0 ]; do
     --host) host="${2:-}"; shift 2 ;;
     --disk) disk="${2:-}"; shift 2 ;;
     --repo) repo="${2:-}"; shift 2 ;;
+    --yes) assume_yes=1; shift ;;
     -h|--help) usage; exit 0 ;;
     *) echo "error: unknown argument: $1" >&2; usage >&2; exit 2 ;;
   esac
@@ -89,6 +91,11 @@ if ! is_valid_host_name "$host"; then
 fi
 
 repo="$(resolve_repo_path "$repo")"
+validate_block_device_path "$disk"
+confirm_destructive_action \
+  "INSTALL ${host} ${disk}" \
+  "warning: this will erase disk ${disk} and install host ${host} from repo ${repo}" \
+  "$assume_yes"
 
 echo ">>> host=$host disk=$disk"
 

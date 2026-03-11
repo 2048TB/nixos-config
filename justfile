@@ -28,19 +28,19 @@ install:
 
 # 应用配置并立即切换（不指定 host 则自动检测当前主机）
 switch:
-    h="{{host}}"; if [ -z "$h" ]; then h="$(bash {{repo}}/nix/scripts/admin/resolve-host.sh nixos {{repo}} auto --strict)"; fi; echo ">>> host=$h"; bash {{repo}}/nix/scripts/admin/preflight-switch.sh nixos "$h"; sudo nixos-rebuild switch --flake "path:{{repo}}#$h" |& nom
+    @bash {{repo}}/nix/scripts/admin/rebuild-nixos.sh switch "{{host}}" "{{repo}}"
 
 # 应用配置但下次启动生效
 boot:
-    h="{{host}}"; if [ -z "$h" ]; then h="$(bash {{repo}}/nix/scripts/admin/resolve-host.sh nixos {{repo}} auto --strict)"; fi; echo ">>> host=$h"; bash {{repo}}/nix/scripts/admin/preflight-switch.sh nixos "$h"; sudo nixos-rebuild boot --flake "path:{{repo}}#$h" |& nom
+    @bash {{repo}}/nix/scripts/admin/rebuild-nixos.sh boot "{{host}}" "{{repo}}"
 
 # 临时测试配置（重启后失效）
 test:
-    h="{{host}}"; if [ -z "$h" ]; then h="$(bash {{repo}}/nix/scripts/admin/resolve-host.sh nixos {{repo}} auto --strict)"; fi; echo ">>> host=$h"; bash {{repo}}/nix/scripts/admin/preflight-switch.sh nixos "$h"; sudo nixos-rebuild test --flake "path:{{repo}}#$h" |& nom
+    @bash {{repo}}/nix/scripts/admin/rebuild-nixos.sh test "{{host}}" "{{repo}}"
 
 # 检查配置但不应用（快速验证）
 check:
-    h="{{host}}"; if [ -z "$h" ]; then h="$(bash {{repo}}/nix/scripts/admin/resolve-host.sh nixos {{repo}} auto --strict)"; fi; echo ">>> host=$h"; {{nix_cmd}} build --no-link "path:{{repo}}#nixosConfigurations.$h.config.system.build.toplevel"
+    @bash {{repo}}/nix/scripts/admin/rebuild-nixos.sh check "{{host}}" "{{repo}}"
 
 # 远程批量部署（HOSTS 为空时部署全部 NixOS 主机）
 deploy HOSTS="":
@@ -68,11 +68,11 @@ rollback:
 
 # 应用 macOS 配置（不指定 darwin_host 则自动检测）
 darwin-switch:
-    h="{{darwin_host}}"; if [ -z "$h" ]; then h="$(bash {{repo}}/nix/scripts/admin/resolve-host.sh darwin {{repo}} auto --strict)"; fi; echo ">>> darwin_host=$h"; bash {{repo}}/nix/scripts/admin/preflight-switch.sh darwin "$h"; darwin-rebuild switch --flake "path:{{repo}}#$h"
+    @bash {{repo}}/nix/scripts/admin/rebuild-darwin.sh switch "{{darwin_host}}" "{{repo}}"
 
 # 构建 macOS 配置（不切换）
 darwin-check:
-    h="{{darwin_host}}"; if [ -z "$h" ]; then h="$(bash {{repo}}/nix/scripts/admin/resolve-host.sh darwin {{repo}} auto --strict)"; fi; echo ">>> darwin_host=$h"; {{nix_cmd}} build --no-link "path:{{repo}}#darwinConfigurations.$h.system"
+    @bash {{repo}}/nix/scripts/admin/rebuild-darwin.sh check "{{darwin_host}}" "{{repo}}"
 
 # 列出可用 darwin 主机
 darwin-hosts:
@@ -99,6 +99,7 @@ clean:
 
 # 完全清理（仅保留当前世代）
 clean-all:
+    @bash -euo pipefail -c 'source "{{repo}}/nix/scripts/admin/common.sh"; confirm_destructive_action "GC DELETE ALL" "warning: nix-collect-garbage -d will delete all old generations except the current one." 0'
     sudo nix-collect-garbage -d
     @echo "✓ 已删除所有旧世代"
 
@@ -277,14 +278,16 @@ ssh-key-set:
 
 # 提交所有更改
 commit MESSAGE:
-    git add .
+    git add -A :/
+    git diff --cached --stat
     @just guard-secrets
     git commit -m "{{MESSAGE}}"
     @echo "✓ 已提交：{{MESSAGE}}"
 
 # 提交并推送
 push MESSAGE:
-    git add .
+    git add -A :/
+    git diff --cached --stat
     @just guard-secrets
     git commit -m "{{MESSAGE}}"
     git push origin HEAD
@@ -338,7 +341,13 @@ commands:
 # 查看所有文档
 docs:
     @echo "=== 可用文档 ==="
+    @echo "README.md                 - 仓库根入口"
     @echo "docs/README.md            - 主文档（含 Binary Cache 说明）"
+    @echo "docs/architecture.md      - 架构与目录入口"
+    @echo "docs/operations.md        - 运维入口"
+    @echo "docs/ci.md                - CI 摘要入口"
+    @echo "docs/CI.md                - CI 详细说明"
+    @echo "docs/flake-input-audit.md - flake inputs 审计记录"
     @echo "docs/KEYBINDINGS.md       - 快捷键说明"
     @echo "docs/NIX-COMMANDS.md      - Nix 命令速查"
     @echo "docs/ENV-USAGE.md         - 多环境使用手册"

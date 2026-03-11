@@ -20,11 +20,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install Nix
-        uses: cachix/install-nix-action@v31
-        with:
-          extra_nix_config: |
-            experimental-features = nix-command flakes
+      - name: Setup Nix
+        uses: ./.github/actions/setup-nix
 
       - name: Discover hosts
         id: inventory
@@ -58,11 +55,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install Nix
-        uses: cachix/install-nix-action@v31
-        with:
-          extra_nix_config: |
-            experimental-features = nix-command flakes
+      - name: Setup Nix
+        uses: ./.github/actions/setup-nix
 
       - name: Run flake checks
         run: |
@@ -84,11 +78,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install Nix
-        uses: cachix/install-nix-action@v31
-        with:
-          extra_nix_config: |
-            experimental-features = nix-command flakes
+      - name: Setup Nix
+        uses: ./.github/actions/setup-nix
 
       - name: Build host toplevel
         run: |
@@ -110,11 +101,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install Nix
-        uses: cachix/install-nix-action@v31
-        with:
-          extra_nix_config: |
-            experimental-features = nix-command flakes
+      - name: Setup Nix
+        uses: ./.github/actions/setup-nix
 
       - name: Evaluate darwin derivation
         run: |

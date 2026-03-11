@@ -1,18 +1,17 @@
-# NixOS 多主机配置
+# Docs
 
-可复现的多主机配置仓库：
-- NixOS：`zly`、`zky`、`zzly`（NixOS + Home Manager）
-- macOS：`zly-mac`（nix-darwin + Home Manager）
-
----
-
-## 快速导航
+文档入口按职责拆分：
 
 | 文档 | 内容 |
 |------|------|
+| `README.md` | 仓库根入口 |
 | 本文档 | 安装与日常维护 |
+| `docs/architecture.md` | 架构与目录入口 |
+| `docs/operations.md` | 运维入口 |
+| `docs/ci.md` | CI 摘要入口 |
+| `docs/flake-input-audit.md` | flake inputs 审计记录 |
 | `docs/NIX-COMMANDS.md` | 命令速查 |
-| `docs/CI.md` | GitHub Actions 与本地等价验证 |
+| `docs/CI.md` | CI 详细说明与本地等价验证 |
 | `docs/ENV-USAGE.md` | 按环境操作指南 |
 | `docs/KEYBINDINGS.md` | 桌面快捷键 |
 | `nix/hosts/README.md` | 主机目录组织 |
@@ -26,7 +25,8 @@
 - 优先使用 `just` 命令
 - 危险操作需明确目标主机和磁盘
 - 密码和 SSH 私钥走 `sops-nix`，不要明文放进 Git
-- 主账号开发环境（语言/工具链）默认由 Home Manager 提供，system layer 仅保留桌面运行基线
+- 主账号开发环境默认由 Home Manager 提供，system layer 仅保留桌面运行基线
+- `repo-check` 是仓库级默认自检入口；CI/workflow 相关改动优先先跑它
 
 ---
 
@@ -157,16 +157,23 @@ just eval-tests
 just flake-check
 ```
 
+如改动了 shell 脚本、workflow 或 registry/check 逻辑，优先补：
+
+```bash
+just repo-check
+```
+
 ---
 
 ## 6. CI（GitHub Actions）
 
-- 默认门禁：`Nix CI Light`（PR/Push 自动触发，快速 eval checks）
+- 默认门禁：`Nix CI Light`（PR/Push 自动触发，含 registry check、eval checks 与 1 台代表性 host build）
 - 保留重型：`Nix CI Heavy (Manual)`（仅手动触发）
 - 保留 lock 检查：`Flake Lock Checker Heavy (Manual)`（仅手动触发）
 - 自动清理：`Cleanup Old Workflow Runs`（按周期清理旧 runs）
 - 文档/Markdown-only 变更默认不会触发 `Nix CI Light`
-- 详情见：`docs/CI.md`
+- CI 摘要见：`docs/ci.md`
+- 详细说明见：`docs/CI.md`
 
 ---
 

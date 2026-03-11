@@ -61,7 +61,8 @@ cp -a nix/hosts/darwin/zly-mac nix/hosts/darwin/mac-mini
 - `system`：平台（如 `x86_64-linux`、`aarch64-darwin`）
 - `formFactor`：`desktop` / `laptop` / `server`
 - `profiles`：高层 profile 列表（驱动 `my.profiles.*`）
-- `deployHost` / `deployUser`：远程部署目标（仅 registry 使用；`deploy-hosts.sh` 直接读取）
+- `deployEnabled`：是否允许被 `deploy-hosts.sh` 批量部署
+- `deployHost` / `deployUser` / `deployPort`：远程部署目标（仅 registry 使用；`deploy-hosts.sh` 直接读取）
 
 注意：`outputs` 中已做双向断言，目录和 registry 任何一侧缺失都会直接 fail。
 
@@ -70,7 +71,7 @@ cp -a nix/hosts/darwin/zly-mac nix/hosts/darwin/mac-mini
 - `Identity`：`hostname`、`username`、`timezone`
 - `Platform`：`system`、`formFactor`、`gpuMode`
 - `Profile/Role`：`profiles`、`roles`
-- `Deploy`：`deployHost`、`deployUser`（registry only）
+- `Deploy`：`deployEnabled`、`deployHost`、`deployUser`、`deployPort`（registry only）
 - `Runtime`：`diskDevice`、`swapSizeGb`、`resumeOffset`
 
 建议在 `vars.nix` 与 registry 保持同一分组顺序，减少跨文件跳读成本。
