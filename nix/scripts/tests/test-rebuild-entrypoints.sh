@@ -23,16 +23,23 @@ if [[ "$output" != *"Usage:"* ]]; then
 fi
 
 switch_recipe="$(extract_recipe switch)"
+switch_safe_recipe="$(extract_recipe switch-safe)"
 boot_recipe="$(extract_recipe boot)"
+boot_safe_recipe="$(extract_recipe boot-safe)"
 test_recipe="$(extract_recipe test)"
+test_safe_recipe="$(extract_recipe test-safe)"
 check_recipe="$(extract_recipe check)"
 darwin_switch_recipe="$(extract_recipe darwin-switch)"
+darwin_switch_safe_recipe="$(extract_recipe darwin-switch-safe)"
 darwin_check_recipe="$(extract_recipe darwin-check)"
 
 for recipe_body in \
   "$switch_recipe" \
+  "$switch_safe_recipe" \
   "$boot_recipe" \
+  "$boot_safe_recipe" \
   "$test_recipe" \
+  "$test_safe_recipe" \
   "$check_recipe"; do
   if [[ "$recipe_body" != *"rebuild-nixos.sh"* ]]; then
     echo "expected nixos recipes to delegate to rebuild-nixos.sh" >&2
@@ -40,21 +47,33 @@ for recipe_body in \
   fi
 done
 
-for recipe_body in "$darwin_switch_recipe" "$darwin_check_recipe"; do
+for recipe_body in "$darwin_switch_recipe" "$darwin_switch_safe_recipe" "$darwin_check_recipe"; do
   if [[ "$recipe_body" != *"rebuild-darwin.sh"* ]]; then
     echo "expected darwin recipes to delegate to rebuild-darwin.sh" >&2
     exit 1
   fi
 done
 
-if printf '%s\n%s\n%s\n%s\n%s\n%s\n' \
+if printf '%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n' \
   "$switch_recipe" \
+  "$switch_safe_recipe" \
   "$boot_recipe" \
+  "$boot_safe_recipe" \
   "$test_recipe" \
+  "$test_safe_recipe" \
   "$check_recipe" \
   "$darwin_switch_recipe" \
+  "$darwin_switch_safe_recipe" \
   "$darwin_check_recipe" | rg -n 'resolve-host\.sh|preflight-switch\.sh|nixos-rebuild|darwin-rebuild' >/dev/null; then
   echo "expected rebuild logic to move out of justfile recipes" >&2
+  exit 1
+fi
+
+if [[ "$switch_safe_recipe" != *"REBUILD_PREFLIGHT=1"* ]] || \
+  [[ "$boot_safe_recipe" != *"REBUILD_PREFLIGHT=1"* ]] || \
+  [[ "$test_safe_recipe" != *"REBUILD_PREFLIGHT=1"* ]] || \
+  [[ "$darwin_switch_safe_recipe" != *"REBUILD_PREFLIGHT=1"* ]]; then
+  echo "expected safe recipes to enable REBUILD_PREFLIGHT" >&2
   exit 1
 fi
 
@@ -123,12 +142,14 @@ export TEST_LOG_DIR="$tmpdir/logs"
 export REAL_BASH="$real_bash"
 
 PATH="$tmpdir/bin:$original_path" "$real_bash" "$repo_root/nix/scripts/admin/rebuild-nixos.sh" switch zly "$repo_root"
+REBUILD_PREFLIGHT=1 PATH="$tmpdir/bin:$original_path" "$real_bash" "$repo_root/nix/scripts/admin/rebuild-nixos.sh" switch zly "$repo_root"
 PATH="$tmpdir/bin:$original_path" "$real_bash" "$repo_root/nix/scripts/admin/rebuild-nixos.sh" check "" "$repo_root"
 PATH="$tmpdir/bin:$original_path" "$real_bash" "$repo_root/nix/scripts/admin/rebuild-darwin.sh" switch zly-mac "$repo_root"
+REBUILD_PREFLIGHT=1 PATH="$tmpdir/bin:$original_path" "$real_bash" "$repo_root/nix/scripts/admin/rebuild-darwin.sh" switch zly-mac "$repo_root"
 PATH="$tmpdir/bin:$original_path" "$real_bash" "$repo_root/nix/scripts/admin/rebuild-darwin.sh" check "" "$repo_root"
 
 if ! rg -n --fixed-strings 'preflight:nixos zly' "$tmpdir/logs/preflight.log" >/dev/null; then
-  echo "expected nixos switch to run preflight" >&2
+  echo "expected nixos safe switch to run preflight" >&2
   exit 1
 fi
 
@@ -149,5 +170,11 @@ fi
 
 if ! rg -n --fixed-strings 'darwin-rebuild:switch --flake path:' "$tmpdir/logs/cmd.log" >/dev/null; then
   echo "expected darwin switch rebuild command" >&2
+  exit 1
+fi
+
+if [ "$(rg -c --fixed-strings 'preflight:nixos zly' "$tmpdir/logs/preflight.log")" -ne 1 ] || \
+  [ "$(rg -c --fixed-strings 'preflight:darwin zly-mac' "$tmpdir/logs/preflight.log")" -ne 1 ]; then
+  echo "expected preflight to run only for safe switch commands" >&2
   exit 1
 fi
