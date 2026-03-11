@@ -89,7 +89,7 @@ just lock
 
 ## 7. CI（GitHub Actions）
 
-文档入口：`docs/ci.md`（摘要） / `docs/CI.md`（详细）
+文档入口：`docs/CI.md`
 
 常用命令：
 

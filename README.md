@@ -9,8 +9,7 @@
 常用入口：
 
 - 人类文档入口: `docs/README.md`
-- CI 摘要: `docs/ci.md`
-- CI 详细说明: `docs/CI.md`
+- CI 说明: `docs/CI.md`
 - 主机结构: `nix/hosts/README.md`
 - Home Manager 结构: `nix/home/README.md`
 - 命令速查: `docs/NIX-COMMANDS.md`
