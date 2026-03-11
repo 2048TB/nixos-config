@@ -22,6 +22,11 @@ if [[ "$output" != *"Usage:"* ]]; then
   exit 1
 fi
 
+if [ -e "$repo_root/nix/scripts/admin/rebuild-auto.sh" ]; then
+  echo "expected unused rebuild-auto.sh entrypoint to be removed" >&2
+  exit 1
+fi
+
 switch_recipe="$(extract_recipe switch)"
 switch_safe_recipe="$(extract_recipe switch-safe)"
 boot_recipe="$(extract_recipe boot)"
