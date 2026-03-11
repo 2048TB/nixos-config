@@ -10,6 +10,12 @@
 
 ---
 
+## Status
+
+- 2026-03-11：host-local `checks.nix` 已删除，shared checks 已接管默认装配
+- 2026-03-11：registry 校验 helper、cache 共享常量、portal 归属、文档职责、`rebuild-auto.sh` 清理均已落地
+- 本计划保留为执行记录；若条目仍引用已删除文件，以当前代码和 README 为准
+
 ## Scope And Non-Goals
 
 - In scope:

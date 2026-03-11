@@ -91,19 +91,21 @@ common // {
 ```nix
 args@{ mylib, ... }:
 (mylib.mkNixosHardwareModule {
-  extraImports = [ ./hardware-workarounds.nix ];
+  extraImports = [ ../_shared/hardware-workarounds-common.nix ];
 }) args
 ```
 
-说明：`hardware.nix` 通常保持薄包装；通用 initrd kernel modules、firmware 默认值以及按 CPU vendor 收紧后的 microcode 默认值由 helper 统一提供，主机只追加自己的 workaround 或 hybrid 模块。
+说明：`hardware.nix` 通常保持薄包装；通用 initrd kernel modules、firmware 默认值以及按 CPU vendor 收紧后的 microcode 默认值由 helper 统一提供。默认直接复用 `_shared/hardware-workarounds-common.nix`，只有确有主机例外时才再拆本地 workaround 文件。
 
-如果该主机没有本地 workaround，且只想复用共享项，也可以直接 import `_shared/`：
+如果该主机需要本地 workaround，再额外创建 `hardware-workarounds.nix`：
 
 ```nix
-args@{ mylib, ... }:
-(mylib.mkNixosHardwareModule {
-  extraImports = [ ../_shared/hardware-workarounds-common.nix ];
-}) args
+{ ... }:
+{
+  imports = [ ../_shared/hardware-workarounds-common.nix ];
+
+  # host-only overrides go here
+}
 ```
 
 如果是 hybrid GPU 主机：
@@ -112,7 +114,7 @@ args@{ mylib, ... }:
 args@{ mylib, ... }:
 (mylib.mkNixosHardwareModule {
   extraImports = [
-    ./hardware-workarounds.nix
+    ../_shared/hardware-workarounds-common.nix
     ./hardware-gpu-hybrid.nix
   ];
 }) args

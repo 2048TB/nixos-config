@@ -57,7 +57,7 @@ cp -a nix/hosts/darwin/zly-mac nix/hosts/darwin/mac-mini
 - `hardware-modules.nix` 是硬件事实入口：只放 `nixos-hardware` 模块名
 - `hardware.nix` 通常是 `mylib.mkNixosHardwareModule` 的薄包装；helper 统一提供 initrd kernel module 车队基线、firmware 默认值与按 CPU vendor 收紧后的 microcode 默认值
 - `hardware.nix` 当前同时承载少量设备服务基线（如 `bluetooth` / `fwupd`）；在没有明确收益前，不建议为了层次纯度拆得更碎
-- `_shared/` 可以放跨主机复用的硬件模板或 common workaround；机器专属问题仍留在主机目录
+- `_shared/` 可以放跨主机复用的硬件模板或 common workaround；当前 NixOS 主机默认直接复用 `_shared/hardware-workarounds-common.nix`，机器专属问题仍留在主机目录
 - Hybrid/NVIDIA 这类需要 bus ID 或额外约束的逻辑，放在主机目录下的显式拆分文件中
 
 ### registry 字段说明（`nix/hosts/registry/systems.toml`）
