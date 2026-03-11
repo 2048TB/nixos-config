@@ -75,7 +75,8 @@ let
     config.allowUnfreePredicate = mylib.allowUnfreePredicate;
   };
 in
-assert hostRegistryLib.assertCommonRegistry {
+assert hostRegistryLib.assertCommonRegistry
+{
   inherit hostDir hostRegistry;
   registryPath = registryPath;
   hostName = "darwin.${name}";

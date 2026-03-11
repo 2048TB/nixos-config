@@ -102,7 +102,8 @@ let
     overlays = nixpkgsOverlays;
   };
 in
-assert hostRegistryLib.assertCommonRegistry {
+assert hostRegistryLib.assertCommonRegistry
+{
   inherit hostDir hostRegistry;
   registryPath = registryPath;
   hostName = "nixos.${name}";
