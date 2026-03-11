@@ -1,15 +1,7 @@
 { lib, nixpkgs, ... }:
 let
-  cacheSubstituters = [
-    "https://nix-community.cachix.org"
-    "https://nixpkgs-wayland.cachix.org"
-    "https://cache.garnix.io"
-  ];
-  cacheTrustedPublicKeys = [
-    "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
-    "nixpkgs-wayland.cachix.org-1:3lwxaILxMRkVhehr5StQprHdEo4IrE8sRho9R9HOLYA="
-    "cache.garnix.io:CTFPyKSLcx5RMJKfLo5EEPUObbA78b0YQ2DTCJXqr9g="
-  ];
+  nixCache = import ../../lib/nix-cache.nix;
+  inherit (nixCache) cacheSubstituters cacheTrustedPublicKeys trustedUsers;
 in
 {
   nix = {
@@ -25,7 +17,7 @@ in
       ] ++ cacheTrustedPublicKeys;
 
       # mkForce：精确控制安全敏感设置，避免与 NixOS 默认 ["root"] 合并产生重复导致 eval check 失败
-      trusted-users = lib.mkForce [ "root" ];
+      trusted-users = lib.mkForce trustedUsers;
       # mkForce：安全可审计，精确控制可信 substituter 列表
       trusted-substituters = lib.mkForce (lib.unique cacheSubstituters);
 

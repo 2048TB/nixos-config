@@ -17,6 +17,8 @@
 , ...
 }:
 let
+  nixCache = import ../../../lib/nix-cache.nix;
+  inherit (nixCache) cacheSubstituters trustedUsers;
   cfg = nixosSystem.config;
   hostCfg = cfg.my.host;
   hostRoles = hostCfg.roles or [ ];
@@ -26,7 +28,7 @@ let
   resolvedExpectedResumeOffset =
     if expectedResumeOffset != null then expectedResumeOffset else hostCfg.resumeOffset or null;
   resolvedExpectedTrustedUsers =
-    if expectedTrustedUsers != null then expectedTrustedUsers else [ "root" ];
+    if expectedTrustedUsers != null then expectedTrustedUsers else trustedUsers;
   resolvedExpectedVideoDrivers =
     if expectedVideoDrivers != null then
       expectedVideoDrivers
@@ -125,11 +127,7 @@ let
     if expectedTrustedSubstituters != null then
       expectedTrustedSubstituters
     else
-      [
-        "https://nix-community.cachix.org"
-        "https://nixpkgs-wayland.cachix.org"
-        "https://cache.garnix.io"
-      ];
+      cacheSubstituters;
   sortedTrustedUsers = builtins.sort builtins.lessThan (cfg.nix.settings.trusted-users or [ ]);
   sortedExpectedTrustedUsers = builtins.sort builtins.lessThan resolvedExpectedTrustedUsers;
   hasExpectedTrustedUsers = sortedTrustedUsers == sortedExpectedTrustedUsers;
