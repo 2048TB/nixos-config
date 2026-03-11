@@ -1,49 +1,10 @@
 # Nix 命令速查
 
-优先使用 `just`，避免手写长命令。
+只收录不适合放在主文档中的命令清单。日常 `check/test/switch`、安装步骤和 FAQ 统一见 `docs/README.md`。
 
 ---
 
-## 1. 核心命令（NixOS）
-
-```bash
-just hosts
-just host=zly check
-just host=zly test
-just host=zly switch
-just host=zly boot
-just rollback
-```
-
-说明：当前 `justfile` 默认 `host := ""`。未显式指定 `host` 时会自动检测当前主机。
-
----
-
-## 2. 安装（Live ISO）
-
-```bash
-export NIX_CONFIG="experimental-features = nix-command flakes"
-nix shell nixpkgs#just -c just host=zly install-check
-nix shell nixpkgs#just -c just host=zly disk=/dev/nvme0n1 install
-```
-
-安装命令涉及分区与清盘，必须确认 `host` 和 `disk`。
-
----
-
-## 3. macOS（nix-darwin）
-
-```bash
-just darwin-check
-just darwin-switch
-just darwin_host=zly-mac darwin-switch
-```
-
-说明：当前 `justfile` 默认 `darwin_host := ""`。未显式指定 `darwin_host` 时会自动检测当前主机。
-
----
-
-## 4. 密钥管理（sops）
+## 1. 密钥管理（sops）
 
 ```bash
 just sops-init-create
@@ -59,7 +20,7 @@ just sops-rekey
 
 ---
 
-## 5. 质量检查
+## 2. 质量检查
 
 ```bash
 just fmt
@@ -76,7 +37,7 @@ just check-all
 
 ---
 
-## 6. Flake 与依赖
+## 3. Flake 与依赖
 
 ```bash
 just update
@@ -87,7 +48,7 @@ just lock
 
 ---
 
-## 7. CI（GitHub Actions）
+## 4. CI（GitHub Actions）
 
 文档入口：`docs/CI.md`
 
@@ -108,7 +69,7 @@ gh run view <run-id> --log
 
 ---
 
-## 8. 清理维护
+## 5. 清理维护
 
 ```bash
 just packages
@@ -127,7 +88,7 @@ just diff
 
 ---
 
-## 9. 远程部署（NixOS）
+## 6. 远程部署（NixOS）
 
 ```bash
 just deploy                  # 部署全部 NixOS hosts（按 registry）
@@ -138,7 +99,7 @@ just deploy HOSTS=zly,zky    # 只部署指定主机
 
 ---
 
-## 10. Flake Apps
+## 7. Flake Apps
 
 ```bash
 nix run .#apply
@@ -157,20 +118,7 @@ DARWIN_HOST=zly-mac nix run .#build-switch
 
 ---
 
-## 11. 常见工作流
-
-```bash
-just quick                 # check + switch
-just full                  # check-all + switch + clean
-just dev                   # fmt + flake-check + test
-just repo-check            # 仓库级检查
-bash nix/scripts/admin/repo-check.sh --full
-just status && just log    # 查看仓库状态
-```
-
----
-
-## 12. 术语
+## 8. 术语
 
 | 术语 | 含义 |
 |------|------|
