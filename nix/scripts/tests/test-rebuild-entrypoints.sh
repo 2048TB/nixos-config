@@ -59,7 +59,7 @@ for recipe_body in "$darwin_switch_recipe" "$darwin_switch_safe_recipe" "$darwin
   fi
 done
 
-if printf '%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n' \
+if printf '%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n' \
   "$switch_recipe" \
   "$switch_safe_recipe" \
   "$boot_recipe" \

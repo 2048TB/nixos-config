@@ -53,8 +53,9 @@ echo "==> registry check"
 bash nix/scripts/checks/registry-check.sh
 
 echo "==> nix formatting check"
+mapfile -t nix_files < <(find nix -type f -name '*.nix' | sort)
 nix shell "path:$flake_repo#formatter.x86_64-linux" -c \
-  nixpkgs-fmt --check flake.nix $(find nix -type f -name '*.nix' | sort)
+  nixpkgs-fmt --check flake.nix "${nix_files[@]}"
 
 echo "==> eval tests"
 bash nix/scripts/admin/eval-tests.sh "$repo_root"
