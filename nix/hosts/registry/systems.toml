@@ -5,7 +5,11 @@
 
 [nixos.zky]
 system = "x86_64-linux"
-profiles = ["desktop", "laptop"]
+desktopSession = true
+kind = "workstation"
+formFactor = "laptop"
+tags = []
+gpuVendors = ["nvidia"]
 deployEnabled = true
 deployHost = "zky"
 deployUser = "root"
@@ -13,7 +17,11 @@ deployPort = 22
 
 [nixos.zly]
 system = "x86_64-linux"
-profiles = ["desktop"]
+desktopSession = true
+kind = "workstation"
+formFactor = "desktop"
+tags = []
+gpuVendors = ["amd", "nvidia"]
 deployEnabled = true
 deployHost = "zly"
 deployUser = "root"
@@ -21,7 +29,11 @@ deployPort = 22
 
 [nixos.zzly]
 system = "x86_64-linux"
-profiles = ["desktop"]
+desktopSession = true
+kind = "workstation"
+formFactor = "desktop"
+tags = []
+gpuVendors = ["amd"]
 deployEnabled = true
 deployHost = "zzly"
 deployUser = "root"
@@ -29,7 +41,11 @@ deployPort = 22
 
 [darwin.zly-mac]
 system = "aarch64-darwin"
-profiles = ["desktop", "laptop"]
+desktopSession = true
+kind = "workstation"
+formFactor = "laptop"
+tags = []
+gpuVendors = []
 deployEnabled = true
 deployHost = "zly-mac"
 deployUser = "z"

@@ -23,24 +23,20 @@
       "additionalProperties": false,
       "required": [
         "system",
-        "profiles",
-        "deployEnabled"
+        "desktopSession",
+        "deployEnabled",
+        "kind",
+        "formFactor",
+        "tags",
+        "gpuVendors"
       ],
       "properties": {
         "system": {
           "type": "string",
           "pattern": "^[a-z0-9_\\-]+$"
         },
-        "profiles": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "enum": [
-              "desktop",
-              "laptop",
-              "server"
-            ]
-          }
+        "desktopSession": {
+          "type": "boolean"
         },
         "deployEnabled": {
           "type": "boolean"
@@ -56,6 +52,40 @@
         "deployPort": {
           "type": "integer",
           "minimum": 1
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "workstation",
+            "server",
+            "vm"
+          ]
+        },
+        "formFactor": {
+          "type": "string",
+          "enum": [
+            "desktop",
+            "laptop",
+            "handheld",
+            "headless"
+          ]
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "gpuVendors": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "amd",
+              "intel",
+              "nvidia"
+            ]
+          }
         }
       }
     }

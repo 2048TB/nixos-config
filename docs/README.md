@@ -23,6 +23,9 @@
 - 密码和 SSH 私钥走 `sops-nix`，不要明文放进 Git
 - 主账号开发环境默认由 Home Manager 提供，system layer 仅保留桌面运行基线
 - `repo-check` 是仓库级默认自检入口；CI/workflow 相关改动优先先跑它
+- host metadata 统一从 `nix/hosts/registry/systems.toml` 进入 `my.host`，再派生为 `my.capabilities` 供模块消费
+- registry 当前只承载 `system`、`kind`、`formFactor`、`desktopSession`、`tags`、`gpuVendors` 与 deploy 元数据；不要重新引入 `profiles`
+- 读路径的 flake eval/build/check 默认优先走仓库脚本，以便在 `.keys/main.agekey` 不可读时自动切到 filtered flake repo
 
 ---
 
@@ -132,6 +135,9 @@ just darwin-switch
 **Q: 找不到 `main.agekey`**  
 放到 `./.keys/main.agekey`、`<repo>/.keys/main.agekey` 或 `~/.keys/main.agekey` 中任一位置。
 
+**Q: 直接执行 `nix eval path:/persistent/nixos-config#...` 报 `.keys/main.agekey: Permission denied`**  
+真实 checkout 可能包含 root-only 的 `.keys/main.agekey`。优先用 `just eval-tests`、`just flake-check`、`just repo-check`，或先执行 `flake_repo="$(bash nix/scripts/admin/print-flake-repo.sh /persistent/nixos-config)"`，再对 `path:$flake_repo#...` 做 eval/build。
+
 **Q: 如何防止密钥泄露**
 ```bash
 just hooks-enable
@@ -180,6 +186,8 @@ nixos-config/
 │   ├── lib/              # Nix 库函数
 │   ├── hosts/            # 主机配置（nixos/ + darwin/ + registry/ + outputs/）
 │   ├── modules/          # 系统模块（core/ + darwin/）
+│   ├── overlays/         # 对外复用 overlay 导出面
+│   ├── pkgs/             # 本地 package 导出面（当前为空）
 │   ├── home/             # Home Manager 配置
 │   └── scripts/          # 脚本（admin/）
 ├── secrets/              # 加密 secrets（可提交）
@@ -199,3 +207,11 @@ nixos-config/
 - `https://cache.garnix.io`
 
 配置位置：`nix/modules/core/nix-settings.nix`
+
+---
+
+## 9. Flake 导出面
+
+- `overlays`：对外复用 overlay
+- `nixosModules`：对外复用系统模块
+- `homeManagerModules`：对外复用 Home Manager 模块

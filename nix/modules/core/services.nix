@@ -8,10 +8,8 @@
 let
   hostCfg = config.my.host;
   homeDir = "/home/${mainUser}";
-  inherit (config.my) profiles;
   hibernateEnabled = hostCfg.resumeOffset != null;
-  isLaptop = profiles.laptop;
-  isDesktop = profiles.desktop;
+  inherit (config.my.capabilities) isLaptop hasDesktopSession;
 
   tuigreetPackage = pkgs.tuigreet or pkgs.greetd.tuigreet or (throw "tuigreet package not found in pkgs.tuigreet or pkgs.greetd.tuigreet");
   tuigreetCommand = pkgs.writeShellScript "greetd-tuigreet-session" ''
@@ -38,7 +36,7 @@ in
         };
       };
     }
-    (lib.mkIf isDesktop {
+    (lib.mkIf hasDesktopSession {
       xserver.enable = false;
 
       greetd = {

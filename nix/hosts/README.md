@@ -16,7 +16,7 @@ nix/hosts/
 ```
 
 当前主机：NixOS `zly`、`zky`、`zzly` | Darwin `zly-mac`
-当前主机清单与 profile/deploy 信息以 `nix/hosts/registry/systems.toml` 为准。
+当前主机清单与 metadata/deploy 信息以 `nix/hosts/registry/systems.toml` 为准。
 
 `outputs/common.nix`：平台共享的 registry 校验、eval-check 构造与 strict host 解析模板。
 
@@ -32,6 +32,7 @@ nix/hosts/
 说明：
 - NixOS 的 `default.nix` 是薄入口，统一 import `hardware.nix` 与 `disko.nix`
 - `checks.nix` 仅在该主机需要额外 eval 断言时才创建；通用 checks 已由 `nix/hosts/nixos/_shared/checks.nix` 统一装配
+- host 目录优先只放 hardware、disk layout 与极少量 host-only workaround；通用行为优先进入 `nix/modules/core/` 或 `nix/home/`
 
 ---
 
@@ -54,6 +55,7 @@ cp -a nix/hosts/darwin/zly-mac nix/hosts/darwin/mac-mini
 
 ### 硬件层原则
 
+- host metadata 流向：`nix/hosts/registry/systems.toml` -> `my.host` typed options -> `my.capabilities` -> modules
 - `hardware-modules.nix` 是硬件事实入口：只放 `nixos-hardware` 模块名
 - `hardware.nix` 通常是 `mylib.mkNixosHardwareModule` 的薄包装；helper 统一提供 initrd kernel module 车队基线、firmware 默认值与按 CPU vendor 收紧后的 microcode 默认值
 - `hardware.nix` 当前同时承载少量设备服务基线（如 `bluetooth` / `fwupd`）；在没有明确收益前，不建议为了层次纯度拆得更碎
@@ -63,7 +65,10 @@ cp -a nix/hosts/darwin/zly-mac nix/hosts/darwin/mac-mini
 ### registry 字段说明（`nix/hosts/registry/systems.toml`）
 
 - `system`：平台（如 `x86_64-linux`、`aarch64-darwin`）
-- `profiles`：高层机器形态（如 `desktop` / `laptop` / `server`，驱动 `my.profiles.*`）
+- `kind` / `formFactor`：host metadata 的基础分类，驱动 `my.capabilities.*`
+- `desktopSession`：显式桌面会话开关，驱动 `my.capabilities.hasDesktopSession`
+- `tags`：自由标签，用于后续 capability 扩展或更细粒度 gating
+- `gpuVendors`：声明式 GPU 厂商清单，用于 capability 推导
 - `deployEnabled`：是否允许被 `deploy-hosts.sh` 批量部署
 - `deployHost` / `deployUser` / `deployPort`：远程部署目标（仅 registry 使用；`deploy-hosts.sh` 直接读取）
 
@@ -73,7 +78,8 @@ cp -a nix/hosts/darwin/zly-mac nix/hosts/darwin/mac-mini
 
 - `Identity`：`hostname`、`username`、`timezone`
 - `Platform`：`system`、`gpuMode`
-- `Profile/Role`：`profiles` 表示机器形态，`roles` 表示功能开关（如 `gaming` / `vpn` / `virt` / `container`）
+- `Topology/Role`：`kind`、`formFactor`、`desktopSession` 表示机器拓扑与会话形态，`roles` 表示功能开关（如 `gaming` / `vpn` / `virt` / `container`）
+- `Capability`：从 `kind` / `formFactor` / `gpuVendors` 派生，只读消费，不在主机目录手写
 - `Deploy`：`deployEnabled`、`deployHost`、`deployUser`、`deployPort`（registry only）
 - `Runtime`：`diskDevice`、`swapSizeGb`、`resumeOffset`
 
@@ -81,7 +87,7 @@ cp -a nix/hosts/darwin/zly-mac nix/hosts/darwin/mac-mini
 
 ### GPU 字段说明（`vars.nix`）
 
-- `gpuMode` 常见值：`auto`、`modesetting`、`amdgpu`、`nvidia`、`amd-nvidia-hybrid`
+- `gpuMode` 常见值：`modesetting`、`amdgpu`、`nvidia`、`amd-nvidia-hybrid`
 - `amdgpuBusId` / `nvidiaBusId`：仅在 hybrid 场景需要，格式 `PCI:<bus>@<domain>:<device>:<function>`（十进制）
 - 获取方式：`lspci -D` 后将槽位（如 `0000:12:00.0`）换算为 `PCI:18@0:0:0`
 

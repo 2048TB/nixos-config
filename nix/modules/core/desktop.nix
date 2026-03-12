@@ -4,10 +4,10 @@
 , ...
 }:
 let
-  isDesktop = config.my.profiles.desktop;
+  inherit (config.my.capabilities) hasDesktopSession;
   gnupgCacheTtlSeconds = 4 * 60 * 60; # 4 小时
 in
-lib.mkIf isDesktop {
+lib.mkIf hasDesktopSession {
   programs = {
     dconf.enable = true;
 

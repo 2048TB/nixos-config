@@ -48,6 +48,9 @@ let
   nixosSystemValues = builtins.attrValues nixosSystems;
   darwinSystemValues = builtins.attrValues darwinSystems;
   allSystemValues = nixosSystemValues ++ darwinSystemValues;
+  exportedOverlays = import ../../overlays { inherit inputs; };
+  exportedNixosModules = import ../../modules/nixos;
+  exportedHomeManagerModules = import ../../modules/home-manager;
 in
 {
   nixosConfigurations = lib.attrsets.mergeAttrsList (
@@ -62,4 +65,8 @@ in
   checks = mylib.mergeRecursiveAttrsList (map (it: it.checks or { }) allSystemValues);
   devShells = mylib.mergeRecursiveAttrsList (map (it: it.devShells or { }) allSystemValues);
   formatter = mylib.mergeRecursiveAttrsList (map (it: it.formatter or { }) allSystemValues);
+  overlays = exportedOverlays;
+  packages = { };
+  nixosModules = exportedNixosModules;
+  homeManagerModules = exportedHomeManagerModules;
 }

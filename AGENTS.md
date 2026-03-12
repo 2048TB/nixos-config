@@ -34,7 +34,17 @@ just repo-check     # 仓库级自检（shell syntax + tests + registry + eval +
 
 ---
 
-## 3. 改哪里
+## 3. Host Metadata 模型
+
+- host metadata 事实源：`nix/hosts/registry/systems.toml`
+- registry 当前字段：`system`、`kind`、`formFactor`、`desktopSession`、`tags`、`gpuVendors`、deploy 元数据
+- 模块消费路径：`registry -> my.host -> my.capabilities`
+- `roles` 是功能开关；不要重新引入旧 `profiles` 模型
+- `gpuMode` 当前正式值不包含 `auto`
+
+---
+
+## 4. 改哪里
 
 | 目标 | 文件路径 |
 |------|----------|
@@ -56,7 +66,7 @@ just repo-check     # 仓库级自检（shell syntax + tests + registry + eval +
 
 ---
 
-## 4. 常用命令
+## 5. 常用命令
 
 ```bash
 just host=zly check && just host=zly switch   # 日常更新（建议显式 host）
@@ -68,10 +78,11 @@ just darwin-switch                             # macOS
 补充：当前 Linux/macOS 主账号的一致开发环境默认由 Home Manager 提供；system layer 仅保留桌面运行基线与系统服务。
 补充：当前 NixOS 主机默认直接复用 `nix/hosts/nixos/_shared/hardware-workarounds-common.nix`；只有出现主机专属硬件问题时才再创建本地 `hardware-workarounds.nix`。
 补充：`repo-check` 会覆盖 `nix/scripts/admin/*.sh`、`nix/scripts/checks/*.sh`、`nix/scripts/tests/*.sh` 的 shell 语法检查。
+补充：read-only flake eval/build/check 优先走 `just` 或仓库脚本；当前脚本会在 `.keys/main.agekey` 不可读时自动切到 filtered flake repo。
 
 ---
 
-## 5. 提交规则
+## 6. 提交规则
 
 - Conventional Commit（`feat:`、`fix:`、`docs:`、`refactor:`）
 - 每次提交只做一个主题
@@ -79,13 +90,13 @@ just darwin-switch                             # macOS
 
 ---
 
-## 6. 安全红线
+## 7. 安全红线
 
 详见 `CLAUDE.md` §4。核心：不提交私钥，`secrets/*.yaml` 可提交，`.keys/*.agekey` 不可提交。
 
 ---
 
-## 7. 变更原则
+## 8. 变更原则
 
 - 最小改动优先，不做无关重构
 - 先保证正确性，再考虑可维护性

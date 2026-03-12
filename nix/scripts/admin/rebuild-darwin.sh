@@ -36,6 +36,8 @@ case "$action" in
 esac
 
 repo="$(resolve_repo_path "$repo")"
+prepare_flake_repo_path "$repo"
+flake_repo="$PREPARED_FLAKE_REPO"
 
 if [ -z "$host" ]; then
   host="$(bash "$script_dir/resolve-host.sh" darwin "$repo" auto --strict)"
@@ -48,9 +50,9 @@ case "$action" in
     if [ "${REBUILD_PREFLIGHT:-0}" = "1" ]; then
       bash "$script_dir/preflight-switch.sh" darwin "$host"
     fi
-    darwin-rebuild switch --flake "path:${repo}#$host"
+    darwin-rebuild switch --flake "path:${flake_repo}#$host"
     ;;
   check)
-    "${nix_cmd[@]}" build --no-link "path:${repo}#darwinConfigurations.$host.system"
+    "${nix_cmd[@]}" build --no-link "path:${flake_repo}#darwinConfigurations.$host.system"
     ;;
 esac

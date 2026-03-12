@@ -91,6 +91,8 @@ if ! is_valid_host_name "$host"; then
 fi
 
 repo="$(resolve_repo_path "$repo")"
+prepare_flake_repo_path "$repo"
+flake_repo="$PREPARED_FLAKE_REPO"
 validate_block_device_path "$disk"
 confirm_destructive_action \
   "INSTALL ${host} ${disk}" \
@@ -100,7 +102,7 @@ confirm_destructive_action \
 echo ">>> host=$host disk=$disk"
 
 # 1. Run disko
-disko_script="$(env NIXOS_DISK_DEVICE="$disk" nix build --impure --no-link --print-out-paths "path:${repo}#nixosConfigurations.${host}.config.system.build.diskoScript")"
+disko_script="$(env NIXOS_DISK_DEVICE="$disk" nix build --impure --no-link --print-out-paths "path:${flake_repo}#nixosConfigurations.${host}.config.system.build.diskoScript")"
 echo ">>> disko_script=$disko_script"
 sudo env NIXOS_DISK_DEVICE="$disk" "$disko_script"
 
@@ -122,7 +124,7 @@ else
 fi
 
 # 4. Run nixos-install (from source repo)
-sudo env NIXOS_DISK_DEVICE="$disk" nixos-install --impure --flake "path:${repo}#$host"
+sudo env NIXOS_DISK_DEVICE="$disk" nixos-install --impure --flake "path:${flake_repo}#$host"
 
 # 5. Sync flake into target /persistent/nixos-config (atomic replace)
 TARGET_FLAKE_DIR="/mnt/persistent/nixos-config"
@@ -142,8 +144,8 @@ if [ ! -f "$TARGET_FLAKE_TMP/flake.nix" ]; then
   exit 1
 fi
 
-target_user="$(nix eval --raw "path:${repo}#nixosConfigurations.${host}.config.my.host.username")"
-target_owner="$(resolve_target_owner_from_config "$repo" "$host" "$target_user")"
+target_user="$(nix eval --raw "path:${flake_repo}#nixosConfigurations.${host}.config.my.host.username")"
+target_owner="$(resolve_target_owner_from_config "$flake_repo" "$host" "$target_user")"
 sudo chown -R "$target_owner" "$TARGET_FLAKE_TMP"
 sudo rm -rf "$TARGET_FLAKE_DIR"
 sudo mv "$TARGET_FLAKE_TMP" "$TARGET_FLAKE_DIR"

@@ -36,6 +36,8 @@ case "$action" in
 esac
 
 repo="$(resolve_repo_path "$repo")"
+prepare_flake_repo_path "$repo"
+flake_repo="$PREPARED_FLAKE_REPO"
 
 if [ -z "$host" ]; then
   host="$(bash "$script_dir/resolve-host.sh" nixos "$repo" auto --strict)"
@@ -48,9 +50,9 @@ case "$action" in
     if [ "${REBUILD_PREFLIGHT:-0}" = "1" ]; then
       bash "$script_dir/preflight-switch.sh" nixos "$host"
     fi
-    sudo nixos-rebuild "$action" --flake "path:${repo}#$host" |& nom
+    sudo nixos-rebuild "$action" --flake "path:${flake_repo}#$host" |& nom
     ;;
   check)
-    "${nix_cmd[@]}" build --no-link "path:${repo}#nixosConfigurations.$host.config.system.build.toplevel"
+    "${nix_cmd[@]}" build --no-link "path:${flake_repo}#nixosConfigurations.$host.config.system.build.toplevel"
     ;;
 esac

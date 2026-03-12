@@ -34,6 +34,7 @@ just check-all
 
 `check-all` 当前等价于：`fmt + lint + dead`（不包含 `eval-tests` 与 `flake-check`）。
 `repo-check` 会串联 shell syntax / shell tests / registry check / eval-tests / flake-check。
+`eval-tests` / `flake-check` / `repo-check` 会优先通过仓库脚本解析 filtered flake repo，避免真实 checkout 中不可读 `.keys/` 直接进入 `path:` flake source。
 
 ---
 
@@ -44,6 +45,14 @@ just update
 just update-nixpkgs
 just info
 just lock
+```
+
+手动执行 read-only flake eval/build 时，优先先取 filtered repo：
+
+```bash
+REPO=/persistent/nixos-config
+flake_repo="$(bash "$REPO/nix/scripts/admin/print-flake-repo.sh" "$REPO")"
+nix eval "path:$flake_repo#nixosConfigurations" --apply builtins.attrNames
 ```
 
 ---
