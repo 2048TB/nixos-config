@@ -50,7 +50,6 @@ let
   allSystemValues = nixosSystemValues ++ darwinSystemValues;
   exportedOverlays = import ../../overlays { inherit inputs; };
   exportedNixosModules = import ../../modules/nixos;
-  exportedHomeManagerModules = import ../../modules/home-manager;
   exportedPackages = {
     x86_64-linux = import ../../pkgs (
       import inputs.nixpkgs {
@@ -82,5 +81,4 @@ in
   overlays = exportedOverlays;
   packages = exportedPackages;
   nixosModules = exportedNixosModules;
-  homeManagerModules = exportedHomeManagerModules;
 }

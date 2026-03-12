@@ -64,12 +64,10 @@ flake_repo="$(bash "$REPO/nix/scripts/admin/print-flake-repo.sh" "$REPO")"
 nix eval "path:$flake_repo#packages.x86_64-linux" --apply builtins.attrNames
 nix eval "path:$flake_repo#overlays" --apply builtins.attrNames
 nix eval "path:$flake_repo#nixosModules" --apply builtins.attrNames
-nix eval "path:$flake_repo#homeManagerModules" --apply builtins.attrNames
 ```
 
 说明：
-- `homeManagerModules` 不是 Nix 标准 flake output 名；直接运行原生 `nix flake show/check` 仍会提示 warning。
-- 仓库脚本 `just flake-check` / `repo-check` 会过滤这条已知无害 warning，避免检查输出噪音。
+- Home Manager 模块当前不再单独通过非标准 flake output 导出；对外复用优先走仓库内模块路径或 NixOS/Home Manager 入口。
 
 ---
 

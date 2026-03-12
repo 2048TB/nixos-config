@@ -220,4 +220,3 @@ nixos-config/
 - `overlays`：对外复用 overlay
 - `packages`：对外复用本地 package 集
 - `nixosModules`：对外复用系统模块
-- `homeManagerModules`：对外复用 Home Manager 模块
