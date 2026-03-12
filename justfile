@@ -44,6 +44,10 @@ build:
     @if [ -z "{{host}}" ]; then echo "error: 需要指定主机. 用法: just host=zly build" >&2; exit 2; fi
     @flake_repo="$(bash {{repo}}/nix/scripts/admin/print-flake-repo.sh {{repo}})"; {{nix_cmd}} build "path:$flake_repo#nixosConfigurations.{{host}}.config.system.build.toplevel"
 
+check:
+    @if [ -z "{{host}}" ]; then echo "error: 需要指定主机. 用法: just host=zly check" >&2; exit 2; fi
+    @flake_repo="$(bash {{repo}}/nix/scripts/admin/print-flake-repo.sh {{repo}})"; sudo nixos-rebuild dry-build --flake "path:$flake_repo#{{host}}"
+
 dry-build:
     @if [ -z "{{host}}" ]; then echo "error: 需要指定主机. 用法: just host=zly dry-build" >&2; exit 2; fi
     @flake_repo="$(bash {{repo}}/nix/scripts/admin/print-flake-repo.sh {{repo}})"; {{nix_cmd}} build --dry-run "path:$flake_repo#nixosConfigurations.{{host}}.config.system.build.toplevel"
@@ -65,10 +69,14 @@ test:
 gc:
     @sudo nix store gc
 
+clean:
+    @sudo nix-collect-garbage --delete-older-than 7d
+
+clean-all:
+    @sudo nix-collect-garbage -d
+
 optimize:
     @sudo nix store optimise
-
-clean: gc optimize
 
 # ========== Git / 安全 ==========
 
