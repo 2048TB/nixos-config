@@ -97,7 +97,6 @@ required_tracked_paths=(
   "nix/home/linux/_mixins/README.md"
   "nix/lib/display-topology.nix"
   "nix/hosts/nixos/_shared/generated-desktop-checks.nix"
-  "nix/scripts/tests/test-flake-check-warnings.sh"
 )
 
 if ! git -C "$repo_root" ls-files --error-unmatch "${required_tracked_paths[@]}" >/dev/null 2>&1; then

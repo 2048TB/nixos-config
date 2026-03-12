@@ -48,6 +48,7 @@ prepare_flake_repo_path() {
   local tracked_manifest=""
   local rel_path=""
 
+  # shellcheck disable=SC2034
   PREPARED_FLAKE_REPO="$repo_root"
 
   if ! needs_filtered_flake_repo "$repo_root"; then
@@ -55,7 +56,9 @@ prepare_flake_repo_path() {
   fi
 
   cache_key="$(printf '%s' "$repo_root" | cksum | awk '{print $1}')"
-  cache_root="${TMPDIR:-/tmp}/nixos-config-flake-$(id -u)-${cache_key}"
+  # Use a per-process cache dir so concurrent script runs do not delete each
+  # other's prepared flake repo while a command is still evaluating it.
+  cache_root="${TMPDIR:-/tmp}/nixos-config-flake-$(id -u)-${cache_key}-$$"
 
   rm -rf "$cache_root/repo"
   mkdir -p "$cache_root/repo"
@@ -81,6 +84,7 @@ prepare_flake_repo_path() {
       "$repo_root/" "$cache_root/repo/"
   fi
 
+  # shellcheck disable=SC2034
   PREPARED_FLAKE_REPO="$cache_root/repo"
 }
 
