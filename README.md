@@ -5,6 +5,7 @@
 - NixOS: `zly`、`zky`、`zzly`
 - nix-darwin: `zly-mac`
 - Home Manager 分层配置
+- host metadata 统一收敛到 `nix/hosts/registry/systems.toml`，当前模型为 `kind` / `formFactor` / `desktopSession` / `tags` / `gpuVendors`
 
 常用入口：
 

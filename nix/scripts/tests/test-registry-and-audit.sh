@@ -11,7 +11,7 @@ if ! rg -n '"additionalProperties": false' "$schema" >/dev/null; then
   exit 1
 fi
 
-for field in deployEnabled deployPort; do
+for field in desktopSession deployEnabled deployPort kind formFactor tags gpuVendors; do
   if ! rg -n "\"$field\"" "$schema" >/dev/null; then
     echo "expected $field in registry schema" >&2
     exit 1
@@ -31,6 +31,44 @@ for host in zky zly zzly; do
     echo "expected deployPort=22 for nixos host $host" >&2
     exit 1
   fi
+  if ! awk "/^\\[nixos\\.${host}\\]/{flag=1;next}/^\\[/{flag=0}flag" "$registry" | rg -n '^kind = "workstation"$' >/dev/null; then
+    echo "expected workstation kind for nixos host $host" >&2
+    exit 1
+  fi
+  if ! awk "/^\\[nixos\\.${host}\\]/{flag=1;next}/^\\[/{flag=0}flag" "$registry" | rg -n '^formFactor = "(desktop|laptop)"$' >/dev/null; then
+    echo "expected formFactor for nixos host $host" >&2
+    exit 1
+  fi
+  if ! awk "/^\\[nixos\\.${host}\\]/{flag=1;next}/^\\[/{flag=0}flag" "$registry" | rg -n '^desktopSession = true$' >/dev/null; then
+    echo "expected desktopSession=true for nixos host $host" >&2
+    exit 1
+  fi
+  if ! awk "/^\\[nixos\\.${host}\\]/{flag=1;next}/^\\[/{flag=0}flag" "$registry" | rg -n '^tags = \[.*\]$' >/dev/null; then
+    echo "expected tags for nixos host $host" >&2
+    exit 1
+  fi
+  if ! awk "/^\\[nixos\\.${host}\\]/{flag=1;next}/^\\[/{flag=0}flag" "$registry" | rg -n '^gpuVendors = \[.*\]$' >/dev/null; then
+    echo "expected gpuVendors for nixos host $host" >&2
+    exit 1
+  fi
+done
+
+if ! rg -n '^\[darwin\.zly-mac\]' "$registry" >/dev/null; then
+  echo "expected registry entry for darwin host zly-mac" >&2
+  exit 1
+fi
+
+for expected_line in \
+  'kind = "workstation"' \
+  'formFactor = "laptop"' \
+  'desktopSession = true' \
+  'tags = []' \
+  'gpuVendors = []'
+do
+  if ! awk '/^\[darwin\.zly-mac\]/{flag=1;next}/^\[/{flag=0}flag' "$registry" | rg -n --fixed-strings "$expected_line" >/dev/null; then
+    echo "expected ${expected_line} for darwin host zly-mac" >&2
+    exit 1
+  fi
 done
 
 tmpdir="$(mktemp -d)"
@@ -42,7 +80,11 @@ touch "$tmprepo/flake.nix"
 cat >"$tmprepo/nix/hosts/registry/systems.toml" <<'EOF'
 [nixos.zly]
 system = "x86_64-linux"
-profiles = ["desktop"]
+desktopSession = true
+kind = "workstation"
+formFactor = "desktop"
+tags = []
+gpuVendors = ["amd", "nvidia"]
 deployEnabled = true
 deployHost = "builder.internal"
 deployUser = "admin"
@@ -50,7 +92,11 @@ deployPort = 2222
 
 [nixos.zky]
 system = "x86_64-linux"
-profiles = ["desktop"]
+desktopSession = true
+kind = "workstation"
+formFactor = "desktop"
+tags = []
+gpuVendors = ["nvidia"]
 deployEnabled = false
 deployHost = "skip.internal"
 deployUser = "root"

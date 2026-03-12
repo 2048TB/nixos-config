@@ -27,7 +27,7 @@ let
   wpsOfficePackage = pkgs.wpsoffice;
 
   # 仅在混合显卡（amd-nvidia-hybrid）时安装 GPU 加速相关软件
-  gpuChoice = hostCfg.gpuMode or "auto";
+  gpuChoice = hostCfg.gpuMode or "modesetting";
   isHybridGpu = gpuChoice == "amd-nvidia-hybrid";
   ollamaVulkan = pkgs.ollama or null;
   tensorflowCudaPkg = pkgs.python3Packages.tensorflowWithCuda or null;

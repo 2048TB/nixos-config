@@ -52,7 +52,7 @@ in
   home = {
     stateVersion = hostCfg.homeStateVersion or mylib.defaultHomeStateVersion;
     sessionVariables = {
-      HOST_PROFILE = hostCfg.hostname;
+      NIX_HOSTNAME = hostCfg.hostname;
       NPM_CONFIG_PREFIX = "${homeDir}/.npm-global";
       BUN_INSTALL = "${homeDir}/.bun";
       BUN_INSTALL_BIN = "${homeDir}/.bun/bin";

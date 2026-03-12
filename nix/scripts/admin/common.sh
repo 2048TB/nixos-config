@@ -35,6 +35,38 @@ resolve_repo_path() {
   return 1
 }
 
+needs_filtered_flake_repo() {
+  local repo_root="${1:?repo root required}"
+  local key_path="$repo_root/.keys/main.agekey"
+  [ -e "$key_path" ] && [ ! -r "$key_path" ]
+}
+
+prepare_flake_repo_path() {
+  local repo_root="${1:?repo root required}"
+  local cache_key=""
+  local cache_root=""
+
+  PREPARED_FLAKE_REPO="$repo_root"
+
+  if ! needs_filtered_flake_repo "$repo_root"; then
+    return 0
+  fi
+
+  cache_key="$(printf '%s' "$repo_root" | cksum | awk '{print $1}')"
+  cache_root="${TMPDIR:-/tmp}/nixos-config-flake-$(id -u)-${cache_key}"
+
+  mkdir -p "$cache_root/repo"
+  rsync -a --delete \
+    --exclude '.git/' \
+    --exclude '.keys/' \
+    --exclude '.serena/' \
+    --exclude 'result' \
+    --exclude 'result-*' \
+    "$repo_root/" "$cache_root/repo/"
+
+  PREPARED_FLAKE_REPO="$cache_root/repo"
+}
+
 enter_repo_root() {
   local repo_root
   repo_root="$(git rev-parse --show-toplevel)"

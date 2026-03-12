@@ -21,6 +21,12 @@
 - system layer 仅保留桌面运行基线与系统服务
 - 可用 `just packages` 同时查看 `environment.systemPackages` 与主用户 `home.packages`
 
+host metadata 约定：
+- registry 事实源：`nix/hosts/registry/systems.toml`
+- 当前 registry 字段：`system`、`kind`、`formFactor`、`desktopSession`、`tags`、`gpuVendors`、deploy 元数据
+- 模块消费顺序：`registry -> my.host -> my.capabilities`
+- 不再使用旧 `profiles` 模型作为 host/session gating
+
 ---
 
 ## 1. Live ISO（安装 NixOS）
@@ -47,6 +53,8 @@ REPO="$PWD"
 ```
 
 说明：交互执行时脚本会再次确认目标磁盘；若在自动化环境中使用，需要显式传 `--yes`。
+
+说明：仓库脚本会在需要时自动把当前 checkout 复制为 filtered flake repo，并排除 `.keys/` 等不适合直接进入 `path:` flake source 的内容；因此优先通过 `just` 或 `nix/scripts/admin/*.sh` 入口执行检查与安装。
 
 ### 完全手动安装（ISO，不使用 `just install`）
 
@@ -125,6 +133,16 @@ sudo reboot
 
 `./.keys/main.agekey` → `<repo>/.keys/main.agekey` → `~/.keys/main.agekey`（需为 `AGE-SECRET-KEY-*` 私钥）
 
+### 手动 flake eval/build 的安全入口
+
+如果当前 checkout 包含不可读的 `.keys/main.agekey`，不要直接执行 `nix eval path:$REPO#...`。先取 filtered flake repo：
+
+```bash
+REPO=/persistent/nixos-config
+flake_repo="$(bash "$REPO/nix/scripts/admin/print-flake-repo.sh" "$REPO")"
+nix eval "path:$flake_repo#nixosConfigurations" --apply builtins.attrNames
+```
+
 ---
 
 ## 2. 已安装 NixOS
@@ -159,4 +177,5 @@ DARWIN_HOST=zly-mac nix run .#build-switch
 |------|------|
 | `strict mode requires a valid host` | `just hosts` 查看主机，显式指定 `host`/`darwin_host` |
 | 找不到 `main.agekey` | 放到 `.keys/main.agekey`（或脚本搜索路径中的其他位置） |
+| `path:<repo>` 评估时报 `.keys/main.agekey: Permission denied` | 改用 `just eval-tests` / `just flake-check`，或先调用 `print-flake-repo.sh` 获取 filtered repo |
 | 密码不生效 | `just password-set-hash '<hash>' && just host=<nixos-host> switch` |

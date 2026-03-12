@@ -60,17 +60,7 @@ deploy HOSTS="":
 
 # 快速执行 eval tests（hostname/home 映射一致性）
 eval-tests:
-    @echo "=== checks.x86_64-linux (eval tests) ==="
-    {{nix_cmd}} build --no-link \
-      path:{{repo}}#checks.x86_64-linux.evaltest-hostname \
-      path:{{repo}}#checks.x86_64-linux.evaltest-home \
-      path:{{repo}}#checks.x86_64-linux.evaltest-kernel \
-      path:{{repo}}#checks.x86_64-linux.evaltest-platform
-    @echo ""
-    @echo "=== checks.aarch64-darwin (eval only) ==="
-    {{nix_cmd}} eval path:{{repo}}#checks.aarch64-darwin.evaltest-darwin-hostname.drvPath >/dev/null
-    {{nix_cmd}} eval path:{{repo}}#checks.aarch64-darwin.evaltest-darwin-home.drvPath >/dev/null
-    {{nix_cmd}} eval path:{{repo}}#checks.aarch64-darwin.evaltest-darwin-platform.drvPath >/dev/null
+    @bash {{repo}}/nix/scripts/admin/eval-tests.sh {{repo}}
 
 # 回滚到上一个系统世代
 rollback:
@@ -92,11 +82,11 @@ darwin-check:
 
 # 列出可用 darwin 主机
 darwin-hosts:
-    {{nix_cmd}} eval path:{{repo}}#darwinConfigurations --apply builtins.attrNames
+    @flake_repo="$({{repo}}/nix/scripts/admin/print-flake-repo.sh {{repo}})"; {{nix_cmd}} eval "path:$flake_repo#darwinConfigurations" --apply builtins.attrNames
 
 # 列出可用 nixos 主机
 nixos-hosts:
-    {{nix_cmd}} eval path:{{repo}}#nixosConfigurations --apply builtins.attrNames
+    @flake_repo="$({{repo}}/nix/scripts/admin/print-flake-repo.sh {{repo}})"; {{nix_cmd}} eval "path:$flake_repo#nixosConfigurations" --apply builtins.attrNames
 
 # 列出全部主机
 hosts:
@@ -150,15 +140,14 @@ update-nixpkgs:
 
 # 查看 flake 信息
 info:
-    {{nix_cmd}} flake show path:{{repo}}
+    @flake_repo="$({{repo}}/nix/scripts/admin/print-flake-repo.sh {{repo}})"; {{nix_cmd}} flake show "path:$flake_repo"
     @echo ""
     @echo "=== Flake 元数据 ==="
-    {{nix_cmd}} flake metadata path:{{repo}}
+    @flake_repo="$({{repo}}/nix/scripts/admin/print-flake-repo.sh {{repo}})"; {{nix_cmd}} flake metadata "path:$flake_repo"
 
 # 检查 flake 配置
 flake-check:
-    {{nix_cmd}} flake check --all-systems path:{{repo}}
-    @echo "✓ Flake 配置检查通过"
+    @bash {{repo}}/nix/scripts/admin/flake-check.sh {{repo}}
 
 # 仓库级完整检查（shell test + eval + flake check）
 repo-check:
@@ -205,13 +194,14 @@ diff:
 
 # 查看当前系统包列表
 packages:
+    flake_repo="$({{repo}}/nix/scripts/admin/print-flake-repo.sh {{repo}})"; \
     h="{{host}}"; if [ -z "$h" ]; then h="$({{repo}}/nix/scripts/admin/resolve-host.sh nixos {{repo}} auto --strict)"; fi; \
     echo "=== declared environment.systemPackages (system baseline, host=$h) ==="; \
-    {{nix_cmd}} eval --raw "path:{{repo}}#nixosConfigurations.$h.config.environment.systemPackages" --apply 'pkgs: builtins.concatStringsSep "\n" (map (p: (builtins.parseDrvName p.name).name) pkgs)' | awk 'NF && !seen[$0]++'; \
+    {{nix_cmd}} eval --raw "path:$flake_repo#nixosConfigurations.$h.config.environment.systemPackages" --apply 'pkgs: builtins.concatStringsSep "\n" (map (p: (builtins.parseDrvName p.name).name) pkgs)' | awk 'NF && !seen[$0]++'; \
     echo ""; \
-    u="$({{nix_cmd}} eval --raw "path:{{repo}}#nixosConfigurations.$h.config.home-manager.users" --apply 'users: builtins.head (builtins.attrNames users)')"; \
+    u="$({{nix_cmd}} eval --raw "path:$flake_repo#nixosConfigurations.$h.config.home-manager.users" --apply 'users: builtins.head (builtins.attrNames users)')"; \
     echo "=== declared home.packages (user environment, host=$h user=$u) ==="; \
-    {{nix_cmd}} eval --raw "path:{{repo}}#nixosConfigurations.$h.config.home-manager.users.$u.home.packages" --apply 'pkgs: builtins.concatStringsSep "\n" (map (p: (builtins.parseDrvName p.name).name) pkgs)' | awk 'NF && !seen[$0]++'
+    {{nix_cmd}} eval --raw "path:$flake_repo#nixosConfigurations.$h.config.home-manager.users.$u.home.packages" --apply 'pkgs: builtins.concatStringsSep "\n" (map (p: (builtins.parseDrvName p.name).name) pkgs)' | awk 'NF && !seen[$0]++'
 
 # 查看包依赖树（需要先 switch）
 tree:

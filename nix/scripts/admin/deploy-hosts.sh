@@ -49,9 +49,11 @@ while [ "$#" -gt 0 ]; do
 done
 
 repo="$(resolve_repo_path "$repo")"
+prepare_flake_repo_path "$repo"
+flake_repo="$PREPARED_FLAKE_REPO"
 
 list_hosts() {
-  nix eval --raw "path:${repo}#nixosConfigurations" \
+  nix eval --raw "path:${flake_repo}#nixosConfigurations" \
     --apply 'cfgs: builtins.concatStringsSep "\n" (builtins.attrNames cfgs)'
 }
 
@@ -133,7 +135,7 @@ for host in "${hosts[@]}"; do
     nixos-rebuild
     switch
     --flake
-    "path:${repo}#${host}"
+    "path:${flake_repo}#${host}"
     --target-host
     "${target_user}@${target_host}"
     --use-remote-sudo

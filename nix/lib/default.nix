@@ -91,6 +91,7 @@ let
   mkDarwinHost = import ./mkDarwinHost.nix { inherit lib; };
   attrsLib = import ./attrs.nix { inherit lib; };
   hostMetaLib = import ./host-meta.nix { };
+  hostCapabilitiesLib = import ./host-capabilities.nix { };
   launchersLib = import ./launchers.nix { inherit lib; };
   validationLib = import ./validation.nix { inherit lib attrsLib; };
   defaultHomeStateVersion = "25.11";
@@ -106,6 +107,7 @@ in
 rec {
   inherit nixosSystem macosSystem;
   inherit mkNixosHost mkDarwinHost;
+  inherit (hostCapabilitiesLib) deriveHostCapabilities;
   inherit (attrsLib)
     hasNonEmptyString
     hasPositiveInt
@@ -246,11 +248,11 @@ rec {
     in
     if hasAmd && !hasIntel then "amd"
     else if hasIntel && !hasAmd then "intel"
-    else "auto";
+    else null;
 
   gpuModeFromHardwareModules =
     moduleNames:
-    if builtins.elem "common-gpu-amd" moduleNames then "amdgpu" else "auto";
+    if builtins.elem "common-gpu-amd" moduleNames then "amdgpu" else "modesetting";
 
   mkNixosHardwareModule =
     { extraImports ? [ ]

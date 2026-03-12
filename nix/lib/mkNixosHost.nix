@@ -103,7 +103,7 @@ let
 in
 assert hostRegistryLib.assertCommonRegistry
 {
-  inherit hostDir hostRegistry;
+  inherit hostDir;
   inherit registryPath;
   hostName = "nixos.${name}";
   state = registryState;

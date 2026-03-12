@@ -3,8 +3,6 @@ let
   inherit (lib) types;
   schema = mylib.hostMetaSchema;
   defaultRoles = myvars.roles or schema.defaultRoles;
-  defaultProfileList = myvars.profiles or [ ];
-  hasProfile = profile: builtins.elem profile defaultProfileList;
 in
 {
   options.my = {
@@ -39,6 +37,36 @@ in
         description = "Home Manager stateVersion.";
       };
 
+      kind = lib.mkOption {
+        type = types.enum schema.allowedKinds;
+        default = myvars.kind or "workstation";
+        description = "High-level host kind.";
+      };
+
+      formFactor = lib.mkOption {
+        type = types.enum schema.allowedFormFactors;
+        default = myvars.formFactor or "desktop";
+        description = "Physical host form factor.";
+      };
+
+      tags = lib.mkOption {
+        type = types.listOf types.str;
+        default = myvars.tags or [ ];
+        description = "Free-form host tags sourced from the registry.";
+      };
+
+      desktopSession = lib.mkOption {
+        type = types.bool;
+        default = myvars.desktopSession or false;
+        description = "Whether this host should load the desktop session stack.";
+      };
+
+      gpuVendors = lib.mkOption {
+        type = types.listOf (types.enum schema.allowedGpuVendors);
+        default = myvars.gpuVendors or [ ];
+        description = "GPU vendors declared for this host.";
+      };
+
       diskDevice = lib.mkOption {
         type = types.str;
         default = myvars.diskDevice or "/dev/nvme0n1";
@@ -65,7 +93,7 @@ in
 
       gpuMode = lib.mkOption {
         type = types.enum schema.allowedGpuModes;
-        default = myvars.gpuMode or "auto";
+        default = myvars.gpuMode or "modesetting";
         description = "GPU mode selector.";
       };
 
@@ -79,12 +107,6 @@ in
         type = types.listOf (types.enum schema.knownHostRoles);
         default = defaultRoles;
         description = "Host roles for feature toggles.";
-      };
-
-      profiles = lib.mkOption {
-        type = types.listOf (types.enum [ "desktop" "laptop" "server" ]);
-        default = defaultProfileList;
-        description = "High-level host profiles.";
       };
 
       amdgpuBusId = lib.mkOption {
@@ -107,31 +129,64 @@ in
 
     };
 
-    profiles = {
-      desktop = lib.mkOption {
+    capabilities = {
+      isWorkstation = lib.mkOption {
         type = types.bool;
-        default = hasProfile "desktop";
-        description = "Desktop profile gate.";
+        readOnly = true;
+        description = "Derived flag for workstation hosts.";
       };
 
-      laptop = lib.mkOption {
+      isServer = lib.mkOption {
         type = types.bool;
-        default = hasProfile "laptop";
-        description = "Laptop profile gate.";
+        readOnly = true;
+        description = "Derived flag for server hosts.";
       };
 
-      server = lib.mkOption {
+      isVm = lib.mkOption {
         type = types.bool;
-        default = hasProfile "server";
-        description = "Server profile gate.";
+        readOnly = true;
+        description = "Derived flag for virtual machine hosts.";
+      };
+
+      isDesktop = lib.mkOption {
+        type = types.bool;
+        readOnly = true;
+        description = "Derived flag for desktop form factor.";
+      };
+
+      isLaptop = lib.mkOption {
+        type = types.bool;
+        readOnly = true;
+        description = "Derived flag for laptop form factor.";
+      };
+
+      hasDesktopSession = lib.mkOption {
+        type = types.bool;
+        readOnly = true;
+        description = "Derived flag for hosts that should load the desktop session stack.";
+      };
+
+      hasAmdGpu = lib.mkOption {
+        type = types.bool;
+        readOnly = true;
+        description = "Derived flag for AMD GPU presence.";
+      };
+
+      hasIntelGpu = lib.mkOption {
+        type = types.bool;
+        readOnly = true;
+        description = "Derived flag for Intel GPU presence.";
+      };
+
+      hasNvidiaGpu = lib.mkOption {
+        type = types.bool;
+        readOnly = true;
+        description = "Derived flag for NVIDIA GPU presence.";
       };
     };
   };
 
-  config.assertions = [
-    {
-      assertion = !(config.my.profiles.desktop && config.my.profiles.server);
-      message = "my.profiles.desktop and my.profiles.server must not both be true.";
-    }
-  ];
+  config = {
+    my.capabilities = mylib.deriveHostCapabilities config.my.host;
+  };
 }

@@ -7,7 +7,7 @@
 , expectedLuksName ? null
 , expectedVideoDrivers ? null
 , expectedResumeOffset ? null
-, expectedHostProfile ? name
+, expectedHostname ? name
 , expectedDockerMode ? null
 , expectedTrustedUsers ? null
 , expectedTrustedSubstituters ? null
@@ -22,7 +22,7 @@ let
   cfg = nixosSystem.config;
   hostCfg = cfg.my.host;
   hostRoles = hostCfg.roles or [ ];
-  isDesktop = cfg.my.profiles.desktop or false;
+  hasDesktopSession = cfg.my.capabilities.hasDesktopSession or false;
   resolvedExpectedLuksName =
     if expectedLuksName != null then expectedLuksName else hostCfg.luksName;
   resolvedExpectedResumeOffset =
@@ -32,7 +32,7 @@ let
   resolvedExpectedVideoDrivers =
     if expectedVideoDrivers != null then
       expectedVideoDrivers
-    else if !isDesktop then
+    else if !hasDesktopSession then
       null
     else if hostCfg.gpuMode == "nvidia" then
       [ "nvidia" ]
@@ -172,13 +172,70 @@ in
     touch "$out"
   '';
 
+  "eval-${name}-host-kind" = pkgs.runCommand "eval-${name}-host-kind" { } ''
+    case "${cfg.my.host.kind}" in
+      workstation|server|vm) ;;
+      *)
+        echo "unexpected host kind: ${cfg.my.host.kind}" >&2
+        exit 1
+        ;;
+    esac
+    touch "$out"
+  '';
+
+  "eval-${name}-host-form-factor" = pkgs.runCommand "eval-${name}-host-form-factor" { } ''
+    case "${cfg.my.host.formFactor}" in
+      desktop|laptop|handheld|headless) ;;
+      *)
+        echo "unexpected host formFactor: ${cfg.my.host.formFactor}" >&2
+        exit 1
+        ;;
+    esac
+    touch "$out"
+  '';
+
+  "eval-${name}-host-tags" = pkgs.runCommand "eval-${name}-host-tags" { } ''
+    test "${if lib.hasPrefix "[" (builtins.toJSON cfg.my.host.tags) then "1" else "0"}" = "1"
+    touch "$out"
+  '';
+
+  "eval-${name}-host-gpu-vendors" = pkgs.runCommand "eval-${name}-host-gpu-vendors" { } ''
+    test "${if lib.hasPrefix "[" (builtins.toJSON cfg.my.host.gpuVendors) then "1" else "0"}" = "1"
+    touch "$out"
+  '';
+
+  "eval-${name}-capability-kind" = pkgs.runCommand "eval-${name}-capability-kind" { } ''
+    test "${if cfg.my.capabilities.isWorkstation == (cfg.my.host.kind == "workstation") then "1" else "0"}" = "1"
+    test "${if cfg.my.capabilities.isServer == (cfg.my.host.kind == "server") then "1" else "0"}" = "1"
+    test "${if cfg.my.capabilities.isVm == (cfg.my.host.kind == "vm") then "1" else "0"}" = "1"
+    touch "$out"
+  '';
+
+  "eval-${name}-capability-form-factor" = pkgs.runCommand "eval-${name}-capability-form-factor" { } ''
+    test "${if cfg.my.capabilities.isDesktop == (cfg.my.host.formFactor == "desktop") then "1" else "0"}" = "1"
+    test "${if cfg.my.capabilities.isLaptop == (cfg.my.host.formFactor == "laptop") then "1" else "0"}" = "1"
+    touch "$out"
+  '';
+
+  "eval-${name}-capability-desktop-session" = pkgs.runCommand "eval-${name}-capability-desktop-session" { } ''
+    test "${if cfg.my.capabilities.hasDesktopSession == cfg.my.host.desktopSession then "1" else "0"}" = "1"
+    touch "$out"
+  '';
+
+  "eval-${name}-capability-gpu" = pkgs.runCommand "eval-${name}-capability-gpu" { } ''
+    test "${if cfg.my.capabilities.hasAmdGpu == (builtins.elem "amd" cfg.my.host.gpuVendors) then "1" else "0"}" = "1"
+    test "${if cfg.my.capabilities.hasIntelGpu == (builtins.elem "intel" cfg.my.host.gpuVendors) then "1" else "0"}" = "1"
+    test "${if cfg.my.capabilities.hasNvidiaGpu == (builtins.elem "nvidia" cfg.my.host.gpuVendors) then "1" else "0"}" = "1"
+    touch "$out"
+  '';
+
   "eval-${name}-home-directory" = pkgs.runCommand "eval-${name}-home-directory" { } ''
     test "${hmCfg.home.homeDirectory}" = "${expectedHome}"
     touch "$out"
   '';
 
-  "eval-${name}-host-profile" = pkgs.runCommand "eval-${name}-host-profile" { } ''
-    test "${hmCfg.home.sessionVariables.HOST_PROFILE or ""}" = "${expectedHostProfile}"
+  "eval-${name}-hostname-env" = pkgs.runCommand "eval-${name}-hostname-env" { } ''
+    test "${hmCfg.home.sessionVariables.NIX_HOSTNAME or ""}" = "${expectedHostname}"
     touch "$out"
   '';
 

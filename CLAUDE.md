@@ -82,10 +82,21 @@ just repo-check
 
 ---
 
-## 6. 执行提醒
+## 6. Host Metadata 模型
+
+- host metadata 的事实源是 `nix/hosts/registry/systems.toml`
+- registry 当前只承载：`system`、`kind`、`formFactor`、`desktopSession`、`tags`、`gpuVendors`、`deployEnabled`、`deployHost`、`deployUser`、`deployPort`
+- 模块消费路径固定为：`registry -> my.host` typed options -> `my.capabilities`
+- `roles` 仍保留为功能开关；不要重新引入旧 `profiles` host 模型
+- `gpuMode` 当前正式值为 `none` / `modesetting` / `amdgpu` / `nvidia` / `amd-nvidia-hybrid`，不要再写 `auto`
+
+---
+
+## 7. 执行提醒
 
 - 当前 `justfile` 默认 `host := ""`，执行 `just switch/check/test` 未显式指定时会自动解析当前主机；跨主机操作建议显式指定 `host=...`
 - 当前 Linux/macOS 主账号的一致开发环境默认由 Home Manager 提供；system layer 保留桌面运行基线
 - 当前 NixOS 主机默认直接 import `nix/hosts/nixos/_shared/hardware-workarounds-common.nix`；host-local `hardware-workarounds.nix` 仅在确有主机专属例外时才保留
 - `repo-check` 当前会覆盖 `nix/scripts/admin/*.sh`、`nix/scripts/checks/*.sh`、`nix/scripts/tests/*.sh` 的 shell 语法检查，并串联 shell regression tests、registry check、eval-tests、flake-check
+- 对 read-only flake eval/build/check，优先走 `just` 或 `nix/scripts/admin/*.sh`；当前脚本会在 `.keys/main.agekey` 不可读时自动切到 filtered flake repo
 - 未被要求时不主动推送；用户要求“同步到 GitHub”时才执行 Conventional Commit + `git push origin HEAD`

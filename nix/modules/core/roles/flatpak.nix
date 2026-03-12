@@ -1,4 +1,4 @@
 { config, ... }:
 {
-  services.flatpak.enable = config.my.profiles.desktop;
+  services.flatpak.enable = config.my.capabilities.hasDesktopSession;
 }

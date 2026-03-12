@@ -5,7 +5,6 @@ let
     defaultDockerMode = "rootless";
 
     allowedGpuModes = [
-      "auto"
       "none"
       "amdgpu"
       "nvidia"
@@ -16,6 +15,25 @@ let
     allowedDockerModes = [
       "rootless"
       "rootful"
+    ];
+
+    allowedKinds = [
+      "workstation"
+      "server"
+      "vm"
+    ];
+
+    allowedFormFactors = [
+      "desktop"
+      "laptop"
+      "handheld"
+      "headless"
+    ];
+
+    allowedGpuVendors = [
+      "amd"
+      "intel"
+      "nvidia"
     ];
 
     knownHostRoles = [

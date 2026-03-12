@@ -23,17 +23,19 @@ source "$script_dir/common.sh"
 
 repo_root="$(resolve_repo_path "${NIXOS_CONFIG_REPO:-$PWD}")"
 cd "$repo_root"
+prepare_flake_repo_path "$repo_root"
+flake_repo="$PREPARED_FLAKE_REPO"
 
 bash "$script_dir/repo-check.sh"
 
 case "$platform" in
   nixos)
     echo "==> dry-build nixos:$host"
-    nix build --no-link "path:$repo_root#nixosConfigurations.$host.config.system.build.toplevel"
+    nix build --no-link "path:$flake_repo#nixosConfigurations.$host.config.system.build.toplevel"
     ;;
   darwin)
     echo "==> dry-build darwin:$host"
-    nix build --no-link "path:$repo_root#darwinConfigurations.$host.system"
+    nix build --no-link "path:$flake_repo#darwinConfigurations.$host.system"
     ;;
   *)
     usage >&2

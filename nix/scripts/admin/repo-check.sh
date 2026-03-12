@@ -38,6 +38,8 @@ source "$script_dir/common.sh"
 
 repo_root="$(resolve_repo_path "${NIXOS_CONFIG_REPO:-$PWD}")"
 cd "$repo_root"
+prepare_flake_repo_path "$repo_root"
+flake_repo="$PREPARED_FLAKE_REPO"
 
 echo "==> shell syntax"
 bash -n nix/scripts/admin/*.sh nix/scripts/checks/*.sh nix/scripts/tests/*.sh
@@ -51,31 +53,31 @@ echo "==> registry check"
 bash nix/scripts/checks/registry-check.sh
 
 echo "==> nix formatting check"
-nix shell "path:$repo_root#formatter.x86_64-linux" -c \
+nix shell "path:$flake_repo#formatter.x86_64-linux" -c \
   nixpkgs-fmt --check flake.nix $(find nix -type f -name '*.nix' | sort)
 
 echo "==> eval tests"
-just eval-tests
+bash nix/scripts/admin/eval-tests.sh "$repo_root"
 
 echo "==> flake check"
-nix --extra-experimental-features 'nix-command flakes' flake check --all-systems "path:$repo_root"
+nix --extra-experimental-features 'nix-command flakes' flake check --all-systems "path:$flake_repo"
 
 if [[ "$full_check" -eq 1 ]]; then
   echo "==> dry-build nixos hosts"
   while IFS= read -r host; do
     [[ -n "$host" ]] || continue
-    nix build --no-link "path:$repo_root#nixosConfigurations.$host.config.system.build.toplevel"
+    nix build --no-link "path:$flake_repo#nixosConfigurations.$host.config.system.build.toplevel"
   done < <(
-    nix eval --raw "path:$repo_root#nixosConfigurations" \
+    nix eval --raw "path:$flake_repo#nixosConfigurations" \
       --apply 'hosts: builtins.concatStringsSep "\n" (builtins.attrNames hosts)'
   )
 
   echo "==> dry-build darwin hosts"
   while IFS= read -r host; do
     [[ -n "$host" ]] || continue
-    nix build --no-link "path:$repo_root#darwinConfigurations.$host.system"
+    nix build --no-link "path:$flake_repo#darwinConfigurations.$host.system"
   done < <(
-    nix eval --raw "path:$repo_root#darwinConfigurations" \
+    nix eval --raw "path:$flake_repo#darwinConfigurations" \
       --apply 'hosts: builtins.concatStringsSep "\n" (builtins.attrNames hosts)'
   )
 fi

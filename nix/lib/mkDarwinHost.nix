@@ -76,7 +76,7 @@ let
 in
 assert hostRegistryLib.assertCommonRegistry
 {
-  inherit hostDir hostRegistry;
+  inherit hostDir;
   inherit registryPath;
   hostName = "darwin.${name}";
   state = registryState;
