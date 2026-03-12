@@ -20,11 +20,55 @@ update:
 update-nixpkgs:
     @bash {{repo}}/nix/scripts/admin/update-flake.sh {{repo}} nixpkgs
 
+show:
+    @flake_repo="$(bash {{repo}}/nix/scripts/admin/print-flake-repo.sh {{repo}})"; {{nix_cmd}} flake show "path:$flake_repo"
+
+metadata:
+    @flake_repo="$(bash {{repo}}/nix/scripts/admin/print-flake-repo.sh {{repo}})"; {{nix_cmd}} flake metadata "path:$flake_repo"
+
+hosts:
+    @flake_repo="$(bash {{repo}}/nix/scripts/admin/print-flake-repo.sh {{repo}})"; {{nix_cmd}} eval "path:$flake_repo#nixosConfigurations" --apply builtins.attrNames
+
 info:
-    @flake_repo="$({{repo}}/nix/scripts/admin/print-flake-repo.sh {{repo}})"; {{nix_cmd}} flake show "path:$flake_repo"
+    @flake_repo="$(bash {{repo}}/nix/scripts/admin/print-flake-repo.sh {{repo}})"; {{nix_cmd}} flake show "path:$flake_repo"
     @echo ""
     @echo "=== Flake 元数据 ==="
-    @flake_repo="$({{repo}}/nix/scripts/admin/print-flake-repo.sh {{repo}})"; {{nix_cmd}} flake metadata "path:$flake_repo"
+    @flake_repo="$(bash {{repo}}/nix/scripts/admin/print-flake-repo.sh {{repo}})"; {{nix_cmd}} flake metadata "path:$flake_repo"
+
+use:
+    @flake_repo="$(bash {{repo}}/nix/scripts/admin/print-flake-repo.sh {{repo}})"; echo ">>> entering filtered flake repo: $flake_repo"; cd "$flake_repo" && exec "${SHELL:-bash}" -l
+
+# ========== 构建 / 切换 ==========
+
+build:
+    @if [ -z "{{host}}" ]; then echo "error: 需要指定主机. 用法: just host=zly build" >&2; exit 2; fi
+    @flake_repo="$(bash {{repo}}/nix/scripts/admin/print-flake-repo.sh {{repo}})"; {{nix_cmd}} build "path:$flake_repo#nixosConfigurations.{{host}}.config.system.build.toplevel"
+
+dry-build:
+    @if [ -z "{{host}}" ]; then echo "error: 需要指定主机. 用法: just host=zly dry-build" >&2; exit 2; fi
+    @flake_repo="$(bash {{repo}}/nix/scripts/admin/print-flake-repo.sh {{repo}})"; {{nix_cmd}} build --dry-run "path:$flake_repo#nixosConfigurations.{{host}}.config.system.build.toplevel"
+
+switch:
+    @if [ -z "{{host}}" ]; then echo "error: 需要指定主机. 用法: just host=zly switch" >&2; exit 2; fi
+    @flake_repo="$(bash {{repo}}/nix/scripts/admin/print-flake-repo.sh {{repo}})"; sudo nixos-rebuild switch --flake "path:$flake_repo#{{host}}"
+
+boot:
+    @if [ -z "{{host}}" ]; then echo "error: 需要指定主机. 用法: just host=zly boot" >&2; exit 2; fi
+    @flake_repo="$(bash {{repo}}/nix/scripts/admin/print-flake-repo.sh {{repo}})"; sudo nixos-rebuild boot --flake "path:$flake_repo#{{host}}"
+
+test:
+    @if [ -z "{{host}}" ]; then echo "error: 需要指定主机. 用法: just host=zly test" >&2; exit 2; fi
+    @flake_repo="$(bash {{repo}}/nix/scripts/admin/print-flake-repo.sh {{repo}})"; sudo nixos-rebuild test --flake "path:$flake_repo#{{host}}"
+
+# ========== 清理 / 维护 ==========
+
+gc:
+    @sudo nix store gc
+
+optimize:
+    @sudo nix store optimise
+
+clean: gc optimize
 
 # ========== Git / 安全 ==========
 

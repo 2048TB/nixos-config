@@ -26,12 +26,15 @@
 just host=zly disk=/dev/nvme0n1 install
 just update
 just info
+just host=zly switch
+just clean
 just sops-init-create
 just guard-secrets
 ```
 
 危险操作说明：
 - `just install` 会清盘，并要求确认
+- `just switch` / `just boot` / `just test` 会直接改当前系统状态，必须显式传 `host=...`
 - `sops.sh` 相关命令会改动仓库内密钥/secret 文件
 
 具体操作、环境差异和 FAQ 不在本页展开，统一见 `docs/README.md`。

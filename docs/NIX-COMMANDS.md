@@ -27,6 +27,9 @@ bash "$REPO/nix/scripts/admin/install-live.sh" --host zly --disk /dev/nvme0n1 --
 just update
 just update-nixpkgs
 just info
+just show
+just metadata
+just hosts
 ```
 
 read-only flake eval/build/show：
@@ -50,7 +53,23 @@ nix eval "path:$flake_repo#nixosModules" --apply builtins.attrNames
 
 ---
 
-## 3. 密钥管理（sops）
+## 3. build / switch / clean
+
+```bash
+just host=zly build
+just host=zly dry-build
+just host=zly switch
+just host=zly boot
+just host=zly test
+just gc
+just optimize
+just clean
+just use
+```
+
+---
+
+## 4. 密钥管理（sops）
 
 ```bash
 just sops-init-create
@@ -66,7 +85,7 @@ just sops-rekey
 
 ---
 
-## 4. Git 安全
+## 5. Git 安全
 
 ```bash
 just hooks-enable

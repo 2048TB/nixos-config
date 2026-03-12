@@ -205,8 +205,7 @@ sudo nixos-rebuild dry-build --flake /mnt/persistent/nixos-config#"$HOST"
 
 ## 2. 已安装 NixOS
 
-当前已不再保留 `switch/check/test` 包装脚本。
-已安装系统上的差异主要是：通常直接在 `/persistent/nixos-config` 做 lock/secrets 维护。
+已安装系统上的差异主要是：通常直接在 `/persistent/nixos-config` 做 lock、rebuild、secrets 维护。
 
 1. 更新 lock：
 
@@ -215,7 +214,26 @@ just update
 just update-nixpkgs
 ```
 
-2. 维护 secrets：
+2. build / switch：
+
+```bash
+just host=zly build
+just host=zly dry-build
+just host=zly switch
+just host=zly boot
+just host=zly test
+```
+
+3. 清理与维护：
+
+```bash
+just gc
+just optimize
+just clean
+just use
+```
+
+4. 维护 secrets：
 
 ```bash
 just sops-recipients
