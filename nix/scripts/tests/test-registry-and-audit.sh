@@ -3,6 +3,7 @@ set -euo pipefail
 
 script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 repo_root="$(cd -- "$script_dir/../../.." && pwd)"
+real_repo_root="$(realpath "$repo_root")"
 schema="$repo_root/nix/hosts/registry/systems.schema.json"
 registry="$repo_root/nix/hosts/registry/systems.toml"
 
@@ -11,7 +12,7 @@ if ! rg -n '"additionalProperties": false' "$schema" >/dev/null; then
   exit 1
 fi
 
-for field in desktopSession deployEnabled deployPort kind formFactor tags gpuVendors; do
+for field in desktopSession desktopProfile deployEnabled deployPort kind formFactor tags gpuVendors displays; do
   if ! rg -n "\"$field\"" "$schema" >/dev/null; then
     echo "expected $field in registry schema" >&2
     exit 1
@@ -43,12 +44,24 @@ for host in zky zly zzly; do
     echo "expected desktopSession=true for nixos host $host" >&2
     exit 1
   fi
+  if ! awk "/^\\[nixos\\.${host}\\]/{flag=1;next}/^\\[/{flag=0}flag" "$registry" | rg -n '^desktopProfile = "niri"$' >/dev/null; then
+    echo "expected desktopProfile=niri for nixos host $host" >&2
+    exit 1
+  fi
   if ! awk "/^\\[nixos\\.${host}\\]/{flag=1;next}/^\\[/{flag=0}flag" "$registry" | rg -n '^tags = \[.*\]$' >/dev/null; then
     echo "expected tags for nixos host $host" >&2
     exit 1
   fi
+  if awk "/^\\[nixos\\.${host}\\]/{flag=1;next}/^\\[/{flag=0}flag" "$registry" | rg -n '"(multi-monitor|hidpi)"' >/dev/null; then
+    echo "expected derived display facts to stay out of tags for nixos host $host" >&2
+    exit 1
+  fi
   if ! awk "/^\\[nixos\\.${host}\\]/{flag=1;next}/^\\[/{flag=0}flag" "$registry" | rg -n '^gpuVendors = \[.*\]$' >/dev/null; then
     echo "expected gpuVendors for nixos host $host" >&2
+    exit 1
+  fi
+  if ! rg -n "^\[nixos\\.${host}\]$|^\[\[nixos\\.${host}\\.displays\]\]$" "$registry" >/dev/null; then
+    echo "expected displays metadata for nixos host $host" >&2
     exit 1
   fi
 done
@@ -62,8 +75,10 @@ for expected_line in \
   'kind = "workstation"' \
   'formFactor = "laptop"' \
   'desktopSession = true' \
+  'desktopProfile = "aqua"' \
   'tags = []' \
-  'gpuVendors = []'
+  'gpuVendors = []' \
+  'displays = []'
 do
   if ! awk '/^\[darwin\.zly-mac\]/{flag=1;next}/^\[/{flag=0}flag' "$registry" | rg -n --fixed-strings "$expected_line" >/dev/null; then
     echo "expected ${expected_line} for darwin host zly-mac" >&2
@@ -81,10 +96,12 @@ cat >"$tmprepo/nix/hosts/registry/systems.toml" <<'EOF'
 [nixos.zly]
 system = "x86_64-linux"
 desktopSession = true
+desktopProfile = "niri"
 kind = "workstation"
 formFactor = "desktop"
 tags = []
 gpuVendors = ["amd", "nvidia"]
+displays = []
 deployEnabled = true
 deployHost = "builder.internal"
 deployUser = "admin"
@@ -93,10 +110,12 @@ deployPort = 2222
 [nixos.zky]
 system = "x86_64-linux"
 desktopSession = true
+desktopProfile = "niri"
 kind = "workstation"
 formFactor = "desktop"
 tags = []
 gpuVendors = ["nvidia"]
+displays = []
 deployEnabled = false
 deployHost = "skip.internal"
 deployUser = "root"
@@ -179,6 +198,66 @@ fi
 
 if rg -n --fixed-strings 'skip.internal' "$tmpdir/logs/deploy.log" >/dev/null; then
   echo "expected disabled host to be skipped before rebuild" >&2
+  exit 1
+fi
+
+registry_assert_expr() {
+  local host_registry_expr="$1"
+  nix --extra-experimental-features 'nix-command flakes' eval --impure --expr "
+    let
+      flake = builtins.getFlake (toString $real_repo_root);
+      lib = flake.inputs.nixpkgs.lib;
+      hostRegistryLib = import $real_repo_root/nix/lib/host-registry.nix { inherit lib; };
+      state = hostRegistryLib.mkRegistryState {
+        hostMyvars = { };
+        hostRegistry = $host_registry_expr;
+      };
+    in
+    hostRegistryLib.assertCommonRegistry {
+      registryPath = \"test\";
+      hostDir = \"nix/hosts/nixos/test\";
+      hostName = \"nixos.test\";
+      inherit state;
+    }
+  " >/dev/null
+}
+
+if registry_assert_expr '{
+  system = "x86_64-linux";
+  desktopSession = false;
+  desktopProfile = "niri";
+  deployEnabled = true;
+  deployHost = "test";
+  deployUser = "root";
+  deployPort = 22;
+  kind = "workstation";
+  formFactor = "desktop";
+  tags = [];
+  gpuVendors = [];
+  displays = [];
+}' 2>/dev/null; then
+  echo "expected desktopSession=false + desktopProfile=niri to fail registry assertion" >&2
+  exit 1
+fi
+
+if registry_assert_expr '{
+  system = "x86_64-linux";
+  desktopSession = true;
+  desktopProfile = "niri";
+  deployEnabled = true;
+  deployHost = "test";
+  deployUser = "root";
+  deployPort = 22;
+  kind = "workstation";
+  formFactor = "desktop";
+  tags = [];
+  gpuVendors = [];
+  displays = [
+    { name = "DP-1"; primary = true; }
+    { name = "HDMI-A-1"; primary = true; }
+  ];
+}' 2>/dev/null; then
+  echo "expected multiple primary displays to fail registry assertion" >&2
   exit 1
 fi
 

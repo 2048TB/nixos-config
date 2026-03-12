@@ -24,13 +24,12 @@ nix/hosts/
 
 ## 必需文件
 
-**NixOS**：`default.nix` + `hardware.nix` + `hardware-modules.nix` + `disko.nix` + `vars.nix`
+**NixOS**：`hardware.nix` + `hardware-modules.nix` + `disko.nix` + `vars.nix`
 **Darwin**：`default.nix` + `vars.nix`
 
 可选：`home.nix`、`checks.nix`
 
 说明：
-- NixOS 的 `default.nix` 是薄入口，统一 import `hardware.nix` 与 `disko.nix`
 - `checks.nix` 仅在该主机需要额外 eval 断言时才创建；通用 checks 已由 `nix/hosts/nixos/_shared/checks.nix` 统一装配
 - host 目录优先只放 hardware、disk layout 与极少量 host-only workaround；通用行为优先进入 `nix/modules/core/` 或 `nix/home/`
 
@@ -44,7 +43,7 @@ cp -a nix/hosts/darwin/zly-mac nix/hosts/darwin/mac-mini
 ```
 
 新增后需编辑：
-1. `vars.nix`：主机名、用户名、硬件参数、roles（不含 desktop；含 `gpuMode` 与可选 `amdgpuBusId` / `nvidiaBusId`）
+1. `vars.nix`：主机名、用户名、运行参数、roles（功能开关；含 `gpuMode` 与可选 `amdgpuBusId` / `nvidiaBusId`）
 2. `disko.nix`：磁盘布局（NixOS；通常直接 import `_shared/disko-luks-btrfs.nix`）
 3. `hardware-modules.nix`：显式列出该主机启用的 `nixos-hardware` 模块；CPU vendor 与纯 AMD 默认 `gpuMode` 从这里推导
 4. `hardware.nix`：该主机的硬件入口；通常保持薄包装，只追加该机专属 import；若某个 workaround 完全共享且没有主机增量，也可直接 import `_shared/` 下的文件
@@ -67,8 +66,10 @@ cp -a nix/hosts/darwin/zly-mac nix/hosts/darwin/mac-mini
 - `system`：平台（如 `x86_64-linux`、`aarch64-darwin`）
 - `kind` / `formFactor`：host metadata 的基础分类，驱动 `my.capabilities.*`
 - `desktopSession`：显式桌面会话开关，驱动 `my.capabilities.hasDesktopSession`
-- `tags`：自由标签，用于后续 capability 扩展或更细粒度 gating
+- `desktopProfile`：桌面 profile（当前 Linux 为 `niri`，Darwin 为 `aqua`）
+- `tags`：规范化标签，仅保留无法稳定从其他 metadata 派生的事实；不要把 machine facts 再塞回 `roles`
 - `gpuVendors`：声明式 GPU 厂商清单，用于 capability 推导
+- `displays`：显示拓扑 metadata，驱动 Niri/Noctalia 等桌面配置生成，是 monitor facts 的唯一事实源
 - `deployEnabled`：是否允许被 `deploy-hosts.sh` 批量部署
 - `deployHost` / `deployUser` / `deployPort`：远程部署目标（仅 registry 使用；`deploy-hosts.sh` 直接读取）
 
@@ -78,8 +79,8 @@ cp -a nix/hosts/darwin/zly-mac nix/hosts/darwin/mac-mini
 
 - `Identity`：`hostname`、`username`、`timezone`
 - `Platform`：`system`、`gpuMode`
-- `Topology/Role`：`kind`、`formFactor`、`desktopSession` 表示机器拓扑与会话形态，`roles` 表示功能开关（如 `gaming` / `vpn` / `virt` / `container`）
-- `Capability`：从 `kind` / `formFactor` / `gpuVendors` 派生，只读消费，不在主机目录手写
+- `Topology/Role`：`kind`、`formFactor`、`desktopSession`、`desktopProfile`、`displays` 表示机器拓扑与会话形态，`roles` 表示功能开关（如 `gaming` / `vpn` / `virt` / `container`）
+- `Capability`：从 `kind` / `formFactor` / `gpuVendors` / `displays` / `tags` 派生，只读消费，不在主机目录手写；`multi-monitor` / `hidpi` 这类 display facts 不再通过 `tags` 表达
 - `Deploy`：`deployEnabled`、`deployHost`、`deployUser`、`deployPort`（registry only）
 - `Runtime`：`diskDevice`、`swapSizeGb`、`resumeOffset`
 

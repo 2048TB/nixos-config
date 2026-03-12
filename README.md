@@ -5,7 +5,12 @@
 - NixOS: `zly`、`zky`、`zzly`
 - nix-darwin: `zly-mac`
 - Home Manager 分层配置
-- host metadata 统一收敛到 `nix/hosts/registry/systems.toml`，当前模型为 `kind` / `formFactor` / `desktopSession` / `tags` / `gpuVendors`
+- host metadata 统一收敛到 `nix/hosts/registry/systems.toml`，当前模型为 `kind` / `formFactor` / `desktopSession` / `desktopProfile` / `tags` / `gpuVendors` / `displays`
+- `displays` 直接生成桌面输出配置；不要在 `Niri` / `Noctalia` 配置里再硬编码真实 monitor 名
+- `tags` 只保留不能稳定派生的事实；`multi-monitor` / `hidpi` 这类 display facts 不再手写
+- Linux `desktopProfile` 当前只支持 `niri`
+- NixOS 与 Linux Home Manager 入口均已切到 auto-discovered `_mixins`
+- NixOS host 目录默认只保留 `hardware.nix` / `hardware-modules.nix` / `disko.nix` / `vars.nix`
 
 常用入口：
 

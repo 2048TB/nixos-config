@@ -60,7 +60,7 @@ echo "==> eval tests"
 bash nix/scripts/admin/eval-tests.sh "$repo_root"
 
 echo "==> flake check"
-nix --extra-experimental-features 'nix-command flakes' flake check --all-systems "path:$flake_repo"
+run_nix_flake_check_clean "path:$flake_repo"
 
 if [[ "$full_check" -eq 1 ]]; then
   echo "==> dry-build nixos hosts"

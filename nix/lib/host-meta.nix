@@ -36,6 +36,17 @@ let
       "nvidia"
     ];
 
+    allowedDesktopProfiles = [
+      "none"
+      "niri"
+      "aqua"
+    ];
+
+    allowedHostTags = [
+      "fingerprint-reader"
+      "docked"
+    ];
+
     knownHostRoles = [
       "gaming"
       "vpn"

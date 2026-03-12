@@ -115,10 +115,5 @@ layer-rule {
     place-within-backdrop true
 }
 
-// 输出缩放（百分比 = scale * 100）
-// 使用 niri msg outputs 中的"厂商 型号 序列号"匹配，避免 DP-1/DP-2 端口号切换导致重复配置。
-output "HKC OVERSEAS LIMITED MG27Q 0000000000001" {
-    // 高刷屏常把 60Hz 标为 preferred，这里显式锁到 165Hz 以获得稳定高刷体验。
-    mode "2560x1440@165.000"
-    scale 1.25
-}
+// 输出拓扑改由 ~/.config/niri/outputs.kdl 生成。
+// 具体内容来自 host registry 中的 displays metadata。

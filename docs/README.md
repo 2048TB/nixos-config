@@ -24,7 +24,12 @@
 - 主账号开发环境默认由 Home Manager 提供，system layer 仅保留桌面运行基线
 - `repo-check` 是仓库级默认自检入口；CI/workflow 相关改动优先先跑它
 - host metadata 统一从 `nix/hosts/registry/systems.toml` 进入 `my.host`，再派生为 `my.capabilities` 供模块消费
-- registry 当前只承载 `system`、`kind`、`formFactor`、`desktopSession`、`tags`、`gpuVendors` 与 deploy 元数据；不要重新引入 `profiles`
+- registry 当前承载 `system`、`kind`、`formFactor`、`desktopSession`、`desktopProfile`、`tags`、`gpuVendors`、`displays` 与 deploy 元数据；不要重新引入 `profiles`
+- `displays` 是桌面 monitor 拓扑唯一事实源；`Niri` / `Noctalia` 只消费生成结果，不再硬编码真实 monitor 名
+- `tags` 只保留不能稳定派生的事实；`multi-monitor` / `hidpi` 这类 display facts 不再手写
+- Linux `desktopProfile` 当前只支持 `niri`；Darwin 使用 `aqua`
+- Linux NixOS/Home Manager 入口统一走 auto-discovered `_mixins`；新增 self-gating 模块时不要再维护手写 import list
+- NixOS host 目录默认只保留 `hardware.nix` / `hardware-modules.nix` / `disko.nix` / `vars.nix`；不要重新引入薄壳 `default.nix`
 - 读路径的 flake eval/build/check 默认优先走仓库脚本，以便在 `.keys/main.agekey` 不可读时自动切到 filtered flake repo
 
 ---
@@ -185,10 +190,10 @@ nixos-config/
 ├── nix/
 │   ├── lib/              # Nix 库函数
 │   ├── hosts/            # 主机配置（nixos/ + darwin/ + registry/ + outputs/）
-│   ├── modules/          # 系统模块（core/ + darwin/）
+│   ├── modules/          # 系统模块（core/_mixins + darwin/）
 │   ├── overlays/         # 对外复用 overlay 导出面
-│   ├── pkgs/             # 本地 package 导出面（当前为空）
-│   ├── home/             # Home Manager 配置
+│   ├── pkgs/             # 本地 package 导出面
+│   ├── home/             # Home Manager 配置（linux/_mixins + configs）
 │   └── scripts/          # 脚本（admin/）
 ├── secrets/              # 加密 secrets（可提交）
 ├── wallpapers/           # 壁纸
@@ -213,5 +218,6 @@ nixos-config/
 ## 9. Flake 导出面
 
 - `overlays`：对外复用 overlay
+- `packages`：对外复用本地 package 集
 - `nixosModules`：对外复用系统模块
 - `homeManagerModules`：对外复用 Home Manager 模块

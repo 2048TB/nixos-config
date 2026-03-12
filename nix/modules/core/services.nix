@@ -9,9 +9,39 @@ let
   hostCfg = config.my.host;
   homeDir = "/home/${mainUser}";
   hibernateEnabled = hostCfg.resumeOffset != null;
-  inherit (config.my.capabilities) isLaptop hasDesktopSession;
+  inherit (config.my.capabilities) isLaptop hasDesktopSession hasFingerprintReader;
+  desktopProfile = hostCfg.desktopProfile or "niri";
+  desktopSessionName = if desktopProfile == "niri" then "niri" else desktopProfile;
+  desktopExec =
+    if desktopProfile == "niri" then
+      "/run/current-system/sw/bin/niri-session"
+    else
+      throw "Unsupported Linux desktopProfile '${desktopProfile}'";
 
   tuigreetPackage = pkgs.tuigreet or pkgs.greetd.tuigreet or (throw "tuigreet package not found in pkgs.tuigreet or pkgs.greetd.tuigreet");
+  waylandSessionCommand = pkgs.writeShellScript "wayland-session" ''
+    hm_vars="/etc/profiles/per-user/${mainUser}/etc/profile.d/hm-session-vars.sh"
+    if [ -f "$hm_vars" ]; then
+      # shellcheck disable=SC1090
+      . "$hm_vars"
+    fi
+
+    # greetd 启动链路下，systemd user 可能不会自动继承 HM session vars。
+    # 显式导入最小 GUI activation 变量，确保 user service / D-Bus 激活应用
+    # 与交互式会话在输入法、Wayland/Ozone、Qt 主题、portal 发现上保持一致。
+    export XDG_CURRENT_DESKTOP="''${XDG_CURRENT_DESKTOP:-${desktopSessionName}}"
+    export XDG_SESSION_DESKTOP="''${XDG_SESSION_DESKTOP:-${desktopSessionName}}"
+    /run/current-system/sw/bin/systemctl --user import-environment \
+      INPUT_METHOD GTK_IM_MODULE QT_IM_MODULE XMODIFIERS SDL_IM_MODULE \
+      NIXOS_OZONE_WL QT_QPA_PLATFORMTHEME NIX_XDG_DESKTOP_PORTAL_DIR \
+      XDG_CURRENT_DESKTOP XDG_SESSION_DESKTOP || true
+    /run/current-system/sw/bin/dbus-update-activation-environment --systemd \
+      INPUT_METHOD GTK_IM_MODULE QT_IM_MODULE XMODIFIERS SDL_IM_MODULE \
+      NIXOS_OZONE_WL QT_QPA_PLATFORMTHEME NIX_XDG_DESKTOP_PORTAL_DIR \
+      XDG_CURRENT_DESKTOP XDG_SESSION_DESKTOP || true
+
+    exec ${desktopExec}
+  '';
   tuigreetCommand = pkgs.writeShellScript "greetd-tuigreet-session" ''
     exec ${lib.getExe tuigreetPackage} \
       --time \
@@ -22,7 +52,7 @@ let
       --greeting 'NixOS ${hostCfg.hostname} login' \
       --power-shutdown '${pkgs.systemd}/bin/systemctl poweroff' \
       --power-reboot '${pkgs.systemd}/bin/systemctl reboot' \
-      --cmd ${homeDir}/.wayland-session
+      --cmd ${waylandSessionCommand}
   '';
 in
 {
@@ -65,6 +95,9 @@ in
     (lib.mkIf isLaptop {
       upower.enable = true;
       power-profiles-daemon.enable = true;
+    })
+    (lib.mkIf hasFingerprintReader {
+      fprintd.enable = true;
     })
   ];
 

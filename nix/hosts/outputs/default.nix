@@ -51,6 +51,20 @@ let
   exportedOverlays = import ../../overlays { inherit inputs; };
   exportedNixosModules = import ../../modules/nixos;
   exportedHomeManagerModules = import ../../modules/home-manager;
+  exportedPackages = {
+    x86_64-linux = import ../../pkgs (
+      import inputs.nixpkgs {
+        system = "x86_64-linux";
+        config.allowUnfreePredicate = mylib.allowUnfreePredicate;
+      }
+    );
+    aarch64-darwin = import ../../pkgs (
+      import inputs.nixpkgs-darwin {
+        system = "aarch64-darwin";
+        config.allowUnfreePredicate = mylib.allowUnfreePredicate;
+      }
+    );
+  };
 in
 {
   nixosConfigurations = lib.attrsets.mergeAttrsList (
@@ -66,7 +80,7 @@ in
   devShells = mylib.mergeRecursiveAttrsList (map (it: it.devShells or { }) allSystemValues);
   formatter = mylib.mergeRecursiveAttrsList (map (it: it.formatter or { }) allSystemValues);
   overlays = exportedOverlays;
-  packages = { };
+  packages = exportedPackages;
   nixosModules = exportedNixosModules;
   homeManagerModules = exportedHomeManagerModules;
 }

@@ -38,11 +38,13 @@
 
 执行顺序：
 1. `inventory`：动态发现 hosts
-2. `flake-check`：`nix flake check --all-systems`
+2. `flake-check`：`bash nix/scripts/admin/flake-check.sh`
 3. `nixos-build`：逐 host 构建 `config.system.build.toplevel`
 4. `darwin-eval`：逐 host eval `system.drvPath`
 
-说明：当配置接近稳定时可切回此流程作为默认门禁。
+说明：
+- heavy CI 现在复用仓库脚本，避免本地 prepared flake 路径与 CI 描述漂移
+- 在 GitHub Actions 的干净 checkout 上，这仍会退化为原生 flake check 语义
 
 ---
 

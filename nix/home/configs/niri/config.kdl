@@ -6,6 +6,7 @@
 include "./interaction.kdl"
 // 外观与显示：布局、动画、输出。
 include "./appearance.kdl"
+include "./outputs.kdl"
 
 // Noctalia shell 由 Home Manager 的 systemd --user 服务管理。
 

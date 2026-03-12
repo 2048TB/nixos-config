@@ -317,7 +317,7 @@
         "gridSnapScale": false,
         "monitorWidgets": [
             {
-                "name": "eDP-1",
+                "name": "__TEMPLATE__",
                 "widgets": [
                     {
                         "clockStyle": "digital",

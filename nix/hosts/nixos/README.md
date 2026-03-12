@@ -10,16 +10,14 @@
 
 ## AI 创建新主机时需要产出的文件
 
-1. `default.nix`
-2. `vars.nix`
-3. `hardware.nix`
-4. `hardware-modules.nix`
-5. `disko.nix`
-6. `nix/hosts/registry/systems.toml` 中的新主机条目
+1. `vars.nix`
+2. `hardware.nix`
+3. `hardware-modules.nix`
+4. `disko.nix`
+5. `nix/hosts/registry/systems.toml` 中的新主机条目
 
 其中：
 
-- `default.nix` 当前三台主机完全一致，只 import `hardware.nix` 与 `disko.nix`
 - `vars.nix` 是主参数入口
 - `hardware-modules.nix` 决定 `nixos-hardware` 模块
 - `hardware.nix` 决定该主机是否需要额外硬件 import
@@ -28,18 +26,6 @@
 ---
 
 ## 可直接复用的最小模板
-
-### `default.nix`
-
-```nix
-{ ... }:
-{
-  imports = [
-    ./hardware.nix
-    ./disko.nix
-  ];
-}
-```
 
 ### `vars.nix`
 
@@ -126,15 +112,21 @@ args@{ mylib, ... }:
 [nixos.<new-host>]
 system = "x86_64-linux"
 desktopSession = true
+desktopProfile = "niri"
 kind = "workstation"
 formFactor = "desktop"
 tags = []
 gpuVendors = []
+displays = []
 deployEnabled = true
 deployHost = "<new-host>"
 deployUser = "root"
 deployPort = 22
 ```
+
+说明：
+- Linux `desktopProfile` 当前只支持 `niri`
+- `displays` 是 monitor topology 的唯一事实源；不要再用 `tags` 表达 `multi-monitor` / `hidpi`
 
 ## 实际数据入口
 

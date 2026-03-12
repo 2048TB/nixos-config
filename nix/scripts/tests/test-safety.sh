@@ -76,25 +76,83 @@ if ! rg -n --fixed-strings "must start with /dev/" "$stderr_file" >/dev/null; th
   exit 1
 fi
 
-cat >"$tmpdir/bin/nix" <<'EOF'
-#!/usr/bin/env bash
-set -euo pipefail
-
-if [[ "$*" == *'users.users."z".uid'* ]]; then
-  printf '1200\n'
-elif [[ "$*" == *'users.groups."z".gid'* ]]; then
-  printf '1300\n'
-else
-  echo "unexpected nix eval query: $*" >&2
-  exit 1
-fi
+mkdir -p "$tmpdir/rootfs/etc"
+cat >"$tmpdir/rootfs/etc/passwd" <<'EOF'
+root:x:0:0:root:/root:/run/current-system/sw/bin/bash
+z:x:1200:1300::/home/z:/run/current-system/sw/bin/zsh
 EOF
-chmod +x "$tmpdir/bin/nix"
 
-actual="$(PATH="$tmpdir/bin:$PATH" resolve_target_owner_from_config "$repo_root" "zly" "z")"
+actual="$(resolve_target_owner_from_rootfs "$tmpdir/rootfs" "z")"
 expected="1200:1300"
 
 if [[ "$actual" != "$expected" ]]; then
   echo "expected owner $expected, got $actual" >&2
+  exit 1
+fi
+
+required_tracked_paths=(
+  "nix/modules/core/_mixins/default.nix"
+  "nix/modules/core/_mixins/README.md"
+  "nix/home/linux/_mixins/default.nix"
+  "nix/home/linux/_mixins/README.md"
+  "nix/lib/display-topology.nix"
+  "nix/hosts/nixos/_shared/generated-desktop-checks.nix"
+  "nix/scripts/tests/test-flake-check-warnings.sh"
+)
+
+if ! git -C "$repo_root" ls-files --error-unmatch "${required_tracked_paths[@]}" >/dev/null 2>&1; then
+  echo "expected critical flake source files to be tracked in git" >&2
+  exit 1
+fi
+
+fake_repo="$tmpdir/fake-repo"
+mkdir -p "$fake_repo"
+git -C "$fake_repo" init -q
+
+cat >"$fake_repo/flake.nix" <<'EOF'
+{
+  description = "fake";
+  outputs = _: { };
+}
+EOF
+
+mkdir -p "$fake_repo/nix/modules"
+cat >"$fake_repo/nix/modules/tracked.nix" <<'EOF'
+{ }
+EOF
+
+mkdir -p "$fake_repo/.keys"
+cat >"$fake_repo/.keys/main.agekey" <<'EOF'
+AGE-SECRET-KEY-TEST
+EOF
+chmod 000 "$fake_repo/.keys/main.agekey"
+
+git -C "$fake_repo" add flake.nix nix/modules/tracked.nix
+
+mkdir -p "$fake_repo/nix/untracked"
+cat >"$fake_repo/nix/untracked/local-only.nix" <<'EOF'
+{ }
+EOF
+
+prepare_flake_repo_path "$fake_repo"
+prepared_repo="$PREPARED_FLAKE_REPO"
+
+if [[ ! -f "$prepared_repo/flake.nix" ]]; then
+  echo "expected prepared flake repo to keep tracked flake.nix" >&2
+  exit 1
+fi
+
+if [[ ! -f "$prepared_repo/nix/modules/tracked.nix" ]]; then
+  echo "expected prepared flake repo to keep tracked source files" >&2
+  exit 1
+fi
+
+if [[ -e "$prepared_repo/.keys/main.agekey" ]]; then
+  echo "expected prepared flake repo to exclude unreadable .keys/main.agekey" >&2
+  exit 1
+fi
+
+if [[ -e "$prepared_repo/nix/untracked/local-only.nix" ]]; then
+  echo "expected prepared flake repo to exclude untracked source files" >&2
   exit 1
 fi

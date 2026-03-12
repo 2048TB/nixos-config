@@ -5,6 +5,7 @@ Home Manager 配置（用户级）。
 - 改系统级（服务/内核/磁盘）→ `nix/modules/` 或 `nix/hosts/`
 - 改用户级（终端/主题/快捷键）→ 本目录
 - 主账号一致开发环境（语言/工具链）→ 优先放在 Home Manager
+- Linux 侧入口通过 `_mixins` 统一收敛导入列表，新增 self-gating 模块时优先更新 allowlist
 
 ---
 
@@ -16,7 +17,8 @@ nix/home/
 ├── base/config-files.nix # 跨平台 configFile 映射清单
 ├── linux/
 │   ├── default.nix     # 入口（identity、imports、dconf、assertions）
-│   ├── session.nix     # Linux session vars、wayland-session、activation
+│   ├── _mixins/default.nix # Linux 模块 auto-import allowlist
+│   ├── session.nix     # Linux session vars、activation
 │   ├── files.nix       # repo link / wallpapers / user-level dotfiles
 │   ├── packages.nix    # home.packages（含主账号开发环境）
 │   ├── package-groups.nix # Linux 包分类清单（纯数据）

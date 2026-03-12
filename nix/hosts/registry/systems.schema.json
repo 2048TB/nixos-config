@@ -24,11 +24,13 @@
       "required": [
         "system",
         "desktopSession",
+        "desktopProfile",
         "deployEnabled",
         "kind",
         "formFactor",
         "tags",
-        "gpuVendors"
+        "gpuVendors",
+        "displays"
       ],
       "properties": {
         "system": {
@@ -37,6 +39,14 @@
         },
         "desktopSession": {
           "type": "boolean"
+        },
+        "desktopProfile": {
+          "type": "string",
+          "enum": [
+            "none",
+            "niri",
+            "aqua"
+          ]
         },
         "deployEnabled": {
           "type": "boolean"
@@ -73,7 +83,11 @@
         "tags": {
           "type": "array",
           "items": {
-            "type": "string"
+            "type": "string",
+            "enum": [
+              "fingerprint-reader",
+              "docked"
+            ]
           }
         },
         "gpuVendors": {
@@ -85,6 +99,66 @@
               "intel",
               "nvidia"
             ]
+          }
+        },
+        "displays": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "name"
+            ],
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "match": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "width": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "minimum": 1
+              },
+              "height": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "minimum": 1
+              },
+              "refresh": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 1
+              },
+              "scale": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "exclusiveMinimum": 0
+              },
+              "primary": {
+                "type": "boolean"
+              },
+              "workspaceSet": {
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              }
+            }
           }
         }
       }

@@ -2,12 +2,35 @@
 , pkgs
 , lib
 , mytheme
+, mylib
+, myvars
+, osConfig ? null
 , ...
 }:
 let
   homeDir = config.home.homeDirectory;
   localShareDir = "${homeDir}/.local/share";
   configFiles = import ../base/config-files.nix;
+  hostCfg = import ../base/resolve-host.nix { inherit myvars osConfig; };
+  baseNoctaliaSettings = builtins.fromJSON (builtins.readFile ../configs/noctalia/settings.json);
+  baseNoctaliaWidgetsTemplate =
+    let
+      monitorWidgets = baseNoctaliaSettings.desktopWidgets.monitorWidgets or [ ];
+    in
+    if monitorWidgets == [ ] then [ ] else (builtins.head monitorWidgets).widgets;
+  generatedNoctaliaSettings =
+    baseNoctaliaSettings
+    // {
+      desktopWidgets =
+        (baseNoctaliaSettings.desktopWidgets or { })
+        // {
+          monitorWidgets = mylib.mkNoctaliaMonitorWidgets {
+            host = hostCfg;
+            widgetsTemplate = baseNoctaliaWidgetsTemplate;
+          };
+        };
+    };
+  generatedNiriOutputs = mylib.mkNiriOutputs hostCfg;
 
   imageMimeTypes = [
     "image/jpeg"
@@ -40,6 +63,8 @@ in
       // themedConfigFiles
       // {
         "qt6ct/colors/darker.conf".source = "${pkgs.qt6Packages.qt6ct}/share/qt6ct/colors/darker.conf";
+        "niri/outputs.kdl".text = generatedNiriOutputs;
+        "noctalia/settings.json".text = builtins.toJSON generatedNoctaliaSettings;
         # 覆盖上游桌面自启动：避免与 provider-app-vpn-ui.service 双启动导致日志噪音与崩溃。
         "autostart/provider-app-vpn.desktop" = {
           text = ''

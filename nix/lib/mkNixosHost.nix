@@ -33,11 +33,14 @@ let
   registryState = hostRegistryLib.mkRegistryState {
     inherit hostRegistry hostMyvars;
   };
+  hostDefaultPath = mylib.relativeToRoot "${hostDir}/default.nix";
   hostEntryPath =
     if hostPath != null then
       hostPath
+    else if builtins.pathExists hostDefaultPath then
+      hostDefaultPath
     else
-      mylib.relativeToRoot "${hostDir}/default.nix";
+      null;
   hostHardwarePath = mylib.relativeToRoot "${hostDir}/hardware.nix";
   hostHardwareModulesPath = mylib.relativeToRoot "${hostDir}/hardware-modules.nix";
   hostDiskoPath = mylib.relativeToRoot "${hostDir}/disko.nix";
@@ -78,13 +81,17 @@ let
     (mylib.relativeToRoot "nix/modules/core")
     (mylib.relativeToRoot "nix/modules/core/hardware.nix")
     ({ modulesPath, ... }: { imports = [ (modulesPath + "/installer/scan/not-detected.nix") ]; })
-    hostEntryPath
     preservation.nixosModules.default
     sops-nix.nixosModules.sops
     lanzaboote.nixosModules.lanzaboote
     nix-gaming.nixosModules.pipewireLowLatency
     nix-gaming.nixosModules.platformOptimizations
     disko.nixosModules.disko
+  ]
+  ++ lib.optionals (hostEntryPath != null) [ hostEntryPath ]
+  ++ lib.optionals (hostEntryPath == null) [
+    hostHardwarePath
+    hostDiskoPath
   ]
   ++ hostHardwareModules
   ++ extraModules;
@@ -111,7 +118,6 @@ assert hostRegistryLib.assertCommonRegistry
 assert mylib.assertRequiredNonEmptyStrings hostRegistry [
   "system"
 ] "${registryPath}[nixos.${name}]";
-assert mylib.assertPathExists hostEntryPath "Missing ${hostDir}/default.nix";
 assert mylib.assertPathExists hostHardwarePath "Missing ${hostDir}/hardware.nix";
 assert mylib.assertPathExists hostHardwareModulesPath "Missing ${hostDir}/hardware-modules.nix";
 assert mylib.assertPathExists hostDiskoPath "Missing ${hostDir}/disko.nix";
