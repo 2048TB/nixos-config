@@ -17,7 +17,7 @@
 
 ## 原则
 
-- 优先使用保留的脚本入口，不依赖已移除的 repo-check / rebuild / deploy 包装层
+- 优先使用保留的脚本入口；`repo-check` / `deploy` 仍未恢复，常用 `rebuild` 操作通过 `just` 暴露
 - 危险操作必须显式写主机和磁盘
 - read-only flake inspect 优先先取 filtered repo，避免 `.keys/main.agekey` 权限问题
 - secrets 只通过 `sops.sh` 和 `guard-secrets.sh` 维护
@@ -102,6 +102,9 @@ just update-nixpkgs
 
 ```bash
 just info
+just show
+just metadata
+just hosts
 ```
 
 如果真实 checkout 包含不可读的 `.keys/main.agekey`，不要直接对 `path:/persistent/nixos-config` 做 read-only eval/show。先取 filtered repo：
@@ -116,9 +119,35 @@ nix flake show "path:$flake_repo"
 - `print-flake-repo.sh` 在显式传入错误 repo 路径时会直接报错，不会静默回退到当前 checkout
 - `sops.sh` / `guard-secrets.sh` 可从仓库外直接调用，脚本会自行定位 repo root
 
+## 3. 已安装系统上的 build / switch / clean
+
+会改系统状态的命令必须显式传 `host=...`：
+
+```bash
+just host=zly build
+just host=zly dry-build
+just host=zly switch
+just host=zly boot
+just host=zly test
+```
+
+清理与仓库使用：
+
+```bash
+just gc
+just optimize
+just clean
+just use
+```
+
+说明：
+- `build` / `dry-build` 会先取 filtered flake repo，再对 `system.build.toplevel` 执行 `nix build`
+- `switch` / `boot` / `test` 通过 `sudo nixos-rebuild ... --flake` 执行，会直接影响当前系统
+- `use` 会进入一个以 filtered flake repo 为当前目录的交互 shell，便于手动执行 `nix` 命令
+
 ---
 
-## 3. Secrets 与 Git 安全
+## 4. Secrets 与 Git 安全
 
 ```bash
 just hooks-enable
@@ -132,7 +161,7 @@ just ssh-key-set
 
 ---
 
-## 4. 常见问题
+## 5. 常见问题
 
 **Q: 直接执行 `nix eval path:/persistent/nixos-config#...` 报 `.keys/main.agekey: Permission denied`**
 先执行：

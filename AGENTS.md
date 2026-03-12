@@ -60,11 +60,13 @@
 just host=zly disk=/dev/nvme0n1 install
 just update
 just info
+just host=zly switch
+just clean
 just sops-init-create
 just guard-secrets
 ```
 
-补充：当前仓库已不再保留 `repo-check` / `flake-check` / `eval-tests` / `switch` / `deploy` 包装层。
+补充：当前仓库已不再保留 `repo-check` / `flake-check` / `eval-tests` / `deploy` 包装层；常用 `build` / `switch` / `test` / `clean` 入口通过 `just` 暴露。
 补充：read-only flake eval/build/check 需要先走 `print-flake-repo.sh`，避免 `.keys/main.agekey` 不可读时直接访问原始 `path:` flake。
 补充：显式传入的 `--repo` / `NIXOS_CONFIG_REPO` 必须有效；脚本不会静默回退到当前 checkout。
 补充：`sops.sh` / `guard-secrets.sh` 可以从仓库外直接调用。
