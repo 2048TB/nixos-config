@@ -7,7 +7,7 @@ common // {
   homeStateVersion = "25.11";
 
   # Storage / Hibernate
-  resumeOffset = 10113490;
+  resumeOffset = 7182282;
 
   # Hardware
   gpuMode = "amd-nvidia-hybrid";
