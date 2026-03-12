@@ -1,6 +1,6 @@
 # Nix 命令速查
 
-只保留最小脚本 surface 仍需要的命令。通用说明见 `docs/README.md`。
+只列命令，不重复背景、FAQ 与环境差异。通用说明见 `docs/README.md`，环境差异见 `docs/ENV-USAGE.md`。
 
 ---
 
@@ -17,6 +17,8 @@ REPO=/persistent/nixos-config
 bash "$REPO/nix/scripts/admin/install-live.sh" --host zly --disk /dev/nvme0n1 --repo "$REPO"
 ```
 
+注：显式传入的 `--repo` 必须是有效 flake repo。
+
 ---
 
 ## 2. Flake 与锁文件
@@ -27,7 +29,7 @@ just update-nixpkgs
 just info
 ```
 
-手动执行 read-only flake eval/build/show 时，优先先取 filtered repo：
+read-only flake eval/build/show：
 
 ```bash
 REPO=/persistent/nixos-config
@@ -36,7 +38,7 @@ nix flake show "path:$flake_repo"
 nix eval "path:$flake_repo#nixosConfigurations" --apply builtins.attrNames
 ```
 
-查看导出面：
+导出面速查：
 
 ```bash
 REPO=/persistent/nixos-config
@@ -70,4 +72,11 @@ just sops-rekey
 just hooks-enable
 just guard-secrets
 just status
+```
+
+也可从仓库外直接调用：
+
+```bash
+bash /persistent/nixos-config/nix/scripts/admin/sops.sh recipients
+bash /persistent/nixos-config/nix/scripts/admin/guard-secrets.sh
 ```

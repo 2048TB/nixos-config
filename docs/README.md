@@ -1,13 +1,13 @@
 # Docs
 
-当前仓库已收敛到最小脚本 surface，文档只覆盖保留入口：
+当前仓库已收敛到最小脚本 surface。本文是权威运维手册，其余文档按主题拆分：
 
 | 文档 | 内容 |
 |------|------|
 | `README.md` | 仓库根入口 |
-| 本文档 | 安装、锁更新与 secrets 日常维护 |
-| `docs/NIX-COMMANDS.md` | 精简命令速查 |
-| `docs/ENV-USAGE.md` | 按环境差异的安装与恢复说明 |
+| 本文档 | 安装、锁更新、secrets、FAQ |
+| `docs/NIX-COMMANDS.md` | 精简命令速查，不展开背景 |
+| `docs/ENV-USAGE.md` | 只写环境差异，不重复通用流程 |
 | `docs/KEYBINDINGS.md` | 桌面快捷键 |
 | `nix/hosts/README.md` | 主机目录组织 |
 | `nix/home/README.md` | Home Manager 结构 |
@@ -21,6 +21,12 @@
 - 危险操作必须显式写主机和磁盘
 - read-only flake inspect 优先先取 filtered repo，避免 `.keys/main.agekey` 权限问题
 - secrets 只通过 `sops.sh` 和 `guard-secrets.sh` 维护
+- 当前 CI 不做通用 push/PR 自动检查；只保留 manual `flake.lock` 新鲜度检查和 workflow run 清理
+
+文档使用建议：
+- 想直接照流程操作：先看本文
+- 只想找命令：看 `docs/NIX-COMMANDS.md`
+- 只关心 Live ISO / 已安装系统 / 其他环境差异：看 `docs/ENV-USAGE.md`
 
 ---
 
@@ -74,7 +80,7 @@ REPO="$PWD"
 bash "$REPO/nix/scripts/admin/install-live.sh" --host zly --disk /dev/nvme0n1 --repo "$REPO"
 ```
 
-安装后仓库同步到 `/persistent/nixos-config`，`/etc/nixos` 链接到该目录。
+安装后仓库同步到 `/persistent/nixos-config`，`/etc/nixos` 链接到该目录。环境差异和恢复场景见 `docs/ENV-USAGE.md`。
 
 ---
 
@@ -105,6 +111,10 @@ REPO=/persistent/nixos-config
 flake_repo="$(bash "$REPO/nix/scripts/admin/print-flake-repo.sh" "$REPO")"
 nix flake show "path:$flake_repo"
 ```
+
+说明：
+- `print-flake-repo.sh` 在显式传入错误 repo 路径时会直接报错，不会静默回退到当前 checkout
+- `sops.sh` / `guard-secrets.sh` 可从仓库外直接调用，脚本会自行定位 repo root
 
 ---
 
@@ -138,6 +148,9 @@ flake_repo="$(bash nix/scripts/admin/print-flake-repo.sh /persistent/nixos-confi
 
 **Q: 找不到 `main.agekey`**
 放到 `./.keys/main.agekey`、`<repo>/.keys/main.agekey` 或 `~/.keys/main.agekey` 中任一位置。
+
+**Q: 传了 `--repo` 但脚本还是操作了别的仓库？**
+当前脚本不会再对显式传入的错误 repo 路径做 fallback。若路径不对，会直接报错退出；请修正 `--repo` 或 `NIXOS_CONFIG_REPO`。
 
 **Q: 如何防止密钥泄露**
 

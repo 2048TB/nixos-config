@@ -1,6 +1,7 @@
 # outputs 目录
 
 将所有主机汇总为 flake outputs（`nixosConfigurations` / `darwinConfigurations` / `apps` / `checks`），并对外导出可复用接口（`packages` / `overlays` / `nixosModules`）。
+当前仓库的 CI 只消费其中少量 read-only 能力；不要把本目录理解为自动 deploy / switch 入口。
 
 ---
 
@@ -28,3 +29,4 @@
 eval tests 的通用表达式在 `common.nix`，平台目录只保留各自入口。
 
 通常无需手动修改此目录，除非新增平台级逻辑（apps/checks/devShell/formatter）或补充对外复用输出。
+若只是新增主机或调机器参数，优先改 `nix/hosts/<platform>/<host>/` 与 `nix/hosts/registry/systems.toml`，不要先动本目录。

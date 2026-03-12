@@ -21,7 +21,17 @@ if [[ "${1:-}" = "-h" || "${1:-}" = "--help" ]]; then
   exit 0
 fi
 
-repo_root="$(resolve_repo_path "${1:-${NIXOS_CONFIG_REPO:-$PWD}}")"
+if [ "$#" -gt 0 ] && [[ "${1:-}" != -* ]]; then
+  repo_root="$(resolve_repo_path "$1")"
+else
+  repo_root="$(
+    if [ -n "${NIXOS_CONFIG_REPO:-}" ]; then
+      resolve_repo_path "$NIXOS_CONFIG_REPO"
+    else
+      resolve_repo_path
+    fi
+  )"
+fi
 input_name="${2:-}"
 nix_cmd=(nix --extra-experimental-features "nix-command flakes" flake update)
 

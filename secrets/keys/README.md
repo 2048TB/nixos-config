@@ -51,6 +51,10 @@ just sops-recipients
 - `<repo>/.keys/main.agekey`
 - `~/.keys/main.agekey`
 
+补充：
+- `nix/scripts/admin/sops.sh` 可从仓库外直接调用，脚本会自行定位 repo root
+- `hosts/*.ssh_host_ed25519.pub` 若内容无效，`sops.sh recipients` / `sops.sh rekey` 会直接失败，不再静默跳过
+
 ---
 
 ## 4. 工作原理（简版）

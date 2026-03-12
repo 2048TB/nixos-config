@@ -50,7 +50,7 @@ cp -a nix/hosts/darwin/zly-mac nix/hosts/darwin/mac-mini
 5. `nix/hosts/registry/systems.toml`：新增该主机条目（`nixos.<host>` 或 `darwin.<host>`）
 6. 模板中的旧主机名替换为新主机名（`rg -n 'zly|zly-mac' nix/hosts/<platform>/<new-host>`）
 
-验证：优先使用直接 `nix eval` / `nix build`，必要时先通过 `nix/scripts/admin/print-flake-repo.sh` 获取 filtered repo。
+验证：优先使用直接 `nix eval` / `nix build`；若 repo 中存在不可读的 `.keys/main.agekey`，先通过 `nix/scripts/admin/print-flake-repo.sh` 获取 filtered repo 再做 read-only eval/build。
 
 ### 硬件层原则
 
@@ -97,3 +97,4 @@ cp -a nix/hosts/darwin/zly-mac nix/hosts/darwin/mac-mini
 
 当前保留的 `just install` 要求显式指定 `host=...`。
 仓库已不再提供自动主机解析包装层。
+显式传入的 repo 路径若无效，相关脚本会直接报错，不会静默回退。

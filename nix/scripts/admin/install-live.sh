@@ -21,6 +21,7 @@ host=""
 disk=""
 repo="${NIXOS_CONFIG_REPO:-$PWD}"
 assume_yes=0
+repo_explicit=0
 key_dir_rel=".keys"
 age_key_rel="$key_dir_rel/main.agekey"
 
@@ -72,7 +73,7 @@ while [ "$#" -gt 0 ]; do
   case "$1" in
     --host) host="${2:-}"; shift 2 ;;
     --disk) disk="${2:-}"; shift 2 ;;
-    --repo) repo="${2:-}"; shift 2 ;;
+    --repo) repo="${2:-}"; repo_explicit=1; shift 2 ;;
     --yes) assume_yes=1; shift ;;
     -h|--help) usage; exit 0 ;;
     *) echo "error: unknown argument: $1" >&2; usage >&2; exit 2 ;;
@@ -90,7 +91,11 @@ if ! is_valid_host_name "$host"; then
   exit 2
 fi
 
-repo="$(resolve_repo_path "$repo")"
+if [ "$repo_explicit" -eq 1 ] || [ -n "${NIXOS_CONFIG_REPO:-}" ]; then
+  repo="$(resolve_repo_path "$repo")"
+else
+  repo="$(resolve_repo_path)"
+fi
 prepare_flake_repo_path "$repo"
 flake_repo="$PREPARED_FLAKE_REPO"
 validate_block_device_path "$disk"

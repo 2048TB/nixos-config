@@ -9,11 +9,16 @@
 - secrets / sops：`nix/scripts/admin/sops.sh`
 - Git 密钥泄露保护：`nix/scripts/admin/guard-secrets.sh`
 
-常用入口：
-- 人类文档入口：`docs/README.md`
-- 主机结构：`nix/hosts/README.md`
-- Home Manager 结构：`nix/home/README.md`
-- 命令速查：`docs/NIX-COMMANDS.md`
+当前 CI 只保留两项：
+- 手动触发的 `flake.lock` 新鲜度检查
+- 定时/手动触发的旧 workflow run 清理
+
+文档分工：
+- `docs/README.md`：权威运维手册（安装、锁更新、secrets、FAQ）
+- `docs/ENV-USAGE.md`：按环境区分的差异说明
+- `docs/NIX-COMMANDS.md`：纯命令速查
+- `nix/hosts/README.md`：主机目录与 metadata
+- `nix/home/README.md`：Home Manager 结构
 
 最常用命令：
 
@@ -29,4 +34,4 @@ just guard-secrets
 - `just install` 会清盘，并要求确认
 - `sops.sh` 相关命令会改动仓库内密钥/secret 文件
 
-安装、锁更新、filtered flake 使用方式与常见问题见 `docs/README.md`。
+具体操作、环境差异和 FAQ 不在本页展开，统一见 `docs/README.md`。

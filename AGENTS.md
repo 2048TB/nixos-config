@@ -4,40 +4,24 @@
 
 ---
 
-## 1. 仓库概览
+## 1. 事实源与入口
 
-flake-based 多主机配置仓库，所有 Nix/脚本代码在 `nix/` 下：
-
-```text
-nix/
-├── lib/           # Nix 库函数
-├── hosts/         # 主机配置（nixos/ + darwin/ + outputs/）
-├── modules/       # 系统模块（core/ + darwin/）
-├── home/          # Home Manager（base/ + linux/ + darwin/ + configs/）
-└── scripts/       # Shell 脚本（仅保留少量 admin 入口）
-```
-
-其他顶层目录：`secrets/`、`wallpapers/`、`docs/`、`.github/`
+- 运维主文档：`docs/README.md`
+- 环境差异：`docs/ENV-USAGE.md`
+- 命令速查：`docs/NIX-COMMANDS.md`
+- 主机目录与 metadata：`nix/hosts/README.md`
+- NixOS 主机模板：`nix/hosts/nixos/README.md`
+- Home Manager 结构：`nix/home/README.md`
+- secrets/public keys：`secrets/keys/README.md`
+- 当前保留脚本：`nix/scripts/admin/{install-live,print-flake-repo,update-flake,sops,guard-secrets,common}.sh`
+- 当前 CI：manual `flake.lock` freshness check + schedule/manual workflow run cleanup
 
 ---
 
-## 2. 当前保留脚本
-
-```bash
-nix/scripts/admin/common.sh
-nix/scripts/admin/install-live.sh
-nix/scripts/admin/print-flake-repo.sh
-nix/scripts/admin/update-flake.sh
-nix/scripts/admin/sops.sh
-nix/scripts/admin/guard-secrets.sh
-```
-
----
-
-## 3. Host Metadata 模型
+## 2. Host Metadata 模型
 
 - host metadata 事实源：`nix/hosts/registry/systems.toml`
-- registry 当前字段：`system`、`kind`、`formFactor`、`desktopSession`、`desktopProfile`、`tags`、`gpuVendors`、`displays`、deploy 元数据
+- registry 字段：`system`、`kind`、`formFactor`、`desktopSession`、`desktopProfile`、`tags`、`gpuVendors`、`displays`、deploy 元数据
 - 模块消费路径：`registry -> my.host -> my.capabilities`
 - Linux NixOS/Home Manager 入口默认走 auto-discovered `_mixins`
 - `roles` 是功能开关；不要重新引入旧 `profiles` 模型，也不要把 machine topology 塞进 `roles`
@@ -48,7 +32,7 @@ nix/scripts/admin/guard-secrets.sh
 
 ---
 
-## 4. 改哪里
+## 3. 改哪里
 
 | 目标 | 文件路径 |
 |------|----------|
@@ -70,7 +54,7 @@ nix/scripts/admin/guard-secrets.sh
 
 ---
 
-## 5. 常用命令
+## 4. 常用命令
 
 ```bash
 just host=zly disk=/dev/nvme0n1 install
@@ -82,10 +66,12 @@ just guard-secrets
 
 补充：当前仓库已不再保留 `repo-check` / `flake-check` / `eval-tests` / `switch` / `deploy` 包装层。
 补充：read-only flake eval/build/check 需要先走 `print-flake-repo.sh`，避免 `.keys/main.agekey` 不可读时直接访问原始 `path:` flake。
+补充：显式传入的 `--repo` / `NIXOS_CONFIG_REPO` 必须有效；脚本不会静默回退到当前 checkout。
+补充：`sops.sh` / `guard-secrets.sh` 可以从仓库外直接调用。
 
 ---
 
-## 6. 提交规则
+## 5. 提交规则
 
 - Conventional Commit（`feat:`、`fix:`、`docs:`、`refactor:`）
 - 每次提交只做一个主题
@@ -93,13 +79,13 @@ just guard-secrets
 
 ---
 
-## 7. 安全红线
+## 6. 安全红线
 
 详见 `CLAUDE.md` §4。核心：不提交私钥，`secrets/*.yaml` 可提交，`.keys/*.agekey` 不可提交。
 
 ---
 
-## 8. 变更原则
+## 7. 变更原则
 
 - 最小改动优先，不做无关重构
 - 先保证正确性，再考虑可维护性

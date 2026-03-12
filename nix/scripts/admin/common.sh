@@ -10,8 +10,13 @@ is_valid_host_name() {
 
 resolve_repo_path() {
   local candidate="${1:-${NIXOS_CONFIG_REPO:-$PWD}}"
+  local explicit_candidate=0
   local repo_root=""
   local script_repo=""
+
+  if [ "$#" -gt 0 ] && [ -n "${1:-}" ]; then
+    explicit_candidate=1
+  fi
 
   if [ -f "$candidate/flake.nix" ]; then
     (cd "$candidate" && pwd -P)
@@ -23,6 +28,11 @@ resolve_repo_path() {
       printf '%s\n' "$repo_root"
       return 0
     fi
+  fi
+
+  if [ "$explicit_candidate" -eq 1 ]; then
+    echo "error: flake.nix not found in repo: $candidate" >&2
+    return 1
   fi
 
   script_repo="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../../.." && pwd -P)"
@@ -106,7 +116,11 @@ run_nix_flake_check_clean() {
 
 enter_repo_root() {
   local repo_root
-  repo_root="$(git rev-parse --show-toplevel)"
+  if [ "$#" -gt 0 ] && [ -n "${1:-}" ]; then
+    repo_root="$(resolve_repo_path "$1")" || return 1
+  else
+    repo_root="$(resolve_repo_path)" || return 1
+  fi
   cd "$repo_root" || return 1
   printf '%s\n' "$repo_root"
 }
