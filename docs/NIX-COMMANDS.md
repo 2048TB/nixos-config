@@ -53,13 +53,14 @@ nix eval "path:$flake_repo#nixosModules" --apply builtins.attrNames
 
 ---
 
-## 3. build / check / switch / clean
+## 3. build / check / switch / upgrade / clean
 
 ```bash
 just host=zly build
 just host=zly check
 just host=zly dry-build
 just host=zly switch
+just host=zly upgrade
 just host=zly boot
 just host=zly test
 just clean

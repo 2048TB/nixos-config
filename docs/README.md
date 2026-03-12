@@ -119,7 +119,7 @@ nix flake show "path:$flake_repo"
 - `print-flake-repo.sh` 在显式传入错误 repo 路径时会直接报错，不会静默回退到当前 checkout
 - `sops.sh` / `guard-secrets.sh` 可从仓库外直接调用，脚本会自行定位 repo root
 
-## 3. 已安装系统上的 build / check / switch / clean
+## 3. 已安装系统上的 build / check / switch / upgrade / clean
 
 会改系统状态的命令必须显式传 `host=...`：
 
@@ -128,6 +128,7 @@ just host=zly build
 just host=zly check
 just host=zly dry-build
 just host=zly switch
+just host=zly upgrade
 just host=zly boot
 just host=zly test
 ```
@@ -146,6 +147,7 @@ just use
 - `build` / `dry-build` 会先取 filtered flake repo，再对 `system.build.toplevel` 执行 `nix build`
 - `check` 通过 `sudo nixos-rebuild dry-build --flake ...` 做系统级校验，但不会切换到新世代
 - `switch` / `boot` / `test` 通过 `sudo nixos-rebuild ... --flake` 执行，会直接影响当前系统
+- `upgrade` 会先执行 `just update` 更新 `flake.lock`，再执行 `switch`
 - `clean` 会删除 7 天前的旧系统世代；`clean-all` 会删除所有旧世代
 - `use` 会进入一个以 filtered flake repo 为当前目录的交互 shell，便于手动执行 `nix` 命令
 

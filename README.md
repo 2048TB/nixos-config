@@ -28,6 +28,7 @@ just update
 just info
 just host=zly check
 just host=zly switch
+just host=zly upgrade
 just clean
 just sops-init-create
 just guard-secrets
@@ -35,7 +36,7 @@ just guard-secrets
 
 危险操作说明：
 - `just install` 会清盘，并要求确认
-- `just check` / `just switch` / `just boot` / `just test` 会直接调用 `nixos-rebuild`，必须显式传 `host=...`
+- `just check` / `just switch` / `just boot` / `just test` / `just upgrade` 会直接调用 `nixos-rebuild`，必须显式传 `host=...`
 - `sops.sh` 相关命令会改动仓库内密钥/secret 文件
 
 具体操作、环境差异和 FAQ 不在本页展开，统一见 `docs/README.md`。
