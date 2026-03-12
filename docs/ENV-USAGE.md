@@ -214,13 +214,14 @@ just update
 just update-nixpkgs
 ```
 
-2. build / check / switch：
+2. build / check / switch / upgrade：
 
 ```bash
 just host=zly build
 just host=zly check
 just host=zly dry-build
 just host=zly switch
+just host=zly upgrade
 just host=zly boot
 just host=zly test
 ```

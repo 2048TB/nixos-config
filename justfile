@@ -20,6 +20,11 @@ update:
 update-nixpkgs:
     @bash {{repo}}/nix/scripts/admin/update-flake.sh {{repo}} nixpkgs
 
+upgrade:
+    @if [ -z "{{host}}" ]; then echo "error: 需要指定主机. 用法: just host=zly upgrade" >&2; exit 2; fi
+    @just update
+    @just host={{host}} switch
+
 show:
     @flake_repo="$(bash {{repo}}/nix/scripts/admin/print-flake-repo.sh {{repo}})"; {{nix_cmd}} flake show "path:$flake_repo"
 
