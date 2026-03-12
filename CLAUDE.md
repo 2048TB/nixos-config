@@ -18,7 +18,7 @@ nixos-config/
 ├── flake.nix                  # 入口
 ├── .github/
 │   ├── actions/setup-nix/     # CI 复用步骤
-│   └── workflows/             # ci-light / ci-heavy / lock / cleanup
+│   └── workflows/             # lock checker / cleanup
 ├── nix/
 │   ├── lib/                   # Nix 库（mkNixosHost/mkDarwinHost/roleFlags/theme）
 │   ├── hosts/                 # 主机配置
@@ -36,12 +36,10 @@ nixos-config/
 │   │   ├── darwin/            # macOS HM
 │   │   └── configs/           # 应用配置文件（niri/tmux/zellij/shell...）
 │   └── scripts/
-│       ├── admin/             # 管理脚本（install/deploy/resolve-host/preflight/repo-check/rebuild-*）
-│       ├── checks/            # registry / flake inputs 审计脚本
-│       └── tests/             # Shell 回归测试
+│       └── admin/             # 保留脚本（install/print-flake-repo/update-flake/sops/guard-secrets/common）
 ├── secrets/                   # 加密 secrets（可提交）
 ├── wallpapers/                # 壁纸
-├── docs/                      # 文档（README/architecture/operations/ci/CI/NIX-COMMANDS/...）
+├── docs/                      # 文档（README/ENV-USAGE/NIX-COMMANDS/KEYBINDINGS/...）
 ├── justfile                   # 命令入口
 ├── CLAUDE.md                  # 本文件
 └── AGENTS.md                  # 贡献者指南
@@ -55,7 +53,7 @@ nixos-config/
 | 主机发现/脚手架/安装流程 | `README.md`、`docs/README.md`、`docs/NIX-COMMANDS.md`、`docs/ENV-USAGE.md` |
 | hosts/hardware/disko/registry 布局 | `nix/hosts/README.md`、`nix/hosts/nixos/README.md`、必要时 `docs/ENV-USAGE.md` |
 | justfile 命令或 flake apps | `docs/NIX-COMMANDS.md`、`docs/ENV-USAGE.md` |
-| CI / workflow / checks 脚本 | `docs/CI.md`、`docs/README.md`、必要时 `CLAUDE.md` / `AGENTS.md` |
+| CI / workflow / 最小脚本入口 | `docs/README.md`、必要时 `CLAUDE.md` / `AGENTS.md` |
 | 流程规则 | `CLAUDE.md`、`AGENTS.md` |
 
 ---
@@ -72,12 +70,13 @@ nixos-config/
 ## 5. 验证要求
 
 ```bash
-# Nix / 文档 / justfile 改动
-just fmt && just lint
-just eval-tests && just flake-check
+# 保留的 read-only 检查入口
+just info
+bash nix/scripts/admin/print-flake-repo.sh .
 
-# 脚本、工作流或仓库级改动
-just repo-check
+# 保留的脚本自检入口
+bash -n nix/scripts/admin/*.sh
+bash nix/scripts/admin/guard-secrets.sh
 ```
 
 ---
@@ -98,9 +97,9 @@ just repo-check
 
 ## 7. 执行提醒
 
-- 当前 `justfile` 默认 `host := ""`，执行 `just switch/check/test` 未显式指定时会自动解析当前主机；跨主机操作建议显式指定 `host=...`
+- 当前 `justfile` 只保留最小入口；安装时必须显式指定 `host=...`
 - 当前 Linux/macOS 主账号的一致开发环境默认由 Home Manager 提供；system layer 保留桌面运行基线
 - 当前 NixOS 主机默认直接 import `nix/hosts/nixos/_shared/hardware-workarounds-common.nix`；host-local `hardware-workarounds.nix` 仅在确有主机专属例外时才保留
-- `repo-check` 当前会覆盖 `nix/scripts/admin/*.sh`、`nix/scripts/checks/*.sh`、`nix/scripts/tests/*.sh` 的 shell 语法检查，并串联 shell regression tests、registry check、eval-tests、flake-check
+- 当前仓库仅保留 `nix/scripts/admin/*.sh`；不再保留 `repo-check`、`flake-check`、`eval-tests`、`rebuild-*`、`deploy` 包装层
 - 对 read-only flake eval/build/check，优先走 `just` 或 `nix/scripts/admin/*.sh`；当前脚本会在 `.keys/main.agekey` 不可读时自动切到 filtered flake repo
 - 未被要求时不主动推送；用户要求“同步到 GitHub”时才执行 Conventional Commit + `git push origin HEAD`

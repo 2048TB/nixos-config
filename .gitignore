@@ -11,6 +11,7 @@ niri-dotfiles.backup/
 hosts/*/gpu-choice.txt
 .serena/
 .claude/
+.cache/
 
 # 敏感文件防泄露（配合 justfile 的 git add .）
 .env

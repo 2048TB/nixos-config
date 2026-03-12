@@ -18,7 +18,7 @@ nix/hosts/
 当前主机：NixOS `zly`、`zky`、`zzly` | Darwin `zly-mac`
 当前主机清单与 metadata/deploy 信息以 `nix/hosts/registry/systems.toml` 为准。
 
-`outputs/common.nix`：平台共享的 registry 校验、eval-check 构造与 strict host 解析模板。
+`outputs/common.nix`：平台共享的 registry 校验与 eval-check 构造。
 
 ---
 
@@ -50,7 +50,7 @@ cp -a nix/hosts/darwin/zly-mac nix/hosts/darwin/mac-mini
 5. `nix/hosts/registry/systems.toml`：新增该主机条目（`nixos.<host>` 或 `darwin.<host>`）
 6. 模板中的旧主机名替换为新主机名（`rg -n 'zly|zly-mac' nix/hosts/<platform>/<new-host>`）
 
-验证：`just hosts && just eval-tests && just host=devbox check`
+验证：优先使用直接 `nix eval` / `nix build`，必要时先通过 `nix/scripts/admin/print-flake-repo.sh` 获取 filtered repo。
 
 ### 硬件层原则
 
@@ -70,8 +70,7 @@ cp -a nix/hosts/darwin/zly-mac nix/hosts/darwin/mac-mini
 - `tags`：规范化标签，仅保留无法稳定从其他 metadata 派生的事实；不要把 machine facts 再塞回 `roles`
 - `gpuVendors`：声明式 GPU 厂商清单，用于 capability 推导
 - `displays`：显示拓扑 metadata，驱动 Niri/Noctalia 等桌面配置生成，是 monitor facts 的唯一事实源
-- `deployEnabled`：是否允许被 `deploy-hosts.sh` 批量部署
-- `deployHost` / `deployUser` / `deployPort`：远程部署目标（仅 registry 使用；`deploy-hosts.sh` 直接读取）
+- `deployEnabled` / `deployHost` / `deployUser` / `deployPort`：仓库当前仅保留为 metadata，不再提供本地 deploy wrapper
 
 注意：`outputs` 中已做双向断言，目录和 registry 任何一侧缺失都会直接 fail。
 
@@ -94,10 +93,7 @@ cp -a nix/hosts/darwin/zly-mac nix/hosts/darwin/mac-mini
 
 ---
 
-## 主机解析
+## 主机选择
 
-`resolve-host.sh` 的 strict 模式优先级：
-1. `NIXOS_HOST` / `DARWIN_HOST` 环境变量
-2. 当前 hostname
-
-补充：当前 `justfile` 默认 `host := ""`，所以 `just switch/check/test` 未显式指定时会自动检测当前主机；跨主机操作建议显式指定 `host`。
+当前保留的 `just install` 要求显式指定 `host=...`。
+仓库已不再提供自动主机解析包装层。

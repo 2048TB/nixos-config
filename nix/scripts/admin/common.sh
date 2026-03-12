@@ -44,6 +44,7 @@ needs_filtered_flake_repo() {
 prepare_flake_repo_path() {
   local repo_root="${1:?repo root required}"
   local cache_key=""
+  local cache_base=""
   local cache_root=""
   local tracked_manifest=""
   local rel_path=""
@@ -56,9 +57,18 @@ prepare_flake_repo_path() {
   fi
 
   cache_key="$(printf '%s' "$repo_root" | cksum | awk '{print $1}')"
+  if mkdir -p "${repo_root}/.cache/nixos-config" 2>/dev/null; then
+    cache_base="${repo_root}/.cache/nixos-config"
+  elif [ -n "${XDG_CACHE_HOME:-}" ] && mkdir -p "${XDG_CACHE_HOME}/nixos-config" 2>/dev/null; then
+    cache_base="${XDG_CACHE_HOME}/nixos-config"
+  elif [ -n "${HOME:-}" ] && mkdir -p "${HOME}/.cache/nixos-config" 2>/dev/null; then
+    cache_base="${HOME}/.cache/nixos-config"
+  else
+    cache_base="${TMPDIR:-/tmp}"
+  fi
   # Use a per-process cache dir so concurrent script runs do not delete each
   # other's prepared flake repo while a command is still evaluating it.
-  cache_root="${TMPDIR:-/tmp}/nixos-config-flake-$(id -u)-${cache_key}-$$"
+  cache_root="${cache_base}/flake-$(id -u)-${cache_key}-$$"
 
   rm -rf "$cache_root/repo"
   mkdir -p "$cache_root/repo"
@@ -77,6 +87,7 @@ prepare_flake_repo_path() {
   else
     rsync -a --delete \
       --exclude '.git/' \
+      --exclude '.cache/' \
       --exclude '.keys/' \
       --exclude '.serena/' \
       --exclude 'result' \

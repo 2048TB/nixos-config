@@ -1,10 +1,54 @@
 # Nix 命令速查
 
-只收录不适合放在主文档中的命令清单。日常 `check/test/switch`、安装步骤和 FAQ 统一见 `docs/README.md`。
+只保留最小脚本 surface 仍需要的命令。通用说明见 `docs/README.md`。
 
 ---
 
-## 1. 密钥管理（sops）
+## 1. 安装
+
+```bash
+just host=zly disk=/dev/nvme0n1 install
+```
+
+直接调用脚本：
+
+```bash
+REPO=/persistent/nixos-config
+bash "$REPO/nix/scripts/admin/install-live.sh" --host zly --disk /dev/nvme0n1 --repo "$REPO"
+```
+
+---
+
+## 2. Flake 与锁文件
+
+```bash
+just update
+just update-nixpkgs
+just info
+```
+
+手动执行 read-only flake eval/build/show 时，优先先取 filtered repo：
+
+```bash
+REPO=/persistent/nixos-config
+flake_repo="$(bash "$REPO/nix/scripts/admin/print-flake-repo.sh" "$REPO")"
+nix flake show "path:$flake_repo"
+nix eval "path:$flake_repo#nixosConfigurations" --apply builtins.attrNames
+```
+
+查看导出面：
+
+```bash
+REPO=/persistent/nixos-config
+flake_repo="$(bash "$REPO/nix/scripts/admin/print-flake-repo.sh" "$REPO")"
+nix eval "path:$flake_repo#packages.x86_64-linux" --apply builtins.attrNames
+nix eval "path:$flake_repo#overlays" --apply builtins.attrNames
+nix eval "path:$flake_repo#nixosModules" --apply builtins.attrNames
+```
+
+---
+
+## 3. 密钥管理（sops）
 
 ```bash
 just sops-init-create
@@ -20,154 +64,10 @@ just sops-rekey
 
 ---
 
-## 2. 质量检查
+## 4. Git 安全
 
 ```bash
-just fmt
-just lint
-just dead
-just eval-tests
-just flake-check
-just repo-check
-just check-all
+just hooks-enable
+just guard-secrets
+just status
 ```
-
-`check-all` 当前等价于：`fmt + lint + dead`（不包含 `eval-tests` 与 `flake-check`）。
-`repo-check` 会串联 shell syntax / shell tests / registry check / eval-tests / flake-check。
-`eval-tests` / `flake-check` / `repo-check` 会优先通过仓库脚本解析 filtered flake repo，避免真实 checkout 中不可读 `.keys/` 直接进入 `path:` flake source。
-
----
-
-## 3. Flake 与依赖
-
-```bash
-just update
-just update-nixpkgs
-just info
-just lock
-```
-
-手动执行 read-only flake eval/build 时，优先先取 filtered repo：
-
-```bash
-REPO=/persistent/nixos-config
-flake_repo="$(bash "$REPO/nix/scripts/admin/print-flake-repo.sh" "$REPO")"
-nix eval "path:$flake_repo#nixosConfigurations" --apply builtins.attrNames
-nix flake show "path:$flake_repo"
-```
-
-查看导出面：
-
-```bash
-REPO=/persistent/nixos-config
-flake_repo="$(bash "$REPO/nix/scripts/admin/print-flake-repo.sh" "$REPO")"
-nix eval "path:$flake_repo#packages.x86_64-linux" --apply builtins.attrNames
-nix eval "path:$flake_repo#overlays" --apply builtins.attrNames
-nix eval "path:$flake_repo#nixosModules" --apply builtins.attrNames
-```
-
-说明：
-- Home Manager 模块当前不再单独通过非标准 flake output 导出；对外复用优先走仓库内模块路径或 NixOS/Home Manager 入口。
-
----
-
-## 4. CI（GitHub Actions）
-
-文档入口：`docs/CI.md`
-
-常用命令：
-
-```bash
-# 触发工作流（指定分支）
-gh workflow run "Nix CI Light" --ref <branch>
-gh workflow run "Nix CI Heavy (Manual)" --ref <branch>
-gh workflow run "Flake Lock Checker Heavy (Manual)" --ref <branch>
-gh workflow run "Cleanup Old Workflow Runs" --ref <branch>
-
-# 查看与跟踪运行
-gh run list --limit 10
-gh run watch <run-id>
-gh run view <run-id> --log
-```
-
----
-
-## 5. 清理维护
-
-```bash
-just packages
-just clean
-just clean-all
-just optimize
-just clean-optimize
-just disk
-just generations
-just diff
-```
-
-`just packages` 会同时显示：
-- `environment.systemPackages`：系统/桌面运行基线
-- 主用户 `home.packages`：Home Manager 提供的用户软件与开发环境
-
----
-
-## 6. 远程部署（NixOS）
-
-```bash
-just deploy                  # 部署全部 NixOS hosts（按 registry）
-just deploy HOSTS=zly,zky    # 只部署指定主机
-```
-
-`deploy` 会读取 `nix/hosts/registry/systems.toml` 中的 `deployEnabled` / `deployHost` / `deployUser` / `deployPort`；`deployEnabled = false` 时会跳过该主机，端口默认 `22`。
-
----
-
-## 7. registry / display metadata
-
-验证 registry 与 display metadata：
-
-```bash
-bash nix/scripts/tests/test-registry-and-audit.sh
-just eval-tests
-```
-
-新增 NixOS host 时，目录最小集合为：
-
-```text
-nix/hosts/nixos/<host>/
-├── hardware.nix
-├── hardware-modules.nix
-├── disko.nix
-└── vars.nix
-```
-
----
-
-## 8. Flake Apps
-
-```bash
-nix run .#apply
-nix run .#build
-nix run .#build-switch
-NIXOS_HOST=zly NIXOS_DISK_DEVICE=/dev/nvme0n1 nix run .#install
-nix run .#clean
-nix run .#deploy -- --hosts zly,zky
-```
-
-严格主机解析示例：
-```bash
-NIXOS_HOST=zky nix run .#build-switch
-DARWIN_HOST=zly-mac nix run .#build-switch
-```
-
----
-
-## 9. 术语
-
-| 术语 | 含义 |
-|------|------|
-| check | 构建检查，不切换 |
-| test | 临时激活，重启失效 |
-| switch | 正式切换，持久生效 |
-| flake-check | 仓库级完整检查 |
-| sops | 加密 secrets 管理 |

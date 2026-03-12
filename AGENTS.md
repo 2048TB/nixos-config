@@ -14,23 +14,23 @@ nix/
 ├── hosts/         # 主机配置（nixos/ + darwin/ + outputs/）
 ├── modules/       # 系统模块（core/ + darwin/）
 ├── home/          # Home Manager（base/ + linux/ + darwin/ + configs/）
-└── scripts/       # Shell 脚本（admin/ + checks/ + tests/）
+└── scripts/       # Shell 脚本（仅保留少量 admin 入口）
 ```
 
 其他顶层目录：`secrets/`、`wallpapers/`、`docs/`、`.github/`
 
 ---
 
-## 2. 贡献前先验证
+## 2. 当前保留脚本
 
 ```bash
-just hosts          # 确认主机列表
-just eval-tests     # eval 测试
-just flake-check    # flake 完整检查
-just repo-check     # 仓库级自检（shell syntax + tests + registry + eval + flake）
+nix/scripts/admin/common.sh
+nix/scripts/admin/install-live.sh
+nix/scripts/admin/print-flake-repo.sh
+nix/scripts/admin/update-flake.sh
+nix/scripts/admin/sops.sh
+nix/scripts/admin/guard-secrets.sh
 ```
-
-改了 Nix 文件再补：`just fmt && just lint`
 
 ---
 
@@ -64,8 +64,8 @@ just repo-check     # 仓库级自检（shell syntax + tests + registry + eval +
 | macOS 配置 | `nix/home/darwin/default.nix` |
 | 密钥管理 | `nix/scripts/admin/sops.sh` |
 | 安装流程 | `nix/scripts/admin/install-live.sh` |
-| 仓库级检查 | `nix/scripts/admin/repo-check.sh` |
-| registry / input 审计 | `nix/scripts/checks/*.sh` |
+| `flake.lock` 更新 | `nix/scripts/admin/update-flake.sh` |
+| 主机 registry / metadata | `nix/hosts/registry/systems.toml` + `nix/hosts/outputs/` |
 | 新增主机参考 | `nix/hosts/README.md` |
 
 ---
@@ -73,16 +73,15 @@ just repo-check     # 仓库级自检（shell syntax + tests + registry + eval +
 ## 5. 常用命令
 
 ```bash
-just host=zly check && just host=zly switch   # 日常更新（建议显式 host）
-just darwin-switch                             # macOS
+just host=zly disk=/dev/nvme0n1 install
+just update
+just info
+just sops-init-create
+just guard-secrets
 ```
 
-注意：当前 `justfile` 默认 `host := ""`、`darwin_host := ""`。`just switch/check/test` 与 `just darwin-switch/darwin-check` 未显式指定时都会自动解析当前主机；跨主机操作仍建议显式写 `host=...` / `darwin_host=...`。
-
-补充：当前 Linux/macOS 主账号的一致开发环境默认由 Home Manager 提供；system layer 仅保留桌面运行基线与系统服务。
-补充：当前 NixOS 主机默认直接复用 `nix/hosts/nixos/_shared/hardware-workarounds-common.nix`；只有出现主机专属硬件问题时才再创建本地 `hardware-workarounds.nix`。
-补充：`repo-check` 会覆盖 `nix/scripts/admin/*.sh`、`nix/scripts/checks/*.sh`、`nix/scripts/tests/*.sh` 的 shell 语法检查。
-补充：read-only flake eval/build/check 优先走 `just` 或仓库脚本；当前脚本会在 `.keys/main.agekey` 不可读时自动切到 filtered flake repo。
+补充：当前仓库已不再保留 `repo-check` / `flake-check` / `eval-tests` / `switch` / `deploy` 包装层。
+补充：read-only flake eval/build/check 需要先走 `print-flake-repo.sh`，避免 `.keys/main.agekey` 不可读时直接访问原始 `path:` flake。
 
 ---
 
