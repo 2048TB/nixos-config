@@ -214,10 +214,11 @@ just update
 just update-nixpkgs
 ```
 
-2. build / switch：
+2. build / check / switch：
 
 ```bash
 just host=zly build
+just host=zly check
 just host=zly dry-build
 just host=zly switch
 just host=zly boot
@@ -227,9 +228,10 @@ just host=zly test
 3. 清理与维护：
 
 ```bash
-just gc
-just optimize
 just clean
+just clean-all
+just optimize
+just gc
 just use
 ```
 
