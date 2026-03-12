@@ -112,7 +112,4 @@
     homeRoot: mainUsers:
     builtins.mapAttrs (_host: user: "${homeRoot}/${user}") mainUsers;
 
-  resolveHostStrictSnippet =
-    { kind, resolvedHostNames }:
-    ''host="$("$repo/nix/scripts/admin/resolve-host.sh" ${kind} "$repo" "${builtins.head resolvedHostNames}" --strict)"'';
 }

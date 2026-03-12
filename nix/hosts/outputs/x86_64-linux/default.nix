@@ -89,39 +89,16 @@ let
       message = "platform eval test failed";
     }
   ];
-  resolveNixosHostStrict = common.resolveHostStrictSnippet {
-    kind = "nixos";
-    inherit resolvedHostNames;
-  };
   platformApps.${system} = {
-    apply = mkAppLocal "apply" "Apply Linux host configuration (switch)" ''
-      ${appRepoPreamble}
-      ${resolveNixosHostStrict}
-      exec ${pkgs.just}/bin/just host="$host" switch
-    '';
-    build-switch = mkAppLocal "build-switch" "Build and switch Linux host configuration" ''
-      ${appRepoPreamble}
-      ${resolveNixosHostStrict}
-      ${pkgs.just}/bin/just host="$host" check
-      exec ${pkgs.just}/bin/just host="$host" switch
-    '';
-    build = mkAppLocal "build" "Dry-build Linux host configuration" ''
-      ${appRepoPreamble}
-      ${resolveNixosHostStrict}
-      exec ${pkgs.just}/bin/just host="$host" check
-    '';
     install = mkAppLocal "install" "Install Linux host on Live ISO with disko+nixos-install" ''
       ${appRepoPreamble}
-      ${resolveNixosHostStrict}
+      host="''${NIXOS_HOST:-}"
+      if [ -z "$host" ]; then
+        echo "error: NIXOS_HOST is required for nix run .#install" >&2
+        echo "hint: NIXOS_HOST=${builtins.head resolvedHostNames} NIXOS_DISK_DEVICE=/dev/nvme0n1 nix run .#install" >&2
+        exit 2
+      fi
       exec ${pkgs.just}/bin/just host="$host" disk="''${NIXOS_DISK_DEVICE:-/dev/nvme0n1}" install
-    '';
-    clean = mkAppLocal "clean" "Clean old generations" ''
-      ${appRepoPreamble}
-      exec ${pkgs.just}/bin/just clean
-    '';
-    deploy = mkAppLocal "deploy" "Deploy one or more Linux hosts over SSH" ''
-      ${appRepoPreamble}
-      exec "$repo/nix/scripts/admin/deploy-hosts.sh" --repo "$repo" "$@"
     '';
   };
   evalTestChecks.${system} = mylib.specsToAttrs evalCheckSpecs mkEvalCheck;

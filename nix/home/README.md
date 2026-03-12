@@ -43,7 +43,7 @@ nix/home/
 | Tmux | `configs/tmux/tmux.conf` |
 | Zellij | `configs/zellij/config.kdl` |
 
-应用方式（建议显式 host）：`just host=<nixos-host> switch`
+应用方式：当前仓库不再提供 `switch/check/test` 包装入口；修改本目录后，优先做 read-only flake eval/show，必要时再手动执行底层 NixOS/Home Manager 应用命令。
 
 ---
 

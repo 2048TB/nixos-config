@@ -157,5 +157,5 @@ sudo ln -sfn /persistent/nixos-config /mnt/etc/nixos
 # 7. Verify target flake (dry-build)
 sudo nixos-rebuild dry-build --flake /mnt/persistent/nixos-config#"$host"
 
-echo ">>> github ssh key will be provisioned by sops secrets on first boot/switch (if configured)"
-echo "done: reboot, then run: just host=$host switch"
+echo ">>> github ssh key will be provisioned by sops secrets on first boot (if configured)"
+echo "done: reboot into the installed system"
