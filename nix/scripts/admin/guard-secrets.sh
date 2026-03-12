@@ -1,7 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-repo_root="$(git rev-parse --show-toplevel)"
+# shellcheck disable=SC2034
+script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck disable=SC1091
+source "$script_dir/common.sh"
+
+repo_root="$(enter_repo_root)"
 cd "$repo_root"
 
 # 路径级阻断：任何被 Git 跟踪/暂存的密钥路径都直接失败

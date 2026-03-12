@@ -57,8 +57,15 @@ collect_age_recipients() {
 
   if [ -d "$host_key_dir" ]; then
     while IFS= read -r host_file; do
-      host_rec="$(run_ssh_to_age < "$host_file" | trim_line || true)"
-      [ -n "$host_rec" ] && recipients+=("$host_rec")
+      if ! host_rec="$(run_ssh_to_age < "$host_file" 2>/dev/null | trim_line)"; then
+        echo "error: invalid host recipient file: $host_file" >&2
+        return 1
+      fi
+      if [ -z "$host_rec" ]; then
+        echo "error: empty host recipient derived from: $host_file" >&2
+        return 1
+      fi
+      recipients+=("$host_rec")
     done < <(find "$host_key_dir" -maxdepth 1 -type f -name '*.pub' | sort)
   fi
 

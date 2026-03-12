@@ -5,6 +5,7 @@
 适用目录：`nix/hosts/nixos/<host>/`
 
 通用目录组织、registry 规则与硬件层原则见 `nix/hosts/README.md`。
+本文模板只描述结构约束；当前主机事实以 `vars.nix`、`hardware-modules.nix` 和 `nix/hosts/registry/systems.toml` 为准。
 
 ---
 
@@ -137,6 +138,8 @@ deployPort = 22
 - NixOS 主机共享默认值：`nix/hosts/nixos/_shared/vars-common.nix`
 - 某台主机硬件模块清单：`nix/hosts/nixos/<host>/hardware-modules.nix`
 - 某台主机额外硬件 import：`nix/hosts/nixos/<host>/hardware.nix`
+
+read-only 验证时，若 checkout 中存在不可读的 `.keys/main.agekey`，先通过 `nix/scripts/admin/print-flake-repo.sh` 获取 filtered repo。
 
 ---
 
