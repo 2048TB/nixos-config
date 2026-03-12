@@ -6,7 +6,6 @@ let
     kind = "nixos";
     inherit hostsRoot system;
     requiredFiles = [
-      "default.nix"
       "hardware.nix"
       "disko.nix"
       "vars.nix"
@@ -18,19 +17,21 @@ let
     name:
     let
       hostDir = "nix/hosts/nixos/${name}";
-      hostPath = mylib.relativeToRoot "${hostDir}/default.nix";
+      hostDefaultPath = mylib.relativeToRoot "${hostDir}/default.nix";
       hostVarsPath = mylib.relativeToRoot "${hostDir}/vars.nix";
       hostChecksPath = mylib.relativeToRoot "${hostDir}/checks.nix";
       sharedChecksPath = mylib.relativeToRoot "nix/hosts/nixos/_shared/checks.nix";
+      generatedDesktopChecksPath = mylib.relativeToRoot "nix/hosts/nixos/_shared/generated-desktop-checks.nix";
       hostMyvars = import hostVarsPath;
       hostRegistry = mylib.hostRegistryEntry "nixos" name;
       hostCtx = mylib.mkNixosHost (args // {
         inherit name hostMyvars hostRegistry;
-        inherit hostPath;
+        hostPath = if builtins.pathExists hostDefaultPath then hostDefaultPath else null;
       });
       hostCheckArgs = hostCtx // { inherit (args) lib mylib; };
       hostChecks =
         (import sharedChecksPath hostCheckArgs)
+        // (import generatedDesktopChecksPath hostCheckArgs)
         // (mylib.importIfExists hostChecksPath hostCheckArgs);
     in
     mylib.mkHostDataEntry {

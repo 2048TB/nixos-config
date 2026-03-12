@@ -92,6 +92,7 @@ let
   attrsLib = import ./attrs.nix { inherit lib; };
   hostMetaLib = import ./host-meta.nix { };
   hostCapabilitiesLib = import ./host-capabilities.nix { };
+  displayTopologyLib = import ./display-topology.nix { inherit lib; };
   launchersLib = import ./launchers.nix { inherit lib; };
   validationLib = import ./validation.nix { inherit lib attrsLib; };
   defaultHomeStateVersion = "25.11";
@@ -108,6 +109,7 @@ rec {
   inherit nixosSystem macosSystem;
   inherit mkNixosHost mkDarwinHost;
   inherit (hostCapabilitiesLib) deriveHostCapabilities;
+  inherit (displayTopologyLib) primaryDisplay mkNiriOutputs mkNoctaliaMonitorWidgets;
   inherit (attrsLib)
     hasNonEmptyString
     hasPositiveInt

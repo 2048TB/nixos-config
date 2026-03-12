@@ -229,6 +229,12 @@ in
     touch "$out"
   '';
 
+  "eval-${name}-capability-display-topology" = pkgs.runCommand "eval-${name}-capability-display-topology" { } ''
+    test "${if cfg.my.capabilities.hasMultipleDisplays == ((builtins.length cfg.my.host.displays) > 1) then "1" else "0"}" = "1"
+    test "${if cfg.my.capabilities.hasHiDpiDisplay == (builtins.any (display: let scale = display.scale or null; in if scale == null then false else scale > 1.0) cfg.my.host.displays) then "1" else "0"}" = "1"
+    touch "$out"
+  '';
+
   "eval-${name}-home-directory" = pkgs.runCommand "eval-${name}-home-directory" { } ''
     test "${hmCfg.home.homeDirectory}" = "${expectedHome}"
     touch "$out"
@@ -239,8 +245,28 @@ in
     touch "$out"
   '';
 
+  "eval-${name}-user-uid-unset" = pkgs.runCommand "eval-${name}-user-uid-unset" { } ''
+    test "${if (cfg.users.users.${mainUser}.uid or null) == null then "1" else "0"}" = "1"
+    touch "$out"
+  '';
+
+  "eval-${name}-group-gid-unset" = pkgs.runCommand "eval-${name}-group-gid-unset" { } ''
+    test "${if (cfg.users.groups.${mainUser}.gid or null) == null then "1" else "0"}" = "1"
+    touch "$out"
+  '';
+
   "eval-${name}-accept-flake-config" = pkgs.runCommand "eval-${name}-accept-flake-config" { } ''
     test "${if hasExpectedAcceptFlakeConfig then "1" else "0"}" = "1"
+    touch "$out"
+  '';
+
+  "eval-${name}-warn-dirty-enabled" = pkgs.runCommand "eval-${name}-warn-dirty-enabled" { } ''
+    test "${if (cfg.nix.settings."warn-dirty" or true) then "1" else "0"}" = "1"
+    touch "$out"
+  '';
+
+  "eval-${name}-passwd-keyring-disabled" = pkgs.runCommand "eval-${name}-passwd-keyring-disabled" { } ''
+    test "${if !(cfg.security.pam.services.passwd.enableGnomeKeyring or false) then "1" else "0"}" = "1"
     touch "$out"
   '';
 
@@ -306,9 +332,43 @@ in
     touch "$out"
   '';
 }
-  // lib.optionalAttrs (resolvedExpectedKvmModules != null) {
+// lib.optionalAttrs (resolvedExpectedKvmModules != null) {
   "eval-${name}-kvm-modules" = pkgs.runCommand "eval-${name}-kvm-modules" { } ''
     test "${builtins.toJSON actualKvmModules}" = "${builtins.toJSON resolvedExpectedKvmModules}"
+    touch "$out"
+  '';
+}
+  // lib.optionalAttrs hasDesktopSession {
+  "eval-${name}-greetd-session-command-not-home-bound" = pkgs.runCommand "eval-${name}-greetd-session-command-not-home-bound" { } ''
+    if grep -Fq "${expectedHome}/.wayland-session" "${cfg.services.greetd.settings.default_session.command}"; then
+      echo "greetd session wrapper still depends on ${expectedHome}/.wayland-session" >&2
+      exit 1
+    fi
+    touch "$out"
+  '';
+
+  "eval-${name}-greetd-session-command-imports-gui-vars" = pkgs.runCommand "eval-${name}-greetd-session-command-imports-gui-vars" { } ''
+    session_wrapper="$(
+      grep -o '/nix/store/[^[:space:]]*-wayland-session' "${cfg.services.greetd.settings.default_session.command}" \
+        | head -n1
+    )"
+
+    if [ -z "$session_wrapper" ]; then
+      echo "failed to locate greetd wayland-session wrapper" >&2
+      exit 1
+    fi
+
+    for expected_var in \
+      NIXOS_OZONE_WL \
+      QT_QPA_PLATFORMTHEME \
+      NIX_XDG_DESKTOP_PORTAL_DIR
+    do
+      if ! grep -Fq "$expected_var" "$session_wrapper"; then
+        echo "greetd wayland-session wrapper does not import $expected_var" >&2
+        exit 1
+      fi
+    done
+
     touch "$out"
   '';
 }

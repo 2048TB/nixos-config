@@ -7,7 +7,6 @@ in
   nix = {
     settings = {
       experimental-features = [ "nix-command" "flakes" ];
-      warn-dirty = false;
 
       # 配置二进制缓存以加速包下载
       substituters = [ "https://cache.nixos.org/" ] ++ cacheSubstituters;

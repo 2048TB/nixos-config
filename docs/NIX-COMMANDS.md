@@ -53,7 +53,23 @@ just lock
 REPO=/persistent/nixos-config
 flake_repo="$(bash "$REPO/nix/scripts/admin/print-flake-repo.sh" "$REPO")"
 nix eval "path:$flake_repo#nixosConfigurations" --apply builtins.attrNames
+nix flake show "path:$flake_repo"
 ```
+
+查看导出面：
+
+```bash
+REPO=/persistent/nixos-config
+flake_repo="$(bash "$REPO/nix/scripts/admin/print-flake-repo.sh" "$REPO")"
+nix eval "path:$flake_repo#packages.x86_64-linux" --apply builtins.attrNames
+nix eval "path:$flake_repo#overlays" --apply builtins.attrNames
+nix eval "path:$flake_repo#nixosModules" --apply builtins.attrNames
+nix eval "path:$flake_repo#homeManagerModules" --apply builtins.attrNames
+```
+
+说明：
+- `homeManagerModules` 不是 Nix 标准 flake output 名；直接运行原生 `nix flake show/check` 仍会提示 warning。
+- 仓库脚本 `just flake-check` / `repo-check` 会过滤这条已知无害 warning，避免检查输出噪音。
 
 ---
 
@@ -108,7 +124,28 @@ just deploy HOSTS=zly,zky    # 只部署指定主机
 
 ---
 
-## 7. Flake Apps
+## 7. registry / display metadata
+
+验证 registry 与 display metadata：
+
+```bash
+bash nix/scripts/tests/test-registry-and-audit.sh
+just eval-tests
+```
+
+新增 NixOS host 时，目录最小集合为：
+
+```text
+nix/hosts/nixos/<host>/
+├── hardware.nix
+├── hardware-modules.nix
+├── disko.nix
+└── vars.nix
+```
+
+---
+
+## 8. Flake Apps
 
 ```bash
 nix run .#apply
@@ -127,7 +164,7 @@ DARWIN_HOST=zly-mac nix run .#build-switch
 
 ---
 
-## 8. 术语
+## 9. 术语
 
 | 术语 | 含义 |
 |------|------|

@@ -37,9 +37,13 @@ just repo-check     # 仓库级自检（shell syntax + tests + registry + eval +
 ## 3. Host Metadata 模型
 
 - host metadata 事实源：`nix/hosts/registry/systems.toml`
-- registry 当前字段：`system`、`kind`、`formFactor`、`desktopSession`、`tags`、`gpuVendors`、deploy 元数据
+- registry 当前字段：`system`、`kind`、`formFactor`、`desktopSession`、`desktopProfile`、`tags`、`gpuVendors`、`displays`、deploy 元数据
 - 模块消费路径：`registry -> my.host -> my.capabilities`
-- `roles` 是功能开关；不要重新引入旧 `profiles` 模型
+- Linux NixOS/Home Manager 入口默认走 auto-discovered `_mixins`
+- `roles` 是功能开关；不要重新引入旧 `profiles` 模型，也不要把 machine topology 塞进 `roles`
+- `tags` 只保留无法稳定派生的事实；`multi-monitor` / `hidpi` 这类 display facts 不再手写
+- 不要在桌面配置里硬编码 monitor 名称；优先从 registry `displays` metadata 生成
+- Linux `desktopProfile` 当前只支持 `niri`；Darwin 使用 `aqua`
 - `gpuMode` 当前正式值不包含 `auto`
 
 ---

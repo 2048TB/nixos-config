@@ -45,6 +45,8 @@ prepare_flake_repo_path() {
   local repo_root="${1:?repo root required}"
   local cache_key=""
   local cache_root=""
+  local tracked_manifest=""
+  local rel_path=""
 
   PREPARED_FLAKE_REPO="$repo_root"
 
@@ -55,16 +57,41 @@ prepare_flake_repo_path() {
   cache_key="$(printf '%s' "$repo_root" | cksum | awk '{print $1}')"
   cache_root="${TMPDIR:-/tmp}/nixos-config-flake-$(id -u)-${cache_key}"
 
+  rm -rf "$cache_root/repo"
   mkdir -p "$cache_root/repo"
-  rsync -a --delete \
-    --exclude '.git/' \
-    --exclude '.keys/' \
-    --exclude '.serena/' \
-    --exclude 'result' \
-    --exclude 'result-*' \
-    "$repo_root/" "$cache_root/repo/"
+
+  if git -C "$repo_root" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    tracked_manifest="$cache_root/tracked-files"
+    : >"$tracked_manifest"
+
+    while IFS= read -r -d '' rel_path; do
+      if [ -e "$repo_root/$rel_path" ] || [ -L "$repo_root/$rel_path" ]; then
+        printf '%s\0' "$rel_path" >>"$tracked_manifest"
+      fi
+    done < <(git -C "$repo_root" ls-files -z)
+
+    rsync -a --from0 --files-from="$tracked_manifest" "$repo_root/" "$cache_root/repo/"
+  else
+    rsync -a --delete \
+      --exclude '.git/' \
+      --exclude '.keys/' \
+      --exclude '.serena/' \
+      --exclude 'result' \
+      --exclude 'result-*' \
+      "$repo_root/" "$cache_root/repo/"
+  fi
 
   PREPARED_FLAKE_REPO="$cache_root/repo"
+}
+
+filter_known_flake_warnings() {
+  grep -Fv "warning: unknown flake output 'homeManagerModules'" || true
+}
+
+run_nix_flake_check_clean() {
+  local flake_ref="${1:?flake ref required}"
+  nix --extra-experimental-features 'nix-command flakes' flake check --all-systems "$flake_ref" \
+    2> >(filter_known_flake_warnings >&2)
 }
 
 enter_repo_root() {
@@ -161,18 +188,29 @@ validate_block_device_path() {
   fi
 }
 
-resolve_target_owner_from_config() {
-  local repo_root="${1:?repo root required}"
-  local host="${2:?host required}"
-  local username="${3:?username required}"
+resolve_target_owner_from_rootfs() {
+  local rootfs="${1:?rootfs required}"
+  local username="${2:?username required}"
   local uid=""
   local gid=""
+  local passwd_file="${rootfs}/etc/passwd"
+
+  if [ ! -r "$passwd_file" ]; then
+    echo "error: target passwd file is not readable: $passwd_file" >&2
+    return 1
+  fi
 
   uid="$(
-    nix eval --raw "path:${repo_root}#nixosConfigurations.${host}.config.users.users.\"${username}\".uid"
+    awk -F: -v user="$username" '$1 == user { print $3; exit }' "$passwd_file"
   )"
   gid="$(
-    nix eval --raw "path:${repo_root}#nixosConfigurations.${host}.config.users.groups.\"${username}\".gid"
+    awk -F: -v user="$username" '$1 == user { print $4; exit }' "$passwd_file"
   )"
+
+  if [ -z "$uid" ] || [ -z "$gid" ]; then
+    echo "error: user '$username' not found in target passwd file: $passwd_file" >&2
+    return 1
+  fi
+
   printf '%s:%s\n' "$uid" "$gid"
 }

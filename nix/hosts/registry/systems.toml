@@ -6,6 +6,7 @@
 [nixos.zky]
 system = "x86_64-linux"
 desktopSession = true
+desktopProfile = "niri"
 kind = "workstation"
 formFactor = "laptop"
 tags = []
@@ -15,9 +16,14 @@ deployHost = "zky"
 deployUser = "root"
 deployPort = 22
 
+[[nixos.zky.displays]]
+name = "eDP-1"
+primary = true
+
 [nixos.zly]
 system = "x86_64-linux"
 desktopSession = true
+desktopProfile = "niri"
 kind = "workstation"
 formFactor = "desktop"
 tags = []
@@ -27,13 +33,25 @@ deployHost = "zly"
 deployUser = "root"
 deployPort = 22
 
+[[nixos.zly.displays]]
+name = "DP-1"
+match = "HKC OVERSEAS LIMITED MG27Q 0000000000001"
+width = 2560
+height = 1440
+refresh = 165
+scale = 1.25
+primary = true
+workspaceSet = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+
 [nixos.zzly]
 system = "x86_64-linux"
 desktopSession = true
+desktopProfile = "niri"
 kind = "workstation"
 formFactor = "desktop"
 tags = []
 gpuVendors = ["amd"]
+displays = []
 deployEnabled = true
 deployHost = "zzly"
 deployUser = "root"
@@ -42,10 +60,12 @@ deployPort = 22
 [darwin.zly-mac]
 system = "aarch64-darwin"
 desktopSession = true
+desktopProfile = "aqua"
 kind = "workstation"
 formFactor = "laptop"
 tags = []
 gpuVendors = []
+displays = []
 deployEnabled = true
 deployHost = "zly-mac"
 deployUser = "z"

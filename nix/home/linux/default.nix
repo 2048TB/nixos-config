@@ -11,13 +11,7 @@
   imports = [
     ../base
     noctalia.homeModules.default
-    ./desktop.nix
-    ./files.nix
-    ./packages.nix
-    ./programs.nix
-    ./session.nix
-    ./xdg.nix
-  ];
+  ] ++ (import ./_mixins { inherit lib; });
 
   home = {
     enableNixpkgsReleaseCheck = true;

@@ -22,7 +22,7 @@ nixos-config/
 ├── nix/
 │   ├── lib/                   # Nix 库（mkNixosHost/mkDarwinHost/roleFlags/theme）
 │   ├── hosts/                 # 主机配置
-│   │   ├── nixos/<host>/      # NixOS（必须含 default.nix + hardware.nix + hardware-modules.nix + disko.nix + vars.nix）
+│   │   ├── nixos/<host>/      # NixOS（必须含 hardware.nix + hardware-modules.nix + disko.nix + vars.nix）
 │   │   ├── darwin/<host>/     # macOS（必须含 default.nix + vars.nix）
 │   │   ├── nixos/_shared/     # 共享 checks / disko 模板 / 通用 workaround
 │   │   ├── registry/          # 主机注册表（systems.toml + schema）
@@ -85,9 +85,13 @@ just repo-check
 ## 6. Host Metadata 模型
 
 - host metadata 的事实源是 `nix/hosts/registry/systems.toml`
-- registry 当前只承载：`system`、`kind`、`formFactor`、`desktopSession`、`tags`、`gpuVendors`、`deployEnabled`、`deployHost`、`deployUser`、`deployPort`
+- registry 当前承载：`system`、`kind`、`formFactor`、`desktopSession`、`desktopProfile`、`tags`、`gpuVendors`、`displays`、`deployEnabled`、`deployHost`、`deployUser`、`deployPort`
 - 模块消费路径固定为：`registry -> my.host` typed options -> `my.capabilities`
-- `roles` 仍保留为功能开关；不要重新引入旧 `profiles` host 模型
+- Linux NixOS/Home Manager 入口默认走 auto-discovered `_mixins`
+- `roles` 仍保留为功能开关；不要重新引入旧 `profiles` host 模型，也不要把 machine topology 塞进 `roles`
+- `tags` 只保留无法稳定派生的事实；`multi-monitor` / `hidpi` 这类 display facts 不再手写
+- 不要在桌面配置里硬编码 monitor 名称；优先从 registry `displays` metadata 生成
+- Linux `desktopProfile` 当前只支持 `niri`；Darwin 使用 `aqua`
 - `gpuMode` 当前正式值为 `none` / `modesetting` / `amdgpu` / `nvidia` / `amd-nvidia-hybrid`，不要再写 `auto`
 
 ---

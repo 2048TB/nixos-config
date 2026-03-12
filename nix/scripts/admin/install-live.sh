@@ -145,7 +145,7 @@ if [ ! -f "$TARGET_FLAKE_TMP/flake.nix" ]; then
 fi
 
 target_user="$(nix eval --raw "path:${flake_repo}#nixosConfigurations.${host}.config.my.host.username")"
-target_owner="$(resolve_target_owner_from_config "$flake_repo" "$host" "$target_user")"
+target_owner="$(resolve_target_owner_from_rootfs /mnt "$target_user")"
 sudo chown -R "$target_owner" "$TARGET_FLAKE_TMP"
 sudo rm -rf "$TARGET_FLAKE_DIR"
 sudo mv "$TARGET_FLAKE_TMP" "$TARGET_FLAKE_DIR"

@@ -50,9 +50,9 @@ in
       };
 
       tags = lib.mkOption {
-        type = types.listOf types.str;
+        type = types.listOf (types.enum schema.allowedHostTags);
         default = myvars.tags or [ ];
-        description = "Free-form host tags sourced from the registry.";
+        description = "Canonical host tags sourced from the registry.";
       };
 
       desktopSession = lib.mkOption {
@@ -61,10 +61,66 @@ in
         description = "Whether this host should load the desktop session stack.";
       };
 
+      desktopProfile = lib.mkOption {
+        type = types.enum schema.allowedDesktopProfiles;
+        default = myvars.desktopProfile or "none";
+        description = "Desktop profile sourced from the registry.";
+      };
+
       gpuVendors = lib.mkOption {
         type = types.listOf (types.enum schema.allowedGpuVendors);
         default = myvars.gpuVendors or [ ];
         description = "GPU vendors declared for this host.";
+      };
+
+      displays = lib.mkOption {
+        type = types.listOf (
+          types.submodule (_: {
+            options = {
+              name = lib.mkOption {
+                type = types.str;
+                description = "Logical display name.";
+              };
+              match = lib.mkOption {
+                type = types.nullOr types.str;
+                default = null;
+                description = "Optional compositor-specific stable output match string.";
+              };
+              width = lib.mkOption {
+                type = types.nullOr types.ints.positive;
+                default = null;
+                description = "Optional display width in pixels.";
+              };
+              height = lib.mkOption {
+                type = types.nullOr types.ints.positive;
+                default = null;
+                description = "Optional display height in pixels.";
+              };
+              refresh = lib.mkOption {
+                type = types.nullOr types.number;
+                default = null;
+                description = "Optional refresh rate in Hz.";
+              };
+              scale = lib.mkOption {
+                type = types.nullOr types.number;
+                default = null;
+                description = "Optional UI scale factor.";
+              };
+              primary = lib.mkOption {
+                type = types.bool;
+                default = false;
+                description = "Whether this display is the primary output.";
+              };
+              workspaceSet = lib.mkOption {
+                type = types.listOf types.ints.positive;
+                default = [ ];
+                description = "Optional workspace hints associated with the display.";
+              };
+            };
+          })
+        );
+        default = myvars.displays or [ ];
+        description = "Display topology metadata sourced from the registry.";
       };
 
       diskDevice = lib.mkOption {
@@ -164,6 +220,42 @@ in
         type = types.bool;
         readOnly = true;
         description = "Derived flag for hosts that should load the desktop session stack.";
+      };
+
+      usesNiri = lib.mkOption {
+        type = types.bool;
+        readOnly = true;
+        description = "Derived flag for hosts using the Niri desktop profile.";
+      };
+
+      hasMultipleDisplays = lib.mkOption {
+        type = types.bool;
+        readOnly = true;
+        description = "Derived flag for hosts with multiple declared displays.";
+      };
+
+      hasDisplayTopology = lib.mkOption {
+        type = types.bool;
+        readOnly = true;
+        description = "Derived flag for hosts with declared display topology metadata.";
+      };
+
+      hasHiDpiDisplay = lib.mkOption {
+        type = types.bool;
+        readOnly = true;
+        description = "Derived flag for hosts with a HiDPI display.";
+      };
+
+      primaryDisplayName = lib.mkOption {
+        type = types.nullOr types.str;
+        readOnly = true;
+        description = "Derived primary display name from host display metadata.";
+      };
+
+      hasFingerprintReader = lib.mkOption {
+        type = types.bool;
+        readOnly = true;
+        description = "Derived flag for hosts tagged with a fingerprint reader.";
       };
 
       hasAmdGpu = lib.mkOption {

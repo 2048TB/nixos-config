@@ -23,9 +23,12 @@
 
 host metadata 约定：
 - registry 事实源：`nix/hosts/registry/systems.toml`
-- 当前 registry 字段：`system`、`kind`、`formFactor`、`desktopSession`、`tags`、`gpuVendors`、deploy 元数据
+- 当前 registry 字段：`system`、`kind`、`formFactor`、`desktopSession`、`desktopProfile`、`tags`、`gpuVendors`、`displays`、deploy 元数据
 - 模块消费顺序：`registry -> my.host -> my.capabilities`
 - 不再使用旧 `profiles` 模型作为 host/session gating
+- `tags` 只保留不能稳定派生的事实；`multi-monitor` / `hidpi` 不再手写
+- `displays` 是 monitor topology 的唯一事实源
+- Linux `desktopProfile` 当前只支持 `niri`；Darwin 使用 `aqua`
 
 ---
 
@@ -112,8 +115,9 @@ sudo rm -rf "$TMP"
 sudo mkdir -p "$TMP"
 sudo cp -a "$REPO/." "$TMP/"
 sudo install -D -m 0400 -o root -g root "$REPO/.keys/main.agekey" "$TMP/.keys/main.agekey"
-OWNER="$(sudo awk -F: '$3 >= 1000 && $3 < 60000 {print $3 \":\" $4; exit}' /mnt/etc/passwd || true)"
-[ -n "$OWNER" ] || OWNER="1000:1000"
+FLAKE_REPO="$(bash "$REPO/nix/scripts/admin/print-flake-repo.sh" "$REPO")"
+TARGET_USER="$(nix eval --raw "path:$FLAKE_REPO#nixosConfigurations.$HOST.config.my.host.username")"
+OWNER="$(sudo awk -F: -v user="$TARGET_USER" '$1 == user {print $3 ":" $4; exit}' /mnt/etc/passwd)"
 sudo chown -R "$OWNER" "$TMP"
 sudo rm -rf "$TARGET"
 sudo mv "$TMP" "$TARGET"

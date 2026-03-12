@@ -1,31 +1,16 @@
 { config
 , pkgs
+, lib
 , mainUser
 , ...
 }:
 let
-  defaultUid = 1000;
-  defaultGid = 1000;
   hostCfg = config.my.host;
 in
 {
   imports = [
     ./options.nix
-    ./nix-settings.nix
-    ./assertions.nix
-    ./roles/firewall.nix
-    ./roles/steam.nix
-    ./roles/mullvad.nix
-    ./roles/flatpak.nix
-    ./roles/libvirtd.nix
-    ./roles/docker.nix
-    ./boot.nix
-    ./storage.nix
-    ./security.nix
-    ./desktop.nix
-    ./services.nix
-    ./secrets.nix
-  ];
+  ] ++ (import ./_mixins { inherit lib; });
 
   system.stateVersion = hostCfg.systemStateVersion;
 
@@ -45,12 +30,9 @@ in
       hashedPasswordFile = config.sops.secrets."passwords/root".path;
     };
 
-    groups.${mainUser} = {
-      gid = defaultGid;
-    };
+    groups.${mainUser} = { };
 
     users.${mainUser} = {
-      uid = defaultUid;
       isNormalUser = true;
       extraGroups = [
         "wheel"

@@ -61,7 +61,7 @@ jobs:
       - name: Run flake checks
         run: |
           set -euo pipefail
-          nix flake check --all-systems --show-trace
+          bash nix/scripts/admin/flake-check.sh .
 
   nixos-build:
     name: NixOS Build (${{ matrix.host }})
