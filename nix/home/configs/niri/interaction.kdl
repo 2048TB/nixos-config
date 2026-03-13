@@ -112,15 +112,15 @@ binds {
     // 而非堆叠在一起。
     Mod+O { toggle-column-tabbed-display; }
 
-    // 交换为：方向键聚焦，HJKL 移动窗口/列
+    // 交换为：方向键聚焦，S/G 移动列，:/" 移动窗口
     Mod+Left { focus-column-left; }
     Mod+Down { focus-window-or-workspace-down; }
     Mod+Up { focus-window-or-workspace-up; }
     Mod+Right { focus-column-right; }
-    Mod+H { move-column-left; }
-    Mod+J { move-window-down; }
-    Mod+K { move-window-up; }
-    Mod+L { move-column-right; }
+    Mod+S { move-column-left; }
+    Mod+Shift+Semicolon { move-window-down; }
+    Mod+Shift+Apostrophe { move-window-up; }
+    Mod+G { move-column-right; }
     Mod+Ctrl+Left { move-column-left; }
     Mod+Ctrl+Down { move-window-down; }
     Mod+Ctrl+Up { move-window-up; }
@@ -151,9 +151,9 @@ binds {
     "Mod+Page_Up" { focus-workspace-up; }
     "Mod+Ctrl+Page_Down" { move-column-to-workspace-down; }
     "Mod+Ctrl+Page_Up" { move-column-to-workspace-up; }
-    // X/B 发送当前窗口到下/上一个工作区（对齐 Sofle：S/X=down，G/B=up）
-    Mod+X { move-window-to-workspace-down; }
-    Mod+B { move-window-to-workspace-up; }
+    // D/F 发送当前窗口到下/上一个工作区
+    Mod+D { move-window-to-workspace-down; }
+    Mod+F { move-window-to-workspace-up; }
     "Mod+Shift+Page_Down" { move-workspace-down; }
     "Mod+Shift+Page_Up" { move-workspace-up; }
     Mod+Alt+Left  { focus-workspace-up; }
@@ -218,13 +218,13 @@ binds {
     // 以下绑定用于在列内/列外移动焦点窗口。
     // 如果窗口独立存在，将其并入旁边的列；
     // 若已在列内，则将其移出。
-    Mod+S { consume-or-expel-window-left; }
-    Mod+G { consume-or-expel-window-right; }
+    Mod+X { consume-or-expel-window-left; }
+    Mod+B { consume-or-expel-window-right; }
 
     // 从右侧列吸入一个窗口到当前列底部。
-    Mod+D { consume-window-into-column; }
+    Mod+C { consume-window-into-column; }
     // 将当前列底部窗口移到右侧。
-    Mod+F { expel-window-from-column; }
+    Mod+V { expel-window-from-column; }
 
     Mod+R { switch-preset-column-width; }
     // 也可按反向顺序循环预设。
@@ -261,10 +261,6 @@ binds {
 
     // 在浮动与平铺布局间切换当前窗口。
     Mod+W repeat=false { toggle-window-floating; }
-
-    // 快速上下移动当前窗口。
-    Mod+C { move-window-down; }
-    Mod+V { move-window-up; }
 
     // 全屏当前窗口。
     Mod+T { fullscreen-window; }
