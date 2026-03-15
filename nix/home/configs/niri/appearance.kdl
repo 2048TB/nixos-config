@@ -26,7 +26,7 @@ layout {
 
     // 可以修改新窗口的默认宽度。
     // 默认 83%，通过 Mod+R 快捷键在 50%, 83%, 100% 之间切换
-    default-column-width { proportion 0.5; }
+    default-column-width { proportion 0.830000; }
     // 若花括号留空，由窗口自身决定初始宽度。
     // default-column-width {}
 
