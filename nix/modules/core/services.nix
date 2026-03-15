@@ -3,13 +3,16 @@
 , mainUser
 , config
 , configRepoPath
+, mylib
 , ...
 }:
 let
   hostCfg = config.my.host;
+  roleFlags = mylib.roleFlags hostCfg;
   homeDir = "/home/${mainUser}";
   hibernateEnabled = hostCfg.resumeOffset != null;
   inherit (config.my.capabilities) isLaptop hasDesktopSession hasFingerprintReader;
+  inherit (roleFlags) enableProvider appVpn;
   desktopProfile = hostCfg.desktopProfile or "niri";
   desktopSessionName = if desktopProfile == "niri" then "niri" else desktopProfile;
   desktopExec =
@@ -109,7 +112,26 @@ in
       AllowHybridSleep=no
     '';
 
-    services = { };
+    services = lib.mkMerge [
+      (lib.mkIf enableProvider appVpn {
+        provider-app-daemon.serviceConfig.ExecStartPre = pkgs.writeShellScript "disable-provider-app-lockdown" ''
+          settings_dir="/etc/provider-app-vpn"
+          settings_file="$settings_dir/settings.json"
+
+          mkdir -p "$settings_dir"
+          if [ ! -f "$settings_file" ]; then
+            echo '{}' > "$settings_file"
+          fi
+
+          if ${pkgs.jq}/bin/jq '.block_when_disconnected = false | .auto_connect = true' "$settings_file" > "$settings_file.tmp"; then
+            mv "$settings_file.tmp" "$settings_file"
+          else
+            rm -f "$settings_file.tmp"
+            echo "WARNING: Failed to update Provider app settings (invalid JSON). Keeping existing file." >&2
+          fi
+        '';
+      })
+    ];
 
     tmpfiles.rules = [
       "d ${configRepoPath} 0755 ${mainUser} ${mainUser} -"

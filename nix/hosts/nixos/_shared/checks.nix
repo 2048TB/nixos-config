@@ -54,6 +54,9 @@ let
     if expectedKvmModules != null then expectedKvmModules
     else if cpuVendor != null then mylib.kvmModulesForVendor cpuVendor
     else null;
+  hasProvider appVpn = cfg.services.provider-app-vpn.enable or false;
+  provider-appExecStartPre = cfg.systemd.services.provider-app-daemon.serviceConfig.ExecStartPre or null;
+  provider-appExecStartPrePath = if provider-appExecStartPre == null then "" else toString provider-appExecStartPre;
   hmCfg = cfg.home-manager.users.${mainUser};
   expectedHome = "/home/${mainUser}";
 
@@ -323,6 +326,21 @@ in
 // lib.optionalAttrs (resolvedExpectedVideoDrivers != null) {
   "eval-${name}-video-drivers" = pkgs.runCommand "eval-${name}-video-drivers" { } ''
     test "${builtins.toJSON cfg.services.xserver.videoDrivers}" = "${builtins.toJSON resolvedExpectedVideoDrivers}"
+    touch "$out"
+  '';
+}
+// lib.optionalAttrs hasProvider appVpn {
+  "eval-${name}-provider-app-prestart-script" = pkgs.runCommand "eval-${name}-provider-app-prestart-script" { } ''
+    script_path="${provider-appExecStartPrePath}"
+
+    if [ -z "$script_path" ] || [ ! -f "$script_path" ]; then
+      echo "missing provider-app ExecStartPre script" >&2
+      exit 1
+    fi
+
+    grep -F 'settings_dir="/etc/provider-app-vpn"' "$script_path" >/dev/null
+    grep -F '.block_when_disconnected = false' "$script_path" >/dev/null
+    grep -F '.auto_connect = true' "$script_path" >/dev/null
     touch "$out"
   '';
 }
