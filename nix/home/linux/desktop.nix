@@ -22,6 +22,11 @@ let
   provider-appVpnQuiet = mkLogFilteredLauncher "provider-app-vpn-quiet" "${pkgs.provider-app-vpn}/bin/provider-app-vpn" [
     "Gtk: gtk_widget_get_scale_factor: assertion 'GTK_IS_WIDGET \\(widget\\)' failed"
   ];
+  aria2PrepareSession = pkgs.writeShellScript "aria2-prepare-session" ''
+    set -eu
+    mkdir -p "$HOME/.local/share/aria2"
+    touch "$HOME/.local/share/aria2/session"
+  '';
 in
 {
   xdg.dataFile."applications/dev.noctalia.noctalia-qs.desktop".text =
@@ -84,6 +89,20 @@ in
           "LC_ALL=C.UTF-8"
         ];
         udiskie.Service.ExecStart = lib.mkForce "${lib.getExe udiskieQuiet}";
+
+        aria2 = {
+          Unit = {
+            Description = "aria2 RPC daemon";
+          };
+          Install.WantedBy = [ "default.target" ];
+          Service = {
+            Type = "simple";
+            ExecStartPre = "${aria2PrepareSession}";
+            ExecStart = "${pkgs.aria2}/bin/aria2c --conf-path=%h/.config/aria2/aria2.conf";
+            Restart = "on-failure";
+            RestartSec = 2;
+          };
+        };
 
         provider-app-vpn-ui = lib.mkIf enableProvider appVpn {
           Unit = {

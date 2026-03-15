@@ -253,6 +253,20 @@ in
     touch "$out"
   '';
 
+  "eval-${name}-aria2-rpc-config" = pkgs.runCommand "eval-${name}-aria2-rpc-config" { } ''
+    test "${if (hmCfg.programs.aria2.enable or false) then "1" else "0"}" = "1"
+    test "${if (hmCfg.programs.aria2.settings."enable-rpc" or false) then "1" else "0"}" = "1"
+    test "${toString (hmCfg.programs.aria2.settings."rpc-listen-port" or 0)}" = "6800"
+    test "${if (hmCfg.programs.aria2.settings."rpc-listen-all" or false) then "1" else "0"}" = "0"
+    test "${if (hmCfg.programs.aria2.settings."rpc-allow-origin-all" or false) then "1" else "0"}" = "1"
+    touch "$out"
+  '';
+
+  "eval-${name}-aria2-user-service" = pkgs.runCommand "eval-${name}-aria2-user-service" { } ''
+    test "${if hmCfg.systemd.user.services ? aria2 then "1" else "0"}" = "1"
+    touch "$out"
+  '';
+
   "eval-${name}-user-uid-unset" = pkgs.runCommand "eval-${name}-user-uid-unset" { } ''
     test "${if (cfg.users.users.${mainUser}.uid or null) == null then "1" else "0"}" = "1"
     touch "$out"
