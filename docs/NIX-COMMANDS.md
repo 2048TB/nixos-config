@@ -28,6 +28,7 @@ just update
 just update-nixpkgs
 just info
 just show
+just flake-check
 just metadata
 just hosts
 ```
@@ -38,8 +39,13 @@ read-only flake eval/build/show：
 REPO=/persistent/nixos-config
 flake_repo="$(bash "$REPO/nix/scripts/admin/print-flake-repo.sh" "$REPO")"
 nix flake show "path:$flake_repo"
+nix flake check --all-systems --no-build "path:$flake_repo"
 nix eval "path:$flake_repo#nixosConfigurations" --apply builtins.attrNames
 ```
+
+说明：
+- filtered flake repo 会复制当前工作树，但排除 `.keys/`、`.git/`、`.cache/` 与 `result*`
+- 新增跨平台只读校验优先使用 `just flake-check`
 
 导出面速查：
 

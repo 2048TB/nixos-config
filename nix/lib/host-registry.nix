@@ -17,6 +17,14 @@ let
     "intel"
     "nvidia"
   ];
+  allowedLinuxDesktopProfiles = [
+    "none"
+    "niri"
+  ];
+  allowedDarwinDesktopProfiles = [
+    "none"
+    "aqua"
+  ];
   allowedRegistryKeys = [
     "system"
     "desktopSession"
@@ -87,6 +95,23 @@ rec {
     && lib.assertMsg
       (builtins.elem state.desktopProfile (hostMetaSchema.allowedDesktopProfiles or [ "none" ]))
       "${registryPath}[${hostName}].desktopProfile must be one of: ${lib.concatStringsSep ", " hostMetaSchema.allowedDesktopProfiles}"
+    && lib.assertMsg
+      (
+        if lib.hasPrefix "nixos." hostName then
+          builtins.elem state.desktopProfile allowedLinuxDesktopProfiles
+        else if lib.hasPrefix "darwin." hostName then
+          builtins.elem state.desktopProfile allowedDarwinDesktopProfiles
+        else
+          true
+      )
+      (
+        if lib.hasPrefix "nixos." hostName then
+          "${registryPath}[${hostName}].desktopProfile must be one of: ${lib.concatStringsSep ", " allowedLinuxDesktopProfiles}"
+        else if lib.hasPrefix "darwin." hostName then
+          "${registryPath}[${hostName}].desktopProfile must be one of: ${lib.concatStringsSep ", " allowedDarwinDesktopProfiles}"
+        else
+          "${registryPath}[${hostName}].desktopProfile has unsupported platform mapping"
+      )
     && lib.assertMsg
       (state.desktopSession || state.desktopProfile == "none")
       "${registryPath}[${hostName}].desktopProfile must be \"none\" when desktopSession = false"
