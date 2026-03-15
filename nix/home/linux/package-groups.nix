@@ -57,7 +57,6 @@
     "wsdd"
     "file-roller"
     "ghostty"
-    "foot"
     "papirus-icon-theme"
     "satty"
     "wl-screenrec"
