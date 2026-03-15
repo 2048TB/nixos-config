@@ -54,6 +54,9 @@ let
     if expectedKvmModules != null then expectedKvmModules
     else if cpuVendor != null then mylib.kvmModulesForVendor cpuVendor
     else null;
+  hasMullvadVpn = cfg.services.mullvad-vpn.enable or false;
+  mullvadExecStartPre = cfg.systemd.services.mullvad-daemon.serviceConfig.ExecStartPre or null;
+  mullvadExecStartPrePath = if mullvadExecStartPre == null then "" else toString mullvadExecStartPre;
   hmCfg = cfg.home-manager.users.${mainUser};
   expectedHome = "/home/${mainUser}";
 
@@ -323,6 +326,21 @@ in
 // lib.optionalAttrs (resolvedExpectedVideoDrivers != null) {
   "eval-${name}-video-drivers" = pkgs.runCommand "eval-${name}-video-drivers" { } ''
     test "${builtins.toJSON cfg.services.xserver.videoDrivers}" = "${builtins.toJSON resolvedExpectedVideoDrivers}"
+    touch "$out"
+  '';
+}
+// lib.optionalAttrs hasMullvadVpn {
+  "eval-${name}-mullvad-prestart-script" = pkgs.runCommand "eval-${name}-mullvad-prestart-script" { } ''
+    script_path="${mullvadExecStartPrePath}"
+
+    if [ -z "$script_path" ] || [ ! -f "$script_path" ]; then
+      echo "missing mullvad ExecStartPre script" >&2
+      exit 1
+    fi
+
+    grep -F 'settings_dir="/etc/mullvad-vpn"' "$script_path" >/dev/null
+    grep -F '.block_when_disconnected = false' "$script_path" >/dev/null
+    grep -F '.auto_connect = true' "$script_path" >/dev/null
     touch "$out"
   '';
 }
