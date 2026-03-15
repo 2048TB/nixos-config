@@ -5,12 +5,17 @@ let
 
     modifications = _final: _prev: { };
 
-    unstable-packages = final: _prev: {
-      unstable = import inputs.nixpkgs-unstable {
-        inherit (final) system;
-        config.allowUnfree = true;
+    unstable-packages =
+      final: _prev:
+      let
+        mylib = import ../lib { lib = final.lib; };
+      in
+      {
+        unstable = import inputs.nixpkgs-unstable {
+          inherit (final) system;
+          config.allowUnfreePredicate = mylib.allowUnfreePredicate;
+        };
       };
-    };
 
     default =
       final: prev:

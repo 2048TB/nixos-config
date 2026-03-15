@@ -103,6 +103,7 @@ just update-nixpkgs
 ```bash
 just info
 just show
+just flake-check
 just metadata
 just hosts
 ```
@@ -117,6 +118,7 @@ nix flake show "path:$flake_repo"
 
 说明：
 - `print-flake-repo.sh` 在显式传入错误 repo 路径时会直接报错，不会静默回退到当前 checkout
+- filtered flake repo 会复制当前工作树，但显式排除 `.keys/`、`.git/`、`.cache/` 与 `result*`
 - `sops.sh` / `guard-secrets.sh` 可从仓库外直接调用，脚本会自行定位 repo root
 
 ## 3. 已安装系统上的 build / check / switch / upgrade / clean
@@ -126,6 +128,7 @@ nix flake show "path:$flake_repo"
 ```bash
 just host=zly build
 just host=zly check
+just flake-check
 just host=zly dry-build
 just host=zly switch
 just host=zly upgrade
@@ -146,6 +149,8 @@ just use
 说明：
 - `build` / `dry-build` 会先取 filtered flake repo，再对 `system.build.toplevel` 执行 `nix build`
 - `check` 通过 `sudo nixos-rebuild dry-build --flake ...` 做系统级校验，但不会切换到新世代
+- `flake-check` 会对所有系统执行只读 `nix flake check --all-systems --no-build`
+- `container` role 在 `dockerMode = "rootless"` 下会为主用户声明 `linger = true`，确保 user-level Docker daemon 可在未登录时继续运行
 - `switch` / `boot` / `test` 通过 `sudo nixos-rebuild ... --flake` 执行，会直接影响当前系统
 - `upgrade` 会先执行 `just update` 更新 `flake.lock`，再执行 `switch`
 - `clean` 会删除 7 天前的旧系统世代；`clean-all` 会删除所有旧世代

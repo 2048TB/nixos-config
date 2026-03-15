@@ -148,6 +148,11 @@ let
     then "rootful"
     else "disabled";
   hasExpectedDockerMode = actualDockerMode == resolvedExpectedDockerMode;
+  expectsRootlessDockerLinger = resolvedExpectedDockerMode == "rootless";
+  hasExpectedRootlessDockerLinger =
+    if expectsRootlessDockerLinger
+    then (cfg.users.users.${mainUser}.linger or null) == true
+    else true;
   actualKvmModules = builtins.filter (m: lib.hasPrefix "kvm-" m) cfg.boot.kernelModules;
 
   mkNonEmptyCheck = name': items: msg:
@@ -347,6 +352,10 @@ in
 // lib.optionalAttrs true {
   "eval-${name}-docker-mode" = pkgs.runCommand "eval-${name}-docker-mode" { } ''
     test "${if hasExpectedDockerMode then "1" else "0"}" = "1"
+    touch "$out"
+  '';
+  "eval-${name}-rootless-docker-linger" = pkgs.runCommand "eval-${name}-rootless-docker-linger" { } ''
+    test "${if hasExpectedRootlessDockerLinger then "1" else "0"}" = "1"
     touch "$out"
   '';
 }

@@ -26,7 +26,7 @@ upgrade:
     @just host={{host}} switch
 
 show:
-    @flake_repo="$(bash {{repo}}/nix/scripts/admin/print-flake-repo.sh {{repo}})"; {{nix_cmd}} flake show "path:$flake_repo"
+    @flake_repo="$(bash {{repo}}/nix/scripts/admin/print-flake-repo.sh {{repo}})"; {{nix_cmd}} flake show --all-systems "path:$flake_repo"
 
 metadata:
     @flake_repo="$(bash {{repo}}/nix/scripts/admin/print-flake-repo.sh {{repo}})"; {{nix_cmd}} flake metadata "path:$flake_repo"
@@ -35,10 +35,13 @@ hosts:
     @flake_repo="$(bash {{repo}}/nix/scripts/admin/print-flake-repo.sh {{repo}})"; {{nix_cmd}} eval "path:$flake_repo#nixosConfigurations" --apply builtins.attrNames
 
 info:
-    @flake_repo="$(bash {{repo}}/nix/scripts/admin/print-flake-repo.sh {{repo}})"; {{nix_cmd}} flake show "path:$flake_repo"
+    @flake_repo="$(bash {{repo}}/nix/scripts/admin/print-flake-repo.sh {{repo}})"; {{nix_cmd}} flake show --all-systems "path:$flake_repo"
     @echo ""
     @echo "=== Flake 元数据 ==="
     @flake_repo="$(bash {{repo}}/nix/scripts/admin/print-flake-repo.sh {{repo}})"; {{nix_cmd}} flake metadata "path:$flake_repo"
+
+flake-check:
+    @flake_repo="$(bash {{repo}}/nix/scripts/admin/print-flake-repo.sh {{repo}})"; {{nix_cmd}} flake check --all-systems --no-build "path:$flake_repo"
 
 use:
     @flake_repo="$(bash {{repo}}/nix/scripts/admin/print-flake-repo.sh {{repo}})"; echo ">>> entering filtered flake repo: $flake_repo"; cd "$flake_repo" && exec "${SHELL:-bash}" -l

@@ -56,8 +56,6 @@ prepare_flake_repo_path() {
   local cache_key=""
   local cache_base=""
   local cache_root=""
-  local tracked_manifest=""
-  local rel_path=""
 
   # shellcheck disable=SC2034
   PREPARED_FLAKE_REPO="$repo_root"
@@ -76,6 +74,7 @@ prepare_flake_repo_path() {
   else
     cache_base="${TMPDIR:-/tmp}"
   fi
+  find "$cache_base" -mindepth 1 -maxdepth 1 -type d -name "flake-$(id -u)-${cache_key}-*" -mtime +1 -exec rm -rf {} + >/dev/null 2>&1 || true
   # Use a per-process cache dir so concurrent script runs do not delete each
   # other's prepared flake repo while a command is still evaluating it.
   cache_root="${cache_base}/flake-$(id -u)-${cache_key}-$$"
@@ -83,27 +82,14 @@ prepare_flake_repo_path() {
   rm -rf "$cache_root/repo"
   mkdir -p "$cache_root/repo"
 
-  if git -C "$repo_root" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-    tracked_manifest="$cache_root/tracked-files"
-    : >"$tracked_manifest"
-
-    while IFS= read -r -d '' rel_path; do
-      if [ -e "$repo_root/$rel_path" ] || [ -L "$repo_root/$rel_path" ]; then
-        printf '%s\0' "$rel_path" >>"$tracked_manifest"
-      fi
-    done < <(git -C "$repo_root" ls-files -z)
-
-    rsync -a --from0 --files-from="$tracked_manifest" "$repo_root/" "$cache_root/repo/"
-  else
-    rsync -a --delete \
-      --exclude '.git/' \
-      --exclude '.cache/' \
-      --exclude '.keys/' \
-      --exclude '.serena/' \
-      --exclude 'result' \
-      --exclude 'result-*' \
-      "$repo_root/" "$cache_root/repo/"
-  fi
+  rsync -a --delete \
+    --exclude '.git/' \
+    --exclude '.cache/' \
+    --exclude '.keys/' \
+    --exclude '.serena/' \
+    --exclude 'result' \
+    --exclude 'result-*' \
+    "$repo_root/" "$cache_root/repo/"
 
   # shellcheck disable=SC2034
   PREPARED_FLAKE_REPO="$cache_root/repo"
