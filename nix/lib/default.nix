@@ -118,7 +118,6 @@ rec {
     mergeRecursiveAttrsList
     mergeAttrFromList
     mergeAttrFromListWithExtra
-    pathIfExists
     importIfExists
     mkHostDataEntry
     specsToAttrs
