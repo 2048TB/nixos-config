@@ -50,6 +50,8 @@ in
 
     ssh = {
       enable = true;
+      enableDefaultConfig = false;
+      matchBlocks."*".addKeysToAgent = "yes";
       matchBlocks."github.com" = {
         hostname = "github.com";
         user = "git";
