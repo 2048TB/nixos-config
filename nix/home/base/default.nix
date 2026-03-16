@@ -47,6 +47,16 @@ in
       enable = true;
       extraConfig = builtins.readFile ../configs/shell/vimrc;
     };
+
+    ssh = {
+      enable = true;
+      matchBlocks."github.com" = {
+        hostname = "github.com";
+        user = "git";
+        identityFile = "${homeDir}/.ssh/id_ed25519";
+        identitiesOnly = true;
+      };
+    };
   };
 
   home = {
