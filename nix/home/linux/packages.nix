@@ -24,7 +24,6 @@ let
   enableSplayer = myvars.enableSplayer or false;
   enableTelegramDesktop = myvars.enableTelegramDesktop or false;
   enableLocalSend = myvars.enableLocalSend or false;
-  enablePlaywright = myvars.enablePlaywright or false;
   wpsOfficePackage = pkgs.wpsoffice;
 
   # 仅在混合显卡（amd-nvidia-hybrid）时安装 GPU 加速相关软件
@@ -104,9 +103,6 @@ let
     ruff
     black
     uv
-  ] ++ lib.optionals enablePlaywright [
-    pkgs.playwright-test
-    pkgs.playwright-driver.browsers
   ];
 
   basePackageNames = lib.flatten [
