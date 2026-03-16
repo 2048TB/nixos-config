@@ -41,6 +41,7 @@ let
     "image/tiff"
   ];
   imageApps = [ "org.nomacs.ImageLounge.desktop" "nomacs.desktop" ];
+  browserApps = [ "google-chrome.desktop" ];
   portalConfig = import ../../lib/portal-config.nix;
   sourceConfigFiles =
     lib.mapAttrs (_: source: { inherit source; })
@@ -107,9 +108,14 @@ in
       enable = true;
       # 统一图片默认打开方式
       # 使用 genAttrs 保持行为一致，减少重复
-      defaultApplications = lib.genAttrs imageMimeTypes (_: imageApps) // {
-        "text/plain" = [ "org.gnome.TextEditor.desktop" ];
-      };
+      defaultApplications =
+        lib.genAttrs imageMimeTypes (_: imageApps)
+        // {
+          "text/plain" = [ "org.gnome.TextEditor.desktop" ];
+          "text/html" = browserApps;
+          "x-scheme-handler/http" = browserApps;
+          "x-scheme-handler/https" = browserApps;
+        };
     };
   };
 }
