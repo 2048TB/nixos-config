@@ -27,6 +27,15 @@ let
     mkdir -p "$HOME/.local/share/aria2"
     touch "$HOME/.local/share/aria2/session"
   '';
+  aria2RpcSecretPath = "/run/secrets/services/aria2-rpc";
+  aria2Start = pkgs.writeShellScript "aria2-start" ''
+    set -eu
+    rpc_secret_arg=""
+    if [ -r "${aria2RpcSecretPath}" ]; then
+      rpc_secret_arg="--rpc-secret=$(cat "${aria2RpcSecretPath}")"
+    fi
+    exec ${pkgs.aria2}/bin/aria2c --conf-path="$HOME/.config/aria2/aria2.conf" $rpc_secret_arg
+  '';
 in
 {
   xdg.dataFile."applications/dev.noctalia.noctalia-qs.desktop".text =
@@ -98,7 +107,7 @@ in
           Service = {
             Type = "simple";
             ExecStartPre = "${aria2PrepareSession}";
-            ExecStart = "${pkgs.aria2}/bin/aria2c --conf-path=%h/.config/aria2/aria2.conf";
+            ExecStart = "${aria2Start}";
             Restart = "on-failure";
             RestartSec = 2;
           };

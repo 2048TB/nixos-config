@@ -125,6 +125,9 @@ let
     ] ++ preCommitCheck.enabledPackages;
     shellHook = ''
       ${preCommitCheck.shellHook}
+      if [ -d .githooks ] && [ "$(git config core.hooksPath 2>/dev/null)" != ".githooks" ]; then
+        git config core.hooksPath .githooks
+      fi
       echo "NixOS config dev shell"
       echo "nixos-rebuild switch --flake .#${defaultHost}"
       echo "nixos-rebuild test --flake .#${defaultHost}"

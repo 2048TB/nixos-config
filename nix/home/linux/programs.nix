@@ -3,7 +3,6 @@ let
   hostCfg = import ../base/resolve-host.nix { inherit myvars osConfig; };
   roleFlags = mylib.roleFlags hostCfg;
   inherit (roleFlags) enableSteam;
-  aria2RpcSecret = myvars.aria2RpcSecret or null;
   aria2SessionDir = "${config.home.homeDirectory}/.local/share/aria2";
   aria2SessionFile = "${aria2SessionDir}/session";
   aria2DownloadDir = "${config.home.homeDirectory}/Downloads";
@@ -24,8 +23,6 @@ in
         "input-file" = aria2SessionFile;
         "save-session" = aria2SessionFile;
         "save-session-interval" = 60;
-      } // lib.optionalAttrs (aria2RpcSecret != null) {
-        "rpc-secret" = aria2RpcSecret;
       };
     };
 

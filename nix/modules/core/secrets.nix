@@ -18,9 +18,11 @@ let
   rootPasswordSecretFile = ../../../secrets/passwords/root-password.yaml;
   githubSshPrivateSecretFile = ../../../secrets/ssh/github_id_ed25519.yaml;
   githubSshPublicSecretFile = ../../../secrets/ssh/github_id_ed25519_pub.yaml;
+  aria2RpcSecretFile = ../../../secrets/services/aria2-rpc-secret.yaml;
 
   hasGithubSshPrivateSecret = builtins.pathExists githubSshPrivateSecretFile;
   hasGithubSshPublicSecret = builtins.pathExists githubSshPublicSecretFile;
+  hasAria2RpcSecret = builtins.pathExists aria2RpcSecretFile;
 in
 {
   sops = {
@@ -61,6 +63,15 @@ in
           key = "value";
           path = "${homeDir}/.ssh/id_ed25519.pub";
           mode = "0644";
+          owner = mainUser;
+          group = mainUser;
+        };
+      }
+      // lib.optionalAttrs hasAria2RpcSecret {
+        "services/aria2-rpc" = {
+          sopsFile = aria2RpcSecretFile;
+          key = "value";
+          mode = "0400";
           owner = mainUser;
           group = mainUser;
         };
