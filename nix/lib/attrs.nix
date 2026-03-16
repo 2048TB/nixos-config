@@ -40,8 +40,6 @@ rec {
       ++ extraAttrs
     );
 
-  pathIfExists = path: if builtins.pathExists path then path else null;
-
   importIfExists = path: args: if builtins.pathExists path then import path args else { };
 
   mkHostDataEntry =
