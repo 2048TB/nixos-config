@@ -15,6 +15,14 @@ let
   expectedUserBin = "/etc/profiles/per-user/${mainUser}/bin";
   riverExtraConfig = hmCfg.wayland.windowManager.river.extraConfig or "";
   waybarConfigText = hmCfg.xdg.configFile."waybar/config".text or "";
+  fcitxExecStartText =
+    let
+      execStart = hmCfg.systemd.user.services.fcitx5.Service.ExecStart or "";
+    in
+    if builtins.isList execStart then
+      lib.concatStringsSep "\n" execStart
+    else
+      execStart;
   portalExtraPortalNames =
     map
       (
@@ -67,11 +75,39 @@ in
     touch "$out"
   '';
 
+  "eval-${name}-river-primary-keybindings" = pkgs.runCommand "eval-${name}-river-primary-keybindings" { } ''
+    if [ "${hostCfg.desktopProfile}" = "river" ]; then
+      test "${if lib.hasInfix "map normal Super Space spawn fuzzel" riverExtraConfig then "1" else "0"}" = "1"
+      test "${if lib.hasInfix "map normal Super Return spawn ghostty" riverExtraConfig then "1" else "0"}" = "1"
+      test "${if lib.hasInfix "map normal Super Left focus-view left" riverExtraConfig then "1" else "0"}" = "1"
+      test "${if lib.hasInfix "map normal Super Right focus-view right" riverExtraConfig then "1" else "0"}" = "1"
+      test "${if lib.hasInfix "map normal Super Up focus-view up" riverExtraConfig then "1" else "0"}" = "1"
+      test "${if lib.hasInfix "map normal Super Down focus-view down" riverExtraConfig then "1" else "0"}" = "1"
+      test "${if lib.hasInfix "map normal Super A spawn \"take-screenshot area\"" riverExtraConfig then "1" else "0"}" = "1"
+      test "${if lib.hasInfix "map normal Super S swap left" riverExtraConfig then "1" else "0"}" = "1"
+      test "${if lib.hasInfix "map normal Super G swap right" riverExtraConfig then "1" else "0"}" = "1"
+      test "${if lib.hasInfix "map normal Super D swap up" riverExtraConfig then "1" else "0"}" = "1"
+      test "${if lib.hasInfix "map normal Super F swap down" riverExtraConfig then "1" else "0"}" = "1"
+      test "${if lib.hasInfix "map normal Super Z toggle-fullscreen" riverExtraConfig then "1" else "0"}" = "1"
+      test "${if lib.hasInfix "map normal Super Q close" riverExtraConfig then "1" else "0"}" = "1"
+    fi
+    touch "$out"
+  '';
+
   "eval-${name}-waybar-swaync-client-hooks" = pkgs.runCommand "eval-${name}-waybar-swaync-client-hooks" { } ''
     if [ "${hostCfg.desktopProfile}" = "river" ]; then
       test "${if lib.hasInfix "${expectedUserBin}/swaync-client -swb" waybarConfigText then "1" else "0"}" = "1"
       test "${if lib.hasInfix "${expectedUserBin}/swaync-client -t -sw" waybarConfigText then "1" else "0"}" = "1"
       test "${if lib.hasInfix "${expectedUserBin}/swaync-client -d -sw" waybarConfigText then "1" else "0"}" = "1"
+    fi
+    touch "$out"
+  '';
+
+  "eval-${name}-fcitx5-user-service" = pkgs.runCommand "eval-${name}-fcitx5-user-service" { } ''
+    if [ "${hostCfg.desktopProfile}" = "river" ]; then
+      test "${if hmCfg.systemd.user.services ? fcitx5 then "1" else "0"}" = "1"
+      test "${if builtins.elem "graphical-session.target" (hmCfg.systemd.user.services.fcitx5.Install.WantedBy or [ ]) then "1" else "0"}" = "1"
+      test "${fcitxExecStartText}" = "/run/current-system/sw/bin/fcitx5 --replace"
     fi
     touch "$out"
   '';

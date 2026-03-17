@@ -258,6 +258,23 @@ in
         };
       };
 
+      fcitx5 = {
+        Unit = {
+          Description = "Fcitx5 input method daemon";
+          After = [ "graphical-session.target" ];
+          PartOf = [ "graphical-session.target" ];
+        };
+        Install.WantedBy = [ "graphical-session.target" ];
+        Service = {
+          Type = "simple";
+          # 走 i18n.inputMethod 生成的 system wrapper，确保选中的 addons
+          #（例如 fcitx5-chinese-addons）在 runtime 可见。
+          ExecStart = "/run/current-system/sw/bin/fcitx5 --replace";
+          Restart = "on-failure";
+          RestartSec = 2;
+        };
+      };
+
       waybar = {
         Unit = {
           Description = "Waybar status bar";

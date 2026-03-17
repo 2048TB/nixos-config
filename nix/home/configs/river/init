@@ -26,10 +26,14 @@ riverctl map normal Super Left focus-view left
 riverctl map normal Super Right focus-view right
 riverctl map normal Super Up focus-view up
 riverctl map normal Super Down focus-view down
-riverctl map normal Super+Shift G swap left
-riverctl map normal Super+Shift L swap right
+riverctl map normal Super S swap left
+riverctl map normal Super G swap right
 riverctl map normal Super D swap up
 riverctl map normal Super F swap down
+riverctl map normal Super+Shift Left swap left
+riverctl map normal Super+Shift Right swap right
+riverctl map normal Super+Shift Up swap up
+riverctl map normal Super+Shift Down swap down
 riverctl map normal Super H send-layout-cmd rivercarro "main-ratio -0.05"
 riverctl map normal Super L send-layout-cmd rivercarro "main-ratio +0.05"
 riverctl map normal Super Period focus-output next
