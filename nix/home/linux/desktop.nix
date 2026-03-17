@@ -9,6 +9,7 @@
 }:
 let
   hostCfg = import ../base/resolve-host.nix { inherit myvars osConfig; };
+  sessionTools = import ../../lib/session-tools.nix { inherit pkgs mytheme; };
   roleFlags = mylib.roleFlags hostCfg;
   inherit (roleFlags) enableMullvadVpn;
 
@@ -41,16 +42,8 @@ let
     runtimeInputs = [ pkgs.coreutils waybarQuiet ];
     text = builtins.readFile ../../scripts/session/waybar-launcher.sh;
   };
-  swaybgLauncher = pkgs.writeShellApplication {
-    name = "swaybg-launcher";
-    runtimeInputs = with pkgs; [ coreutils findutils swaybg ];
-    text = builtins.readFile ../../scripts/session/swaybg-launcher.sh;
-  };
-  lockScreenService = pkgs.writeShellApplication {
-    name = "lock-screen-service";
-    runtimeInputs = [ pkgs.swaylock ];
-    text = mytheme.apply (builtins.readFile ../../scripts/session/lock-screen.sh);
-  };
+  swaybgLauncher = sessionTools.mkSwaybgLauncherPackage { };
+  lockScreen = sessionTools.mkLockScreenPackage { };
 
   aria2PrepareSession = pkgs.writeShellScript "aria2-prepare-session" ''
     set -eu
@@ -213,17 +206,17 @@ in
       events = [
         {
           event = "lock";
-          command = lib.getExe lockScreenService;
+          command = lib.getExe lockScreen;
         }
         {
           event = "before-sleep";
-          command = lib.getExe lockScreenService;
+          command = lib.getExe lockScreen;
         }
       ];
       timeouts = [
         {
           timeout = 900;
-          command = lib.getExe lockScreenService;
+          command = lib.getExe lockScreen;
         }
       ];
     };

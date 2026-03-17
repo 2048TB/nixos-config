@@ -9,6 +9,7 @@
 }:
 let
   hostCfg = import ../base/resolve-host.nix { inherit myvars osConfig; };
+  sessionTools = import ../../lib/session-tools.nix { inherit pkgs mytheme; };
   roleFlags = mylib.roleFlags hostCfg;
   packageGroups = import ./package-groups.nix;
   packageGroupOrder = [
@@ -65,35 +66,17 @@ let
     dive # Docker 镜像分析
     lazydocker # Docker TUI 管理器
   ];
-  wlogoutMenu = pkgs.writeShellApplication {
-    name = "wlogout-menu";
-    runtimeInputs = with pkgs; [ wlogout ];
-    text = builtins.readFile ../../scripts/session/wlogout-menu.sh;
-  };
-  lockScreen = pkgs.writeShellApplication {
-    name = "lock-screen";
-    runtimeInputs = [ pkgs.swaylock ];
-    text = mytheme.apply (builtins.readFile ../../scripts/session/lock-screen.sh);
-  };
+  wlogoutMenu = sessionTools.mkWlogoutMenuPackage { };
+  lockScreen = sessionTools.mkLockScreenPackage { };
   riverCliphistMenu = pkgs.writeShellApplication {
     name = "river-cliphist-menu";
     runtimeInputs = with pkgs; [ cliphist fuzzel wl-clipboard ];
     text = builtins.readFile ../../scripts/session/cliphist-menu.sh;
   };
-  waybarClockCalendar = pkgs.writeShellApplication {
-    name = "waybar-clock-calendar";
-    runtimeInputs = with pkgs; [ coreutils fuzzel util-linux ];
-    text = builtins.readFile ../../scripts/session/waybar-clock-calendar.sh;
-  };
   waybarTemperatureStatus = pkgs.writeShellApplication {
     name = "waybar-temperature-status";
     runtimeInputs = with pkgs; [ coreutils ];
     text = builtins.readFile ../../scripts/session/waybar-temperature.sh;
-  };
-  publicIpStatus = pkgs.writeShellApplication {
-    name = "public-ip-status";
-    runtimeInputs = with pkgs; [ coreutils gnused wget ];
-    text = builtins.readFile ../../scripts/session/public-ip-status.sh;
   };
   takeScreenshot = pkgs.writeShellApplication {
     name = "take-screenshot";
@@ -159,9 +142,7 @@ in
         wlogoutMenu
         lockScreen
         riverCliphistMenu
-        waybarClockCalendar
         waybarTemperatureStatus
-        publicIpStatus
         takeScreenshot
       ]
       ++ devToolchainPackages
