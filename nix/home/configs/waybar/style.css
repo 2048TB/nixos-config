@@ -41,6 +41,7 @@ window#waybar {
 #window,
 #mpris,
 #clock,
+#mode,
 #cpu,
 #memory,
 #custom-temperature,
@@ -143,6 +144,14 @@ window#waybar {
   letter-spacing: 0.7px;
   font-feature-settings: "tnum";
   padding: 0 13px;
+}
+
+#mode {
+  color: #@THEME_BG3@;
+}
+
+#mode.passthrough {
+  color: #@THEME_RED@;
 }
 
 #tray {
