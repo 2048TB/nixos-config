@@ -78,7 +78,4 @@ lib.mkIf hasDesktopSession {
     };
   };
 
-  environment.systemPackages = with pkgs; [
-    xwayland-satellite
-  ];
 }

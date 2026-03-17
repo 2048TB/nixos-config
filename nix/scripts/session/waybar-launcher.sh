@@ -2,7 +2,7 @@
 runtimeDir="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
 
 launch_waybar() {
-  waybar-quiet
+  exec waybar-quiet
 }
 
 launch_if_wayland_ready() {
