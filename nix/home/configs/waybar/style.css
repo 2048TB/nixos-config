@@ -45,7 +45,7 @@ window#waybar {
 #cpu,
 #memory,
 #custom-temperature,
-#custom-public-ip,
+#network,
 #tray,
 #backlight,
 #battery,
@@ -167,13 +167,14 @@ window#waybar {
   -gtk-icon-effect: highlight;
 }
 
-#custom-public-ip {
+#network {
   color: #@THEME_CYAN@;
   padding: 0 7px;
   font-feature-settings: "tnum";
 }
 
-#custom-public-ip.offline {
+#network.disconnected,
+#network.linked {
   color: #@THEME_RED@;
 }
 

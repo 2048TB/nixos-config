@@ -17,7 +17,7 @@
     "cpu",
     "memory",
     "custom/temperature",
-    "custom/public-ip",
+    "network",
     @WAYBAR_DEVICE_MODULES@
     "custom/notification",
     "tray",
@@ -148,13 +148,15 @@
     }
   },
 
-  "custom/public-ip": {
-    "format": "{}",
-    "return-type": "json",
-    "exec-if": "test -x @USER_BIN@/public-ip-status",
-    "exec": "@USER_BIN@/public-ip-status",
-    "interval": 180,
-    "exec-on-event": false,
+  "network": {
+    "format-wifi": "↑ {bandwidthUpBits} ↓ {bandwidthDownBits}",
+    "format-ethernet": "↑ {bandwidthUpBits} ↓ {bandwidthDownBits}",
+    "format-linked": "↑ -- ↓ --",
+    "format-disconnected": "↑ -- ↓ --",
+    "tooltip-format-wifi": "{essid} {ipaddr}\n↑ {bandwidthUpBits} ↓ {bandwidthDownBits}",
+    "tooltip-format-ethernet": "{ifname} {ipaddr}\n↑ {bandwidthUpBits} ↓ {bandwidthDownBits}",
+    "tooltip-format-disconnected": "Disconnected",
+    "interval": 2,
     "on-click": "@SYSTEM_BIN@/nm-connection-editor",
     "on-click-right": "@USER_BIN@/ghostty -e @SYSTEM_BIN@/nmtui"
   },
