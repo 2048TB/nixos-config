@@ -43,7 +43,6 @@ let
     text = builtins.readFile ../../scripts/session/waybar-launcher.sh;
   };
   swaybgLauncher = sessionTools.mkSwaybgLauncherPackage { };
-  lockScreen = sessionTools.mkLockScreenPackage { };
 
   aria2PrepareSession = pkgs.writeShellScript "aria2-prepare-session" ''
     set -eu
@@ -217,6 +216,8 @@ in
     # river 由 system profile 提供；这里显式禁用 HM 的 xwayland 包注入，
     # 避免与系统侧 programs.river-classic.xwayland.enable 产生重复 closure。
     xwayland.enable = false;
+    # 显式固定 HM 的 systemd 集成，避免未来默认值变化影响 graphical-session 链路。
+    systemd.enable = true;
     extraSessionVariables = {
       NIXOS_OZONE_WL = "1";
     };

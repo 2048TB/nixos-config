@@ -12,6 +12,9 @@ let
   hmCfg = cfg.home-manager.users.${mainUser};
   wlogoutLayoutLib = import ../../../lib/wlogout-layout.nix { inherit lib; };
   resolvedPrimaryDisplay = mylib.primaryDisplay hostCfg;
+  expectedUserBin = "/etc/profiles/per-user/${mainUser}/bin";
+  riverExtraConfig = hmCfg.wayland.windowManager.river.extraConfig or "";
+  waybarConfigText = hmCfg.xdg.configFile."waybar/config".text or "";
   portalExtraPortalNames =
     map
       (
@@ -46,6 +49,29 @@ in
   "eval-${name}-river-hm-xwayland-disabled" = pkgs.runCommand "eval-${name}-river-hm-xwayland-disabled" { } ''
     if [ "${hostCfg.desktopProfile}" = "river" ]; then
       test "${if (hmCfg.wayland.windowManager.river.xwayland.enable or true) then "1" else "0"}" = "0"
+    fi
+    touch "$out"
+  '';
+
+  "eval-${name}-river-hm-systemd-enabled" = pkgs.runCommand "eval-${name}-river-hm-systemd-enabled" { } ''
+    if [ "${hostCfg.desktopProfile}" = "river" ]; then
+      test "${if (hmCfg.wayland.windowManager.river.systemd.enable or false) then "1" else "0"}" = "1"
+    fi
+    touch "$out"
+  '';
+
+  "eval-${name}-river-manual-lock-binding" = pkgs.runCommand "eval-${name}-river-manual-lock-binding" { } ''
+    if [ "${hostCfg.desktopProfile}" = "river" ]; then
+      test "${if lib.hasInfix "map normal Super+Shift X spawn lock-screen" riverExtraConfig then "1" else "0"}" = "1"
+    fi
+    touch "$out"
+  '';
+
+  "eval-${name}-waybar-swaync-client-hooks" = pkgs.runCommand "eval-${name}-waybar-swaync-client-hooks" { } ''
+    if [ "${hostCfg.desktopProfile}" = "river" ]; then
+      test "${if lib.hasInfix "${expectedUserBin}/swaync-client -swb" waybarConfigText then "1" else "0"}" = "1"
+      test "${if lib.hasInfix "${expectedUserBin}/swaync-client -t -sw" waybarConfigText then "1" else "0"}" = "1"
+      test "${if lib.hasInfix "${expectedUserBin}/swaync-client -d -sw" waybarConfigText then "1" else "0"}" = "1"
     fi
     touch "$out"
   '';
