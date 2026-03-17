@@ -55,6 +55,13 @@ let
   '';
 in
 {
+  security.pam.services = lib.mkIf hasDesktopSession {
+    # 显式声明 keyring 自动解锁路径，避免依赖 greetd 模块默认值。
+    greetd.enableGnomeKeyring = true;
+    # 保留 tty/login 场景的一致行为，便于排障与后续迁移。
+    login.enableGnomeKeyring = true;
+  };
+
   services = lib.mkMerge [
     {
       logind.settings = lib.mkIf isLaptop {
