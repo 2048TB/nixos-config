@@ -34,6 +34,13 @@ let
   udiskieQuiet = mkLogFilteredLauncher "udiskie-quiet" "${pkgs.udiskie}/bin/udiskie" [
     "gtk_widget_get_scale_factor: assertion 'GTK_IS_WIDGET \\(widget\\)' failed"
   ];
+  udiskieLauncher = pkgs.writeShellApplication {
+    name = "udiskie-launcher";
+    runtimeInputs = [ pkgs.xdg-utils udiskieQuiet ];
+    text = ''
+      exec udiskie-quiet "$@"
+    '';
+  };
   mullvadVpnQuiet = mkLogFilteredLauncher "mullvad-vpn-quiet" "${pkgs.mullvad-vpn}/bin/mullvad-vpn" [
     "Gtk: gtk_widget_get_scale_factor: assertion 'GTK_IS_WIDGET \\(widget\\)' failed"
   ];
@@ -46,15 +53,15 @@ let
 
   aria2PrepareSession = pkgs.writeShellScript "aria2-prepare-session" ''
     set -eu
-    mkdir -p "$HOME/.local/share/aria2"
-    touch "$HOME/.local/share/aria2/session"
+    ${pkgs.coreutils}/bin/mkdir -p "$HOME/.local/share/aria2"
+    ${pkgs.coreutils}/bin/touch "$HOME/.local/share/aria2/session"
   '';
   aria2RpcSecretPath = "/run/secrets/services/aria2-rpc";
   aria2Start = pkgs.writeShellScript "aria2-start" ''
     set -eu
     rpc_secret_arg=""
     if [ -r "${aria2RpcSecretPath}" ]; then
-      rpc_secret_arg="--rpc-secret=$(cat "${aria2RpcSecretPath}")"
+      rpc_secret_arg="--rpc-secret=$(${pkgs.coreutils}/bin/cat "${aria2RpcSecretPath}")"
     fi
     exec ${pkgs.aria2}/bin/aria2c --conf-path="$HOME/.config/aria2/aria2.conf" $rpc_secret_arg
   '';
@@ -347,7 +354,7 @@ in
         "LC_ALL=C.UTF-8"
       ];
       swaync.Service.ExecStart = lib.mkForce "${lib.getExe swayncQuiet}";
-      udiskie.Service.ExecStart = lib.mkForce "${lib.getExe udiskieQuiet}";
+      udiskie.Service.ExecStart = lib.mkForce "${lib.getExe udiskieLauncher}";
 
       aria2 = {
         Unit = {

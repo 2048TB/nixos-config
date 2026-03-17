@@ -58,6 +58,14 @@ let
   mullvadExecStartPre = cfg.systemd.services.mullvad-daemon.serviceConfig.ExecStartPre or null;
   mullvadExecStartPrePath = if mullvadExecStartPre == null then "" else toString mullvadExecStartPre;
   hmCfg = cfg.home-manager.users.${mainUser};
+  aria2Service = hmCfg.systemd.user.services.aria2 or { };
+  aria2ExecStartPre = aria2Service.Service.ExecStartPre or null;
+  aria2ExecStart = aria2Service.Service.ExecStart or null;
+  aria2ExecStartPrePath = if aria2ExecStartPre == null then "" else toString aria2ExecStartPre;
+  aria2ExecStartPath = if aria2ExecStart == null then "" else toString aria2ExecStart;
+  udiskieService = hmCfg.systemd.user.services.udiskie or { };
+  udiskieExecStart = udiskieService.Service.ExecStart or null;
+  udiskieExecStartPath = if udiskieExecStart == null then "" else toString udiskieExecStart;
   hmSwayidle = hmCfg.services.swayidle or { };
   hmSwayidleEvents = hmSwayidle.events or [ ];
   hasSwayidleEnabled = hmSwayidle.enable or false;
@@ -308,6 +316,39 @@ in
 
   "eval-${name}-aria2-user-service" = pkgs.runCommand "eval-${name}-aria2-user-service" { } ''
     test "${if hmCfg.systemd.user.services ? aria2 then "1" else "0"}" = "1"
+    touch "$out"
+  '';
+
+  "eval-${name}-aria2-runtime-tools" = pkgs.runCommand "eval-${name}-aria2-runtime-tools" { } ''
+    prestart_path="${aria2ExecStartPrePath}"
+    start_path="${aria2ExecStartPath}"
+
+    if [ -z "$prestart_path" ] || [ ! -f "$prestart_path" ]; then
+      echo "missing aria2 ExecStartPre script" >&2
+      exit 1
+    fi
+
+    if [ -z "$start_path" ] || [ ! -f "$start_path" ]; then
+      echo "missing aria2 ExecStart script" >&2
+      exit 1
+    fi
+
+    grep -F '${pkgs.coreutils}/bin/mkdir' "$prestart_path" >/dev/null
+    grep -F '${pkgs.coreutils}/bin/touch' "$prestart_path" >/dev/null
+    grep -F '${pkgs.coreutils}/bin/cat' "$start_path" >/dev/null
+    grep -F '${pkgs.aria2}/bin/aria2c' "$start_path" >/dev/null
+    touch "$out"
+  '';
+
+  "eval-${name}-udiskie-xdg-open-runtime" = pkgs.runCommand "eval-${name}-udiskie-xdg-open-runtime" { } ''
+    start_path="${udiskieExecStartPath}"
+
+    if [ -z "$start_path" ] || [ ! -f "$start_path" ]; then
+      echo "missing udiskie ExecStart script" >&2
+      exit 1
+    fi
+
+    grep -F '${pkgs.xdg-utils}/bin' "$start_path" >/dev/null
     touch "$out"
   '';
 
