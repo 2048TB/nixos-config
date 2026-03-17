@@ -30,8 +30,6 @@ let
           };
         };
     };
-  generatedNiriOutputs = mylib.mkNiriOutputs hostCfg;
-
   imageMimeTypes = [
     "image/jpeg"
     "image/png"
@@ -64,7 +62,6 @@ in
       // themedConfigFiles
       // {
         "qt6ct/colors/darker.conf".source = "${pkgs.qt6Packages.qt6ct}/share/qt6ct/colors/darker.conf";
-        "niri/outputs.kdl".text = generatedNiriOutputs;
         "noctalia/settings.json".text = builtins.toJSON generatedNoctaliaSettings;
         # 覆盖上游桌面自启动：避免与 mullvad-vpn-ui.service 双启动导致日志噪音与崩溃。
         "autostart/mullvad-vpn.desktop" = {

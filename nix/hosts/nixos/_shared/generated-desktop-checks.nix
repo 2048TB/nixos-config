@@ -55,8 +55,8 @@ let
   generatedMonitorWidgets = generatedNoctaliaConfig.desktopWidgets.monitorWidgets or [ ];
 in
 {
-  "eval-${name}-generated-niri-outputs" = pkgs.runCommand "eval-${name}-generated-niri-outputs" { } ''
-    test "${if (hmCfg.xdg.configFile."niri/outputs.kdl".text or "") == (mylib.mkNiriOutputs hostCfg) then "1" else "0"}" = "1"
+  "eval-${name}-generated-kanshi-config" = pkgs.runCommand "eval-${name}-generated-kanshi-config" { } ''
+    test "${if (hmCfg.xdg.configFile."kanshi/config".text or "") == (mylib.mkKanshiConfig hostCfg) then "1" else "0"}" = "1"
     touch "$out"
   '';
 

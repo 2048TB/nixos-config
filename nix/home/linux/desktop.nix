@@ -53,6 +53,11 @@ in
     '';
 
   services = {
+    kanshi = lib.mkIf (hostCfg.displays != [ ]) {
+      enable = true;
+      settings = mylib.mkKanshiSettings hostCfg;
+    };
+
     playerctld.enable = true;
 
     # USB 设备自动挂载服务
