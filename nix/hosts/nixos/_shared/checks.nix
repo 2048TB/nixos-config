@@ -88,7 +88,6 @@ let
     "dosfstools"
     "fuse"
     "gnome-keyring"
-    "niri"
     "iptables"
     "less"
     "shadow"
@@ -234,20 +233,13 @@ in
     case "${cfg.my.host.desktopProfile}" in
       none)
         test "${if cfg.my.capabilities.hasDesktopSession then "1" else "0"}" = "0"
-        test "${if cfg.my.capabilities.usesNiri then "1" else "0"}" = "0"
-        test "${if cfg.my.capabilities.usesRiver then "1" else "0"}" = "0"
-        ;;
-      niri)
-        test "${if cfg.my.capabilities.usesNiri then "1" else "0"}" = "1"
         test "${if cfg.my.capabilities.usesRiver then "1" else "0"}" = "0"
         ;;
       river)
-        test "${if cfg.my.capabilities.usesNiri then "1" else "0"}" = "0"
         test "${if cfg.my.capabilities.usesRiver then "1" else "0"}" = "1"
         ;;
       aqua)
         test "${if cfg.my.host.kind == "workstation" then "1" else "0"}" = "1"
-        test "${if cfg.my.capabilities.usesNiri then "1" else "0"}" = "0"
         test "${if cfg.my.capabilities.usesRiver then "1" else "0"}" = "0"
         ;;
       *)
@@ -260,12 +252,7 @@ in
 
   "eval-${name}-desktop-compositor-profile" = pkgs.runCommand "eval-${name}-desktop-compositor-profile" { } ''
     case "${cfg.my.host.desktopProfile}" in
-      niri)
-        test "${if cfg.programs.niri.enable then "1" else "0"}" = "1"
-        test "${if cfg.programs."river-classic".enable then "1" else "0"}" = "0"
-        ;;
       river)
-        test "${if cfg.programs.niri.enable then "1" else "0"}" = "0"
         test "${if cfg.programs."river-classic".enable then "1" else "0"}" = "1"
         ;;
       *)

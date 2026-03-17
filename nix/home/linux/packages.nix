@@ -2,6 +2,7 @@
 , pkgsUnstable
 , lib
 , mylib
+, mytheme
 , myvars
 , osConfig ? null
 , ...
@@ -64,6 +65,41 @@ let
     dive # Docker 镜像分析
     lazydocker # Docker TUI 管理器
   ];
+  wlogoutMenu = pkgs.writeShellApplication {
+    name = "wlogout-menu";
+    runtimeInputs = with pkgs; [ wlogout ];
+    text = builtins.readFile ../../scripts/session/wlogout-menu.sh;
+  };
+  lockScreen = pkgs.writeShellApplication {
+    name = "lock-screen";
+    runtimeInputs = [ pkgs.swaylock ];
+    text = mytheme.apply (builtins.readFile ../../scripts/session/lock-screen.sh);
+  };
+  riverCliphistMenu = pkgs.writeShellApplication {
+    name = "river-cliphist-menu";
+    runtimeInputs = with pkgs; [ cliphist fuzzel wl-clipboard ];
+    text = builtins.readFile ../../scripts/session/cliphist-menu.sh;
+  };
+  waybarClockCalendar = pkgs.writeShellApplication {
+    name = "waybar-clock-calendar";
+    runtimeInputs = with pkgs; [ coreutils fuzzel util-linux ];
+    text = builtins.readFile ../../scripts/session/waybar-clock-calendar.sh;
+  };
+  waybarTemperatureStatus = pkgs.writeShellApplication {
+    name = "waybar-temperature-status";
+    runtimeInputs = with pkgs; [ coreutils ];
+    text = builtins.readFile ../../scripts/session/waybar-temperature.sh;
+  };
+  publicIpStatus = pkgs.writeShellApplication {
+    name = "public-ip-status";
+    runtimeInputs = with pkgs; [ coreutils gnused wget ];
+    text = builtins.readFile ../../scripts/session/public-ip-status.sh;
+  };
+  takeScreenshot = pkgs.writeShellApplication {
+    name = "take-screenshot";
+    runtimeInputs = with pkgs; [ coreutils grim slurp wl-clipboard ];
+    text = builtins.readFile ../../scripts/session/take-screenshot.sh;
+  };
   # 仅将 MinGW 交叉编译器的可执行文件加入 user profile，避免与本机 gcc 的文档路径冲突告警。
   mingwToolchainBinOnly = pkgs.buildEnv {
     name = "mingw-w64-toolchain-bin-only";
@@ -119,6 +155,15 @@ in
 
   home = {
     packages = basePackages
+      ++ [
+        wlogoutMenu
+        lockScreen
+        riverCliphistMenu
+        waybarClockCalendar
+        waybarTemperatureStatus
+        publicIpStatus
+        takeScreenshot
+      ]
       ++ devToolchainPackages
       ++ hybridPackages
       ++ lib.optional enableLocalSend pkgs.localsend

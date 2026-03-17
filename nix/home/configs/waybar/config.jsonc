@@ -1,0 +1,176 @@
+{
+  "layer": "top",
+  "position": "top",
+  "height": 34,
+  "spacing": 2,
+  "reload_style_on_change": true,
+
+  "modules-left": [
+    "custom/launcher",
+    "clock",
+    "river/window",
+    "mpris"
+  ],
+  "modules-center": [ "river/tags" ],
+  "modules-right": [
+    "cpu",
+    "memory",
+    "custom/temperature",
+    "custom/public-ip",
+    @WAYBAR_DEVICE_MODULES@
+    "custom/notification",
+    "tray",
+    "custom/power"
+  ],
+
+  "custom/launcher": {
+    "format": "󱄅",
+    "tooltip": false,
+    "on-click": "@USER_BIN@/fuzzel"
+  },
+
+  "custom/power": {
+    "format": "",
+    "tooltip": false,
+    "on-click": "@USER_BIN@/wlogout-menu"
+  },
+
+  "custom/notification": {
+    "tooltip": true,
+    "format": "{icon}",
+    "format-icons": {
+      "notification": "",
+      "none": "",
+      "dnd-notification": "",
+      "dnd-none": "",
+      "inhibited-notification": "",
+      "inhibited-none": "",
+      "dnd-inhibited-notification": "",
+      "dnd-inhibited-none": ""
+    },
+    "return-type": "json",
+    "exec-if": "test -x @USER_BIN@/swaync-client",
+    "exec": "@USER_BIN@/swaync-client -swb",
+    "on-click": "@USER_BIN@/swaync-client -t -sw",
+    "on-click-right": "@USER_BIN@/swaync-client -d -sw",
+    "escape": true
+  },
+
+  "river/tags": {
+    "num-tags": 9,
+    "tag-labels": [ "1", "2", "3", "4", "5", "6", "7", "8", "9" ]
+  },
+
+  "river/window": {
+    "format": "{}",
+    "max-length": 36
+  },
+
+  "mpris": {
+    "format": "{player_icon} {dynamic}",
+    "format-paused": "{status_icon} {dynamic}",
+    "dynamic-len": 40,
+    "dynamic-order": [
+      "title",
+      "artist"
+    ],
+    "max-length": 40,
+    "player-icons": {
+      "default": "󰎈",
+      "spotify": "",
+      "firefox": "",
+      "chromium": "",
+      "netease-cloud-music": "󰓇"
+    },
+    "status-icons": {
+      "paused": "󰏤"
+    }
+  },
+
+  "clock": {
+    "format": " {:L%Y-%m-%d %A %H:%M:%S}",
+    "locale": "zh_CN.UTF-8",
+    "interval": 1,
+    "tooltip-format": "<big>{:L%Y %B}</big>\n<tt><small>{calendar}</small></tt>",
+    "calendar": {
+      "mode": "month",
+      "on-scroll": 1
+    },
+    "actions": {
+      "on-click-right": "mode",
+      "on-scroll-up": "shift_up",
+      "on-scroll-down": "shift_down",
+      "on-click-middle": "shift_reset"
+    },
+    "on-click": "@USER_BIN@/waybar-clock-calendar"
+  },
+
+  "cpu": {
+    "format": "󰻠 {usage}%",
+    "interval": 5,
+    "states": {
+      "warning": 70,
+      "critical": 90
+    }
+  },
+
+  "memory": {
+    "format": "󰍛 {}%",
+    "interval": 5,
+    "states": {
+      "warning": 75,
+      "critical": 90
+    }
+  },
+
+  "custom/temperature": {
+    "format": "{}",
+    "return-type": "json",
+    "exec-if": "/run/current-system/sw/bin/ls /sys/class/hwmon/hwmon*/temp*_input >/dev/null 2>&1",
+    "exec": "@USER_BIN@/waybar-temperature-status",
+    "interval": 10
+  },
+
+  "tray": {
+    "spacing": 8,
+    "icon-size": 16,
+    "show-passive-items": true,
+    "icons": {
+      "chrome_status_icon_1": "mullvad-vpn",
+      "blueman": "bluetooth",
+      "blueman-applet": "bluetooth"
+    }
+  },
+
+  "custom/public-ip": {
+    "format": "{}",
+    "return-type": "json",
+    "exec-if": "test -x @USER_BIN@/public-ip-status",
+    "exec": "@USER_BIN@/public-ip-status",
+    "interval": 180,
+    "exec-on-event": false,
+    "on-click": "@SYSTEM_BIN@/nm-connection-editor",
+    "on-click-right": "@USER_BIN@/ghostty -e @SYSTEM_BIN@/nmtui"
+  },
+
+  "backlight": {
+    "format": "{icon} {percent}%",
+    "format-icons": [ "󰃞", "󰃟", "󰃠" ],
+    "interval": 30,
+    "on-scroll-up": "@USER_BIN@/brightnessctl --class=backlight set 1%+",
+    "on-scroll-down": "@USER_BIN@/brightnessctl --class=backlight set 1%-",
+    "tooltip": false
+  },
+
+  "battery": {
+    "interval": 30,
+    "states": {
+      "warning": 20,
+      "critical": 10
+    },
+    "format": "{icon} {capacity}%",
+    "format-charging": " {capacity}%",
+    "format-full": " {capacity}%",
+    "format-icons": [ "", "", "", "", "" ]
+  }
+}

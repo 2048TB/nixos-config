@@ -175,18 +175,4 @@ in
     host:
     lib.concatStringsSep "\n" (map kanshiDirectiveToString (mkKanshiSettings host));
 
-  mkNoctaliaMonitorWidgets =
-    { host
-    , widgetsTemplate ? [ ]
-    }:
-    map
-      (display: {
-        inherit (display) name;
-        widgets = widgetsTemplate;
-      })
-      (
-        builtins.filter
-          (display: (display.name or "") != "")
-          (getDisplays host)
-      );
 }

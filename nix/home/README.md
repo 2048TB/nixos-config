@@ -23,10 +23,10 @@ nix/home/
 │   ├── packages.nix    # home.packages（含主账号开发环境）
 │   ├── package-groups.nix # Linux 包分类清单（纯数据）
 │   ├── programs.nix    # fzf/mpv/lutris 等
-│   ├── desktop.nix     # systemd 用户服务（noctalia-shell/udiskie/mullvad）
+│   ├── desktop.nix     # systemd 用户服务（river/waybar/swaync/udiskie/mullvad）
 │   └── xdg.nix         # portal/mimeApps/configFile
 ├── darwin/default.nix  # macOS 专用
-└── configs/            # 应用配置文件（niri/tmux/zellij/shell/...）
+└── configs/            # 应用配置文件（river/waybar/wlogout/tmux/zellij/shell/...）
 ```
 
 ---
@@ -36,9 +36,9 @@ nix/home/
 | 目标 | 文件 |
 |------|------|
 | 终端 | `configs/ghostty/`、`configs/foot/`、`configs/shell/` |
-| 状态栏 | `linux/desktop.nix`（`noctalia-shell` service） |
-| 窗口快捷键 | `configs/niri/interaction.kdl` |
-| 窗口外观 | `configs/niri/appearance.kdl` |
+| 状态栏 | `configs/waybar/config.jsonc` + `linux/desktop.nix` |
+| 窗口快捷键 | `configs/river/init` |
+| 窗口外观 | `configs/waybar/style.css` + `configs/wlogout/style.css` |
 | Linux 包分类 | `linux/package-groups.nix` |
 | Tmux | `configs/tmux/tmux.conf` |
 | Zellij | `configs/zellij/config.kdl` |
@@ -51,6 +51,6 @@ nix/home/
 ## 文档同步
 
 改了以下文件需同步 `docs/KEYBINDINGS.md`：
-- `configs/niri/interaction.kdl`
+- `configs/river/init`
 - `configs/tmux/tmux.conf`
 - `configs/zellij/config.kdl`

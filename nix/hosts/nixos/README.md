@@ -113,7 +113,7 @@ args@{ mylib, ... }:
 [nixos.<new-host>]
 system = "x86_64-linux"
 desktopSession = true
-desktopProfile = "niri"
+desktopProfile = "river"
 kind = "workstation"
 formFactor = "desktop"
 tags = []
@@ -126,7 +126,7 @@ deployPort = 22
 ```
 
 说明：
-- Linux `desktopProfile` 当前只支持 `niri`
+- Linux `desktopProfile` 当前只支持 `river`
 - `displays` 是 monitor topology 的唯一事实源；不要再用 `tags` 表达 `multi-monitor` / `hidpi`
 
 ## 实际数据入口

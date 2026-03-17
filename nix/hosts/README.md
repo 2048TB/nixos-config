@@ -66,7 +66,7 @@ cp -a nix/hosts/darwin/zly-mac nix/hosts/darwin/mac-mini
 - `system`：平台（如 `x86_64-linux`、`aarch64-darwin`）
 - `kind` / `formFactor`：host metadata 的基础分类，驱动 `my.capabilities.*`
 - `desktopSession`：显式桌面会话开关，驱动 `my.capabilities.hasDesktopSession`
-- `desktopProfile`：桌面 profile（当前 Linux 为 `niri`，Darwin 为 `aqua`）
+- `desktopProfile`：桌面 profile（当前 Linux 为 `river`，Darwin 为 `aqua`）
 - `tags`：规范化标签，仅保留无法稳定从其他 metadata 派生的事实；不要把 machine facts 再塞回 `roles`
 - `gpuVendors`：声明式 GPU 厂商清单，用于 capability 推导
 - `displays`：显示拓扑 metadata，驱动 Niri/Noctalia 等桌面配置生成，是 monitor facts 的唯一事实源

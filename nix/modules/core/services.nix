@@ -15,13 +15,7 @@ let
   inherit (roleFlags) enableMullvadVpn;
   desktopProfile = hostCfg.desktopProfile or "none";
   desktopSessionName = desktopProfile;
-  desktopExec =
-    if desktopProfile == "niri" then
-      "/run/current-system/sw/bin/niri-session"
-    else if desktopProfile == "river" then
-      "/run/current-system/sw/bin/river"
-    else
-      throw "Unsupported Linux desktopProfile '${desktopProfile}'";
+  desktopExec = "/run/current-system/sw/bin/river";
 
   tuigreetPackage = pkgs.tuigreet or pkgs.greetd.tuigreet or (throw "tuigreet package not found in pkgs.tuigreet or pkgs.greetd.tuigreet");
   waylandSessionCommand = pkgs.writeShellScript "wayland-session" ''

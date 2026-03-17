@@ -1,28 +1,27 @@
 # 快捷键说明
 
-先记住“必会 13 个”，其余按需查表。
+当前 Linux 桌面已切换为 `river-classic + waybar`。
 
-`Mod` = `Super`（Windows 键）；winit 窗口环境中 = `Alt`。
+`Mod` = `Super`（Windows 键）。
 
 ---
 
-## 1. 必会 13 个
+## 1. 必会 12 个
 
 | 快捷键 | 功能 |
 |--------|------|
 | `Mod + Return` | 打开终端 |
-| `Mod + Space` | 启动器（Fuzzel） |
-| `Mod + .` | 文件管理器 |
+| `Mod + D` | 启动器（Fuzzel） |
 | `Mod + Q` | 关闭窗口 |
-| `Mod + Left/Right` | 切换焦点 |
-| `Mod + 1..9` | 切到工作区 |
-| `Mod + X/B/C/V` | 列内/列外与吸入/移出窗口 |
-| `Mod + W/E` | 浮动/平铺焦点切换 |
-| `Mod + T` | 全屏 |
-| `Print` | 截图 |
+| `Mod + J/K` | 切换窗口焦点 |
+| `Mod + Space` | 浮动/平铺切换 |
+| `Mod + F` | 全屏 |
+| `Mod + 1..9` | 切到 tag |
+| `Mod + Shift + 1..9` | 把窗口送到 tag |
+| `Mod + ,/.` | 切换显示器焦点 |
+| `Print` | 区域截图并复制到剪贴板 |
 | `XF86AudioRaiseVolume/LowerVolume` | 音量 |
-| `Mod + Shift + L` | 锁屏（Noctalia） |
-| `Mod + Shift + E` | 退出 Niri |
+| `Mod + Shift + L` | 锁屏 |
 
 ---
 
@@ -31,112 +30,64 @@
 | 快捷键 | 功能 |
 |--------|------|
 | `Mod + Return` | 终端 |
-| `Mod + Shift + Return` | 浮动终端 |
-| `Mod + Space` | Fuzzel |
-| `Mod + Shift + Slash` | 快捷键提示层 |
-| `Mod + .` | 文件管理器 |
-| `Mod + Shift + L` | 锁屏（Noctalia） |
-| `Mod + Ctrl + E` | 会话菜单（Noctalia） |
-| `Mod + Ctrl + B` | 重启 `noctalia-shell` 用户服务 |
-| `Mod + Ctrl + S` | 打开 `pavucontrol` |
-| `Mod + Shift + E` | 退出 Niri |
-| `Ctrl + Alt + Delete` | 退出 Niri |
+| `Mod + D` | Fuzzel |
+| `Mod + Shift + L` | 锁屏 |
+| `Mod + Escape` | 会话菜单（Wlogout） |
+| `Mod + Shift + E` | 退出 River |
+| `Mod + P` | 进入 passthrough mode |
+| `Mod + P`（在 passthrough mode 内） | 回到 normal mode |
 
 ---
 
-## 3. 窗口导航与移动
+## 3. 窗口与布局
 
 | 快捷键 | 功能 |
 |--------|------|
-| `Mod + Left/Down/Up/Right` | 列/窗口焦点切换 |
-| `Mod + S/G` | 左/右移动列 |
-| `Mod + Ctrl + Left/Down/Up/Right` | 同上（方向键版） |
-| `Mod + Home/End` | 聚焦最左/最右列 |
-| `Mod + Ctrl + Home/End` | 移动列到最左/最右 |
-| `Mod + X/B` | 列内/列外切换 |
-| `Mod + C/V` | 吸入/移出窗口 |
-| `Mod + W` | 浮动/平铺切换 |
-| `Mod + E` | 浮动与平铺间切换焦点 |
-| `Mod + : / "` | 窗口下移/上移 |
-| `Mod + ,` | 窗口概览 |
-| `Mod + T` | 全屏 |
-| `Mod + Q` | 关闭窗口 |
+| `Mod + J/K` | 下一个/上一个窗口焦点 |
+| `Mod + Shift + J/K` | 与下一个/上一个窗口交换位置 |
+| `Mod + Space` | 浮动/平铺切换 |
+| `Mod + F` | 全屏 |
+| `Mod + H/L` | 调整 `rivercarro` 主列比例 |
+| `Mod + 鼠标左键拖动` | 移动窗口 |
+| `Mod + 鼠标中键` | 浮动/平铺切换 |
+| `Mod + 鼠标右键拖动` | 调整窗口大小 |
 
 ---
 
-## 4. 多显示器
+## 4. Tag 与多显示器
 
 | 快捷键 | 功能 |
 |--------|------|
-| `Mod + Shift + Alt + H/J/K/L` | 聚焦显示器 |
-| `Mod + Ctrl + H/J/K/L` | 移动窗口到显示器 |
-| `Mod + Ctrl + Shift + H/J/K/L` | 移动工作区到显示器 |
+| `Mod + 1..9` | 查看对应 tag |
+| `Mod + Shift + 1..9` | 把当前窗口送到对应 tag |
+| `Mod + Ctrl + 1..9` | 切换对应 tag 的显示状态 |
+| `Mod + Ctrl + Shift + 1..9` | 切换当前窗口 tag 的附着状态 |
+| `Mod + ,/.` | 聚焦上一个/下一个显示器 |
+| `Mod + Shift + ,/.` | 把窗口送到上一个/下一个显示器 |
 
 ---
 
-## 5. 工作区
+## 5. 截图与剪贴板
 
 | 快捷键 | 功能 |
 |--------|------|
-| `Mod + Page_Down/Up` | 切换工作区 |
-| `Mod + Shift + Page_Down/Up` | 移动工作区位置 |
-| `Mod + Alt + Left/Right` | 上一个/下一个工作区 |
-| `Mod + Alt + Down` | 跳到最底部空工作区 |
-| `Mod + Tab` | 当前与上一个工作区切换 |
-| `Mod + 1..9` | 直达工作区 |
-| `Mod + Ctrl + 1..9` | 移动列到工作区 |
-| `Mod + Alt + 1..9` | 移动窗口到工作区 |
-| `Mod + D/F` | 移动窗口到下/上一个工作区 |
-| `Mod + Ctrl + Page_Down/Up` | 移动列到下/上一个工作区 |
-| `Mod + Shift + N` | 新工作区 |
-| `Mod + WheelScrollDown/Up` | 滚轮切换工作区 |
+| `Print` | 区域截图，保存到 `~/Pictures/Screenshots/` 并复制到剪贴板 |
+| `Ctrl + Print` | 全屏截图，保存到 `~/Pictures/Screenshots/` 并复制到剪贴板 |
+| `Mod + V` | 剪贴板历史菜单 |
 
 ---
 
-## 6. 布局与尺寸
-
-| 快捷键 | 功能 |
-|--------|------|
-| `Mod + R` | 循环列宽预设 |
-| `Mod + Shift + R` | 循环窗口高度预设 |
-| `Mod + Ctrl + R` | 重置高度 |
-| `Mod + - / =` | 列宽 -10%/+10% |
-| `Mod + Shift + - / =` | 窗口高度 -10%/+10% |
-| `Mod + Z` | 列最大化 |
-| `Mod + Shift + M` | 窗口最大化到边缘 |
-| `Mod + Ctrl + Shift + F` | 窗口化全屏 |
-| `Mod + Ctrl + F` | 列扩展到剩余宽度 |
-| `Mod + Shift + C` | 列居中 |
-| `Mod + Ctrl + Shift + C` | 可见列整体居中 |
-| `Mod + O` | 列 tabbed 显示切换 |
-
----
-
-## 7. 截图与剪贴板
-
-| 快捷键 | 功能 |
-|--------|------|
-| `Print` | 截图 |
-| `Ctrl + Print` | 当前屏幕截图 |
-| `Alt + Print` | 当前窗口截图 |
-| `Mod + A` | 截图（Niri 默认 screenshot） |
-
----
-
-## 8. 媒体与亮度
+## 6. 音量与亮度
 
 | 按键 | 功能 |
 |------|------|
-| `XF86AudioRaiseVolume/LowerVolume` | 音量（锁屏可用） |
+| `XF86AudioRaiseVolume/LowerVolume` | 音量增减（锁屏下也可用） |
 | `XF86AudioMute` | 静音 |
-| `XF86AudioMicMute` | 麦克风静音 |
-| `XF86AudioPlay/Stop/Prev/Next` | 媒体控制 |
 | `XF86MonBrightnessUp/Down` | 屏幕亮度 |
-| `XF86KbdBrightnessUp/Down` | 键盘背光 |
 
 ---
 
-## 9. Tmux（Prefix: `Ctrl + B`）
+## 7. Tmux（Prefix: `Ctrl + B`）
 
 | 快捷键 | 功能 |
 |--------|------|
@@ -152,7 +103,7 @@
 
 ---
 
-## 10. Zellij（Tmux Mode: `Ctrl + B`）
+## 8. Zellij（Tmux Mode: `Ctrl + B`）
 
 | 快捷键 | 功能 |
 |--------|------|
@@ -170,6 +121,6 @@
 ## 以配置文件为准
 
 文档与实际不一致时，以源文件为准：
-- `nix/home/configs/niri/interaction.kdl`
+- `nix/home/configs/river/init`
 - `nix/home/configs/tmux/tmux.conf`
 - `nix/home/configs/zellij/config.kdl`
