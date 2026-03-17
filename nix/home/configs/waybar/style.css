@@ -3,7 +3,7 @@
   border-radius: 0;
   min-height: 0;
   font-family: "Maple Mono NF CN", "Sarasa UI SC", "JetBrainsMono Nerd Font", sans-serif;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
 }
 
@@ -18,12 +18,12 @@ window#waybar {
 .modules-left,
 .modules-center,
 .modules-right {
-  margin-top: 3px;
-  padding: 0 5px;
+  margin-top: 2px;
+  padding: 0 6px;
   border-radius: 999px;
   background: linear-gradient(145deg, rgba(@THEME_BG_RGB@, 0.94), rgba(@THEME_BG1_RGB@, 0.9));
   border: 1px solid rgba(@THEME_BG3_RGB@, 0.5);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03), 0 8px 18px rgba(0, 0, 0, 0.38);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03), 0 7px 16px rgba(0, 0, 0, 0.34);
 }
 
 .modules-left {
@@ -31,7 +31,7 @@ window#waybar {
 }
 
 .modules-center {
-  padding: 0 3px;
+  padding: 0 5px;
 }
 
 .modules-right {
@@ -54,7 +54,7 @@ window#waybar {
   background: transparent;
   color: #@THEME_FG@;
   margin: 0;
-  padding: 0 5px;
+  padding: 0 4px;
   border-radius: 0;
   box-shadow: none;
   transition: color 0.2s ease, background-color 0.2s ease;
@@ -63,7 +63,7 @@ window#waybar {
 #tags {
   background: transparent;
   margin: 0;
-  padding: 0;
+  padding: 0 1px;
   border: none;
   box-shadow: none;
 }
@@ -72,10 +72,10 @@ window#waybar {
   color: #@THEME_FG@;
   background: rgba(@THEME_BG3_RGB@, 0.55);
   background-image: none;
-  margin: 0 1px;
+  margin: 0 3px;
   padding: 0;
-  min-width: 20px;
-  min-height: 20px;
+  min-width: 16px;
+  min-height: 16px;
   border-radius: 999px;
   border: 1px solid rgba(@THEME_BG3_RGB@, 0.6);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
@@ -90,7 +90,7 @@ window#waybar {
   background-image: url("@WAYBAR_PACMAN_ICON@");
   background-repeat: no-repeat;
   background-position: center;
-  background-size: 13px 13px;
+  background-size: 10px 10px;
 }
 
 #tags button.occupied:not(.focused) {
@@ -114,7 +114,7 @@ window#waybar {
 
 #tags button label {
   color: #@THEME_FG@;
-  font-size: 12px;
+  font-size: 10px;
   font-weight: 900;
 }
 
@@ -126,23 +126,26 @@ window#waybar {
 #window {
   color: #@THEME_FG@;
   font-weight: 600;
+  padding-right: 6px;
 }
 
 #mpris {
   color: #@THEME_TEAL@;
   font-style: italic;
+  padding-left: 3px;
+  padding-right: 5px;
 }
 
 #clock {
   color: #@THEME_FG2@;
   letter-spacing: 0.7px;
   font-feature-settings: "tnum";
-  padding: 0 13px;
+  padding: 0 10px;
 }
 
 #tray {
   margin: 0 1px;
-  padding: 0 6px;
+  padding: 0 4px;
 }
 
 #tray > .passive {
@@ -155,7 +158,7 @@ window#waybar {
 
 #network {
   color: #@THEME_CYAN@;
-  padding: 0 7px;
+  padding: 0 5px;
   font-feature-settings: "tnum";
 }
 
@@ -196,7 +199,7 @@ window#waybar {
 #custom-notification {
   color: #@THEME_BLUE@;
   margin: 0 1px;
-  padding: 0 6px;
+  padding: 0 4px;
 }
 
 #custom-notification.none,
@@ -219,6 +222,12 @@ window#waybar {
 
 #custom-power {
   color: #@THEME_RED@;
+}
+
+#custom-launcher,
+#custom-notification,
+#custom-power {
+  font-size: 15px;
 }
 
 tooltip {

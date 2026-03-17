@@ -9,25 +9,26 @@ window {
 }
 
 button {
-  margin: 10px;
-  min-width: 156px;
-  min-height: 118px;
-  padding: 72px 18px 18px 18px;
-  border-radius: 22px;
+  margin: 8px;
+  min-width: 144px;
+  min-height: 92px;
+  padding: 50px 16px 14px 16px;
+  border-radius: 20px;
   border: 1px solid rgba(@THEME_BG3_RGB@, 0.34);
   background-color: rgba(@THEME_BG1_RGB@, 0.65);
   background-repeat: no-repeat;
-  background-position: center 24px;
-  background-size: 36px 36px;
+  background-position: center 14px;
+  background-size: 30px 30px;
   color: #@THEME_FG@;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.35px;
   transition: all 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 button label {
   color: inherit;
+  margin-bottom: 2px;
 }
 
 #lock {
