@@ -31,7 +31,7 @@ window#waybar {
 }
 
 .modules-center {
-  padding: 0 5px;
+  padding: 0 3px;
 }
 
 .modules-right {
@@ -41,7 +41,6 @@ window#waybar {
 #window,
 #mpris,
 #clock,
-#mode,
 #cpu,
 #memory,
 #custom-temperature,
@@ -64,7 +63,7 @@ window#waybar {
 #tags {
   background: transparent;
   margin: 0;
-  padding: 0 1px;
+  padding: 0;
   border: none;
   box-shadow: none;
 }
@@ -73,10 +72,10 @@ window#waybar {
   color: #@THEME_FG@;
   background: rgba(@THEME_BG3_RGB@, 0.55);
   background-image: none;
-  margin: 0 2px;
+  margin: 0 1px;
   padding: 0;
-  min-width: 24px;
-  min-height: 24px;
+  min-width: 20px;
+  min-height: 20px;
   border-radius: 999px;
   border: 1px solid rgba(@THEME_BG3_RGB@, 0.6);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
@@ -91,7 +90,7 @@ window#waybar {
   background-image: url("@WAYBAR_PACMAN_ICON@");
   background-repeat: no-repeat;
   background-position: center;
-  background-size: 16px 16px;
+  background-size: 13px 13px;
 }
 
 #tags button.occupied:not(.focused) {
@@ -115,7 +114,7 @@ window#waybar {
 
 #tags button label {
   color: #@THEME_FG@;
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 900;
 }
 
@@ -139,14 +138,6 @@ window#waybar {
   letter-spacing: 0.7px;
   font-feature-settings: "tnum";
   padding: 0 13px;
-}
-
-#mode {
-  color: #@THEME_BG3@;
-}
-
-#mode.passthrough {
-  color: #@THEME_RED@;
 }
 
 #tray {

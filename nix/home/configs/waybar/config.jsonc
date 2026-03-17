@@ -8,7 +8,6 @@
   "modules-left": [
     "custom/launcher",
     "clock",
-    "river/mode",
     "river/window",
     "mpris"
   ],
@@ -65,11 +64,6 @@
   "river/window": {
     "format": "{}",
     "max-length": 36
-  },
-
-  "river/mode": {
-    "format": "MODE {}",
-    "max-length": 14
   },
 
   "mpris": {
