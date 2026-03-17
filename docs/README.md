@@ -17,7 +17,7 @@
 
 ## 原则
 
-- 优先使用保留的脚本入口；`repo-check` / `deploy` 仍未恢复，常用 `rebuild` 操作通过 `just` 暴露
+- 优先使用 `just` 与保留的 admin 脚本入口；`repo-check` / `deploy` 仍未恢复，`flake-check` 与常用 `rebuild` 操作通过 `just` 暴露
 - 危险操作必须显式写主机和磁盘
 - read-only flake inspect 优先先取 filtered repo，避免 `.keys/main.agekey` 权限问题
 - secrets 只通过 `sops.sh` 和 `guard-secrets.sh` 维护

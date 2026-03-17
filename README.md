@@ -26,6 +26,7 @@
 just host=zly disk=/dev/nvme0n1 install
 just update
 just info
+just flake-check
 just host=zly check
 just host=zly switch
 just host=zly upgrade
