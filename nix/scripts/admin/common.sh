@@ -154,7 +154,13 @@ run_sops_encrypt_yaml() {
     return 1
   fi
 
-  run_sops --encrypt --age "$recipients" --input-type yaml --output-type yaml /dev/stdin >"$target_file"
+  run_sops \
+    --encrypt \
+    --filename-override "$target_file" \
+    --age "$recipients" \
+    --input-type yaml \
+    --output-type yaml \
+    /dev/stdin >"$target_file"
 }
 
 confirm_destructive_action() {
