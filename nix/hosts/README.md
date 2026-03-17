@@ -69,7 +69,7 @@ cp -a nix/hosts/darwin/zly-mac nix/hosts/darwin/mac-mini
 - `desktopProfile`：桌面 profile（当前 Linux 为 `river`，Darwin 为 `aqua`）
 - `tags`：规范化标签，仅保留无法稳定从其他 metadata 派生的事实；不要把 machine facts 再塞回 `roles`
 - `gpuVendors`：声明式 GPU 厂商清单，用于 capability 推导
-- `displays`：显示拓扑 metadata，驱动 Niri/Noctalia 等桌面配置生成，是 monitor facts 的唯一事实源
+- `displays`：显示拓扑 metadata，驱动 `kanshi` / `waybar` / `wlogout` 等桌面配置生成，是 monitor facts 的唯一事实源；如可获取稳定描述串，优先填写 `match`，不要只依赖 `name`
 - `deployEnabled` / `deployHost` / `deployUser` / `deployPort`：仓库当前仅保留为 metadata，不再提供本地 deploy wrapper
 
 注意：`outputs` 中已做双向断言，目录和 registry 任何一侧缺失都会直接 fail。

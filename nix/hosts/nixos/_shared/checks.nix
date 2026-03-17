@@ -58,6 +58,18 @@ let
   mullvadExecStartPre = cfg.systemd.services.mullvad-daemon.serviceConfig.ExecStartPre or null;
   mullvadExecStartPrePath = if mullvadExecStartPre == null then "" else toString mullvadExecStartPre;
   hmCfg = cfg.home-manager.users.${mainUser};
+  hmSwayidle = hmCfg.services.swayidle or { };
+  hmSwayidleEvents = hmSwayidle.events or [ ];
+  hasSwayidleEnabled = hmSwayidle.enable or false;
+  hasSwayidleTimeouts = (builtins.length (hmSwayidle.timeouts or [ ])) > 0;
+  hasSwayidleBeforeSleepLock =
+    builtins.any
+      (event: event.event == "before-sleep" && lib.hasInfix "lock-screen" event.command)
+      hmSwayidleEvents;
+  hasSwayidleLockEvent =
+    builtins.any
+      (event: event.event == "lock" && lib.hasInfix "lock-screen" event.command)
+      hmSwayidleEvents;
   expectedHome = "/home/${mainUser}";
 
   getNames = pkgList: lib.unique (map lib.getName pkgList);
@@ -442,6 +454,14 @@ in
       fi
     done
 
+    touch "$out"
+  '';
+
+  "eval-${name}-swayidle-enabled" = pkgs.runCommand "eval-${name}-swayidle-enabled" { } ''
+    test "${if hasSwayidleEnabled then "1" else "0"}" = "1"
+    test "${if hasSwayidleTimeouts then "1" else "0"}" = "1"
+    test "${if hasSwayidleBeforeSleepLock then "1" else "0"}" = "1"
+    test "${if hasSwayidleLockEvent then "1" else "0"}" = "1"
     touch "$out"
   '';
 }

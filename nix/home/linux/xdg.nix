@@ -13,6 +13,7 @@ let
   configFiles = import ../base/config-files.nix;
   hostCfg = import ../base/resolve-host.nix { inherit myvars osConfig; };
   isLaptop = (hostCfg.formFactor or "desktop") == "laptop";
+  supportsHibernate = (hostCfg.resumeOffset or null) != null;
   imageMimeTypes = [
     "image/jpeg"
     "image/png"
@@ -24,6 +25,7 @@ let
   imageApps = [ "org.nomacs.ImageLounge.desktop" "nomacs.desktop" ];
   browserApps = [ "google-chrome.desktop" ];
   portalConfig = import ../../lib/portal-config.nix;
+  wlogoutLayoutLib = import ../../lib/wlogout-layout.nix { inherit lib; };
   sourceConfigFiles =
     lib.mapAttrs (_: source: { inherit source; })
       (configFiles.sharedSourceFiles // configFiles.linuxSourceFiles);
@@ -75,6 +77,7 @@ let
     lib.genAttrs
       (map (name: "wlogout/icons/${name}.png") wlogoutIconNames)
       (path: { source = "${pkgs.wlogout}/share/${path}"; });
+  wlogoutLayout = wlogoutLayoutLib.mkWlogoutLayout { inherit supportsHibernate; };
 in
 {
   xdg = {
@@ -91,7 +94,7 @@ in
           recursive = true;
           force = true;
         };
-        "wlogout/layout".source = ../configs/wlogout/layout;
+        "wlogout/layout".text = wlogoutLayout;
         "wlogout/style.css".text = mytheme.apply (builtins.readFile ../configs/wlogout/style.css);
         "wallpapers" = {
           source = ../../../wallpapers;

@@ -7,6 +7,7 @@ fi
 args=(
   --font "Maple Mono NF CN"
   --font-size 26
+  --show-failed-attempts
   --fade-in 0.2
   --indicator
   --indicator-caps-lock

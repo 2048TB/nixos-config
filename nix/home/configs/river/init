@@ -64,6 +64,8 @@ done
 riverctl rule-add -app-id "pavucontrol" float
 riverctl rule-add -app-id "nm-connection-editor" float
 riverctl rule-add -app-id "org.gnome.Calculator" float
+riverctl rule-add -app-id "org.gnome.FileRoller" float
+riverctl rule-add -app-id "pinentry*" float
 riverctl rule-add -app-id "imv" float
 
 rivercarro -outer-gaps 6 -inner-gaps 6 &

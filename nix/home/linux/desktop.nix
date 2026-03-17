@@ -46,6 +46,11 @@ let
     runtimeInputs = with pkgs; [ coreutils findutils swaybg ];
     text = builtins.readFile ../../scripts/session/swaybg-launcher.sh;
   };
+  lockScreenService = pkgs.writeShellApplication {
+    name = "lock-screen-service";
+    runtimeInputs = [ pkgs.swaylock ];
+    text = mytheme.apply (builtins.readFile ../../scripts/session/lock-screen.sh);
+  };
 
   aria2PrepareSession = pkgs.writeShellScript "aria2-prepare-session" ''
     set -eu
@@ -199,6 +204,28 @@ in
       enable = true;
       settings = swayncSettings;
       style = swayncStyle;
+    };
+
+    swayidle = {
+      enable = true;
+      systemdTarget = "graphical-session.target";
+      extraArgs = [ "-w" ];
+      events = [
+        {
+          event = "lock";
+          command = lib.getExe lockScreenService;
+        }
+        {
+          event = "before-sleep";
+          command = lib.getExe lockScreenService;
+        }
+      ];
+      timeouts = [
+        {
+          timeout = 900;
+          command = lib.getExe lockScreenService;
+        }
+      ];
     };
 
     # USB 设备自动挂载服务
