@@ -187,7 +187,7 @@ cmd_ssh_key_set() {
   recipients_csv="$(collect_age_recipients_csv)"
 
   {
-    echo "value: |-"
+    echo "value: |"
     sed 's/^/  /' "$private_src"
   } | encrypt_yaml_to_target "$private_secret" "$recipients_csv"
 
