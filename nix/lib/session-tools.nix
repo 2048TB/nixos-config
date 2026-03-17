@@ -4,7 +4,10 @@
     { name ? "lock-screen" }:
     pkgs.writeShellApplication {
       inherit name;
-      runtimeInputs = [ pkgs.swaylock ];
+      runtimeInputs = with pkgs; [
+        coreutils
+        swaylock-effects
+      ];
       text = mytheme.apply (builtins.readFile ../scripts/session/lock-screen.sh);
     };
 

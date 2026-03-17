@@ -199,27 +199,8 @@ in
       style = swayncStyle;
     };
 
-    swayidle = {
-      enable = true;
-      systemdTarget = "graphical-session.target";
-      extraArgs = [ "-w" ];
-      events = [
-        {
-          event = "lock";
-          command = lib.getExe lockScreen;
-        }
-        {
-          event = "before-sleep";
-          command = lib.getExe lockScreen;
-        }
-      ];
-      timeouts = [
-        {
-          timeout = 900;
-          command = lib.getExe lockScreen;
-        }
-      ];
-    };
+    # 仅保留 river 快捷键触发的手动锁屏，不启用空闲/睡眠自动锁屏。
+    swayidle.enable = false;
 
     # USB 设备自动挂载服务
     udiskie = {
@@ -233,6 +214,8 @@ in
   wayland.windowManager.river = {
     enable = true;
     package = null;
+    # river 由 system profile 提供；这里显式禁用 HM 的 xwayland 包注入，
+    # 避免与系统侧 programs.river-classic.xwayland.enable 产生重复 closure。
     xwayland.enable = false;
     extraSessionVariables = {
       NIXOS_OZONE_WL = "1";

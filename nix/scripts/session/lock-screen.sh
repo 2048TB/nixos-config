@@ -1,5 +1,16 @@
 # shellcheck shell=bash
-wallpaper="$HOME/.config/wallpapers/1.png"
+runtime_dir="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
+wallpaper_state_file="$runtime_dir/swaybg-current-wallpaper"
+wallpaper=""
+
+if [ -r "$wallpaper_state_file" ]; then
+  wallpaper="$(<"$wallpaper_state_file")"
+fi
+
+if [ -z "$wallpaper" ] || [ ! -f "$wallpaper" ]; then
+  wallpaper="$HOME/.config/wallpapers/1.png"
+fi
+
 if [ ! -f "$wallpaper" ]; then
   wallpaper=""
 fi

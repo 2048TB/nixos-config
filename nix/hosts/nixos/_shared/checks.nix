@@ -457,11 +457,11 @@ in
     touch "$out"
   '';
 
-  "eval-${name}-swayidle-enabled" = pkgs.runCommand "eval-${name}-swayidle-enabled" { } ''
-    test "${if hasSwayidleEnabled then "1" else "0"}" = "1"
-    test "${if hasSwayidleTimeouts then "1" else "0"}" = "1"
-    test "${if hasSwayidleBeforeSleepLock then "1" else "0"}" = "1"
-    test "${if hasSwayidleLockEvent then "1" else "0"}" = "1"
+  "eval-${name}-swayidle-disabled" = pkgs.runCommand "eval-${name}-swayidle-disabled" { } ''
+    test "${if hasSwayidleEnabled then "1" else "0"}" = "0"
+    test "${if hasSwayidleTimeouts then "1" else "0"}" = "0"
+    test "${if hasSwayidleBeforeSleepLock then "1" else "0"}" = "0"
+    test "${if hasSwayidleLockEvent then "1" else "0"}" = "0"
     touch "$out"
   '';
 }
