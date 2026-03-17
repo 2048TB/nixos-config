@@ -1,9 +1,20 @@
-{ config, mylib, myvars, osConfig ? null, ... }:
+{ config, lib, pkgs, mylib, myvars, osConfig ? null, ... }:
 let
   homeDir = config.home.homeDirectory;
   localShareDir = "${homeDir}/.local/share";
   localBinDir = "${homeDir}/.local/bin";
   hostCfg = import ./resolve-host.nix { inherit myvars osConfig; };
+  sshConfigText = lib.concatStringsSep "\n" [
+    "Host github.com"
+    "  IdentitiesOnly yes"
+    "  User git"
+    "  HostName github.com"
+    "  IdentityFile ${homeDir}/.ssh/id_ed25519"
+    ""
+    "Host *"
+    "  AddKeysToAgent yes"
+    ""
+  ];
 in
 {
   programs = {
@@ -48,21 +59,20 @@ in
       extraConfig = builtins.readFile ../configs/shell/vimrc;
     };
 
-    ssh = {
-      enable = true;
-      enableDefaultConfig = false;
-      matchBlocks."*".addKeysToAgent = "yes";
-      matchBlocks."github.com" = {
-        hostname = "github.com";
-        user = "git";
-        identityFile = "${homeDir}/.ssh/id_ed25519";
-        identitiesOnly = true;
-      };
-    };
+    ssh.enable = false;
   };
 
   home = {
     stateVersion = hostCfg.homeStateVersion or mylib.defaultHomeStateVersion;
+    activation.installSshConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+      ssh_dir="${homeDir}/.ssh"
+      ${pkgs.coreutils}/bin/mkdir -p "$ssh_dir"
+      ${pkgs.coreutils}/bin/chmod 700 "$ssh_dir"
+      ${pkgs.coreutils}/bin/cat > "$ssh_dir/config" <<'EOF'
+${sshConfigText}
+EOF
+      ${pkgs.coreutils}/bin/chmod 600 "$ssh_dir/config"
+    '';
     sessionVariables = {
       NIX_HOSTNAME = hostCfg.hostname;
       NPM_CONFIG_PREFIX = "${homeDir}/.npm-global";

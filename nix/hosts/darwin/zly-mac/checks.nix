@@ -1,4 +1,5 @@
-{ pkgs
+{ lib
+, pkgs
 , name
 , mainUser
 , darwinSystem
@@ -8,6 +9,7 @@ let
   cfg = darwinSystem.config;
   hmCfg = cfg.home-manager.users.${mainUser};
   expectedHome = "/Users/${mainUser}";
+  sshConfigActivationData = hmCfg.home.activation.installSshConfig.data or "";
 in
 {
   "eval-${name}-hostname" = pkgs.runCommand "eval-${name}-hostname" { } ''
@@ -33,6 +35,13 @@ in
   "eval-${name}-hm-shell-env" = pkgs.runCommand "eval-${name}-hm-shell-env" { } ''
     test "${if hmCfg.home.sessionVariables ? BUN_INSTALL then "1" else "0"}" = "1"
     test "${if hmCfg.home.sessionVariables ? GOPATH then "1" else "0"}" = "1"
+    touch "$out"
+  '';
+
+  "eval-${name}-ssh-config-runtime" = pkgs.runCommand "eval-${name}-ssh-config-runtime" { } ''
+    test "${if (hmCfg.programs.ssh.enable or false) then "1" else "0"}" = "0"
+    test "${if hmCfg.home.activation ? installSshConfig then "1" else "0"}" = "1"
+    test "${if lib.hasInfix "${expectedHome}/.ssh/id_ed25519" sshConfigActivationData then "1" else "0"}" = "1"
     touch "$out"
   '';
 

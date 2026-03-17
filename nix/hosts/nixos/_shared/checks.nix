@@ -66,6 +66,7 @@ let
   udiskieService = hmCfg.systemd.user.services.udiskie or { };
   udiskieExecStart = udiskieService.Service.ExecStart or null;
   udiskieExecStartPath = if udiskieExecStart == null then "" else toString udiskieExecStart;
+  sshConfigActivationData = hmCfg.home.activation.installSshConfig.data or "";
   hmSwayidle = hmCfg.services.swayidle or { };
   hmSwayidleEvents = hmSwayidle.events or [ ];
   hasSwayidleEnabled = hmSwayidle.enable or false;
@@ -302,6 +303,13 @@ in
 
   "eval-${name}-hostname-env" = pkgs.runCommand "eval-${name}-hostname-env" { } ''
     test "${hmCfg.home.sessionVariables.NIX_HOSTNAME or ""}" = "${expectedHostname}"
+    touch "$out"
+  '';
+
+  "eval-${name}-ssh-config-runtime" = pkgs.runCommand "eval-${name}-ssh-config-runtime" { } ''
+    test "${if (hmCfg.programs.ssh.enable or false) then "1" else "0"}" = "0"
+    test "${if hmCfg.home.activation ? installSshConfig then "1" else "0"}" = "1"
+    test "${if lib.hasInfix "${expectedHome}/.ssh/id_ed25519" sshConfigActivationData then "1" else "0"}" = "1"
     touch "$out"
   '';
 
