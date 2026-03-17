@@ -6,7 +6,7 @@ riverctl border-color-unfocused 0x@THEME_BG3@
 riverctl border-color-urgent 0x@THEME_RED@
 riverctl border-width 2
 riverctl focus-follows-cursor normal
-riverctl hide-cursor timeout 8
+riverctl hide-cursor timeout 1500
 riverctl hide-cursor when-typing enabled
 riverctl set-repeat 50 300
 riverctl set-cursor-warp on-output-change

@@ -2,9 +2,9 @@
 exec wlogout \
   --protocol layer-shell \
   --no-span \
-  --buttons-per-row 3 \
-  --column-spacing 18 \
-  --row-spacing 18 \
+  --buttons-per-row 6 \
+  --column-spacing 12 \
+  --row-spacing 12 \
   -l "$HOME/.config/wlogout/layout" \
   -C "$HOME/.config/wlogout/style.css" \
   "$@"
