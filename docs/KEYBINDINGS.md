@@ -11,17 +11,17 @@
 | 快捷键 | 功能 |
 |--------|------|
 | `Mod + Return` | 打开终端 |
-| `Mod + D` | 启动器（Fuzzel） |
+| `Mod + Space` | 启动器（Fuzzel） |
 | `Mod + Q` | 关闭窗口 |
-| `Mod + J/K` | 切换窗口焦点 |
-| `Mod + Space` | 浮动/平铺切换 |
-| `Mod + F` | 全屏 |
+| `Mod + ↑/↓/←/→` | 切换窗口焦点 |
+| `Mod + Tab` | 浮动/平铺切换 |
+| `Mod + Z` | 全屏 |
 | `Mod + 1..9` | 切到 tag |
 | `Mod + Shift + 1..9` | 把窗口送到 tag |
 | `Mod + ,/.` | 切换显示器焦点 |
-| `Print` | 区域截图并复制到剪贴板 |
+| `Mod + A` | 区域截图并复制到剪贴板 |
 | `XF86AudioRaiseVolume/LowerVolume` | 音量 |
-| `Mod + Shift + L` | 锁屏 |
+| `Mod + Shift + X` | 锁屏 |
 
 ---
 
@@ -30,8 +30,8 @@
 | 快捷键 | 功能 |
 |--------|------|
 | `Mod + Return` | 终端 |
-| `Mod + D` | Fuzzel |
-| `Mod + Shift + L` | 锁屏 |
+| `Mod + Space` | Fuzzel |
+| `Mod + Shift + X` | 锁屏 |
 | `Mod + Escape` | 会话菜单（Wlogout） |
 | `Mod + Shift + E` | 退出 River |
 | `Mod + P` | 进入 passthrough mode |
@@ -43,10 +43,11 @@
 
 | 快捷键 | 功能 |
 |--------|------|
-| `Mod + J/K` | 下一个/上一个窗口焦点 |
-| `Mod + Shift + J/K` | 与下一个/上一个窗口交换位置 |
-| `Mod + Space` | 浮动/平铺切换 |
-| `Mod + F` | 全屏 |
+| `Mod + ↑/↓/←/→` | 下一个/上一个窗口焦点 |
+| `Mod + Shift + G/L` | 左/右移动窗口 |
+| `Mod + D/F` | 上/下移动窗口 |
+| `Mod + Tab` | 浮动/平铺切换 |
+| `Mod + Z` | 全屏 |
 | `Mod + H/L` | 调整 `rivercarro` 主列比例 |
 | `Mod + 鼠标左键拖动` | 移动窗口 |
 | `Mod + 鼠标中键` | 浮动/平铺切换 |
@@ -71,6 +72,8 @@
 
 | 快捷键 | 功能 |
 |--------|------|
+| `Mod + A` | 区域截图，保存到 `~/Pictures/Screenshots/` 并复制到剪贴板 |
+| `Mod + Shift + A` | 全屏截图，保存到 `~/Pictures/Screenshots/` 并复制到剪贴板 |
 | `Print` | 区域截图，保存到 `~/Pictures/Screenshots/` 并复制到剪贴板 |
 | `Ctrl + Print` | 全屏截图，保存到 `~/Pictures/Screenshots/` 并复制到剪贴板 |
 | `Mod + V` | 剪贴板历史菜单 |
