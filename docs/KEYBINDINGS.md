@@ -16,6 +16,7 @@
 | `Mod + ↑/↓/←/→` | 切换窗口焦点 |
 | `Mod + Tab` | 浮动/平铺切换 |
 | `Mod + Z` | 全屏 |
+| `Mod + W` | 按顺序切到下一张壁纸 |
 | `Mod + 1..9` | 切到 tag |
 | `Mod + Shift + 1..9` | 把窗口送到 tag |
 | `Mod + ,/.` | 切换显示器焦点 |
@@ -32,6 +33,7 @@
 | `Mod + Return` | 终端 |
 | `Mod + Space` | Fuzzel |
 | `Mod + Shift + X` | 锁屏 |
+| `Mod + W` | 按顺序切到下一张壁纸 |
 | `Mod + Escape` | 会话菜单（Wlogout） |
 | `Mod + Shift + E` | 退出 River |
 | `Mod + P` | 进入 passthrough mode |

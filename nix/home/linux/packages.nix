@@ -83,6 +83,11 @@ let
     runtimeInputs = with pkgs; [ coreutils grim slurp wl-clipboard ];
     text = builtins.readFile ../../scripts/session/take-screenshot.sh;
   };
+  wallpaperNext = pkgs.writeShellApplication {
+    name = "wallpaper-next";
+    runtimeInputs = with pkgs; [ coreutils ];
+    text = builtins.readFile ../../scripts/session/wallpaper-next.sh;
+  };
   # 仅将 MinGW 交叉编译器的可执行文件加入 user profile，避免与本机 gcc 的文档路径冲突告警。
   mingwToolchainBinOnly = pkgs.buildEnv {
     name = "mingw-w64-toolchain-bin-only";
@@ -144,6 +149,7 @@ in
         riverCliphistMenu
         waybarTemperatureStatus
         takeScreenshot
+        wallpaperNext
       ]
       ++ devToolchainPackages
       ++ hybridPackages

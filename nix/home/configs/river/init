@@ -39,6 +39,7 @@ riverctl map normal Super+Shift Comma send-to-output previous
 riverctl map normal Super P enter-mode passthrough
 riverctl map passthrough Super P enter-mode normal
 riverctl map normal Super+Shift X spawn lock-screen
+riverctl map normal Super W spawn wallpaper-next
 riverctl map normal Super Escape spawn wlogout-menu
 riverctl map normal Super V spawn river-cliphist-menu
 riverctl map normal Super A spawn "take-screenshot area"
