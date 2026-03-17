@@ -230,6 +230,51 @@ in
     touch "$out"
   '';
 
+  "eval-${name}-capability-desktop-profile" = pkgs.runCommand "eval-${name}-capability-desktop-profile" { } ''
+    case "${cfg.my.host.desktopProfile}" in
+      none)
+        test "${if cfg.my.capabilities.hasDesktopSession then "1" else "0"}" = "0"
+        test "${if cfg.my.capabilities.usesNiri then "1" else "0"}" = "0"
+        test "${if cfg.my.capabilities.usesRiver then "1" else "0"}" = "0"
+        ;;
+      niri)
+        test "${if cfg.my.capabilities.usesNiri then "1" else "0"}" = "1"
+        test "${if cfg.my.capabilities.usesRiver then "1" else "0"}" = "0"
+        ;;
+      river)
+        test "${if cfg.my.capabilities.usesNiri then "1" else "0"}" = "0"
+        test "${if cfg.my.capabilities.usesRiver then "1" else "0"}" = "1"
+        ;;
+      aqua)
+        test "${if cfg.my.host.kind == "workstation" then "1" else "0"}" = "1"
+        test "${if cfg.my.capabilities.usesNiri then "1" else "0"}" = "0"
+        test "${if cfg.my.capabilities.usesRiver then "1" else "0"}" = "0"
+        ;;
+      *)
+        echo "unexpected desktop profile: ${cfg.my.host.desktopProfile}" >&2
+        exit 1
+        ;;
+    esac
+    touch "$out"
+  '';
+
+  "eval-${name}-desktop-compositor-profile" = pkgs.runCommand "eval-${name}-desktop-compositor-profile" { } ''
+    case "${cfg.my.host.desktopProfile}" in
+      niri)
+        test "${if cfg.programs.niri.enable then "1" else "0"}" = "1"
+        test "${if cfg.programs."river-classic".enable then "1" else "0"}" = "0"
+        ;;
+      river)
+        test "${if cfg.programs.niri.enable then "1" else "0"}" = "0"
+        test "${if cfg.programs."river-classic".enable then "1" else "0"}" = "1"
+        ;;
+      *)
+        :
+        ;;
+    esac
+    touch "$out"
+  '';
+
   "eval-${name}-capability-gpu" = pkgs.runCommand "eval-${name}-capability-gpu" { } ''
     test "${if cfg.my.capabilities.hasAmdGpu == (builtins.elem "amd" cfg.my.host.gpuVendors) then "1" else "0"}" = "1"
     test "${if cfg.my.capabilities.hasIntelGpu == (builtins.elem "intel" cfg.my.host.gpuVendors) then "1" else "0"}" = "1"

@@ -4,7 +4,7 @@
 , ...
 }:
 let
-  inherit (config.my.capabilities) hasDesktopSession;
+  inherit (config.my.capabilities) hasDesktopSession usesNiri usesRiver;
   gnupgCacheTtlSeconds = 4 * 60 * 60; # 4 小时
 in
 lib.mkIf hasDesktopSession {
@@ -20,9 +20,14 @@ lib.mkIf hasDesktopSession {
 
     zsh.enable = true;
 
-    niri = {
+    niri = lib.mkIf usesNiri {
       enable = true;
       useNautilus = false;
+    };
+
+    "river-classic" = lib.mkIf usesRiver {
+      enable = true;
+      xwayland.enable = true;
     };
 
     seahorse.enable = true;

@@ -13,11 +13,13 @@ let
   hibernateEnabled = hostCfg.resumeOffset != null;
   inherit (config.my.capabilities) isLaptop hasDesktopSession hasFingerprintReader;
   inherit (roleFlags) enableMullvadVpn;
-  desktopProfile = hostCfg.desktopProfile or "niri";
-  desktopSessionName = if desktopProfile == "niri" then "niri" else desktopProfile;
+  desktopProfile = hostCfg.desktopProfile or "none";
+  desktopSessionName = desktopProfile;
   desktopExec =
     if desktopProfile == "niri" then
       "/run/current-system/sw/bin/niri-session"
+    else if desktopProfile == "river" then
+      "/run/current-system/sw/bin/river"
     else
       throw "Unsupported Linux desktopProfile '${desktopProfile}'";
 

@@ -228,6 +228,12 @@ in
         description = "Derived flag for hosts using the Niri desktop profile.";
       };
 
+      usesRiver = lib.mkOption {
+        type = types.bool;
+        readOnly = true;
+        description = "Derived flag for hosts using the River desktop profile.";
+      };
+
       hasMultipleDisplays = lib.mkOption {
         type = types.bool;
         readOnly = true;

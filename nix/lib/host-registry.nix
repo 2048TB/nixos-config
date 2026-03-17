@@ -20,6 +20,7 @@ let
   allowedLinuxDesktopProfiles = [
     "none"
     "niri"
+    "river"
   ];
   allowedDarwinDesktopProfiles = [
     "none"

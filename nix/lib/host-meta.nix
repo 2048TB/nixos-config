@@ -39,6 +39,7 @@ let
     allowedDesktopProfiles = [
       "none"
       "niri"
+      "river"
       "aqua"
     ];
 
