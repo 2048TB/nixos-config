@@ -228,7 +228,7 @@ binds {
     Mod+R { switch-preset-column-width; }
     // 也可按反向顺序循环预设。
     // Mod+R { switch-preset-column-width-back; }
-    Mod+Y { switch-preset-window-height; }
+    Mod+T { switch-preset-window-height; }
     Mod+Ctrl+R { reset-window-height; }
     Mod+Z { maximize-column; }
     Mod+Shift+M { maximize-window-to-edges; }
@@ -279,7 +279,7 @@ binds {
 
     Print { screenshot; }
     // 单键截图放到右手区，保留 2 键入口。
-    Mod+T { screenshot; }
+    Mod+Y { screenshot; }
     Ctrl+Print { screenshot-screen; }
     Alt+Print { screenshot-window; }
 
