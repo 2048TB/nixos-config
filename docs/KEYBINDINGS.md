@@ -1,24 +1,26 @@
 # 快捷键说明
 
-先记住“必会 13 个”，其余按需查表。
+先记住“必会 15 个”，其余按需查表。
 
 `Mod` = `Super`（Windows 键）；winit 窗口环境中 = `Alt`。
 
 ---
 
-## 1. 必会 13 个
+## 1. 必会 15 个
 
 | 快捷键 | 功能 |
 |--------|------|
 | `Mod + Return` | 打开终端 |
 | `Mod + Space` | 启动器（Fuzzel） |
-| `Mod + .` | 文件管理器 |
+| `Mod + A` | 当前列切换 tabbed 显示 |
 | `Mod + Q` | 关闭窗口 |
 | `Mod + Left/Right` | 切换焦点 |
 | `Mod + 1..9` | 切到工作区 |
 | `Mod + X/B/C/V` | 列内/列外与吸入/移出窗口 |
-| `Mod + W/E` | 浮动/平铺焦点切换 |
-| `Mod + T` | 全屏 |
+| `Mod + U/I` | 窗口浮动切换 / 浮动与平铺间焦点切换 |
+| `Mod + O` | 窗口概览 |
+| `Mod + P` | 当前与上一个工作区切换 |
+| `Mod + M` | 全屏 |
 | `Print` | 截图 |
 | `XF86AudioRaiseVolume/LowerVolume` | 音量 |
 | `Mod + Shift + L` | 锁屏（Noctalia） |
@@ -34,8 +36,8 @@
 | `Mod + Shift + Return` | 浮动终端 |
 | `Mod + Space` | Fuzzel |
 | `Mod + Shift + Slash` | 快捷键提示层 |
-| `Mod + .` | 文件管理器 |
 | `Mod + Shift + L` | 锁屏（Noctalia） |
+| `Mod + Shift + P` | 关闭显示器 |
 | `Mod + Ctrl + E` | 会话菜单（Noctalia） |
 | `Mod + Ctrl + B` | 重启 `noctalia-shell` 进程 |
 | `Mod + Ctrl + S` | 打开 `pavucontrol` |
@@ -49,17 +51,19 @@
 | 快捷键 | 功能 |
 |--------|------|
 | `Mod + Left/Down/Up/Right` | 列/窗口焦点切换 |
+| `Mod + H/L` | 当前工作区内按最近使用顺序切到上一个/下一个窗口 |
+| `Mod + J/K` | 在当前应用的多个窗口之间切到下一个/上一个 |
 | `Mod + S/G` | 左/右移动列 |
 | `Mod + Ctrl + Left/Down/Up/Right` | 同上（方向键版） |
 | `Mod + Home/End` | 聚焦最左/最右列 |
 | `Mod + Ctrl + Home/End` | 移动列到最左/最右 |
 | `Mod + X/B` | 列内/列外切换 |
 | `Mod + C/V` | 吸入/移出窗口 |
-| `Mod + W` | 浮动/平铺切换 |
-| `Mod + E` | 浮动与平铺间切换焦点 |
+| `Mod + U` | 浮动/平铺切换 |
+| `Mod + I` | 浮动与平铺间切换焦点 |
 | `Mod + : / "` | 窗口下移/上移 |
-| `Mod + ,` | 窗口概览 |
-| `Mod + T` | 全屏 |
+| `Mod + O` | 窗口概览 |
+| `Mod + M` | 全屏 |
 | `Mod + Q` | 关闭窗口 |
 
 ---
@@ -82,13 +86,13 @@
 | `Mod + Shift + Page_Down/Up` | 移动工作区位置 |
 | `Mod + Alt + Left/Right` | 上一个/下一个工作区 |
 | `Mod + Alt + Down` | 跳到最底部空工作区 |
-| `Mod + Tab` | 当前与上一个工作区切换 |
+| `Mod + P` | 当前与上一个工作区切换 |
 | `Mod + 1..9` | 直达工作区 |
 | `Mod + Ctrl + 1..9` | 移动列到工作区 |
 | `Mod + Alt + 1..9` | 移动窗口到工作区 |
 | `Mod + D/F` | 移动窗口到下/上一个工作区 |
 | `Mod + Ctrl + Page_Down/Up` | 移动列到下/上一个工作区 |
-| `Mod + Shift + N` | 新工作区 |
+| `Mod + N` | 新工作区 |
 | `Mod + WheelScrollDown/Up` | 滚轮切换工作区 |
 
 ---
@@ -98,17 +102,17 @@
 | 快捷键 | 功能 |
 |--------|------|
 | `Mod + R` | 循环列宽预设 |
-| `Mod + Shift + R` | 循环窗口高度预设 |
+| `Mod + Y` | 循环窗口高度预设 |
 | `Mod + Ctrl + R` | 重置高度 |
 | `Mod + - / =` | 列宽 -10%/+10% |
 | `Mod + Shift + - / =` | 窗口高度 -10%/+10% |
 | `Mod + Z` | 列最大化 |
 | `Mod + Shift + M` | 窗口最大化到边缘 |
 | `Mod + Ctrl + Shift + F` | 窗口化全屏 |
-| `Mod + Ctrl + F` | 列扩展到剩余宽度 |
-| `Mod + Shift + C` | 列居中 |
+| `Mod + .` | 列扩展到剩余宽度 |
+| `Mod + ,` | 列居中 |
 | `Mod + Ctrl + Shift + C` | 可见列整体居中 |
-| `Mod + O` | 列 tabbed 显示切换 |
+| `Mod + A` | 列 tabbed 显示切换 |
 
 ---
 
@@ -119,7 +123,7 @@
 | `Print` | 截图 |
 | `Ctrl + Print` | 当前屏幕截图 |
 | `Alt + Print` | 当前窗口截图 |
-| `Mod + A` | 截图（Niri 默认 screenshot） |
+| `Mod + T` | 截图（Niri 默认 screenshot） |
 
 ---
 
@@ -171,5 +175,6 @@
 
 文档与实际不一致时，以源文件为准：
 - `nix/home/configs/niri/interaction.kdl`
+- `nix/home/configs/niri/appearance.kdl`
 - `nix/home/configs/tmux/tmux.conf`
 - `nix/home/configs/zellij/config.kdl`

@@ -77,7 +77,7 @@ binds {
     XF86Search { spawn "fuzzel"; }
 
     // 在浮动窗口与平铺窗口之间切换焦点。
-    Mod+E { switch-focus-between-floating-and-tiling; }
+    Mod+I { switch-focus-between-floating-and-tiling; }
 
     // 手动锁屏（对齐 Hyprland: Mod+Shift+L）
     Mod+Shift+L { spawn "noctalia-shell" "ipc" "call" "lockScreen" "lock"; }
@@ -110,7 +110,7 @@ binds {
     // 切换列的标签页显示模式。
     // 该列窗口将以纵向标签显示，
     // 而非堆叠在一起。
-    Mod+O { toggle-column-tabbed-display; }
+    Mod+A { toggle-column-tabbed-display; }
 
     // 交换为：方向键聚焦，S/G 移动列，:/" 移动窗口
     Mod+Left { focus-column-left; }
@@ -208,12 +208,11 @@ binds {
     Mod+Alt+9 { move-window-to-workspace 9; }
 
     // 在当前与上一个工作区之间切换焦点。
-    Mod+Tab { focus-workspace-previous; }
+    Mod+P { focus-workspace-previous; }
 
     // 新建工作区（类别）并切换到它：
     // 使用动态工作区，跳到“最底部空工作区”。
-    Mod+Shift+N { focus-workspace 99; }
-    Mod+Ctrl+Shift+N { focus-workspace 99; }
+    Mod+N { focus-workspace 99; }
 
     // 以下绑定用于在列内/列外移动焦点窗口。
     // 如果窗口独立存在，将其并入旁边的列；
@@ -229,7 +228,7 @@ binds {
     Mod+R { switch-preset-column-width; }
     // 也可按反向顺序循环预设。
     // Mod+R { switch-preset-column-width-back; }
-    Mod+Shift+R { switch-preset-window-height; }
+    Mod+Y { switch-preset-window-height; }
     Mod+Ctrl+R { reset-window-height; }
     Mod+Z { maximize-column; }
     Mod+Shift+M { maximize-window-to-edges; }
@@ -238,10 +237,10 @@ binds {
 
     // 将当前列扩展到未被其他完整可见列占用的空间，
     // 使其“填满剩余空间”。
-    Mod+Ctrl+F { expand-column-to-available-width; }
+    Mod+Period { expand-column-to-available-width; }
 
     // 将所有完整可见的列居中显示（Ctrl+C 留给 Noctalia 剪贴板）
-    Mod+Shift+C { center-column; }
+    Mod+Comma { center-column; }
     Mod+Ctrl+Shift+C { center-visible-columns; }
 
     // 更精细的宽度调整。
@@ -260,18 +259,15 @@ binds {
     Mod+Shift+Equal { set-window-height "+10%"; }
 
     // 在浮动与平铺布局间切换当前窗口。
-    Mod+W repeat=false { toggle-window-floating; }
+    Mod+U repeat=false { toggle-window-floating; }
 
     // 全屏当前窗口。
-    Mod+T { fullscreen-window; }
+    Mod+M { fullscreen-window; }
 
     // 打开/关闭概览：工作区与窗口的缩略视图。
     // 也可将鼠标移到左上角热区，
     // 或在触控板上四指上滑。
-    Mod+Comma { toggle-overview; }
-
-    // 文件管理器（对齐 Hyprland: Mod+E）
-    Mod+Period { spawn "nautilus"; }
+    Mod+O { toggle-overview; }
 
     // 切换布局的动作。
     // 注意：若取消注释，请确保上面的 xkb 选项中没有相同快捷键。
@@ -282,8 +278,8 @@ binds {
     // Mod+Shift+Space { switch-layout "prev"; }
 
     Print { screenshot; }
-    // 对齐 Hyprland: Mod+A 截图（使用 Niri 默认 screenshot）
-    Mod+A { screenshot; }
+    // 单键截图放到右手区，保留 2 键入口。
+    Mod+T { screenshot; }
     Ctrl+Print { screenshot-screen; }
     Alt+Print { screenshot-window; }
 

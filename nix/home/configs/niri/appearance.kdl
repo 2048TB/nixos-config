@@ -107,6 +107,16 @@ recent-windows {
         active-color "#@THEME_BLUE@33"
         urgent-color "#@THEME_RED@"
     }
+
+    binds {
+        // 最近窗口切换：限制在当前工作区。
+        Mod+H { previous-window scope="workspace"; }
+        Mod+L { next-window scope="workspace"; }
+
+        // 同应用多窗口切换：只在相同 app-id 内循环。
+        Mod+J { next-window filter="app-id"; }
+        Mod+K { previous-window filter="app-id"; }
+    }
 }
 
 // 让 Noctalia 的 overview wallpaper 落到 Niri overview backdrop 层。
