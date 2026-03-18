@@ -267,6 +267,21 @@ in
     touch "$out"
   '';
 
+  "eval-${name}-aria2-user-service-scripts-use-store-tools" = pkgs.runCommand "eval-${name}-aria2-user-service-scripts-use-store-tools" { } ''
+    prepare_script="${hmCfg.systemd.user.services.aria2.Service.ExecStartPre or ""}"
+    start_script="${builtins.elemAt (hmCfg.systemd.user.services.aria2.Service.ExecStart or [ "" ]) 0}"
+
+    test -n "$prepare_script"
+    test -f "$prepare_script"
+    test -n "$start_script"
+    test -f "$start_script"
+
+    grep -F '${pkgs.coreutils}/bin/mkdir' "$prepare_script" >/dev/null
+    grep -F '${pkgs.coreutils}/bin/touch' "$prepare_script" >/dev/null
+    grep -F '${pkgs.coreutils}/bin/cat' "$start_script" >/dev/null
+    touch "$out"
+  '';
+
   "eval-${name}-user-uid-unset" = pkgs.runCommand "eval-${name}-user-uid-unset" { } ''
     test "${if (cfg.users.users.${mainUser}.uid or null) == null then "1" else "0"}" = "1"
     touch "$out"
@@ -360,6 +375,9 @@ in
     grep -F 'settings_dir="/etc/mullvad-vpn"' "$script_path" >/dev/null
     grep -F '.block_when_disconnected = false' "$script_path" >/dev/null
     grep -F '.auto_connect = true' "$script_path" >/dev/null
+    grep -F '${pkgs.coreutils}/bin/mkdir' "$script_path" >/dev/null
+    grep -F '${pkgs.coreutils}/bin/mv' "$script_path" >/dev/null
+    grep -F '${pkgs.coreutils}/bin/rm' "$script_path" >/dev/null
     touch "$out"
   '';
 }

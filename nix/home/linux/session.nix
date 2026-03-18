@@ -6,6 +6,7 @@
 }:
 let
   homeDir = config.home.homeDirectory;
+  mkdirExe = lib.getExe' pkgs.coreutils "mkdir";
 in
 {
   home = {
@@ -31,7 +32,7 @@ in
       };
 
     activation.ensureFcitxPinyinDir = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-      mkdir -p "${homeDir}/.local/share/fcitx5/pinyin"
+      ${mkdirExe} -p "${homeDir}/.local/share/fcitx5/pinyin"
     '';
   };
 }

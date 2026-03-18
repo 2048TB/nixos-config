@@ -20,6 +20,9 @@ let
       "/run/current-system/sw/bin/niri-session"
     else
       throw "Unsupported Linux desktopProfile '${desktopProfile}'";
+  mkdirExe = lib.getExe' pkgs.coreutils "mkdir";
+  mvExe = lib.getExe' pkgs.coreutils "mv";
+  rmExe = lib.getExe' pkgs.coreutils "rm";
 
   tuigreetPackage = pkgs.tuigreet or pkgs.greetd.tuigreet or (throw "tuigreet package not found in pkgs.tuigreet or pkgs.greetd.tuigreet");
   waylandSessionCommand = pkgs.writeShellScript "wayland-session" ''
@@ -116,15 +119,15 @@ in
           settings_dir="/etc/mullvad-vpn"
           settings_file="$settings_dir/settings.json"
 
-          mkdir -p "$settings_dir"
+          ${mkdirExe} -p "$settings_dir"
           if [ ! -f "$settings_file" ]; then
             echo '{}' > "$settings_file"
           fi
 
           if ${pkgs.jq}/bin/jq '.block_when_disconnected = false | .auto_connect = true' "$settings_file" > "$settings_file.tmp"; then
-            mv "$settings_file.tmp" "$settings_file"
+            ${mvExe} "$settings_file.tmp" "$settings_file"
           else
-            rm -f "$settings_file.tmp"
+            ${rmExe} -f "$settings_file.tmp"
             echo "WARNING: Failed to update Mullvad settings (invalid JSON). Keeping existing file." >&2
           fi
         '';
