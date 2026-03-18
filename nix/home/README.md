@@ -37,7 +37,7 @@ nix/home/
 |------|------|
 | 终端 | `configs/ghostty/`、`configs/foot/`、`configs/shell/` |
 | 状态栏 | `configs/niri/config.kdl`（Noctalia autostart） + `linux/desktop.nix`（包接入） |
-| 窗口快捷键 | `configs/niri/interaction.kdl` |
+| 窗口快捷键 | `configs/niri/interaction.kdl` + `configs/niri/appearance.kdl` |
 | 窗口外观 | `configs/niri/appearance.kdl` |
 | Linux 包分类 | `linux/package-groups.nix` |
 | Tmux | `configs/tmux/tmux.conf` |
@@ -52,5 +52,6 @@ nix/home/
 
 改了以下文件需同步 `docs/KEYBINDINGS.md`：
 - `configs/niri/interaction.kdl`
+- `configs/niri/appearance.kdl`
 - `configs/tmux/tmux.conf`
 - `configs/zellij/config.kdl`
