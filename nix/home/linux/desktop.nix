@@ -14,6 +14,9 @@ let
 
   mkLogFilteredLauncher = mylib.mkLogFilteredLauncher pkgs;
   noctaliaShellPkg = noctalia.packages.${pkgs.stdenv.hostPlatform.system}.default;
+  mkdirExe = lib.getExe' pkgs.coreutils "mkdir";
+  touchExe = lib.getExe' pkgs.coreutils "touch";
+  catExe = lib.getExe' pkgs.coreutils "cat";
 
   # ===== Quiet launcher 定义 =====
   udiskieQuiet = mkLogFilteredLauncher "udiskie-quiet" "${pkgs.udiskie}/bin/udiskie" [
@@ -24,15 +27,15 @@ let
   ];
   aria2PrepareSession = pkgs.writeShellScript "aria2-prepare-session" ''
     set -eu
-    mkdir -p "$HOME/.local/share/aria2"
-    touch "$HOME/.local/share/aria2/session"
+    ${mkdirExe} -p "$HOME/.local/share/aria2"
+    ${touchExe} "$HOME/.local/share/aria2/session"
   '';
   aria2RpcSecretPath = "/run/secrets/services/aria2-rpc";
   aria2Start = pkgs.writeShellScript "aria2-start" ''
     set -eu
     rpc_secret_arg=""
     if [ -r "${aria2RpcSecretPath}" ]; then
-      rpc_secret_arg="--rpc-secret=$(cat "${aria2RpcSecretPath}")"
+      rpc_secret_arg="--rpc-secret=$(${catExe} "${aria2RpcSecretPath}")"
     fi
     exec ${pkgs.aria2}/bin/aria2c --conf-path="$HOME/.config/aria2/aria2.conf" $rpc_secret_arg
   '';
