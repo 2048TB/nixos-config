@@ -3,7 +3,7 @@
   border-radius: 0;
   min-height: 0;
   font-family: "Maple Mono NF CN", "Sarasa UI SC", "JetBrainsMono Nerd Font", sans-serif;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
 }
 
@@ -60,6 +60,16 @@ window#waybar {
   transition: color 0.18s ease, background-color 0.18s ease, box-shadow 0.18s ease;
 }
 
+#window,
+#mpris,
+#cpu,
+#memory,
+#custom-temperature,
+#backlight,
+#battery {
+  border: 1px solid transparent;
+}
+
 #custom-launcher,
 #clock,
 #network,
@@ -81,9 +91,9 @@ window#waybar {
   background: linear-gradient(180deg, rgba(@THEME_BG2_RGB@, 0.84), rgba(@THEME_BG1_RGB@, 0.74));
   background-image: none;
   margin: 0 2px;
-  padding: 0 9px;
+  padding: 0 10px;
   min-width: 0;
-  min-height: 20px;
+  min-height: 22px;
   border-radius: 999px;
   border: 1px solid rgba(@THEME_BG3_RGB@, 0.42);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 2px 6px rgba(0, 0, 0, 0.14);
@@ -119,19 +129,23 @@ window#waybar {
 
 #tags button label {
   color: inherit;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 900;
   padding: 0;
 }
 
 #window {
   color: #@THEME_FG2@;
+  background: linear-gradient(180deg, rgba(@THEME_BG2_RGB@, 0.3), rgba(@THEME_DEEP_RGB@, 0.22));
+  border-color: rgba(@THEME_BG3_RGB@, 0.2);
   font-weight: 600;
   padding-right: 8px;
 }
 
 #mpris {
   color: #@THEME_TEAL@;
+  background: linear-gradient(180deg, rgba(@THEME_TEAL_RGB@, 0.12), rgba(@THEME_DEEP_RGB@, 0.2));
+  border-color: rgba(@THEME_TEAL_RGB@, 0.18);
   font-style: italic;
   padding-left: 5px;
   padding-right: 7px;
@@ -139,6 +153,7 @@ window#waybar {
 
 #clock {
   color: #@THEME_FG2@;
+  font-size: 15px;
   background: linear-gradient(180deg, rgba(@THEME_BLUE_RGB@, 0.12), rgba(@THEME_DEEP_RGB@, 0.2));
   border-color: rgba(@THEME_BLUE_RGB@, 0.18);
   letter-spacing: 0.55px;
@@ -161,6 +176,7 @@ window#waybar {
 
 #network {
   color: #@THEME_CYAN@;
+  font-size: 15px;
   background: linear-gradient(180deg, rgba(@THEME_CYAN_RGB@, 0.12), rgba(@THEME_DEEP_RGB@, 0.18));
   border-color: rgba(@THEME_CYAN_RGB@, 0.18);
   padding: 0 7px;
@@ -174,6 +190,22 @@ window#waybar {
 
 #backlight {
   color: #@THEME_FG@;
+  background: linear-gradient(180deg, rgba(@THEME_YELLOW_RGB@, 0.08), rgba(@THEME_DEEP_RGB@, 0.16));
+  border-color: rgba(@THEME_YELLOW_RGB@, 0.12);
+}
+
+#cpu,
+#memory,
+#custom-temperature {
+  color: #@THEME_YELLOW@;
+  background: linear-gradient(180deg, rgba(@THEME_YELLOW_RGB@, 0.1), rgba(@THEME_DEEP_RGB@, 0.16));
+  border-color: rgba(@THEME_YELLOW_RGB@, 0.14);
+}
+
+#battery {
+  color: #@THEME_GREEN@;
+  background: linear-gradient(180deg, rgba(@THEME_GREEN_RGB@, 0.1), rgba(@THEME_DEEP_RGB@, 0.16));
+  border-color: rgba(@THEME_GREEN_RGB@, 0.14);
 }
 
 #cpu.warning,
@@ -203,6 +235,7 @@ window#waybar {
 
 #custom-notification {
   color: #@THEME_BLUE@;
+  font-size: 15px;
   background: linear-gradient(180deg, rgba(@THEME_BLUE_RGB@, 0.12), rgba(@THEME_DEEP_RGB@, 0.18));
   border-color: rgba(@THEME_BLUE_RGB@, 0.18);
   margin: 0 1px;
@@ -229,18 +262,14 @@ window#waybar {
 
 #custom-power {
   color: #@THEME_RED@;
+  font-size: 15px;
   background: linear-gradient(180deg, rgba(@THEME_RED_RGB@, 0.12), rgba(@THEME_DEEP_RGB@, 0.18));
   border-color: rgba(@THEME_RED_RGB@, 0.18);
 }
 
-#custom-launcher,
-#custom-notification,
-#custom-power {
-  font-size: 14px;
-}
-
 #custom-launcher {
   color: #@THEME_BLUE@;
+  font-size: 15px;
   background: linear-gradient(180deg, rgba(@THEME_BLUE_RGB@, 0.14), rgba(@THEME_DEEP_RGB@, 0.2));
   border-color: rgba(@THEME_BLUE_RGB@, 0.22);
 }
@@ -258,6 +287,39 @@ window#waybar {
   background: rgba(@THEME_BG2_RGB@, 0.44);
   color: #@THEME_FG2@;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+#window:hover {
+  background: linear-gradient(180deg, rgba(@THEME_BG2_RGB@, 0.38), rgba(@THEME_DEEP_RGB@, 0.28));
+}
+
+#mpris:hover {
+  background: linear-gradient(180deg, rgba(@THEME_TEAL_RGB@, 0.18), rgba(@THEME_DEEP_RGB@, 0.26));
+}
+
+#cpu:hover,
+#memory:hover,
+#custom-temperature:hover,
+#backlight:hover {
+  background: linear-gradient(180deg, rgba(@THEME_YELLOW_RGB@, 0.16), rgba(@THEME_DEEP_RGB@, 0.24));
+}
+
+#battery:hover {
+  background: linear-gradient(180deg, rgba(@THEME_GREEN_RGB@, 0.16), rgba(@THEME_DEEP_RGB@, 0.24));
+}
+
+#clock:hover,
+#custom-launcher:hover,
+#custom-notification:hover {
+  background: linear-gradient(180deg, rgba(@THEME_BLUE_RGB@, 0.2), rgba(@THEME_DEEP_RGB@, 0.28));
+}
+
+#network:hover {
+  background: linear-gradient(180deg, rgba(@THEME_CYAN_RGB@, 0.2), rgba(@THEME_DEEP_RGB@, 0.28));
+}
+
+#custom-power:hover {
+  background: linear-gradient(180deg, rgba(@THEME_RED_RGB@, 0.2), rgba(@THEME_DEEP_RGB@, 0.28));
 }
 
 tooltip {
