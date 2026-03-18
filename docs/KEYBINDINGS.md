@@ -35,6 +35,7 @@
 | `Mod + Shift + X` | 锁屏 |
 | `Mod + T` | 按顺序切到下一张壁纸 |
 | `Mod + Escape` | 会话菜单（Wlogout） |
+| `Mod + Y` | 剪贴板历史菜单 |
 | `Mod + Shift + E` | 退出 River |
 | `Mod + P` | 进入 passthrough mode |
 | `Mod + P`（在 passthrough mode 内） | 回到 normal mode |
@@ -49,8 +50,11 @@
 | `Mod + S/G` | 左/右移动窗口 |
 | `Mod + D/F` | 上/下移动窗口 |
 | `Mod + W` | 浮动/平铺切换 |
+| `Mod + X` | 将当前窗口提升到主位（`zoom`） |
+| `Mod + B` | 在当前平铺模式与 `monocle` 之间切换 |
 | `Mod + Z` | 全屏 |
 | `Mod + E/R` | 调整 `rivercarro` 主列比例（`E` 增大，`R` 缩小） |
+| `Mod + C/V` | 减少/增加 `rivercarro` 主列窗口数（`main-count`） |
 | `Mod + 鼠标左键拖动` | 移动窗口 |
 | `Mod + 鼠标中键` | 浮动/平铺切换 |
 | `Mod + 鼠标右键拖动` | 调整窗口大小 |
@@ -78,7 +82,7 @@
 | `Mod + Shift + A` | 全屏截图，保存到 `~/Pictures/Screenshots/` 并复制到剪贴板 |
 | `Print` | 区域截图，保存到 `~/Pictures/Screenshots/` 并复制到剪贴板 |
 | `Ctrl + Print` | 全屏截图，保存到 `~/Pictures/Screenshots/` 并复制到剪贴板 |
-| `Mod + V` | 剪贴板历史菜单 |
+| `Mod + Y` | 剪贴板历史菜单 |
 
 ---
 
