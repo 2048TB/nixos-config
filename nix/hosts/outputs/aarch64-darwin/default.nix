@@ -38,39 +38,18 @@ let
   darwinConfigurations = mylib.mergeAttrFromList "darwinConfigurations" dataWithoutPaths;
   mainUsers = mylib.mergeAttrFromList "mainUsers" dataWithoutPaths;
   resolvedHostNames = builtins.attrNames darwinConfigurations;
-  hostnameExpr = common.mapHostValuesByPath [ "config" "networking" "hostName" ] darwinConfigurations;
-  hostnameExpected = common.mkExpectedHostNames resolvedHostNames;
-  homeExpr = common.mapHomeDirectories darwinConfigurations;
-  homeExpected = common.mkExpectedHomeDirectories "/Users" mainUsers;
-  platformExpr = common.mapHostValuesByPath [ "pkgs" "stdenv" "hostPlatform" "system" ] darwinConfigurations;
-  platformExpected = common.mkExpectedAttrSet resolvedHostNames system;
-  hostEvalTests = {
-    hostname = hostnameExpr == hostnameExpected;
-    home = homeExpr == homeExpected;
-    platform = platformExpr == platformExpected;
+  hostEvalTests = common.mkStandardEvalTests {
+    configurations = darwinConfigurations;
+    inherit mainUsers system;
+    hostNames = resolvedHostNames;
+    homeRoot = "/Users";
   };
   pkgs = import inputs.nixpkgs-darwin {
     inherit system;
     config.allowUnfreePredicate = mylib.allowUnfreePredicate;
   };
   mkEvalCheck = common.mkEvalCheck pkgs;
-  evalCheckSpecs = [
-    {
-      name = "evaltest-darwin-hostname";
-      ok = hostEvalTests.hostname;
-      message = "darwin hostname eval test failed";
-    }
-    {
-      name = "evaltest-darwin-home";
-      ok = hostEvalTests.home;
-      message = "darwin home eval test failed";
-    }
-    {
-      name = "evaltest-darwin-platform";
-      ok = hostEvalTests.platform;
-      message = "darwin platform eval test failed";
-    }
-  ];
+  evalCheckSpecs = common.mkEvalCheckSpecs "darwin-" hostEvalTests;
   evalTestChecks.${system} = mylib.specsToAttrs evalCheckSpecs mkEvalCheck;
 in
 assert common.assertRegistryState

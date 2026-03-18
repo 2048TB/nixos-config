@@ -1,5 +1,5 @@
 { lib, mylib }:
-{
+rec {
   mkRegistryState =
     { kind
     , hostsRoot
@@ -111,5 +111,36 @@
   mkExpectedHomeDirectories =
     homeRoot: mainUsers:
     builtins.mapAttrs (_host: user: "${homeRoot}/${user}") mainUsers;
+
+  mkStandardEvalTests =
+    { configurations
+    , mainUsers
+    , hostNames
+    , system
+    , homeRoot
+    , extraTests ? { }
+    }:
+    {
+      hostname =
+        mapHostValuesByPath [ "config" "networking" "hostName" ] configurations
+        == mkExpectedHostNames hostNames;
+      home =
+        mapHomeDirectories configurations
+        == mkExpectedHomeDirectories homeRoot mainUsers;
+      platform =
+        mapHostValuesByPath [ "pkgs" "stdenv" "hostPlatform" "system" ] configurations
+        == mkExpectedAttrSet hostNames system;
+    }
+    // extraTests;
+
+  mkEvalCheckSpecs =
+    prefix: evalTests:
+    map
+      (name: {
+        name = "evaltest-${prefix}${name}";
+        ok = evalTests.${name};
+        message = "${prefix}${name} eval test failed";
+      })
+      (builtins.attrNames evalTests);
 
 }
