@@ -48,6 +48,8 @@ riverctl map normal Super Escape spawn wlogout-menu
 riverctl map normal Super Y spawn river-cliphist-menu
 riverctl map normal Super X zoom
 riverctl map normal Super B send-layout-cmd rivercarro "main-location-cycle left,monocle"
+riverctl map normal Super N focus-view previous
+riverctl map normal Super M focus-view next
 riverctl map normal Super C send-layout-cmd rivercarro "main-count -1"
 riverctl map normal Super V send-layout-cmd rivercarro "main-count +1"
 riverctl map normal Super A spawn "take-screenshot area"

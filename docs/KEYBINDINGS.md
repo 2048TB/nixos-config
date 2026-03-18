@@ -52,6 +52,7 @@
 | `Mod + W` | 浮动/平铺切换 |
 | `Mod + X` | 将当前窗口提升到主位（`zoom`） |
 | `Mod + B` | 在当前平铺模式与 `monocle` 之间切换 |
+| `Mod + N/M` | 切换到上一个/下一个窗口；在 `monocle` 中用于轮换窗口 |
 | `Mod + Z` | 全屏 |
 | `Mod + E/R` | 调整 `rivercarro` 主列比例（`E` 增大，`R` 缩小） |
 | `Mod + C/V` | 减少/增加 `rivercarro` 主列窗口数（`main-count`） |

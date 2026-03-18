@@ -91,6 +91,8 @@ in
       test "${if lib.hasInfix "map normal Super F swap down" riverExtraConfig then "1" else "0"}" = "1"
       test "${if lib.hasInfix "map normal Super X zoom" riverExtraConfig then "1" else "0"}" = "1"
       test "${if lib.hasInfix "map normal Super B send-layout-cmd rivercarro \"main-location-cycle left,monocle\"" riverExtraConfig then "1" else "0"}" = "1"
+      test "${if lib.hasInfix "map normal Super N focus-view previous" riverExtraConfig then "1" else "0"}" = "1"
+      test "${if lib.hasInfix "map normal Super M focus-view next" riverExtraConfig then "1" else "0"}" = "1"
       test "${if lib.hasInfix "map normal Super C send-layout-cmd rivercarro \"main-count -1\"" riverExtraConfig then "1" else "0"}" = "1"
       test "${if lib.hasInfix "map normal Super V send-layout-cmd rivercarro \"main-count +1\"" riverExtraConfig then "1" else "0"}" = "1"
       test "${if lib.hasInfix "map normal Super Z toggle-fullscreen" riverExtraConfig then "1" else "0"}" = "1"
