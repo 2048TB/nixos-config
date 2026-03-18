@@ -24,6 +24,13 @@ layout {
         // fixed 1920
     }
 
+    // 自定义窗口高度预设，供 switch-preset-window-height 循环切换。
+    preset-window-heights {
+        proportion 0.333330
+        proportion 0.666670
+        proportion 1.000000
+    }
+
     // 可以修改新窗口的默认宽度。
     // 默认 83%，通过 Mod+R 快捷键在 50%, 80%, 100% 之间切换
     default-column-width { proportion 0.80000;}
