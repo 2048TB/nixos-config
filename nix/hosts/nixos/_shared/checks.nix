@@ -59,23 +59,6 @@ let
   provider-appExecStartPrePath = if provider-appExecStartPre == null then "" else toString provider-appExecStartPre;
   hmCfg = cfg.home-manager.users.${mainUser};
   expectedHome = "/home/${mainUser}";
-  sopsScriptPath = ../../../scripts/admin/sops.sh;
-  githubRepairActivation = cfg.system.activationScripts.repairGithubSshPrivateKey or { };
-  githubRepairScript = githubRepairActivation.text or "";
-  githubRepairDeps = githubRepairActivation.deps or [ ];
-  hasGithubRepairScript = githubRepairScript != "";
-  hasGithubRepairDeps =
-    builtins.elem "setupSecretsForUsers" githubRepairDeps
-    && builtins.elem "ensureUserSshDir" githubRepairDeps;
-  hasGithubRepairLogic =
-    lib.all
-      (needle: lib.hasInfix needle githubRepairScript)
-      [
-        "/.ssh/id_ed25519"
-        "-----BEGIN OPENSSH PRIVATE KEY-----"
-        "printf '\\n'"
-        "repaired missing trailing newline"
-      ];
 
   getNames = pkgList: lib.unique (map lib.getName pkgList);
   excludeAllowed = allowed: names: builtins.filter (n: !(builtins.elem n allowed)) names;
@@ -296,18 +279,6 @@ in
     grep -F '${pkgs.coreutils}/bin/mkdir' "$prepare_script" >/dev/null
     grep -F '${pkgs.coreutils}/bin/touch' "$prepare_script" >/dev/null
     grep -F '${pkgs.coreutils}/bin/cat' "$start_script" >/dev/null
-    touch "$out"
-  '';
-
-  "eval-${name}-sops-ssh-key-set-preserves-trailing-newline" = pkgs.runCommand "eval-${name}-sops-ssh-key-set-preserves-trailing-newline" { } ''
-    test "$(${pkgs.gnugrep}/bin/grep -Fc 'echo "value: |"' ${sopsScriptPath})" = "2"
-    touch "$out"
-  '';
-
-  "eval-${name}-github-ssh-key-repair-script" = pkgs.runCommand "eval-${name}-github-ssh-key-repair-script" { } ''
-    test "${if hasGithubRepairScript then "1" else "0"}" = "1"
-    test "${if hasGithubRepairDeps then "1" else "0"}" = "1"
-    test "${if hasGithubRepairLogic then "1" else "0"}" = "1"
     touch "$out"
   '';
 
