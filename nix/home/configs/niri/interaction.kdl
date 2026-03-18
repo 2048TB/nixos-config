@@ -305,7 +305,7 @@ binds {
     Mod+Shift+P { power-off-monitors; }
 
     // 实用快捷键（对齐 Hyprland）
-    Mod+Ctrl+B { spawn-sh "systemctl --user restart noctalia-shell.service || true"; }
+    Mod+Ctrl+B { spawn-sh "pkill -x noctalia-shell || true; sleep 0.2; exec noctalia-shell"; }
     Mod+Ctrl+S { spawn "pavucontrol"; }
     Mod+Ctrl+E { spawn "noctalia-shell" "ipc" "call" "sessionMenu" "toggle"; }
 }

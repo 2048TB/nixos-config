@@ -23,7 +23,7 @@ nix/home/
 │   ├── packages.nix    # home.packages（含主账号开发环境）
 │   ├── package-groups.nix # Linux 包分类清单（纯数据）
 │   ├── programs.nix    # fzf/mpv/lutris 等
-│   ├── desktop.nix     # systemd 用户服务（noctalia-shell/udiskie/mullvad）
+│   ├── desktop.nix     # 桌面用户服务与 Noctalia 包接入（udiskie/mullvad）
 │   └── xdg.nix         # portal/mimeApps/configFile
 ├── darwin/default.nix  # macOS 专用
 └── configs/            # 应用配置文件（niri/tmux/zellij/shell/...）
@@ -36,7 +36,7 @@ nix/home/
 | 目标 | 文件 |
 |------|------|
 | 终端 | `configs/ghostty/`、`configs/foot/`、`configs/shell/` |
-| 状态栏 | `linux/desktop.nix`（`noctalia-shell` service） |
+| 状态栏 | `configs/niri/config.kdl`（Noctalia autostart） + `linux/desktop.nix`（包接入） |
 | 窗口快捷键 | `configs/niri/interaction.kdl` |
 | 窗口外观 | `configs/niri/appearance.kdl` |
 | Linux 包分类 | `linux/package-groups.nix` |

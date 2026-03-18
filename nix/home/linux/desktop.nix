@@ -67,8 +67,9 @@ in
   programs.noctalia-shell = {
     enable = true;
     package = noctaliaShellPkg;
-    # 官方 HM 模块负责生成/管理 noctalia-shell.service
-    systemd.enable = true;
+    # Noctalia 官方文档已不再推荐 systemd startup；
+    # 改由 Niri 的 spawn-at-startup 拉起，避免 delayed startup / IPC 漂移。
+    systemd.enable = false;
   };
 
   systemd = {

@@ -37,7 +37,7 @@
 | `Mod + .` | 文件管理器 |
 | `Mod + Shift + L` | 锁屏（Noctalia） |
 | `Mod + Ctrl + E` | 会话菜单（Noctalia） |
-| `Mod + Ctrl + B` | 重启 `noctalia-shell` 用户服务 |
+| `Mod + Ctrl + B` | 重启 `noctalia-shell` 进程 |
 | `Mod + Ctrl + S` | 打开 `pavucontrol` |
 | `Mod + Shift + E` | 退出 Niri |
 | `Ctrl + Alt + Delete` | 退出 Niri |
