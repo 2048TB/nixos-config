@@ -1,9 +1,6 @@
 {
   description = "Lean multi-host NixOS + nix-darwin + home-manager flake";
 
-  # 仅影响 flake 自身（如 nix flake check / CI），不直接修改系统级 nix.conf。
-  nixConfig = { };
-
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-25.11";
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixpkgs-unstable";

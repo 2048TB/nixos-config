@@ -7,6 +7,7 @@ let
     inherit hostsRoot system;
     requiredFiles = [
       "hardware.nix"
+      "hardware-modules.nix"
       "disko.nix"
       "vars.nix"
     ];
@@ -46,19 +47,16 @@ let
   mainUsers = mylib.mergeAttrFromList "mainUsers" dataWithoutPaths;
   resolvedHostNames = builtins.attrNames nixosConfigurations;
 
-  hostnameExpr = common.mapHostValuesByPath [ "config" "networking" "hostName" ] nixosConfigurations;
-  hostnameExpected = common.mkExpectedHostNames resolvedHostNames;
-  homeExpr = common.mapHomeDirectories nixosConfigurations;
-  homeExpected = common.mkExpectedHomeDirectories "/home" mainUsers;
-  kernelExpr = common.mapHostValuesByPath [ "config" "boot" "kernelPackages" "kernel" "system" ] nixosConfigurations;
-  kernelExpected = common.mkExpectedAttrSet resolvedHostNames system;
-  platformExpr = common.mapHostValuesByPath [ "pkgs" "stdenv" "hostPlatform" "system" ] nixosConfigurations;
-  platformExpected = common.mkExpectedAttrSet resolvedHostNames system;
-  hostEvalTests = {
-    hostname = hostnameExpr == hostnameExpected;
-    home = homeExpr == homeExpected;
-    kernel = kernelExpr == kernelExpected;
-    platform = platformExpr == platformExpected;
+  hostEvalTests = common.mkStandardEvalTests {
+    configurations = nixosConfigurations;
+    inherit mainUsers system;
+    hostNames = resolvedHostNames;
+    homeRoot = "/home";
+    extraTests = {
+      kernel =
+        common.mapHostValuesByPath [ "config" "boot" "kernelPackages" "kernel" "system" ] nixosConfigurations
+        == common.mkExpectedAttrSet resolvedHostNames system;
+    };
   };
 
   pkgs = import inputs.nixpkgs {
@@ -67,28 +65,7 @@ let
   };
   mkAppLocal = mkApp pkgs;
   mkEvalCheck = common.mkEvalCheck pkgs;
-  evalCheckSpecs = [
-    {
-      name = "evaltest-hostname";
-      ok = hostEvalTests.hostname;
-      message = "hostname eval test failed";
-    }
-    {
-      name = "evaltest-home";
-      ok = hostEvalTests.home;
-      message = "home eval test failed";
-    }
-    {
-      name = "evaltest-kernel";
-      ok = hostEvalTests.kernel;
-      message = "kernel eval test failed";
-    }
-    {
-      name = "evaltest-platform";
-      ok = hostEvalTests.platform;
-      message = "platform eval test failed";
-    }
-  ];
+  evalCheckSpecs = common.mkEvalCheckSpecs "" hostEvalTests;
   platformApps.${system} = {
     install = mkAppLocal "install" "Install Linux host on Live ISO with disko+nixos-install" ''
       ${appRepoPreamble}
