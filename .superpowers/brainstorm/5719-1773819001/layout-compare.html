@@ -1,0 +1,95 @@
+<h2>River 平铺 Layout 对比</h2>
+<p class="subtitle">面向你现在的 River 工作流，先看 3 类最值得比较的方向：<code>rivercarro</code>、<code>rivertile</code>、<code>monocle</code> 风格。</p>
+
+<div class="cards">
+  <div class="card" data-choice="rivercarro" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="mockup">
+        <div class="mockup-header">A. rivercarro</div>
+        <div class="mockup-body" style="display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:10px;height:260px;">
+          <div style="background:#5b7c99;border-radius:12px;padding:12px;color:white;display:flex;align-items:flex-start;">Main</div>
+          <div style="display:grid;grid-template-rows:1fr 1fr;gap:10px;">
+            <div style="background:#d7dee7;border-radius:12px;padding:12px;">Side 1</div>
+            <div style="background:#d7dee7;border-radius:12px;padding:12px;">Side 2</div>
+          </div>
+          <div style="display:grid;grid-template-rows:1fr 1fr;gap:10px;">
+            <div style="background:#e7edf3;border-radius:12px;padding:12px;">Side 3</div>
+            <div style="background:#e7edf3;border-radius:12px;padding:12px;">Side 4</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>rivercarro</h3>
+      <p>主列明显，副窗口还能继续横向展开。适合 1 个主任务加若干参考窗口，宽屏利用率高。</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="rivertile" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="mockup">
+        <div class="mockup-header">B. rivertile</div>
+        <div class="mockup-body" style="display:grid;grid-template-columns:1.35fr 1fr;gap:10px;height:260px;">
+          <div style="background:#6d8798;border-radius:12px;padding:12px;color:white;display:flex;align-items:flex-start;">Main</div>
+          <div style="display:grid;grid-template-rows:1fr 1fr 1fr;gap:10px;">
+            <div style="background:#dbe3ea;border-radius:12px;padding:12px;">Stack 1</div>
+            <div style="background:#dbe3ea;border-radius:12px;padding:12px;">Stack 2</div>
+            <div style="background:#dbe3ea;border-radius:12px;padding:12px;">Stack 3</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>rivertile</h3>
+      <p>更经典的 main + stack。结构简单、预期稳定，调节点少，适合想让窗口管理尽量“少想一点”的工作流。</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="monocle" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="mockup">
+        <div class="mockup-header">C. monocle 风格</div>
+        <div class="mockup-body" style="display:grid;grid-template-columns:1fr;height:260px;">
+          <div style="background:#4f6578;border-radius:12px;padding:12px;color:white;position:relative;">
+            Focused Window
+            <div style="position:absolute;right:12px;top:12px;font-size:12px;background:rgba(255,255,255,0.18);padding:4px 8px;border-radius:999px;">1 / 4</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>monocle 风格</h3>
+      <p>一次只突出一个窗口，其余窗口留在堆栈里切换。最利于专注，但并排对照会明显变少。</p>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="label">快速理解</div>
+  <div class="pros-cons" style="grid-template-columns:repeat(3,1fr);">
+    <div class="pros">
+      <h4>rivercarro</h4>
+      <ul>
+        <li>宽屏利用率最好</li>
+        <li>适合代码 + 文档 + 浏览器</li>
+        <li>多窗口时仍然可见</li>
+      </ul>
+    </div>
+    <div class="pros">
+      <h4>rivertile</h4>
+      <ul>
+        <li>最传统、最稳</li>
+        <li>规则更容易预测</li>
+        <li>副列管理简单</li>
+      </ul>
+    </div>
+    <div class="pros">
+      <h4>monocle</h4>
+      <ul>
+        <li>专注度最高</li>
+        <li>最适合单任务冲刺</li>
+        <li>布局最干净</li>
+      </ul>
+    </div>
+  </div>
+</div>

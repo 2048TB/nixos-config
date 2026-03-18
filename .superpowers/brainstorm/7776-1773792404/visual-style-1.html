@@ -1,0 +1,121 @@
+<h2>Waybar 美化方向</h2>
+<p class="subtitle">保留现有模块与交互，只调整视觉层次、胶囊形态、间距、字重和状态强调</p>
+
+<div class="cards">
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="mockup">
+        <div class="mockup-header">A. Glass Capsule</div>
+        <div class="mockup-body" style="background:linear-gradient(180deg,#10151d,#0a0f16);padding:20px;border-radius:14px;min-height:180px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:16px;color:#d7dde7;font:700 13px 'Maple Mono NF CN', monospace;">
+            <div style="display:flex;gap:10px;align-items:center;padding:8px 14px;border-radius:999px;background:rgba(18,24,34,.82);border:1px solid rgba(120,140,170,.28);box-shadow:0 10px 24px rgba(0,0,0,.35);">
+              <span style="color:#89b4fa">󱄅</span>
+              <span style="color:#e5c890">2026-03-18 Tue 12:48</span>
+              <span style="color:#a6d189">Zen Browser</span>
+              <span style="color:#8caaee">󰎈 Song - Artist</span>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center;padding:8px 12px;border-radius:999px;background:rgba(18,24,34,.82);border:1px solid rgba(120,140,170,.28);box-shadow:0 10px 24px rgba(0,0,0,.35);">
+              <span style="width:14px;height:14px;border-radius:999px;background:#313b4f;border:1px solid #46506a;"></span>
+              <span style="width:14px;height:14px;border-radius:999px;background:#313b4f;border:1px solid #46506a;"></span>
+              <span style="width:14px;height:14px;border-radius:999px;background:#89b4fa;border:1px solid #9cc4ff;"></span>
+              <span style="width:14px;height:14px;border-radius:999px;background:#313b4f;border:1px solid #46506a;"></span>
+              <span style="width:14px;height:14px;border-radius:999px;background:#313b4f;border:1px solid #46506a;"></span>
+            </div>
+            <div style="display:flex;gap:10px;align-items:center;padding:8px 14px;border-radius:999px;background:rgba(18,24,34,.82);border:1px solid rgba(120,140,170,.28);box-shadow:0 10px 24px rgba(0,0,0,.35);">
+              <span style="color:#f38ba8">CPU 18%</span>
+              <span style="color:#c6a0f6">MEM 31%</span>
+              <span style="color:#94e2d5">42°C</span>
+              <span style="color:#89dceb">↑ 1.8M ↓ 24M</span>
+              <span style="color:#89b4fa"></span>
+              <span style="color:#f2cdcd"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Glass Capsule</h3>
+      <p>参考 ML4W 常见的浮动胶囊与半透明层次，但收得更克制。重点是轻盈、通透、圆润。</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="mockup">
+        <div class="mockup-header">B. Dense Console</div>
+        <div class="mockup-body" style="background:linear-gradient(180deg,#121212,#0a0a0a);padding:20px;border-radius:14px;min-height:180px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:16px;color:#d4d4d4;font:700 12px 'Maple Mono NF CN', monospace;">
+            <div style="display:flex;gap:6px;align-items:center;padding:7px 10px;border-radius:10px;background:#11161d;border:1px solid #2b3643;">
+              <span style="color:#7aa2f7">󱄅</span>
+              <span style="color:#e0af68">2026-03-18 12:48:09</span>
+              <span style="color:#9ece6a">/persistent/nixos-config</span>
+            </div>
+            <div style="display:flex;gap:5px;align-items:center;padding:6px 8px;border-radius:10px;background:#11161d;border:1px solid #2b3643;">
+              <span style="padding:1px 5px;border-radius:6px;background:#7aa2f7;color:#0b1118;">1</span>
+              <span style="padding:1px 5px;border-radius:6px;background:#1a2230;color:#9aa5b1;">2</span>
+              <span style="padding:1px 5px;border-radius:6px;background:#1a2230;color:#9aa5b1;">3</span>
+              <span style="padding:1px 5px;border-radius:6px;background:#1a2230;color:#9aa5b1;">4</span>
+              <span style="padding:1px 5px;border-radius:6px;background:#1a2230;color:#9aa5b1;">5</span>
+            </div>
+            <div style="display:flex;gap:6px;align-items:center;padding:7px 10px;border-radius:10px;background:#11161d;border:1px solid #2b3643;">
+              <span style="color:#f7768e">CPU 18%</span>
+              <span style="color:#bb9af7">MEM 31%</span>
+              <span style="color:#7dcfff">TEMP 42C</span>
+              <span style="color:#73daca">NET 24M</span>
+              <span style="color:#7aa2f7">NOTI</span>
+              <span style="color:#f7768e">OFF</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Dense Console</h3>
+      <p>更像高质量 terminal HUD。参考一些偏工程感的 Hyprland/Waybar 配置，边界更清楚，信息更紧凑。</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="mockup">
+        <div class="mockup-header">C. Soft Premium</div>
+        <div class="mockup-body" style="background:linear-gradient(180deg,#16141b,#100f15);padding:20px;border-radius:14px;min-height:180px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:16px;color:#f2eff7;font:700 13px 'Maple Mono NF CN', monospace;">
+            <div style="display:flex;gap:12px;align-items:center;padding:10px 16px;border-radius:18px;background:rgba(26,22,34,.94);border:1px solid rgba(201,173,255,.16);box-shadow:0 12px 24px rgba(0,0,0,.28);">
+              <span style="color:#f5bde6">󱄅</span>
+              <span style="color:#eed49f">周二 12:48</span>
+              <span style="color:#cad3f5">Window Title</span>
+            </div>
+            <div style="display:flex;gap:7px;align-items:center;padding:8px 12px;border-radius:18px;background:rgba(26,22,34,.94);border:1px solid rgba(201,173,255,.16);box-shadow:0 12px 24px rgba(0,0,0,.28);">
+              <span style="width:18px;height:18px;border-radius:9px;background:#f5bde6;"></span>
+              <span style="width:18px;height:18px;border-radius:9px;background:#312b3d;"></span>
+              <span style="width:18px;height:18px;border-radius:9px;background:#312b3d;"></span>
+              <span style="width:18px;height:18px;border-radius:9px;background:#312b3d;"></span>
+            </div>
+            <div style="display:flex;gap:9px;align-items:center;padding:10px 16px;border-radius:18px;background:rgba(26,22,34,.94);border:1px solid rgba(201,173,255,.16);box-shadow:0 12px 24px rgba(0,0,0,.28);">
+              <span style="color:#ed8796">󰻠 18%</span>
+              <span style="color:#c6a0f6">󰍛 31%</span>
+              <span style="color:#8bd5ca">42°C</span>
+              <span style="color:#91d7e3">↑ 1.8M ↓ 24M</span>
+              <span style="color:#8aadf4"></span>
+              <span style="color:#ee99a0"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Soft Premium</h3>
+      <p>借一点 Catppuccin 式柔和高端感，但不做纯 pastel。更强调精致比例、低对比阴影和温和色块。</p>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <p class="label">参考方向</p>
+  <p>ML4W 的浮动主题切换思路、Catppuccin Waybar 的柔和配色组织，以及 end-4 这类 Hyprland 配置里常见的强视觉层次。</p>
+</div>
+
+<div class="section">
+  <p>打开 <strong>http://localhost:54782</strong> 看这 3 个方向。点一下你更偏好的方案，然后在终端回复我：`A`、`B`、`C`，或者说“以 A 为主，混一点 C”。</p>
+</div>
