@@ -8,7 +8,9 @@ include "./interaction.kdl"
 include "./appearance.kdl"
 include "./outputs.kdl"
 
-// Noctalia shell 由 Home Manager 的 systemd --user 服务管理。
+// Noctalia shell 仍使用本地持久化 settings.json，
+// 但启动改为官方当前推荐的 compositor autostart。
+spawn-at-startup "noctalia-shell"
 
 debug {
     // 允许 Noctalia 的通知动作与窗口激活在 Niri 下正常工作。
