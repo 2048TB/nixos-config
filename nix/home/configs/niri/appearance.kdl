@@ -17,16 +17,16 @@ layout {
         // 例如 proportion 0.25 可在一个输出上正好放下四个窗口。
         // 预设宽度：50%、83%、100%（适配 2560x1440）。
         proportion 0.500000
-        proportion 0.830000
-        proportion 1.000000
+        proportion 0.800000
+        // proportion 1.000000
 
         // fixed 以逻辑像素设置固定宽度。
         // fixed 1920
     }
 
     // 可以修改新窗口的默认宽度。
-    // 默认 83%，通过 Mod+R 快捷键在 50%, 83%, 100% 之间切换
-    default-column-width { proportion 0.830000; }
+    // 默认 83%，通过 Mod+R 快捷键在 50%, 80%, 100% 之间切换
+    default-column-width { proportion 0.80000;}
     // 若花括号留空，由窗口自身决定初始宽度。
     // default-column-width {}
 
