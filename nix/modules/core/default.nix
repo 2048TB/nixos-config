@@ -14,6 +14,17 @@ in
 
   system.stateVersion = hostCfg.systemStateVersion;
 
+  system.activationScripts = {
+    # 为硬编码 /bin/bash 的脚本提供兼容路径。
+    binbash = {
+      text = ''
+        mkdir -p /bin
+        ln -sfn /run/current-system/sw/bin/bash /bin/bash
+      '';
+      deps = [ "specialfs" ];
+    };
+  };
+
   networking = {
     hostName = hostCfg.hostname;
     networkmanager.enable = true;
