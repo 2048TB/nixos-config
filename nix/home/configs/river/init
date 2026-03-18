@@ -20,7 +20,7 @@ riverctl map normal Super Return spawn ghostty
 riverctl map normal Super Space spawn fuzzel
 riverctl map normal Super Q close
 riverctl map normal Super+Shift E exit
-riverctl map normal Super Tab toggle-float
+riverctl map normal Super W toggle-float
 riverctl map normal Super Z toggle-fullscreen
 riverctl map normal Super Left focus-view left
 riverctl map normal Super Right focus-view right
@@ -34,8 +34,8 @@ riverctl map normal Super+Shift Left swap left
 riverctl map normal Super+Shift Right swap right
 riverctl map normal Super+Shift Up swap up
 riverctl map normal Super+Shift Down swap down
-riverctl map normal Super H send-layout-cmd rivercarro "main-ratio -0.05"
-riverctl map normal Super L send-layout-cmd rivercarro "main-ratio +0.05"
+riverctl map normal Super E send-layout-cmd rivercarro "main-ratio +0.05"
+riverctl map normal Super R send-layout-cmd rivercarro "main-ratio -0.05"
 riverctl map normal Super Period focus-output next
 riverctl map normal Super Comma focus-output previous
 riverctl map normal Super+Shift Period send-to-output next
@@ -43,7 +43,7 @@ riverctl map normal Super+Shift Comma send-to-output previous
 riverctl map normal Super P enter-mode passthrough
 riverctl map passthrough Super P enter-mode normal
 riverctl map normal Super+Shift X spawn lock-screen
-riverctl map normal Super W spawn wallpaper-next
+riverctl map normal Super T spawn wallpaper-next
 riverctl map normal Super Escape spawn wlogout-menu
 riverctl map normal Super V spawn river-cliphist-menu
 riverctl map normal Super A spawn "take-screenshot area"
