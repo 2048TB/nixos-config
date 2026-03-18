@@ -1,7 +1,7 @@
 {
   "layer": "top",
   "position": "top",
-  "height": 30,
+  "height": 28,
   "spacing": 5,
   "reload_style_on_change": true,
 
@@ -131,8 +131,8 @@
   },
 
   "tray": {
-    "spacing": 6,
-    "icon-size": 14,
+    "spacing": 5,
+    "icon-size": 13,
     "show-passive-items": true,
     "icons": {
       "chrome_status_icon_1": "mullvad-vpn",
