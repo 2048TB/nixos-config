@@ -18,11 +18,12 @@ in
         # 避免落到 XWayland 后出现字体发虚。
         NIXOS_OZONE_WL = "1";
         QT_QPA_PLATFORMTHEME = "qt6ct";
-        # 输入法环境变量（Wayland 会话下显式声明，避免 Fcitx5 未接管）
-        INPUT_METHOD = "fcitx";
-        GTK_IM_MODULE = "fcitx";
+        # 输入法环境变量
+        # waylandFrontend = true 下，NixOS module 已在系统层设置 XMODIFIERS。
+        # Gtk3/4 原生 Wayland 应用通过 text-input-v3 协议直接与 Fcitx5 通信，
+        # 不再需要 GTK_IM_MODULE（fcitx5 官方 Wayland 文档推荐）。
+        # Qt < 6.7 仍需 QT_IM_MODULE；SDL2 文字输入需 SDL_IM_MODULE。
         QT_IM_MODULE = "fcitx";
-        XMODIFIERS = "@im=fcitx";
         SDL_IM_MODULE = "fcitx";
 
         # OpenSSL for Rust openssl-sys on NixOS (user-wide)
