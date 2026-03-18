@@ -41,9 +41,24 @@ let
       exec udiskie-quiet "$@"
     '';
   };
-  mullvadVpnQuiet = mkLogFilteredLauncher "mullvad-vpn-quiet" "${pkgs.mullvad-vpn}/bin/mullvad-vpn" [
-    "Gtk: gtk_widget_get_scale_factor: assertion 'GTK_IS_WIDGET \\(widget\\)' failed"
-  ];
+  mullvadVpnLauncher = pkgs.writeShellApplication {
+    name = "mullvad-vpn-launcher";
+    runtimeInputs = [ pkgs.glib pkgs.mullvad-vpn pkgs.gnugrep ];
+    text = ''
+      export LD_LIBRARY_PATH="${pkgs.libglvnd}/lib:/run/opengl-driver/lib:/run/opengl-driver-32/lib:/run/current-system/sw/lib"
+      export LIBGL_DRIVERS_PATH="/run/opengl-driver/lib/dri"
+      export GSETTINGS_SCHEMA_DIR="${pkgs.gsettings-desktop-schemas}/share/gsettings-schemas/${pkgs.gsettings-desktop-schemas.name}/glib-2.0/schemas"
+
+      set +e
+      mullvad-vpn "$@" 2>&1 \
+        | grep -F -v "Gtk: gtk_widget_get_scale_factor: assertion 'GTK_IS_WIDGET (widget)' failed" \
+        | grep -F -v 'Error while retrieving theme {"code":127,"killed":false,"signal":null,"cmd":"gsettings get org.gnome.desktop.interface icon-theme"}' \
+        >&2
+      status="''${PIPESTATUS[0]}"
+      set -e
+      exit "$status"
+    '';
+  };
   waybarLauncher = pkgs.writeShellApplication {
     name = "waybar-launcher";
     runtimeInputs = [ pkgs.coreutils waybarQuiet ];
@@ -379,14 +394,7 @@ in
         Install.WantedBy = [ "graphical-session.target" ];
         Service = {
           Type = "simple";
-          Environment = [
-            # Mullvad wrapper 仅注入 coreutils/grep PATH；补齐 gsettings 与图形库搜索路径
-            "PATH=${pkgs.glib}/bin:/run/current-system/sw/bin:${userProfileBin}"
-            "LD_LIBRARY_PATH=${pkgs.libglvnd}/lib:/run/opengl-driver/lib:/run/opengl-driver-32/lib:/run/current-system/sw/lib"
-            "LIBGL_DRIVERS_PATH=/run/opengl-driver/lib/dri"
-            "GSETTINGS_SCHEMA_DIR=${pkgs.gsettings-desktop-schemas}/share/gsettings-schemas/${pkgs.gsettings-desktop-schemas.name}/glib-2.0/schemas"
-          ];
-          ExecStart = "${lib.getExe mullvadVpnQuiet}";
+          ExecStart = "${lib.getExe mullvadVpnLauncher}";
           Restart = "on-failure";
           RestartSec = 2;
         };

@@ -58,6 +58,9 @@ let
   mullvadExecStartPre = cfg.systemd.services.mullvad-daemon.serviceConfig.ExecStartPre or null;
   mullvadExecStartPrePath = if mullvadExecStartPre == null then "" else toString mullvadExecStartPre;
   hmCfg = cfg.home-manager.users.${mainUser};
+  mullvadUiService = hmCfg.systemd.user.services."mullvad-vpn-ui" or { };
+  mullvadUiExecStart = mullvadUiService.Service.ExecStart or null;
+  mullvadUiExecStartPath = if mullvadUiExecStart == null then "" else toString mullvadUiExecStart;
   aria2Service = hmCfg.systemd.user.services.aria2 or { };
   aria2ExecStartPre = aria2Service.Service.ExecStartPre or null;
   aria2ExecStart = aria2Service.Service.ExecStart or null;
@@ -453,6 +456,20 @@ in
     grep -F 'settings_dir="/etc/mullvad-vpn"' "$script_path" >/dev/null
     grep -F '.block_when_disconnected = false' "$script_path" >/dev/null
     grep -F '.auto_connect = true' "$script_path" >/dev/null
+    touch "$out"
+  '';
+
+  "eval-${name}-mullvad-ui-launcher" = pkgs.runCommand "eval-${name}-mullvad-ui-launcher" { } ''
+    script_path="${mullvadUiExecStartPath}"
+
+    if [ -z "$script_path" ] || [ ! -f "$script_path" ]; then
+      echo "missing mullvad UI launcher" >&2
+      exit 1
+    fi
+
+    grep -F 'GSETTINGS_SCHEMA_DIR=' "$script_path" >/dev/null
+    grep -F 'LIBGL_DRIVERS_PATH=' "$script_path" >/dev/null
+    grep -F 'gsettings get org.gnome.desktop.interface icon-theme' "$script_path" >/dev/null
     touch "$out"
   '';
 }
