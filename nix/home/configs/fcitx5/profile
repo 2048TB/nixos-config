@@ -4,7 +4,7 @@ Name=Intl
 # 布局
 Default Layout=us
 # 默认输入法
-DefaultIM=rime
+DefaultIM=keyboard-us-altgr-intl
 
 [Groups/0/Items/0]
 # 名称
