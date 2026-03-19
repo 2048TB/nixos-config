@@ -1,13 +1,4 @@
-{ config
-, pkgs
-, lib
-, myvars
-, ...
-}:
-let
-  homeDir = config.home.homeDirectory;
-  mkdirExe = lib.getExe' pkgs.coreutils "mkdir";
-in
+{ pkgs, ... }:
 {
   home = {
     # 会话变量（仅 Linux 特有：Wayland/输入法/OpenSSL）
@@ -31,9 +22,5 @@ in
         OPENSSL_LIB_DIR = "${pkgs.openssl.out}/lib";
         OPENSSL_DIR = "${pkgs.openssl.dev}";
       };
-
-    activation.ensureFcitxPinyinDir = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-      ${mkdirExe} -p "${homeDir}/.local/share/fcitx5/pinyin"
-    '';
   };
 }

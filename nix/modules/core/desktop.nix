@@ -72,8 +72,9 @@ lib.mkIf hasDesktopSession {
         kdePackages.fcitx5-qt
         qt6Packages.fcitx5-configtool
         fcitx5-gtk
-        qt6Packages.fcitx5-chinese-addons
-        fcitx5-pinyin-zhwiki
+        (fcitx5-rime.override {
+          rimeDataPkgs = [ rime-ice ];
+        })
       ];
     };
   };

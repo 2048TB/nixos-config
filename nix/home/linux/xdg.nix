@@ -58,6 +58,8 @@ let
 in
 {
   xdg = {
+    dataFile."fcitx5/rime/default.custom.yaml".source = ../configs/rime/default.custom.yaml;
+
     configFile =
       sourceConfigFiles
       // forcedSourceConfigFiles
