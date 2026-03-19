@@ -319,7 +319,7 @@
         "gridSnapScale": false,
         "monitorWidgets": [
             {
-                "name": "__TEMPLATE__",
+                "name": "DP-1",
                 "widgets": [
                     {
                         "clockStyle": "digital",
