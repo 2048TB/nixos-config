@@ -1,4 +1,8 @@
-{ pkgs, ... }:
+{ config, pkgs, lib, ... }:
+let
+  homeDir = config.home.homeDirectory;
+  rmExe = lib.getExe' pkgs.coreutils "rm";
+in
 {
   home = {
     # 会话变量（仅 Linux 特有：Wayland/输入法/OpenSSL）
@@ -22,5 +26,13 @@
         OPENSSL_LIB_DIR = "${pkgs.openssl.out}/lib";
         OPENSSL_DIR = "${pkgs.openssl.dev}";
       };
+
+    # Rime 会缓存编译后的 build 产物；配置更新后若不清理，fcitx5 可能继续吃旧配置。
+    # 这里只删除 build，等待下次 fcitx5 启动或手动 reload 时自动重建。
+    activation.clearFcitxRimeBuild = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+      if [ -d "${homeDir}/.local/share/fcitx5/rime/build" ]; then
+        ${rmExe} -rf "${homeDir}/.local/share/fcitx5/rime/build"
+      fi
+    '';
   };
 }
