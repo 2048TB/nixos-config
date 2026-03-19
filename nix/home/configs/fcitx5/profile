@@ -4,7 +4,7 @@ Name=Intl
 # 布局
 Default Layout=us
 # 默认输入法
-DefaultIM=pinyin
+DefaultIM=rime
 
 [Groups/0/Items/0]
 # 名称
@@ -26,7 +26,7 @@ Layout=
 
 [Groups/0/Items/3]
 # 名称
-Name=pinyin
+Name=rime
 # 布局
 Layout=
 
@@ -36,7 +36,7 @@ Name=Default
 # 布局
 Default Layout=us
 # 默认输入法
-DefaultIM=pinyin
+DefaultIM=rime
 
 [Groups/1/Items/0]
 # 名称
@@ -46,7 +46,7 @@ Layout=
 
 [Groups/1/Items/1]
 # 名称
-Name=pinyin
+Name=rime
 # 布局
 Layout=
 
