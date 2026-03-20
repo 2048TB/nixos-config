@@ -98,6 +98,7 @@ in
       defaultApplications =
         lib.genAttrs imageMimeTypes (_: imageApps)
         // {
+          "inode/directory" = [ "org.gnome.Nautilus.desktop" ];
           "text/plain" = [ "org.gnome.TextEditor.desktop" ];
           "text/html" = browserApps;
           "x-scheme-handler/http" = browserApps;

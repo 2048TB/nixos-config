@@ -39,21 +39,51 @@ let
     fi
     exec ${pkgs.aria2}/bin/aria2c --conf-path="$HOME/.config/aria2/aria2.conf" $rpc_secret_arg
   '';
+  nautilusX11 = pkgs.writeShellScript "nautilus-x11" ''
+    set -eu
+
+    # Keep Nautilus on native Wayland for correct fractional scaling, but force
+    # the fcitx GTK IM module so it doesn't use the broken text-input-v3 path
+    # observed under niri when opening rename/pop-up UI.
+    export GDK_BACKEND=wayland
+    export GTK_IM_MODULE=fcitx
+
+    exec ${pkgs.nautilus}/bin/nautilus --new-window "$@"
+  '';
 in
 {
-  xdg.dataFile."applications/dev.noctalia.noctalia-qs.desktop".text =
-    # portal host app registry 要求 app_id 能匹配一个可解析的 .desktop basename；
-    # 上游当前未安装该文件，这里直接生成最小合法 desktop entry。
-    ''
-      [Desktop Entry]
-      Version=1.5
-      Type=Application
-      Name=Noctalia Shell
-      NoDisplay=true
-      TryExec=${lib.getExe noctaliaShellPkg}
-      Exec=${lib.getExe noctaliaShellPkg}
-      Terminal=false
-    '';
+  xdg.dataFile = {
+    "applications/dev.noctalia.noctalia-qs.desktop".text =
+      # portal host app registry 要求 app_id 能匹配一个可解析的 .desktop basename；
+      # 上游当前未安装该文件，这里直接生成最小合法 desktop entry。
+      ''
+        [Desktop Entry]
+        Version=1.5
+        Type=Application
+        Name=Noctalia Shell
+        NoDisplay=true
+        TryExec=${lib.getExe noctaliaShellPkg}
+        Exec=${lib.getExe noctaliaShellPkg}
+        Terminal=false
+      '';
+
+    "applications/org.gnome.Nautilus.desktop".text =
+      # 覆盖上游 desktop entry：仅对 Nautilus 定向切换到 fcitx GTK IM module，
+      # 保留 Wayland fractional scaling，同时规避 niri + fcitx5 的 rename/pop-up 问题。
+      ''
+        [Desktop Entry]
+        Name=Files
+        Comment=Access and organize files
+        Exec=${nautilusX11} %U
+        Icon=org.gnome.Nautilus
+        Terminal=false
+        Type=Application
+        StartupNotify=true
+        Categories=GNOME;GTK;Utility;Core;FileManager;
+        MimeType=inode/directory;
+        X-GNOME-UsesNotifications=true
+      '';
+  };
 
   services = {
     playerctld.enable = true;
