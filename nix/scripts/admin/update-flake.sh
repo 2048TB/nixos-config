@@ -49,4 +49,4 @@ if [ "$flake_repo" != "$repo_root" ]; then
   cp "$flake_repo/flake.lock" "$repo_root/flake.lock"
 fi
 
-echo "✓ flake.lock 已更新"
+echo "flake.lock updated"

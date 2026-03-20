@@ -74,7 +74,7 @@ prepare_flake_repo_path() {
   else
     cache_base="${TMPDIR:-/tmp}"
   fi
-  find "$cache_base" -mindepth 1 -maxdepth 1 -type d -name "flake-$(id -u)-${cache_key}-*" -mtime +1 -exec rm -rf {} + >/dev/null 2>&1 || true
+  find "$cache_base" -mindepth 1 -maxdepth 1 -type d -name "flake-$(id -u)-${cache_key}-*" -mmin +120 -exec rm -rf {} + >/dev/null 2>&1 || true
   # Use a per-process cache dir so concurrent script runs do not delete each
   # other's prepared flake repo while a command is still evaluating it.
   cache_root="${cache_base}/flake-$(id -u)-${cache_key}-$$"
@@ -154,6 +154,7 @@ run_sops_encrypt_yaml() {
     return 1
   fi
 
+  # shellcheck disable=SC2094  # stdin and stdout target are distinct fds
   run_sops \
     --encrypt \
     --filename-override "$target_file" \
