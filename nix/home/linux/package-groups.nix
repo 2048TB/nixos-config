@@ -1,5 +1,6 @@
 {
   cli = [
+    "bubblewrap"
     "ripgrep-all"
     "btop"
     "duf"
