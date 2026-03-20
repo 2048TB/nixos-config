@@ -1,4 +1,4 @@
-{ lib, mylib, inputs, system, mkApp, appRepoPreamble, ... }@args:
+{ lib, mylib, inputs, system, ... }@args:
 let
   common = import ../common.nix { inherit lib mylib; };
   hostsRoot = mylib.relativeToRoot "nix/hosts/darwin";

@@ -8,7 +8,7 @@ let
     unstable-packages =
       final: _prev:
       let
-        mylib = import ../lib { lib = final.lib; };
+        mylib = import ../lib { inherit (final) lib; };
       in
       {
         unstable = import inputs.nixpkgs-unstable {
