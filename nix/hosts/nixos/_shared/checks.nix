@@ -151,7 +151,7 @@ let
   expectsRootlessDockerLinger = resolvedExpectedDockerMode == "rootless";
   hasExpectedRootlessDockerLinger =
     if expectsRootlessDockerLinger
-    then (cfg.users.users.${mainUser}.linger or null) == true
+    then (cfg.users.users.${mainUser}.linger or false)
     else true;
   actualKvmModules = builtins.filter (m: lib.hasPrefix "kvm-" m) cfg.boot.kernelModules;
 

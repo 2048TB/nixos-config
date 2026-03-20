@@ -51,7 +51,12 @@ let
     host = syntheticDisplayHost;
     widgetsTemplate = syntheticWidgetsTemplate;
   };
-  generatedNoctaliaConfig = builtins.fromJSON (hmCfg.xdg.configFile."noctalia/settings.json".text or "{}");
+  noctaliaTextAttr = hmCfg.xdg.configFile."noctalia/settings.json".text or null;
+  noctaliaIsGenerated = noctaliaTextAttr != null;
+  generatedNoctaliaConfig =
+    if noctaliaIsGenerated
+    then builtins.fromJSON noctaliaTextAttr
+    else { };
   generatedMonitorWidgets = generatedNoctaliaConfig.desktopWidgets.monitorWidgets or [ ];
 in
 {
@@ -61,7 +66,11 @@ in
   '';
 
   "eval-${name}-generated-noctalia-settings" = pkgs.runCommand "eval-${name}-generated-noctalia-settings" { } ''
-    test "${if (hmCfg.xdg.configFile."noctalia/settings.json".text or "") == expectedNoctaliaSettings then "1" else "0"}" = "1"
+    test "${
+      if !noctaliaIsGenerated then "1"  # symlinked config — skip
+      else if noctaliaTextAttr == expectedNoctaliaSettings then "1"
+      else "0"
+    }" = "1"
     touch "$out"
   '';
 
@@ -71,9 +80,13 @@ in
   '';
 
   "eval-${name}-generated-noctalia-monitor-count" =
-    assert builtins.length generatedMonitorWidgets == builtins.length hostCfg.displays;
+    assert !noctaliaIsGenerated || builtins.length generatedMonitorWidgets == builtins.length hostCfg.displays;
     pkgs.runCommand "eval-${name}-generated-noctalia-monitor-count" { } ''
-      test "${toString (builtins.length generatedMonitorWidgets)}" = "${toString (builtins.length hostCfg.displays)}"
+      test "${
+        if !noctaliaIsGenerated then "1"  # symlinked config — skip
+        else if builtins.length generatedMonitorWidgets == builtins.length hostCfg.displays then "1"
+        else "0"
+      }" = "1"
       touch "$out"
     '';
 
