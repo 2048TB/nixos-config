@@ -173,17 +173,18 @@
 
 ## 11. Yazi
 
-这套 `Yazi` 键位以官方 `26.1.22` 语义为基线，但 `mgr` 层是整套重写，按 `Sofle` 做了明显左手化：退出、打开、搜索、过滤、跳转优先集中在左手区；上下左右移动则保留给方向键。根据当前 opener 配置，文本类文件默认优先走 `nvim`，也可在交互式 opener 中切到 `gnome-text-editor`；图片用 `imv`，视频/音频用 `mpv`，PDF 用 `zathura`，目录可交给 `nautilus`，其余回退到 `xdg-open`。
+这套 `Yazi` 键位以官方 `26.1.22` 语义为基线，但主层按 `Sofle` 左手区重排成“导航 + 编辑 + 跳转”工作区：高频编辑动作集中到 `a s d f r z x c v .` 一带，方向键继续负责移动与目录进退。根据当前 opener 配置，文本类文件默认优先走 `nvim`，也可在交互式 opener 中切到 `gnome-text-editor`；图片用 `imv`，视频/音频用 `mpv`，PDF 用 `zathura`，目录可交给 `nautilus`，其余回退到 `xdg-open`。
 
 当前分组规则：
-- 单键左手高频：`qefrzb`
-- `r*` = 搜索、过滤与查找跳转
-- `z*` = fuzzy jump（`fzf` / `zoxide`）
-- `x*` = 文件改动与粘贴/删除/重命名
-- `c*` = 路径复制
-- `d*` / `, *` = 信息与显示
+- 主层单键：`q w e r / a s d f z x c v .`
+- `h*` = 内容搜索与查找跳转
+- `z*` = 跳转（`zoxide` / `fzf`）
+- `p*` = 低频文件操作（强制粘贴 / 取消 yank / 软链接 / 永久删除）
+- `y*` = 路径复制
+- `l*` = linemode
 - `g*` = 目录跳转与快速 goto
 - `t*` = tab 与任务
+- `,*` = 排序
 
 | 快捷键 | 功能 |
 |--------|------|
@@ -193,31 +194,30 @@
 | `Ctrl + Z` | suspend `Yazi` 回到 shell；可用 `fg` 返回 |
 | `Left` / `Right` | 返回上级目录 / 进入目录 |
 | `Up` / `Down` | 上移 / 下移（支持首尾回绕） |
-| `e` / `b` | 后退到上一个目录 / 前进到下一个目录 |
+| `e` / `w` | 后退到上一个目录 / 前进到下一个目录 |
 | `gg` / `gb` | 跳到顶部 / 跳到底部 |
 | `Ctrl + U` / `Ctrl + D` | 上翻半页 / 下翻半页 |
 | `Ctrl + B` / `Ctrl + F` | 上翻一页 / 下翻一页 |
-| `Enter` / `f` / `ff` | 按 opener 规则打开 / 按 opener 规则打开 / 交互式选择 opener |
-| `r` / `rt` | 按文件名搜索（`fd`）/ 按内容搜索（`rg`） |
-| `rf` / `rv` | 过滤当前列表 / 切到 flat view（通过 `fd -d 3` 展平到 3 层） |
-| `re` / `rw` | 向前查找 / 向后查找 |
-| `rd` / `rq` | 下一个 / 上一个匹配项 |
+| `Enter` / `oo` | 按 opener 规则打开 / 交互式选择 opener |
+| `f` / `h` | 按文件名搜索（`fd`）/ 按内容搜索（`rg`） |
+| `/` | 过滤当前列表 |
+| `hv` | 切到 flat view（通过 `fd -d 3` 展平到 3 层） |
+| `hn` / `hp` | 向前查找 / 向后查找 |
+| `hd` / `hq` | 下一个 / 上一个匹配项 |
 | `Ctrl + S` | 仅取消当前 search |
-| `z` / `zz` | `fzf` 在当前树中 fuzzy jump / `zoxide` 跳历史目录 |
+| `z` / `zz` | `zoxide` 跳历史目录 / `fzf` 在当前树中 fuzzy jump |
 | `Space` | 切换当前项选择状态，并下移一行 |
 | `Ctrl + A` / `Ctrl + R` | 全选 / 反转选择 |
-| `v` / `vx` | 进入选择模式 / 进入反选模式 |
-| `xc` / `xx` | 复制 / 剪切 |
-| `xv` / `xf` | 粘贴 / 强制覆盖粘贴 |
-| `xq` | 取消当前 yank 状态 |
-| `x-` / `x+` | 建立绝对路径软链接 / 相对路径软链接 |
-| `xd` / `xz` | 移到回收站 / 永久删除 |
-| `xa` / `xr` | 创建文件或目录 / 重命名（光标停在扩展名前） |
-| `cc` / `cd` / `cf` / `ce` | 复制绝对路径 / 目录路径 / 文件名 / 无扩展名文件名 |
-| `di` / `dh` | 查看当前项信息 / 显示或隐藏隐藏文件 |
+| `s` / `sx` | 进入选择模式 / 进入反选模式 |
+| `a` / `r` / `d` | 创建文件或目录 / 重命名（光标停在扩展名前）/ 移到回收站 |
+| `x` / `c` / `v` | 剪切 / 复制 / 粘贴 |
+| `pf` / `pq` | 强制覆盖粘贴 / 取消当前 yank 状态 |
+| `p-` / `p+` / `pz` | 建立绝对路径软链接 / 相对路径软链接 / 永久删除 |
+| `yy` / `yd` / `yf` / `ye` | 复制绝对路径 / 目录路径 / 文件名 / 无扩展名文件名 |
+| `ii` / `.` | 查看当前项信息 / 显示或隐藏隐藏文件 |
 | `,n` / `,s` / `,m` | 按自然序 / 大小 / 修改时间排序 |
 | `,a` / `,d` / `,t` | 按自然序 / 大小 / 修改时间倒序排序 |
-| `ds/dp/db/dm/do/dn` | 切换 linemode：size / permissions / btime / mtime / owner / none |
+| `ls/lp/lb/lm/lo/ln` | 切换 linemode：size / permissions / btime / mtime / owner / none |
 | `ga` / `gb` / `gd` / `gc` / `gs` / `gr` / `gt` | 跳到 `~` / 列表底部 / `~/Downloads` / `~/.config` / `/persistent` / `/persistent/nixos-config` / `/tmp` |
 | `g Space` / `gf` | 交互式跳转 / 跟随当前符号链接 |
 | `;` / `'` | 异步 shell / 同步阻塞 shell |
