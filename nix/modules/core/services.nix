@@ -124,7 +124,7 @@ in
             echo '{}' > "$settings_file"
           fi
 
-          if ${pkgs.jq}/bin/jq '.block_when_disconnected = false | .auto_connect = true' "$settings_file" > "$settings_file.tmp"; then
+          if ${pkgs.jq}/bin/jq '.block_when_disconnected = true | .auto_connect = true | .allow_lan = true' "$settings_file" > "$settings_file.tmp"; then
             ${mvExe} "$settings_file.tmp" "$settings_file"
           else
             ${rmExe} -f "$settings_file.tmp"

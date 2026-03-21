@@ -373,8 +373,9 @@ in
     fi
 
     grep -F 'settings_dir="/etc/mullvad-vpn"' "$script_path" >/dev/null
-    grep -F '.block_when_disconnected = false' "$script_path" >/dev/null
+    grep -F '.block_when_disconnected = true' "$script_path" >/dev/null
     grep -F '.auto_connect = true' "$script_path" >/dev/null
+    grep -F '.allow_lan = true' "$script_path" >/dev/null
     grep -F '${pkgs.coreutils}/bin/mkdir' "$script_path" >/dev/null
     grep -F '${pkgs.coreutils}/bin/mv' "$script_path" >/dev/null
     grep -F '${pkgs.coreutils}/bin/rm' "$script_path" >/dev/null
