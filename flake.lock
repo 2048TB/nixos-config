@@ -262,11 +262,11 @@
     "homebrew-core": {
       "flake": false,
       "locked": {
-        "lastModified": 1774173442,
-        "narHash": "sha256-qyjNQl8ztRAxaSbdN0uRfdFzvweAhhgDqxajKh+W9dU=",
+        "lastModified": 1774177008,
+        "narHash": "sha256-3MGFAV1vwhlQTzzisGx7T/5//xRTFMA+07uBIUOcG6w=",
         "owner": "homebrew",
         "repo": "homebrew-core",
-        "rev": "b3e9c80c0f7632afc75dd0c37cb284bca56830d2",
+        "rev": "542fe3cf740cd949aedbf0cb93f5e1db704daa9a",
         "type": "github"
       },
       "original": {
@@ -461,11 +461,11 @@
         "noctalia-qs": "noctalia-qs"
       },
       "locked": {
-        "lastModified": 1774143849,
-        "narHash": "sha256-sae6a+L4haQubwy6uGwAnddjf8WeX5vfPLLoQLMeCfg=",
+        "lastModified": 1774176156,
+        "narHash": "sha256-VUeJWuiyWo/4RB4MLqS0aR1HLrauUZodsn7AIyaraD8=",
         "owner": "noctalia-dev",
         "repo": "noctalia-shell",
-        "rev": "25d2efe9b342a447c5cb7f6962d948061fafa159",
+        "rev": "deadea5c16586575bb1dc98c63fc013055785eab",
         "type": "github"
       },
       "original": {
