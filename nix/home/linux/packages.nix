@@ -56,7 +56,10 @@ let
     winetricks
     protonplus
     heroic # Epic Games / GOG 启动器
-    # vulkan-tools 和 mesa-demos 已在 package-groups.nix 中（所有桌面主机共享）
+    # GPU 诊断工具（仅 gaming 主机需要）
+    libva-utils
+    vdpauinfo
+    nvitop
   ];
   virtualisationPackages = with pkgs; [
     virt-viewer

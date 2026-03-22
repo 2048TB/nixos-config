@@ -1,7 +1,10 @@
-_:
+{ pkgs, ... }:
 {
   security = {
-    apparmor.enable = true;
+    apparmor = {
+      enable = true;
+      packages = [ pkgs.apparmor-profiles ];
+    };
 
     polkit = {
       enable = true;

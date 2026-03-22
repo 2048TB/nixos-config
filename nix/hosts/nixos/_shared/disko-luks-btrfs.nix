@@ -55,6 +55,7 @@
                       mountOptions = [
                         "noatime"
                         "compress-force=zstd:1"
+                        "autodefrag"
                       ];
                     };
                     "@persistent" = {
@@ -66,6 +67,7 @@
                       mountOptions = [
                         "compress=zstd"
                         "noatime"
+                        "autodefrag"
                       ];
                     };
                     "@snapshots" = { };
