@@ -151,6 +151,7 @@ in
     tmpfiles.rules = [
       "d ${configRepoPath} 0755 ${mainUser} ${mainUser} -"
       "L+ /etc/nixos - - - - ${configRepoPath}"
+      "L+ /usr/bin/bwrap - - - - /run/wrappers/bin/bwrap"
       "e ${homeDir}/.cache - - - 30d"
       "e /tmp - - - 1d"
       "e /var/tmp - - - 7d"
