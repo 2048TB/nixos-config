@@ -188,6 +188,7 @@ rec {
     "unrar"
     "vscode"
     "wpsoffice"
+    "xow_dongle-firmware" # hardware.xone (Xbox One 无线适配器) 需要
   ];
 
   allowedUnfreeLicenseNames = [

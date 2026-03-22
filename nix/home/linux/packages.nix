@@ -48,11 +48,15 @@ let
   cherryStudioPackage = pkgsUnstable.cherry-studio;
   gamingPackages = with pkgs; [
     mangohud
+    goverlay # MangoHud / vkBasalt 图形配置工具
+    vkbasalt # Vulkan 后处理层（CAS 锐化、FXAA 等）
     umu-launcher
     bbe
     wineWowPackages.stable # 原：stagingFull（避免触发本地编译）
     winetricks
     protonplus
+    heroic # Epic Games / GOG 启动器
+    # vulkan-tools 和 mesa-demos 已在 package-groups.nix 中（所有桌面主机共享）
   ];
   virtualisationPackages = with pkgs; [
     virt-viewer

@@ -29,11 +29,13 @@ lib.mkIf hasDesktopSession {
 
     nix-ld = {
       enable = true;
-      libraries = with pkgs; [
-        stdenv.cc.cc
-        zlib
-        openssl
-      ];
+      # steam-run FHS 环境的共享库集（multiPkgs）：glibc, mesa, vulkan-loader, libva 等。
+      # 覆盖非 Steam 游戏（Heroic/itch.io 等）和预编译二进制的常见运行时依赖。
+      libraries =
+        (pkgs.steam-run.passthru.args.multiPkgs pkgs)
+        ++ (with pkgs; [
+          openssl
+        ]);
     };
   };
 
