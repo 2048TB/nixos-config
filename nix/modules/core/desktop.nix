@@ -52,6 +52,7 @@ lib.mkIf hasDesktopSession {
   fonts.packages = with pkgs; [
     cascadia-code
     jetbrains-mono
+    fira-code
     maple-mono.NF-CN-unhinted
 
     noto-fonts-color-emoji
