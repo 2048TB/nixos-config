@@ -76,7 +76,6 @@ in
       enable = true;
       xdgOpenUsePortal = true;
       extraPortals = with pkgs; [
-        xdg-desktop-portal-gnome
         xdg-desktop-portal-gtk
       ];
       # portal 接口映射由 flake specialArgs 统一提供，避免 system/home 漂移。
