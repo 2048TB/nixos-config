@@ -33,7 +33,6 @@ common // {
   enableSplayer = true;
   enableTelegramDesktop = true;
   enableLocalSend = true;
-  enablePlaywright = true;
 
   # Credentials are managed by sops secrets:
   # - secrets/passwords/user-password.yaml
