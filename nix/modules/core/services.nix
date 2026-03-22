@@ -89,6 +89,13 @@ in
         alsa.enable = true;
         alsa.support32Bit = true;
         pulse.enable = true;
+        # nix-gaming pipewireLowLatency 模块已导入；
+        # quantum=64 过于激进易爆音，256（~5.3ms）在游戏与日常音频间取得平衡。
+        lowLatency = {
+          enable = true;
+          quantum = 256;
+          rate = 48000;
+        };
       };
       pulseaudio.enable = false;
       blueman.enable = true;
@@ -115,7 +122,7 @@ in
 
     services = lib.mkMerge [
       (lib.mkIf enableProvider appVpn {
-        provider-app-daemon.serviceConfig.ExecStartPre = pkgs.writeShellScript "disable-provider-app-lockdown" ''
+        provider-app-daemon.serviceConfig.ExecStartPre = pkgs.writeShellScript "provider-app-prestart-settings" ''
           settings_dir="/etc/provider-app-vpn"
           settings_file="$settings_dir/settings.json"
 

@@ -52,5 +52,10 @@ in
   services = {
     fwupd.enable = lib.mkIf (!isServer) true;
     xserver.videoDrivers = lib.mkIf hasDesktopSession videoDrivers;
+    # SSD 定期 TRIM，维持 I/O 性能
+    fstrim = {
+      enable = true;
+      interval = "daily";
+    };
   };
 }

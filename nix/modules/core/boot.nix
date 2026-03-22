@@ -7,6 +7,7 @@
 let
   hostCfg = config.my.host;
   cpuVendor = derivedCpuVendor;
+  isAmdCpu = cpuVendor == "amd";
   hibernateEnabled = hostCfg.resumeOffset != null;
   kvmModules = mylib.kvmModulesForVendor cpuVendor;
   luksMapperDevice = "/dev/mapper/${hostCfg.luksName}";
@@ -40,7 +41,11 @@ in
     # KVM 内核模块（AMD/Intel）
     kernelModules = kvmModules;
     resumeDevice = lib.mkIf hibernateEnabled (lib.mkDefault resumeDevice);
-    kernelParams = lib.mkIf hibernateEnabled resumeKernelParams;
+    kernelParams = lib.mkMerge [
+      (lib.mkIf hibernateEnabled resumeKernelParams)
+      # AMD P-State 主动模式：让内核直接驱动 CPU 频率调节，比 passive 模式响应更快
+      (lib.mkIf isAmdCpu [ "amd_pstate=active" ])
+    ];
 
     # 支持的文件系统
     supportedFilesystems = [
