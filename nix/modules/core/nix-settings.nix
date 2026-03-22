@@ -26,6 +26,11 @@ in
       # 自动优化存储（硬链接重复文件）
       auto-optimise-store = true;
       builders-use-substitutes = true;
+
+      # 并行构建：auto = CPU 核心数
+      max-jobs = "auto";
+      # 单个 derivation 允许使用的核心数（0 = 不限制）
+      cores = 0;
     };
 
     # 固定 registry 到 flake.lock pin 的版本，避免 nix run nixpkgs#xxx 拉取最新

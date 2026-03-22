@@ -59,6 +59,10 @@ in
     ];
 
     # preservation 需要 initrd 的 systemd
-    initrd.systemd.enable = true;
+    initrd = {
+      systemd.enable = true;
+      compressor = "zstd";
+      compressorArgs = [ "-T0" ]; # 多线程压缩
+    };
   };
 }
