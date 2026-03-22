@@ -58,6 +58,7 @@ lib.mkIf hasDesktopSession {
     noto-fonts-color-emoji
 
     sarasa-gothic # CJK sans（基于 Source Han Sans + Inter）
+    noto-fonts-cjk-sans # CJK sans fallback（Chrome/fontconfig 默认匹配）
     noto-fonts-cjk-serif # CJK serif（独立字型类别）
   ];
 
