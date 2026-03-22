@@ -91,6 +91,9 @@ in
 
   swapDevices = [{ device = "/swap/swapfile"; }];
 
+  # 全局内存调优（gaming role 用更低的 swappiness=10 覆盖）
+  boot.kernel.sysctl."vm.swappiness" = lib.mkDefault 20;
+
   zramSwap = {
     enable = true;
     algorithm = "zstd";

@@ -106,6 +106,13 @@ in
       gnome.gnome-keyring.enable = true;
       upower.enable = true;
       power-profiles-daemon.enable = true;
+
+      # OOM 保护：内存耗尽前主动终止低优先级进程，防止系统卡死
+      earlyoom = {
+        enable = true;
+        freeMemThreshold = 5; # 可用内存低于 5% 时触发
+        freeSwapThreshold = 10; # 可用 swap 低于 10% 时触发
+      };
     })
     (lib.mkIf hasFingerprintReader {
       fprintd.enable = true;
