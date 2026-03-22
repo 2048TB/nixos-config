@@ -382,7 +382,7 @@ in
     touch "$out"
   '';
 }
-// lib.optionalAttrs true {
+// {
   "eval-${name}-docker-mode" = pkgs.runCommand "eval-${name}-docker-mode" { } ''
     test "${if hasExpectedDockerMode then "1" else "0"}" = "1"
     touch "$out"
