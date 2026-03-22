@@ -52,15 +52,12 @@ lib.mkIf hasDesktopSession {
   fonts.packages = with pkgs; [
     cascadia-code
     jetbrains-mono
-    fira-code
-    sarasa-gothic
     maple-mono.NF-CN-unhinted
 
     noto-fonts-color-emoji
 
-    noto-fonts-cjk-sans
-    noto-fonts-cjk-serif
-    wqy_zenhei
+    sarasa-gothic # CJK sans（基于 Source Han Sans + Inter）
+    noto-fonts-cjk-serif # CJK serif（独立字型类别）
   ];
 
   i18n = {

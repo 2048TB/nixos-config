@@ -1,6 +1,6 @@
 {
   niri = {
-    default = [ "gnome" "gtk" ];
+    default = [ "gtk" ];
     "org.freedesktop.impl.portal.Settings" = [ "gtk" ];
     "org.freedesktop.impl.portal.FileChooser" = [ "gtk" ];
   };
