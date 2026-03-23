@@ -5,6 +5,8 @@ Home Manager 配置（用户级）。
 - 改系统级（服务/内核/磁盘）→ `nix/modules/` 或 `nix/hosts/`
 - 改用户级（终端/主题/快捷键）→ 本目录
 - 主账号一致开发环境（语言/工具链）→ 优先放在 Home Manager
+- Linux/Darwin 共享 CLI 包入口在 `nix/lib/default.nix` 的 `sharedPackageNames`
+- 跨平台共享 config file 映射在 `nix/home/base/config-files.nix`
 - Linux 侧入口通过 `_mixins` 统一收敛导入列表，新增 self-gating 模块时优先更新 allowlist
 
 ---
@@ -26,7 +28,7 @@ nix/home/
 │   ├── desktop.nix     # 桌面用户服务与 Noctalia 包接入（udiskie/mullvad）
 │   └── xdg.nix         # portal/mimeApps/configFile
 ├── darwin/default.nix  # macOS 专用
-└── configs/            # 应用配置文件（niri/tmux/zellij/shell/...）
+└── configs/            # 应用配置文件（niri/tmux/zellij/shell/television/...）
 ```
 
 ---
@@ -36,6 +38,9 @@ nix/home/
 | 目标 | 文件 |
 |------|------|
 | 终端 | `configs/ghostty/`、`configs/foot/`、`configs/shell/` |
+| 共享 CLI 包 | `../lib/default.nix`（`sharedPackageNames`） |
+| 跨平台 config file 映射 | `base/config-files.nix` |
+| Television | `configs/television/` + `base/config-files.nix` + `configs/shell/zshrc` |
 | 状态栏 | `configs/niri/config.kdl`（Noctalia autostart） + `linux/desktop.nix`（包接入） |
 | 窗口快捷键 | `configs/niri/interaction.kdl` + `configs/niri/appearance.kdl` |
 | 窗口外观 | `configs/niri/appearance.kdl` |
@@ -55,3 +60,8 @@ nix/home/
 - `configs/niri/appearance.kdl`
 - `configs/tmux/tmux.conf`
 - `configs/zellij/config.kdl`
+
+改了以下文件通常不需要同步 `docs/KEYBINDINGS.md`，但建议补看 Home Manager 入口说明：
+- `base/config-files.nix`
+- `configs/shell/zshrc`
+- `configs/television/*`

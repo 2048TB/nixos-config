@@ -1,0 +1,7 @@
+[metadata]
+name = "alias"
+description = "A channel to select from shell aliases"
+
+[source]
+command = "${SHELL:-zsh} -ic 'alias'"
+output = "{split:=:0}"
