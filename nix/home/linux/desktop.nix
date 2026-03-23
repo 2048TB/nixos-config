@@ -18,11 +18,11 @@ let
   touchExe = lib.getExe' pkgs.coreutils "touch";
   catExe = lib.getExe' pkgs.coreutils "cat";
 
-  # ===== Quiet launcher 定义 =====
-  udiskieQuiet = mkLogFilteredLauncher "udiskie-quiet" "${pkgs.udiskie}/bin/udiskie" [
+  # ===== Log-filtered launcher 定义 =====
+  udiskieLogFiltered = mkLogFilteredLauncher "udiskie-log-filtered" "${pkgs.udiskie}/bin/udiskie" [
     "gtk_widget_get_scale_factor: assertion 'GTK_IS_WIDGET \\(widget\\)' failed"
   ];
-  mullvadVpnQuiet = mkLogFilteredLauncher "mullvad-vpn-quiet" "${pkgs.mullvad-vpn}/bin/mullvad-vpn" [
+  mullvadVpnLogFiltered = mkLogFilteredLauncher "mullvad-vpn-log-filtered" "${pkgs.mullvad-vpn}/bin/mullvad-vpn" [
     "Gtk: gtk_widget_get_scale_factor: assertion 'GTK_IS_WIDGET \\(widget\\)' failed"
   ];
   aria2PrepareSession = pkgs.writeShellScript "aria2-prepare-session" ''
@@ -131,7 +131,7 @@ in
           "LANG=C.UTF-8"
           "LC_ALL=C.UTF-8"
         ];
-        udiskie.Service.ExecStart = lib.mkForce "${lib.getExe udiskieQuiet}";
+        udiskie.Service.ExecStart = lib.mkForce "${lib.getExe udiskieLogFiltered}";
 
         aria2 = {
           Unit = {
@@ -163,7 +163,7 @@ in
               "LIBGL_DRIVERS_PATH=/run/opengl-driver/lib/dri"
               "GSETTINGS_SCHEMA_DIR=${pkgs.gsettings-desktop-schemas}/share/gsettings-schemas/${pkgs.gsettings-desktop-schemas.name}/glib-2.0/schemas"
             ];
-            ExecStart = "${lib.getExe mullvadVpnQuiet}";
+            ExecStart = "${lib.getExe mullvadVpnLogFiltered}";
             Restart = "on-failure";
             RestartSec = 2;
           };

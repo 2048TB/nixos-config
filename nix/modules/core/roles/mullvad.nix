@@ -4,9 +4,9 @@ let
   roleFlags = mylib.roleFlags hostCfg;
   inherit (roleFlags) enableMullvadVpn;
 
-  mullvadBin = "${pkgs.mullvad}/bin/mullvad";
-  loggerBin = "${pkgs.util-linux}/bin/logger";
-  sleepBin = "${lib.getExe' pkgs.coreutils "sleep"}";
+  mullvadExe = lib.getExe' pkgs.mullvad "mullvad";
+  loggerExe = lib.getExe' pkgs.util-linux "logger";
+  sleepExe = lib.getExe' pkgs.coreutils "sleep";
 in
 {
   services = {
@@ -31,16 +31,16 @@ in
       case "$action" in
         connectivity-change|up)
           # 等待网络稳定后再触发重连，避免 Passwall 恢复瞬间的瞬态抖动
-          ${sleepBin} 2
+          ${sleepExe} 2
 
-          status="$(${mullvadBin} status 2>/dev/null || echo "unknown")"
+          status="$(${mullvadExe} status 2>/dev/null || echo "unknown")"
           case "$status" in
             *Connected*)
               # 已连接，无需操作
               ;;
             *)
-              ${loggerBin} -t mullvad-dispatcher "network $action on $interface, mullvad status: $status — triggering reconnect"
-              ${mullvadBin} reconnect 2>/dev/null || true
+              ${loggerExe} -t mullvad-dispatcher "network $action on $interface, mullvad status: $status — triggering reconnect"
+              ${mullvadExe} reconnect 2>/dev/null || true
               ;;
           esac
           ;;

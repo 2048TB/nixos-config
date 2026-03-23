@@ -1,20 +1,18 @@
 { config
 , lib
 , mylib
-, derivedCpuVendor
+, cpuVendor
 , ...
 }:
 let
   hostCfg = config.my.host;
-  cpuVendor = derivedCpuVendor;
   isAmdCpu = cpuVendor == "amd";
   hibernateEnabled = hostCfg.resumeOffset != null;
   kvmModules = mylib.kvmModulesForVendor cpuVendor;
-  luksMapperDevice = "/dev/mapper/${hostCfg.luksName}";
   resumeDevice =
     if config.fileSystems ? "/swap" && config.fileSystems."/swap" ? device
     then config.fileSystems."/swap".device
-    else luksMapperDevice;
+    else hostCfg.luksMapperDevice;
   resumeKernelParams =
     if hibernateEnabled
     then [ "resume_offset=${toString hostCfg.resumeOffset}" ]

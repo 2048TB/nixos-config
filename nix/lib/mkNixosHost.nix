@@ -46,7 +46,7 @@ let
   hostDiskoPath = mylib.relativeToRoot "${hostDir}/disko.nix";
   hostHomePath = mylib.relativeToRoot "${hostDir}/home.nix";
   hostHardwareModuleNames = import hostHardwareModulesPath;
-  derivedCpuVendor = mylib.cpuVendorFromHardwareModules hostHardwareModuleNames;
+  cpuVendor = mylib.cpuVendorFromHardwareModules hostHardwareModuleNames;
   derivedGpuMode = mylib.gpuModeFromHardwareModules hostHardwareModuleNames;
   hostHardwareModules =
     map
@@ -64,7 +64,7 @@ let
 
   specialArgs = baseSpecialArgs // {
     myvars = resolvedMyvars;
-    inherit mainUser derivedCpuVendor;
+    inherit mainUser cpuVendor;
   };
 
   resolvedHomeModules = homeModules ++ lib.optionals (builtins.pathExists hostHomePath) [ hostHomePath ];
@@ -135,7 +135,7 @@ assert mylib.assertRequiredPositiveInts hostMyvars [ "swapSizeGb" ] "${hostDir}/
     name
     system
     mainUser
-    derivedCpuVendor
+    cpuVendor
     specialArgs
     nixpkgsConfig
     nixpkgsOverlays
