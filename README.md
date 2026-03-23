@@ -18,7 +18,7 @@
 - `docs/ENV-USAGE.md`：按环境区分的差异说明
 - `docs/NIX-COMMANDS.md`：纯命令速查
 - `nix/hosts/README.md`：主机目录与 metadata
-- `nix/home/README.md`：Home Manager 结构
+- `nix/home/README.md`：Home Manager 结构，以及共享 CLI / config / shell 入口
 
 最常用命令：
 

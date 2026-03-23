@@ -77,6 +77,13 @@ fi
 ############################################
 [ -s "$BUN_INSTALL/_bun" ] && source "$BUN_INSTALL/_bun"
 
+############################################
+# Television shell integration
+############################################
+if [[ -o interactive ]] && [[ -t 0 ]] && [[ -t 1 ]] && command -v tv >/dev/null 2>&1; then
+    eval "$(tv init zsh)"
+fi
+
 # 全局搜索
 frg() {
   local depth=""

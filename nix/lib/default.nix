@@ -138,6 +138,7 @@ rec {
     "git"
     "gh"
     "tmux"
+    "television"
     "zellij"
     "yazi"
     "bat"
