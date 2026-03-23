@@ -262,11 +262,11 @@
     "homebrew-core": {
       "flake": false,
       "locked": {
-        "lastModified": 1774285857,
-        "narHash": "sha256-TPw//j70sdIJZ+z9INo15s5XsPDyhujqlDcbyW44UXI=",
+        "lastModified": 1774287286,
+        "narHash": "sha256-TDo8/ot5seEXgeHTdi4kprzHh07pKHD9uoqzSHMwNrk=",
         "owner": "homebrew",
         "repo": "homebrew-core",
-        "rev": "e0dca386a5baf2479a8097acb70e6f3cc8348c14",
+        "rev": "06446fab932ab980feb8ab6c024568df57219dba",
         "type": "github"
       },
       "original": {
@@ -387,6 +387,22 @@
         "owner": "nixos",
         "ref": "nixos-25.11",
         "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "nixpkgs-cherry-studio": {
+      "locked": {
+        "lastModified": 1773840656,
+        "narHash": "sha256-9tpvMGFteZnd3gRQZFlRCohVpqooygFuy9yjuyRL2C0=",
+        "owner": "nixos",
+        "repo": "nixpkgs",
+        "rev": "9cf7092bdd603554bd8b63c216e8943cf9b12512",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nixos",
+        "repo": "nixpkgs",
+        "rev": "9cf7092bdd603554bd8b63c216e8943cf9b12512",
         "type": "github"
       }
     },
@@ -570,6 +586,7 @@
         "nix-homebrew": "nix-homebrew",
         "nixos-hardware": "nixos-hardware",
         "nixpkgs": "nixpkgs",
+        "nixpkgs-cherry-studio": "nixpkgs-cherry-studio",
         "nixpkgs-darwin": "nixpkgs-darwin",
         "nixpkgs-unstable": "nixpkgs-unstable",
         "noctalia": "noctalia",
