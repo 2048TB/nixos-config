@@ -155,14 +155,14 @@ rec {
       pkgPath = lib.splitString "." name;
       pkg = lib.attrByPath pkgPath null pkgs;
       exists = pkg != null;
-      availability =
+      availabilityCheck =
         if exists
         then builtins.tryEval (lib.meta.availableOn pkgs.stdenv.hostPlatform pkg)
         else {
           success = true;
           value = false;
         };
-      available = exists && availability.success && availability.value;
+      available = exists && availabilityCheck.success && availabilityCheck.value;
     in
     {
       inherit name pkg available;
@@ -261,10 +261,7 @@ rec {
     , availableKernelModules ? defaultInitrdAvailableKernelModules
     ,
     }:
-    { config, lib, derivedCpuVendor, ... }:
-    let
-      cpuVendor = derivedCpuVendor;
-    in
+    { config, lib, cpuVendor, ... }:
     {
       imports = extraImports;
 

@@ -4,9 +4,9 @@ let
   roleFlags = mylib.roleFlags hostCfg;
   inherit (roleFlags) enableProvider appVpn;
 
-  provider-appBin = "${pkgs.provider-app}/bin/provider-app";
-  loggerBin = "${pkgs.util-linux}/bin/logger";
-  sleepBin = "${lib.getExe' pkgs.coreutils "sleep"}";
+  provider-appExe = lib.getExe' pkgs.provider-app "provider-app";
+  loggerExe = lib.getExe' pkgs.util-linux "logger";
+  sleepExe = lib.getExe' pkgs.coreutils "sleep";
 in
 {
   services = {
@@ -31,16 +31,16 @@ in
       case "$action" in
         connectivity-change|up)
           # 等待网络稳定后再触发重连，避免 Passwall 恢复瞬间的瞬态抖动
-          ${sleepBin} 2
+          ${sleepExe} 2
 
-          status="$(${provider-appBin} status 2>/dev/null || echo "unknown")"
+          status="$(${provider-appExe} status 2>/dev/null || echo "unknown")"
           case "$status" in
             *Connected*)
               # 已连接，无需操作
               ;;
             *)
-              ${loggerBin} -t provider-app-dispatcher "network $action on $interface, provider-app status: $status — triggering reconnect"
-              ${provider-appBin} reconnect 2>/dev/null || true
+              ${loggerExe} -t provider-app-dispatcher "network $action on $interface, provider-app status: $status — triggering reconnect"
+              ${provider-appExe} reconnect 2>/dev/null || true
               ;;
           esac
           ;;

@@ -1,22 +1,7 @@
 { lib }:
 let
   inherit ((import ./host-meta.nix { })) hostMetaSchema;
-  allowedKinds = [
-    "workstation"
-    "server"
-    "vm"
-  ];
-  allowedFormFactors = [
-    "desktop"
-    "laptop"
-    "handheld"
-    "headless"
-  ];
-  allowedGpuVendors = [
-    "amd"
-    "intel"
-    "nvidia"
-  ];
+  inherit (hostMetaSchema) allowedKinds allowedFormFactors allowedGpuVendors;
   allowedLinuxDesktopProfiles = [
     "none"
     "niri"
@@ -43,8 +28,6 @@ in
 rec {
   inherit allowedRegistryKeys allowedKinds allowedFormFactors allowedGpuVendors;
 
-  registryOwnedKeys = allowedRegistryKeys;
-
   mkRegistryState =
     { hostRegistry
     , hostMyvars
@@ -60,7 +43,7 @@ rec {
           && builtins.hasAttr key hostRegistry
           && hostMyvars.${key} != hostRegistry.${key}
         )
-        registryOwnedKeys;
+        allowedRegistryKeys;
     in
     {
       inherit unknownRegistryKeys conflictingRegistryKeys;

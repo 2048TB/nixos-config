@@ -14,7 +14,7 @@ let
   inherit (config.my.capabilities) isLaptop hasDesktopSession hasFingerprintReader;
   inherit (roleFlags) enableProvider appVpn;
   desktopProfile = hostCfg.desktopProfile or "niri";
-  desktopSessionName = if desktopProfile == "niri" then "niri" else desktopProfile;
+  desktopSessionName = desktopProfile;
   desktopExec =
     if desktopProfile == "niri" then
       "/run/current-system/sw/bin/niri-session"

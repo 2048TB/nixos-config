@@ -183,6 +183,13 @@ in
         description = "Override hardware.nvidia.open when a host requires proprietary-only kernel modules.";
       };
 
+      luksMapperDevice = lib.mkOption {
+        type = types.str;
+        readOnly = true;
+        default = "/dev/mapper/${config.my.host.luksName}";
+        description = "Derived LUKS mapper device path.";
+      };
+
     };
 
     capabilities = {

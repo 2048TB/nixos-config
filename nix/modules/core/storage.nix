@@ -11,7 +11,6 @@ let
   enableFlatpak = config.my.capabilities.hasDesktopSession;
   hibernateEnabled = hostCfg.resumeOffset != null;
   useRootfulDocker = hostCfg.dockerMode == "rootful";
-  luksMapperDevice = "/dev/mapper/${hostCfg.luksName}";
 in
 {
   preservation.enable = true;
@@ -70,7 +69,7 @@ in
       device =
         if config.fileSystems ? "/nix" && config.fileSystems."/nix" ? device
         then config.fileSystems."/nix".device
-        else luksMapperDevice;
+        else hostCfg.luksMapperDevice;
       fsType = "btrfs";
       options = [
         "subvol=@swap"

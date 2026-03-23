@@ -12,8 +12,7 @@
 , expectedTrustedUsers ? null
 , expectedTrustedSubstituters ? null
 , expectedKvmModules ? null
-, derivedCpuVendor ? null
-, cpuVendor ? derivedCpuVendor
+, cpuVendor ? null
 , ...
 }:
 let
