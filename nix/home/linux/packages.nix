@@ -1,4 +1,5 @@
 { pkgs
+, pkgsCherryStudio
 , pkgsUnstable
 , lib
 , mylib
@@ -24,7 +25,6 @@ let
   enableSplayer = myvars.enableSplayer or false;
   enableTelegramDesktop = myvars.enableTelegramDesktop or false;
   enableLocalSend = myvars.enableLocalSend or false;
-  enableCherryStudio = myvars.enableCherryStudio or false;
   wpsOfficePackage = pkgs.wpsoffice;
 
   # 仅在混合显卡（amd-nvidia-hybrid）时安装 GPU 加速相关软件
@@ -46,7 +46,7 @@ let
     ++ lib.optional (hashcatPkg != null) hashcatPkg
   );
 
-  cherryStudioPackage = pkgs.cherry-studio;
+  cherryStudioPackage = pkgsCherryStudio.cherry-studio;
   gamingPackages = with pkgs; [
     mangohud
     goverlay # MangoHud / vkBasalt 图形配置工具
@@ -118,7 +118,7 @@ let
     (map (groupName: packageGroups.${groupName}) packageGroupOrder)
   ];
   basePackageSelection = mylib.resolvePackagesByName pkgs basePackageNames;
-  basePackages = basePackageSelection.packages ++ lib.optional enableCherryStudio cherryStudioPackage;
+  basePackages = basePackageSelection.packages ++ [ cherryStudioPackage ];
 in
 {
   warnings = lib.optionals (basePackageSelection.skippedNames != [ ]) [
