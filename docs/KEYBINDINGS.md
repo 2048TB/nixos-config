@@ -17,11 +17,11 @@
 | `Mod + Left/Right` | 切换焦点 |
 | `Mod + 1..9` | 切到工作区 |
 | `Mod + X/B/C/V` | 列内/列外与吸入/移出窗口 |
-| `Mod + U/I` | 窗口浮动切换 / 浮动与平铺间焦点切换 |
+| `Mod + W/E` | 窗口浮动切换 / 浮动与平铺间焦点切换 |
 | `Mod + O` | 窗口概览 |
 | `Mod + P` | 当前与上一个工作区切换 |
 | `Mod + M` | 全屏 |
-| `Print` | 截图 |
+| `Mod + Shift + A` | 截图 |
 | `XF86AudioRaiseVolume/LowerVolume` | 音量 |
 | `Mod + Shift + L` | 锁屏（Noctalia） |
 | `Mod + Shift + E` | 退出 Niri |
@@ -59,8 +59,8 @@
 | `Mod + Ctrl + Home/End` | 移动列到最左/最右 |
 | `Mod + X/B` | 列内/列外切换 |
 | `Mod + C/V` | 吸入/移出窗口 |
-| `Mod + U` | 浮动/平铺切换 |
-| `Mod + I` | 浮动与平铺间切换焦点 |
+| `Mod + W` | 浮动/平铺切换 |
+| `Mod + E` | 浮动与平铺间切换焦点 |
 | `Mod + : / "` | 窗口下移/上移 |
 | `Mod + O` | 窗口概览 |
 | `Mod + M` | 全屏 |
@@ -123,7 +123,7 @@
 | `Print` | 截图 |
 | `Ctrl + Print` | 当前屏幕截图 |
 | `Alt + Print` | 当前窗口截图 |
-| `Mod + Y` | 截图（Niri 默认 screenshot） |
+| `Mod + Shift + A` | 截图（Niri screenshot） |
 
 ---
 

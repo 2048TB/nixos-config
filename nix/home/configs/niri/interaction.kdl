@@ -77,7 +77,7 @@ binds {
     XF86Search { spawn "fuzzel"; }
 
     // 在浮动窗口与平铺窗口之间切换焦点。
-    Mod+I { switch-focus-between-floating-and-tiling; }
+    Mod+E { switch-focus-between-floating-and-tiling; }
 
     // 手动锁屏（对齐 Hyprland: Mod+Shift+L）
     Mod+Shift+L { spawn "noctalia-shell" "ipc" "call" "lockScreen" "lock"; }
@@ -259,7 +259,7 @@ binds {
     Mod+Shift+Equal { set-window-height "+10%"; }
 
     // 在浮动与平铺布局间切换当前窗口。
-    Mod+U repeat=false { toggle-window-floating; }
+    Mod+W repeat=false { toggle-window-floating; }
 
     // 全屏当前窗口。
     Mod+M { fullscreen-window; }
@@ -279,7 +279,7 @@ binds {
 
     Print { screenshot; }
     // 单键截图放到右手区，保留 2 键入口。
-    Mod+Y { screenshot; }
+    Mod+Shift+A { screenshot; }
     Ctrl+Print { screenshot-screen; }
     Alt+Print { screenshot-window; }
 
