@@ -54,8 +54,10 @@ let
     else if cpuVendor != null then mylib.kvmModulesForVendor cpuVendor
     else null;
   hasProvider appVpn = cfg.services.provider-app-vpn.enable or false;
-  provider-appExecStartPre = cfg.systemd.services.provider-app-daemon.serviceConfig.ExecStartPre or null;
-  provider-appExecStartPrePath = if provider-appExecStartPre == null then "" else toString provider-appExecStartPre;
+  provider-appDispatcherScripts = cfg.networking.networkmanager.dispatcherScripts or [ ];
+  provider-appDispatcherPath =
+    if provider-appDispatcherScripts == [ ] then ""
+    else toString (builtins.head provider-appDispatcherScripts).source or "";
   hmCfg = cfg.home-manager.users.${mainUser};
   expectedHome = "/home/${mainUser}";
 
@@ -363,21 +365,22 @@ in
   '';
 }
 // lib.optionalAttrs hasProvider appVpn {
-  "eval-${name}-provider-app-prestart-script" = pkgs.runCommand "eval-${name}-provider-app-prestart-script" { } ''
-    script_path="${provider-appExecStartPrePath}"
+  # 验证 NM dispatcher 使用 `provider-app connect`（而非 reconnect，后者在 Disconnected 状态下静默无操作）
+  "eval-${name}-provider-app-dispatcher-uses-connect" = pkgs.runCommand "eval-${name}-provider-app-dispatcher-uses-connect" { } ''
+    script_path="${provider-appDispatcherPath}"
 
     if [ -z "$script_path" ] || [ ! -f "$script_path" ]; then
-      echo "missing provider-app ExecStartPre script" >&2
+      echo "missing provider-app NM dispatcher script" >&2
       exit 1
     fi
 
-    grep -F 'settings_dir="/etc/provider-app-vpn"' "$script_path" >/dev/null
-    grep -F '.block_when_disconnected = true' "$script_path" >/dev/null
-    grep -F '.auto_connect = true' "$script_path" >/dev/null
-    grep -F '.allow_lan = true' "$script_path" >/dev/null
-    grep -F '${pkgs.coreutils}/bin/mkdir' "$script_path" >/dev/null
-    grep -F '${pkgs.coreutils}/bin/mv' "$script_path" >/dev/null
-    grep -F '${pkgs.coreutils}/bin/rm' "$script_path" >/dev/null
+    # 必须使用 connect 而非 reconnect（上游 #6220：reconnect 在断连状态下不生效）
+    grep -qF 'connect' "$script_path"
+    # 确保没有使用 reconnect
+    if grep -qF 'reconnect' "$script_path"; then
+      echo "dispatcher should use 'provider-app connect', not 'provider-app reconnect'" >&2
+      exit 1
+    fi
     touch "$out"
   '';
 }

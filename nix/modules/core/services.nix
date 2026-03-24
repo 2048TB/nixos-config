@@ -20,10 +20,6 @@ let
       "/run/current-system/sw/bin/niri-session"
     else
       throw "Unsupported Linux desktopProfile '${desktopProfile}'";
-  mkdirExe = lib.getExe' pkgs.coreutils "mkdir";
-  mvExe = lib.getExe' pkgs.coreutils "mv";
-  rmExe = lib.getExe' pkgs.coreutils "rm";
-
   tuigreetPackage = pkgs.tuigreet or pkgs.greetd.tuigreet or (throw "tuigreet package not found in pkgs.tuigreet or pkgs.greetd.tuigreet");
   waylandSessionCommand = pkgs.writeShellScript "wayland-session" ''
     hm_vars="/etc/profiles/per-user/${mainUser}/etc/profile.d/hm-session-vars.sh"
@@ -127,26 +123,10 @@ in
       AllowHybridSleep=no
     '';
 
-    services = lib.mkMerge [
-      (lib.mkIf enableProvider appVpn {
-        provider-app-daemon.serviceConfig.ExecStartPre = pkgs.writeShellScript "provider-app-prestart-settings" ''
-          settings_dir="/etc/provider-app-vpn"
-          settings_file="$settings_dir/settings.json"
-
-          ${mkdirExe} -p "$settings_dir"
-          if [ ! -f "$settings_file" ]; then
-            echo '{}' > "$settings_file"
-          fi
-
-          if ${pkgs.jq}/bin/jq '.block_when_disconnected = true | .auto_connect = true | .allow_lan = true' "$settings_file" > "$settings_file.tmp"; then
-            ${mvExe} "$settings_file.tmp" "$settings_file"
-          else
-            ${rmExe} -f "$settings_file.tmp"
-            echo "WARNING: Failed to update Provider app settings (invalid JSON). Keeping existing file." >&2
-          fi
-        '';
-      })
-    ];
+    # Provider app settings（lockdown-mode / auto-connect / allow-lan）通过 GUI 或 CLI 一次性配置，
+    # 持久化在 /etc/provider-app-vpn/settings.json（已由 storage.nix preservation 保留）。
+    # 不再通过 ExecStartPre 每次覆盖，避免与 GUI 锁定模式设置竞态。
+    services = { };
 
     tmpfiles.rules = [
       "d ${configRepoPath} 0755 ${mainUser} ${mainUser} -"

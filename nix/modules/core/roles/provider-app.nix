@@ -24,7 +24,7 @@ in
   # 当底层网络变化（如 OpenWrt Passwall 断开/恢复）时，自动触发 Provider app 重连。
   # WireGuard 隧道绑定旧 NAT 映射，上游网关重启后 UDP session 失效，需主动重建。
   networking.networkmanager.dispatcherScripts = lib.mkIf enableProvider appVpn [{
-    source = pkgs.writeShellScript "provider-app-reconnect-on-connectivity-change" ''
+    source = pkgs.writeShellScript "provider-app-connect-on-connectivity-change" ''
       interface="$1"
       action="$2"
 
@@ -35,12 +35,14 @@ in
 
           status="$(${provider-appExe} status 2>/dev/null || echo "unknown")"
           case "$status" in
-            *Connected*)
-              # 已连接，无需操作
+            *Connected*|*Connecting*)
+              # 已连接或正在连接，不干扰 daemon 自身的重连状态机
               ;;
             *)
-              ${loggerExe} -t provider-app-dispatcher "network $action on $interface, provider-app status: $status — triggering reconnect"
-              ${provider-appExe} reconnect 2>/dev/null || true
+              # provider-app reconnect 在 Disconnected 状态下静默无操作（上游 #6220），
+              # 必须使用 connect 才能从断连状态恢复。
+              ${loggerExe} -t provider-app-dispatcher "network $action on $interface, provider-app status: $status — triggering connect"
+              ${provider-appExe} connect 2>/dev/null || true
               ;;
           esac
           ;;
