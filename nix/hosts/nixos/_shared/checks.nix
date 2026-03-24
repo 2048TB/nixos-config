@@ -54,8 +54,10 @@ let
     else if cpuVendor != null then mylib.kvmModulesForVendor cpuVendor
     else null;
   hasMullvadVpn = cfg.services.mullvad-vpn.enable or false;
-  mullvadExecStartPre = cfg.systemd.services.mullvad-daemon.serviceConfig.ExecStartPre or null;
-  mullvadExecStartPrePath = if mullvadExecStartPre == null then "" else toString mullvadExecStartPre;
+  mullvadDispatcherScripts = cfg.networking.networkmanager.dispatcherScripts or [ ];
+  mullvadDispatcherPath =
+    if mullvadDispatcherScripts == [ ] then ""
+    else toString (builtins.head mullvadDispatcherScripts).source or "";
   hmCfg = cfg.home-manager.users.${mainUser};
   expectedHome = "/home/${mainUser}";
 
@@ -363,21 +365,22 @@ in
   '';
 }
 // lib.optionalAttrs hasMullvadVpn {
-  "eval-${name}-mullvad-prestart-script" = pkgs.runCommand "eval-${name}-mullvad-prestart-script" { } ''
-    script_path="${mullvadExecStartPrePath}"
+  # 验证 NM dispatcher 使用 `mullvad connect`（而非 reconnect，后者在 Disconnected 状态下静默无操作）
+  "eval-${name}-mullvad-dispatcher-uses-connect" = pkgs.runCommand "eval-${name}-mullvad-dispatcher-uses-connect" { } ''
+    script_path="${mullvadDispatcherPath}"
 
     if [ -z "$script_path" ] || [ ! -f "$script_path" ]; then
-      echo "missing mullvad ExecStartPre script" >&2
+      echo "missing mullvad NM dispatcher script" >&2
       exit 1
     fi
 
-    grep -F 'settings_dir="/etc/mullvad-vpn"' "$script_path" >/dev/null
-    grep -F '.block_when_disconnected = true' "$script_path" >/dev/null
-    grep -F '.auto_connect = true' "$script_path" >/dev/null
-    grep -F '.allow_lan = true' "$script_path" >/dev/null
-    grep -F '${pkgs.coreutils}/bin/mkdir' "$script_path" >/dev/null
-    grep -F '${pkgs.coreutils}/bin/mv' "$script_path" >/dev/null
-    grep -F '${pkgs.coreutils}/bin/rm' "$script_path" >/dev/null
+    # 必须使用 connect 而非 reconnect（上游 #6220：reconnect 在断连状态下不生效）
+    grep -qF 'connect' "$script_path"
+    # 确保没有使用 reconnect
+    if grep -qF 'reconnect' "$script_path"; then
+      echo "dispatcher should use 'mullvad connect', not 'mullvad reconnect'" >&2
+      exit 1
+    fi
     touch "$out"
   '';
 }
