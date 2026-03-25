@@ -8,9 +8,11 @@ let
   hostCfg = config.my.host;
   roleFlags = mylib.roleFlags hostCfg;
   inherit (roleFlags) enableProvider appVpn enableLibvirtd enableDocker;
-  enableFlatpak = config.my.capabilities.hasDesktopSession;
+  inherit (config.my.capabilities) hasDesktopSession hasFingerprintReader;
+  enableFlatpak = hasDesktopSession;
   hibernateEnabled = hostCfg.resumeOffset != null;
   useRootfulDocker = hostCfg.dockerMode == "rootful";
+  useRootlessDocker = hostCfg.dockerMode == "rootless";
 in
 {
   preservation.enable = true;
@@ -23,6 +25,7 @@ in
         "/etc/secureboot"
 
         "/var/log"
+        "/var/cache/fontconfig"
         "/var/lib/nixos"
         "/var/lib/systemd"
         "/var/lib/NetworkManager"
@@ -40,6 +43,9 @@ in
       ]
       ++ lib.optionals enableFlatpak [
         "/var/lib/flatpak"
+      ]
+      ++ lib.optionals hasFingerprintReader [
+        "/var/lib/fprint"
       ];
       files = [
         {

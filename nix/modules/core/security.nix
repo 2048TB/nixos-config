@@ -24,5 +24,13 @@
     "kernel.unprivileged_bpf_disabled" = 1;
     # BPF JIT 加固
     "net.core.bpf_jit_harden" = 2;
+    # 防止 SUID 程序产生 core dump（避免泄露特权进程内存）
+    "fs.suid_dumpable" = 0;
+    # 防止硬链接/符号链接攻击（非属主不可操作他人的 symlink/hardlink）
+    "fs.protected_symlinks" = 1;
+    "fs.protected_hardlinks" = 1;
+    # 防止 FIFO/regular file 在 world-writable sticky 目录中被利用
+    "fs.protected_fifos" = 2;
+    "fs.protected_regular" = 2;
   };
 }

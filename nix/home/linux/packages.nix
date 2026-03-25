@@ -46,7 +46,7 @@ let
     ++ lib.optional (hashcatPkg != null) hashcatPkg
   );
 
-  cherryStudioPackage = pkgsCherryStudio.cherry-studio;
+  cherryStudioPackage = pkgsCherryStudio.cherry-studio or null;
   gamingPackages = with pkgs; [
     mangohud
     goverlay # MangoHud / vkBasalt 图形配置工具
@@ -118,7 +118,7 @@ let
     (map (groupName: packageGroups.${groupName}) packageGroupOrder)
   ];
   basePackageSelection = mylib.resolvePackagesByName pkgs basePackageNames;
-  basePackages = basePackageSelection.packages ++ [ cherryStudioPackage ];
+  basePackages = basePackageSelection.packages ++ lib.optional (cherryStudioPackage != null) cherryStudioPackage;
 in
 {
   warnings = lib.optionals (basePackageSelection.skippedNames != [ ]) [

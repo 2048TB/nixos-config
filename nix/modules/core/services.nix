@@ -60,6 +60,11 @@ in
 {
   services = lib.mkMerge [
     {
+      # 日志保留策略：/var/log 已持久化，限制总量防止磁盘占满
+      journald.extraConfig = ''
+        SystemMaxUse=2G
+        MaxRetentionSec=30day
+      '';
       logind.settings = lib.mkIf isLaptop {
         Login = {
           HandleLidSwitch = if hibernateEnabled then "suspend-then-hibernate" else "suspend";

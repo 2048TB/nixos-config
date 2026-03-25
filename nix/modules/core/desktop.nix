@@ -56,6 +56,8 @@ lib.mkIf hasDesktopSession {
     maple-mono.NF-CN-unhinted
 
     noto-fonts-color-emoji
+    noto-fonts # 数学符号、箭头、特殊字符等后备字体
+    dejavu_fonts # 最终后备字体（覆盖 Latin/Greek/Cyrillic + 等宽）
 
     sarasa-gothic # CJK sans（基于 Source Han Sans + Inter）
     noto-fonts-cjk-sans # CJK sans fallback（Chrome/fontconfig 默认匹配）

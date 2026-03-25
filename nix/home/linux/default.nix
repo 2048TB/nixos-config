@@ -34,6 +34,10 @@
       color-scheme = "prefer-dark";
       gtk-theme = "Adwaita-dark";
       icon-theme = "Papirus";
+      font-name = "Sarasa UI SC 11";
+      monospace-font-name = "Fira Code 12";
+      font-antialiasing = "rgba";
+      font-hinting = "slight";
     };
   };
   # 质量守护：防止 home.packages 出现重复 derivation（同 outPath）

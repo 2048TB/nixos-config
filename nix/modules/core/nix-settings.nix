@@ -42,7 +42,7 @@ in
     # 自动垃圾回收配置
     gc = {
       automatic = true;
-      dates = "weekly"; # 每周执行一次
+      dates = "Mon 03:15"; # 每周一凌晨，避免与日常使用冲突
       options = "--delete-older-than 14d";
     };
 
