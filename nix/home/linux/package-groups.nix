@@ -13,6 +13,7 @@
     "check-jsonschema"
     "sd"
     "tealdeer"
+    "sshpass"
     "pciutils"
     "brightnessctl"
     "xdg-user-dirs"
