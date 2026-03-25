@@ -24,7 +24,26 @@ let
     "image/bmp"
     "image/tiff"
   ];
+  videoMimeTypes = [
+    "video/mp4"
+    "video/x-matroska"
+    "video/webm"
+    "video/avi"
+    "video/x-flv"
+    "video/quicktime"
+  ];
+  audioMimeTypes = [
+    "audio/mpeg"
+    "audio/flac"
+    "audio/ogg"
+    "audio/wav"
+    "audio/aac"
+    "audio/opus"
+  ];
   imageApps = [ "org.nomacs.ImageLounge.desktop" "nomacs.desktop" ];
+  videoApps = [ "mpv.desktop" ];
+  audioApps = [ "mpv.desktop" ];
+  pdfApps = [ "org.gnome.Evince.desktop" ];
   browserApps = [ "google-chrome.desktop" ];
   portalConfig = import ../../lib/portal-config.nix;
   sourceConfigFiles =
@@ -96,10 +115,13 @@ in
       # 使用 genAttrs 保持行为一致，减少重复
       defaultApplications =
         lib.genAttrs imageMimeTypes (_: imageApps)
+        // lib.genAttrs videoMimeTypes (_: videoApps)
+        // lib.genAttrs audioMimeTypes (_: audioApps)
         // {
           "inode/directory" = [ "org.gnome.Nautilus.desktop" ];
           "text/plain" = [ "org.gnome.TextEditor.desktop" ];
           "text/html" = browserApps;
+          "application/pdf" = pdfApps;
           "x-scheme-handler/http" = browserApps;
           "x-scheme-handler/https" = browserApps;
         };

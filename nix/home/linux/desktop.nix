@@ -114,6 +114,7 @@ in
           Unit = {
             Description = "polkit-gnome-authentication-agent-1";
             After = [ "graphical-session.target" ];
+            PartOf = [ "graphical-session.target" ];
           };
           Install.WantedBy = [ "graphical-session.target" ];
           Service = {
@@ -136,6 +137,7 @@ in
         aria2 = {
           Unit = {
             Description = "aria2 RPC daemon";
+            After = [ "network-online.target" ];
           };
           Install.WantedBy = [ "default.target" ];
           Service = {

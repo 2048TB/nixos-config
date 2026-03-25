@@ -20,9 +20,6 @@ in
   virtualisation.docker.rootless = {
     enable = enableDocker && useRootlessDocker;
     setSocketVariable = true;
-    daemon.settings = lib.mkIf (enableDocker && useRootlessDocker) {
-      group = mainUser;
-    };
   };
 
   # Docker rootless containerd 需要 /opt/containerd 可写（tmpfs root 下不存在）
