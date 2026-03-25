@@ -132,6 +132,9 @@ in
       "d ${configRepoPath} 0755 ${mainUser} ${mainUser} -"
       "L+ /etc/nixos - - - - ${configRepoPath}"
       "L+ /usr/bin/bwrap - - - - /run/wrappers/bin/bwrap"
+      # Playwright 等工具按 Debian 路径查找 Chrome
+      "d /opt/google/chrome 0755 root root -"
+      "L+ /opt/google/chrome/chrome - - - - /etc/profiles/per-user/${mainUser}/bin/google-chrome-stable"
       "e ${homeDir}/.cache - - - 30d"
       "e /tmp - - - 1d"
       "e /var/tmp - - - 7d"
