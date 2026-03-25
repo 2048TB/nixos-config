@@ -1,4 +1,17 @@
 ############################################
+# 终端模式安全恢复
+############################################
+# Yazi / Zellij / television 等 TUI 使用 kitty keyboard protocol；
+# 异常退出时可能残留该模式，导致方向键输出 ;129A 等乱码。
+# 每次 prompt 前发送 CSI > u 关闭 kitty 协议 + 重置 bracketed paste。
+function __reset_terminal_modes() {
+    printf '\e[>0u'   # 禁用 kitty keyboard protocol
+    printf '\e[?2004h' # 确保 bracketed paste 正常
+}
+autoload -Uz add-zsh-hook
+add-zsh-hook precmd __reset_terminal_modes
+
+############################################
 # 历史记录设置
 ############################################
 HISTFILE=~/.zsh_history
