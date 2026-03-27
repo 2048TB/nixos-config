@@ -79,7 +79,6 @@ let
   hostModules = [
     nixpkgsModule
     (mylib.relativeToRoot "nix/modules/core")
-    (mylib.relativeToRoot "nix/modules/core/hardware.nix")
     ({ modulesPath, ... }: { imports = [ (modulesPath + "/installer/scan/not-detected.nix") ]; })
     preservation.nixosModules.default
     sops-nix.nixosModules.sops

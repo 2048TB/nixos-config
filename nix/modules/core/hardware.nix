@@ -17,7 +17,7 @@ let
   isAmdNvidiaHybrid = gpuChoice == driverAmdNvidiaHybrid;
   useNvidia = isNvidia || isAmdNvidiaHybrid;
 
-  isLaptop = config.my.capabilities.isLaptop;
+  inherit (config.my.capabilities) isLaptop;
 
   # 统一 NVIDIA 配置，避免专用配置与默认配置漂移
   nvidiaBase = {

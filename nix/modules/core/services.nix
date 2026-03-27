@@ -3,16 +3,13 @@
 , mainUser
 , config
 , configRepoPath
-, mylib
 , ...
 }:
 let
   hostCfg = config.my.host;
-  roleFlags = mylib.roleFlags hostCfg;
   homeDir = "/home/${mainUser}";
   hibernateEnabled = hostCfg.resumeOffset != null;
   inherit (config.my.capabilities) isLaptop hasDesktopSession hasFingerprintReader;
-  inherit (roleFlags) enableMullvadVpn;
   desktopProfile = hostCfg.desktopProfile or "niri";
   desktopSessionName = desktopProfile;
   desktopExec =

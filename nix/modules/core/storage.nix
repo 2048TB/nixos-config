@@ -12,7 +12,6 @@ let
   enableFlatpak = hasDesktopSession;
   hibernateEnabled = hostCfg.resumeOffset != null;
   useRootfulDocker = hostCfg.dockerMode == "rootful";
-  useRootlessDocker = hostCfg.dockerMode == "rootless";
 in
 {
   preservation.enable = true;
