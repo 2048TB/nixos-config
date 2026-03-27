@@ -43,6 +43,29 @@ scale = 1.25
 primary = true
 workspaceSet = [1, 2, 3, 4, 5, 6, 7, 8, 9]
 
+[nixos.zl]
+system = "x86_64-linux"
+desktopSession = true
+desktopProfile = "niri"
+kind = "workstation"
+formFactor = "desktop"
+tags = []
+gpuVendors = ["amd"]
+deployEnabled = true
+deployHost = "zl"
+deployUser = "root"
+deployPort = 22
+
+[[nixos.zl.displays]]
+name = "DP-1"
+match = "HKC OVERSEAS LIMITED MG27Q 0000000000001"
+width = 2560
+height = 1440
+refresh = 165
+scale = 1.25
+primary = true
+workspaceSet = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+
 [nixos.zzly]
 system = "x86_64-linux"
 desktopSession = true
