@@ -375,9 +375,9 @@ in
     fi
 
     # 必须使用 connect 而非 reconnect（上游 #6220：reconnect 在断连状态下不生效）
+    # 只检测非注释行中的实际命令调用
     grep -qF 'connect' "$script_path"
-    # 确保没有使用 reconnect
-    if grep -qF 'reconnect' "$script_path"; then
+    if grep -v '^\s*#' "$script_path" | grep -qF 'reconnect'; then
       echo "dispatcher should use 'provider-app connect', not 'provider-app reconnect'" >&2
       exit 1
     fi
