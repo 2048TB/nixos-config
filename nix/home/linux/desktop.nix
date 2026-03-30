@@ -22,12 +22,14 @@ let
   shufExe = lib.getExe' pkgs.coreutils "shuf";
   wcExe = lib.getExe' pkgs.coreutils "wc";
   sedExe = lib.getExe pkgs.gnused;
-  killallExe = lib.getExe pkgs.killall;
   swaybgExe = "${pkgs.swaybg}/bin/swaybg";
 
+  systemctlExe = "/run/current-system/sw/bin/systemctl";
   wallpaperDir = "$HOME/Pictures/Wallpapers";
-  wallpaperStateFile = "$HOME/.local/state/wallpaper-index";
-  wallpaperRotate = pkgs.writeShellScript "wallpaper-rotate" ''
+  wallpaperStateFile = "$HOME/.local/state/wallpaper-current";
+
+  # 选壁纸（写入 state file）+ 重启 swaybg service 显示
+  wallpaperSelect = pkgs.writeShellScript "wallpaper-select" ''
     set -eu
     dir="${wallpaperDir}"
     state="${wallpaperStateFile}"
@@ -38,21 +40,22 @@ let
     [ "$count" -eq 0 ] && exit 0
 
     mode="''${1:-random}"
+    idx_file="${wallpaperDir}/../.wallpaper-index"
     case "$mode" in
       next)
         idx=0
-        [ -f "$state" ] && idx=$(${catExe} "$state")
+        [ -f "$idx_file" ] && idx=$(${catExe} "$idx_file")
         idx=$(( (idx + 1) % count ))
         ;;
       random)
         idx=$(${shufExe} -i 0-$((count - 1)) -n 1)
         ;;
     esac
-    echo "$idx" > "$state"
+    echo "$idx" > "$idx_file"
 
     file=$(echo "$files" | ${sedExe} -n "$((idx + 1))p")
-    ${killallExe} swaybg 2>/dev/null || true
-    exec ${swaybgExe} -i "$dir/$file" -m fill
+    echo "$dir/$file" > "$state"
+    ${systemctlExe} --user restart swaybg.service
   '';
 
   # ===== Log-filtered launcher 定义 =====
@@ -168,6 +171,7 @@ in
           };
         };
 
+        # swaybg 从 state file 读取壁纸路径；首次启动若无 state file 则先随机选一张
         swaybg = {
           Unit = {
             Description = "Wallpaper daemon for Wayland";
@@ -177,17 +181,40 @@ in
           Install.WantedBy = [ "graphical-session.target" ];
           Service = {
             Type = "simple";
-            ExecStart = "${wallpaperRotate} random";
+            ExecStartPre = "${pkgs.writeShellScript "swaybg-init" ''
+              set -eu
+              state="${wallpaperStateFile}"
+              # state file 已存在且指向有效壁纸则跳过
+              if [ -f "$state" ] && [ -f "$(${catExe} "$state")" ]; then
+                exit 0
+              fi
+              # 首次启动：随机选一张写入 state file
+              dir="${wallpaperDir}"
+              ${mkdirExe} -p "$(${dirnameExe} "$state")"
+              files=$(${lsExe} -1 "$dir" 2>/dev/null | ${sortExe})
+              count=$(echo "$files" | ${wcExe} -l)
+              [ "$count" -eq 0 ] && exit 0
+              idx=$(${shufExe} -i 0-$((count - 1)) -n 1)
+              file=$(echo "$files" | ${sedExe} -n "$((idx + 1))p")
+              echo "$dir/$file" > "$state"
+            ''}";
+            ExecStart = "${pkgs.writeShellScript "swaybg-start" ''
+              state="${wallpaperStateFile}"
+              wallpaper=$(${catExe} "$state" 2>/dev/null || echo "")
+              [ -z "$wallpaper" ] || [ ! -f "$wallpaper" ] && exit 0
+              exec ${swaybgExe} -i "$wallpaper" -m fill
+            ''}";
             Restart = "on-failure";
             RestartSec = 2;
           };
         };
 
+        # oneshot: 选壁纸 + restart swaybg，可重复触发
         wallpaper-rotate = {
           Unit.Description = "Rotate wallpaper randomly";
           Service = {
             Type = "oneshot";
-            ExecStart = "${wallpaperRotate} random";
+            ExecStart = "${wallpaperSelect} random";
           };
         };
 
@@ -195,7 +222,7 @@ in
           Unit.Description = "Switch to next wallpaper in order";
           Service = {
             Type = "oneshot";
-            ExecStart = "${wallpaperRotate} next";
+            ExecStart = "${wallpaperSelect} next";
           };
         };
 
