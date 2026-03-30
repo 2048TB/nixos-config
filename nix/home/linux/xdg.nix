@@ -109,8 +109,11 @@ in
     portal = {
       enable = true;
       xdgOpenUsePortal = true;
-      # xdg-desktop-portal-wlr 已由 NixOS programs.river-classic 模块提供，仅补充 gtk backend
+      # HM portal.enable 会设置 NIX_XDG_DESKTOP_PORTAL_DIR 指向用户 profile，
+      # 遮蔽系统侧安装的 portal 包。需在 HM 侧显式注入 wlr + gtk，
+      # 否则 portal config 中路由到 "wlr" 的 ScreenCast/Screenshot 接口无法发现 backend。
       extraPortals = with pkgs; [
+        xdg-desktop-portal-wlr
         xdg-desktop-portal-gtk
       ];
       # portal 接口映射由 flake specialArgs 统一提供，避免 system/home 漂移。

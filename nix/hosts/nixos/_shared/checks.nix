@@ -101,6 +101,7 @@ let
     "xdg-desktop-portal"
     "xdg-desktop-portal-gnome"
     "xdg-desktop-portal-gtk"
+    "xdg-desktop-portal-wlr"
     "python3"
     "zsh"
     "nix-zsh-completions"
