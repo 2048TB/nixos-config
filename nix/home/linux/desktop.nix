@@ -51,6 +51,66 @@ in
     };
   };
 
+  wayland.windowManager.river = {
+    enable = true;
+    package = null; # NixOS programs.river-classic 提供安装
+    # river 由 system profile 提供；显式禁用 HM 的 xwayland 包注入，
+    # 避免与系统侧 programs.river-classic.xwayland.enable 产生重复 closure。
+    xwayland.enable = false;
+    # 显式固定 HM 的 systemd 集成，避免未来默认值变化影响 graphical-session 链路。
+    systemd = {
+      enable = true;
+      variables = [
+        "DISPLAY" "WAYLAND_DISPLAY" "XDG_CURRENT_DESKTOP"
+        "NIXOS_OZONE_WL" "XCURSOR_THEME" "XCURSOR_SIZE"
+        "QT_QPA_PLATFORMTHEME"
+        "INPUT_METHOD" "GTK_IM_MODULE" "QT_IM_MODULE" "XMODIFIERS" "SDL_IM_MODULE"
+      ];
+    };
+    settings = {
+      border-width = 2;
+      set-repeat = "50 300";
+      default-layout = "rivertile";
+      rule-add = {
+        ssd = [
+          [ "-app-id" "'google-chrome'" ]
+          [ "-app-id" "'steam'" ]
+        ];
+      };
+      map.normal = {
+        "Super Q" = "close";
+        "Super Return" = "spawn ghostty";
+        "Super Space" = "spawn fuzzel";
+        "Super F" = "toggle-fullscreen";
+        "Super+Shift Return" = "zoom";
+        "Super J" = "focus-view next";
+        "Super K" = "focus-view previous";
+        "Super+Shift J" = "swap next";
+        "Super+Shift K" = "swap previous";
+        "Super H" = "send-layout-cmd rivertile \"main-ratio -0.05\"";
+        "Super L" = "send-layout-cmd rivertile \"main-ratio +0.05\"";
+      };
+    };
+    extraConfig = ''
+      # Tag switching (bitmask)
+      for i in $(seq 1 9); do
+        tags=$((1 << (i - 1)))
+        riverctl map normal Super "$i" set-focused-tags "$tags"
+        riverctl map normal Super+Shift "$i" set-view-tags "$tags"
+        riverctl map normal Super+Control "$i" toggle-focused-tags "$tags"
+      done
+      all_tags=$(((1 << 32) - 1))
+      riverctl map normal Super 0 set-focused-tags "$all_tags"
+      riverctl map normal Super+Shift 0 set-view-tags "$all_tags"
+
+      # Float/fullscreen controls
+      riverctl map normal Super+Shift Space toggle-float
+
+      # Layout generator
+      rivertile -view-padding 6 -outer-padding 6 &
+    '';
+  };
+
   systemd = {
     user.services =
       {
@@ -69,6 +129,22 @@ in
             Restart = "on-failure";
             RestartSec = 1;
             TimeoutStopSec = 10;
+          };
+        };
+
+        # Fcitx5 输入法守护进程（River 需要显式启动，Niri 由 compositor 自动拉起）
+        fcitx5-daemon = {
+          Unit = {
+            Description = "Fcitx5 Input Method";
+            After = [ "graphical-session.target" ];
+            PartOf = [ "graphical-session.target" ];
+          };
+          Install.WantedBy = [ "graphical-session.target" ];
+          Service = {
+            Type = "simple";
+            ExecStart = "/run/current-system/sw/bin/fcitx5 --replace";
+            Restart = "on-failure";
+            RestartSec = 1;
           };
         };
 
