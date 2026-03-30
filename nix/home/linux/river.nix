@@ -165,6 +165,11 @@ _:
       };
     };
     extraConfig = ''
+      # ===== Cursor theme =====
+      # River compositor 不读取 XCURSOR_THEME/XCURSOR_SIZE 环境变量，
+      # 需通过 riverctl 显式设置，否则非应用区域显示默认光标。
+      riverctl set-cursor-theme Adwaita 24
+
       # ===== Tag 切换（bitmask）=====
       for i in $(seq 1 9); do
         tags=$((1 << (i - 1)))
