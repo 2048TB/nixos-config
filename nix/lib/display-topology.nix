@@ -57,19 +57,4 @@ in
     lib.concatStringsSep "\n\n" (
       lib.filter (block: block != "") (map mkNiriOutputBlock (getDisplays host))
     );
-
-  mkNoctaliaMonitorWidgets =
-    { host
-    , widgetsTemplate ? [ ]
-    }:
-    map
-      (display: {
-        inherit (display) name;
-        widgets = widgetsTemplate;
-      })
-      (
-        builtins.filter
-          (display: (display.name or "") != "")
-          (getDisplays host)
-      );
 }
