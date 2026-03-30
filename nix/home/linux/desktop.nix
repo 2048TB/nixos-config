@@ -40,7 +40,16 @@ let
 in
 {
   services = {
+    kanshi = {
+      enable = true;
+      systemdTarget = "river-session.target";
+    };
+
     playerctld.enable = true;
+
+    swaync = {
+      enable = true;
+    };
 
     # USB 设备自动挂载服务
     udiskie = {
@@ -174,6 +183,56 @@ in
             Type = "simple";
             ExecStartPre = "${aria2PrepareSession}";
             ExecStart = "${aria2Start}";
+            Restart = "on-failure";
+            RestartSec = 2;
+          };
+        };
+
+        swaybg = {
+          Unit = {
+            Description = "Wallpaper daemon for Wayland";
+            After = [ "graphical-session.target" ];
+            PartOf = [ "graphical-session.target" ];
+          };
+          Install.WantedBy = [ "graphical-session.target" ];
+          Service = {
+            Type = "simple";
+            ExecStart = "${pkgs.swaybg}/bin/swaybg -i %h/.config/wallpapers/1.png -m fill";
+            Restart = "on-failure";
+            RestartSec = 2;
+          };
+        };
+
+        swayidle = {
+          Unit = {
+            Description = "Idle manager for Wayland";
+            After = [ "graphical-session.target" ];
+            PartOf = [ "graphical-session.target" ];
+          };
+          Install.WantedBy = [ "graphical-session.target" ];
+          Service = {
+            Type = "simple";
+            ExecStart = builtins.concatStringsSep " " [
+              "${pkgs.swayidle}/bin/swayidle -w"
+              "timeout 300 '${pkgs.swaylock-effects}/bin/swaylock -f'"
+              "timeout 600 'riverctl output \"*\" power off'"
+              "resume 'riverctl output \"*\" power on'"
+            ];
+            Restart = "on-failure";
+            RestartSec = 2;
+          };
+        };
+
+        cliphist-daemon = {
+          Unit = {
+            Description = "Clipboard history daemon";
+            After = [ "graphical-session.target" ];
+            PartOf = [ "graphical-session.target" ];
+          };
+          Install.WantedBy = [ "graphical-session.target" ];
+          Service = {
+            Type = "simple";
+            ExecStart = "${pkgs.wl-clipboard}/bin/wl-paste --watch ${pkgs.cliphist}/bin/cliphist store";
             Restart = "on-failure";
             RestartSec = 2;
           };

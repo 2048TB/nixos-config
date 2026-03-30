@@ -93,6 +93,7 @@ let
   hostMetaLib = import ./host-meta.nix { };
   hostCapabilitiesLib = import ./host-capabilities.nix { };
   displayTopologyLib = import ./display-topology.nix { inherit lib; };
+  sessionToolsLib = { pkgs, ... }: import ./session-tools.nix { inherit pkgs; };
   launchersLib = import ./launchers.nix { inherit lib; };
   validationLib = import ./validation.nix { inherit lib attrsLib; };
   defaultHomeStateVersion = "25.11";
@@ -124,6 +125,8 @@ rec {
     discoverHostNamesBy
     ;
   inherit (hostMetaLib) hostMetaSchema roleFlags;
+  inherit sessionToolsLib;
+  mkSessionTools = sessionToolsLib;
   inherit (launchersLib) mkLogFilteredLauncher;
   inherit (validationLib)
     assertPathExists
