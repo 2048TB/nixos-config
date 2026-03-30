@@ -88,5 +88,6 @@ lib.mkIf hasDesktopSession {
 
   environment.systemPackages = with pkgs; [
     xwayland-satellite
+    wsdd # gvfsd-wsdd 通过 execvp 调用 wsdd，需在系统 PATH 中
   ];
 }

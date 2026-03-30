@@ -56,7 +56,6 @@
     "remmina"
     "nomacs"
     "nautilus"
-    "wsdd"
     "file-roller"
     "ghostty"
     "papirus-icon-theme"
