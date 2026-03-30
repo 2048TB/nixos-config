@@ -1,4 +1,27 @@
-_:
+{ pkgs, lib, ... }:
+let
+  catExe = lib.getExe' pkgs.coreutils "cat";
+  mkdirExe = lib.getExe' pkgs.coreutils "mkdir";
+  dirnameExe = lib.getExe' pkgs.coreutils "dirname";
+
+  locationCycle = pkgs.writeShellScript "rivertile-location-cycle" ''
+    set -eu
+    state="$HOME/.local/state/rivertile-location"
+    ${mkdirExe} -p "$(${dirnameExe} "$state")"
+    locations="left top right bottom"
+    current=""
+    [ -f "$state" ] && current=$(${catExe} "$state")
+    case "$current" in
+      left)   next=top ;;
+      top)    next=right ;;
+      right)  next=bottom ;;
+      bottom) next=left ;;
+      *)      next=top ;;
+    esac
+    echo "$next" > "$state"
+    riverctl send-layout-cmd rivertile "main-location $next"
+  '';
+in
 {
   wayland.windowManager.river = {
     enable = true;
@@ -111,7 +134,7 @@ _:
           "Super T" = "send-layout-cmd rivertile \"main-count -1\"";
 
           # ===== 核心操作（XCVB）=====
-          "Super X" = "send-layout-cmd rivertile \"main-location-cycle left top right bottom\"";
+          "Super X" = "spawn '${locationCycle}'";
           "Super C" = "zoom";
           "Super O" = "focus-output next";
           "Super V" = "spawn 'cliphist list | fuzzel -d | cliphist decode | wl-copy'";
