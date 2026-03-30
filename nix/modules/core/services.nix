@@ -13,7 +13,9 @@ let
   desktopProfile = hostCfg.desktopProfile or "niri";
   desktopSessionName = desktopProfile;
   desktopExec =
-    if desktopProfile == "niri" then
+    if desktopProfile == "river" then
+      "/run/current-system/sw/bin/river"
+    else if desktopProfile == "niri" then
       "/run/current-system/sw/bin/niri-session"
     else
       throw "Unsupported Linux desktopProfile '${desktopProfile}'";
@@ -31,11 +33,11 @@ let
     export XDG_CURRENT_DESKTOP="''${XDG_CURRENT_DESKTOP:-${desktopSessionName}}"
     export XDG_SESSION_DESKTOP="''${XDG_SESSION_DESKTOP:-${desktopSessionName}}"
     /run/current-system/sw/bin/systemctl --user import-environment \
-      QT_IM_MODULE SDL_IM_MODULE \
+      INPUT_METHOD GTK_IM_MODULE QT_IM_MODULE XMODIFIERS SDL_IM_MODULE \
       NIXOS_OZONE_WL QT_QPA_PLATFORMTHEME NIX_XDG_DESKTOP_PORTAL_DIR \
       XDG_CURRENT_DESKTOP XDG_SESSION_DESKTOP || true
     /run/current-system/sw/bin/dbus-update-activation-environment --systemd \
-      QT_IM_MODULE SDL_IM_MODULE \
+      INPUT_METHOD GTK_IM_MODULE QT_IM_MODULE XMODIFIERS SDL_IM_MODULE \
       NIXOS_OZONE_WL QT_QPA_PLATFORMTHEME NIX_XDG_DESKTOP_PORTAL_DIR \
       XDG_CURRENT_DESKTOP XDG_SESSION_DESKTOP || true
 

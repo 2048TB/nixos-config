@@ -20,9 +20,13 @@ lib.mkIf hasDesktopSession {
 
     zsh.enable = true;
 
-    niri = {
+    "river-classic" = {
       enable = true;
-      useNautilus = false;
+      xwayland.enable = true;
+      extraPackages = with pkgs; [
+        foot
+        fuzzel
+      ];
     };
 
     seahorse.enable = true;
@@ -47,6 +51,9 @@ lib.mkIf hasDesktopSession {
   xdg.portal = {
     enable = true;
     xdgOpenUsePortal = true;
+    extraPortals = with pkgs; [
+      xdg-desktop-portal-wlr
+    ];
   };
 
   fonts.packages = with pkgs; [
