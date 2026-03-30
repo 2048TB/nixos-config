@@ -10,13 +10,11 @@ let
   homeDir = "/home/${mainUser}";
   hibernateEnabled = hostCfg.resumeOffset != null;
   inherit (config.my.capabilities) isLaptop hasDesktopSession hasFingerprintReader;
-  desktopProfile = hostCfg.desktopProfile or "niri";
+  desktopProfile = hostCfg.desktopProfile or "river";
   desktopSessionName = desktopProfile;
   desktopExec =
     if desktopProfile == "river" then
       "/run/current-system/sw/bin/river"
-    else if desktopProfile == "niri" then
-      "/run/current-system/sw/bin/niri-session"
     else
       throw "Unsupported Linux desktopProfile '${desktopProfile}'";
   tuigreetPackage = pkgs.tuigreet or pkgs.greetd.tuigreet or (throw "tuigreet package not found in pkgs.tuigreet or pkgs.greetd.tuigreet");

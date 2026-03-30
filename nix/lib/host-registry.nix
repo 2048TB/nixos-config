@@ -4,7 +4,6 @@ let
   inherit (hostMetaSchema) allowedKinds allowedFormFactors allowedGpuVendors;
   allowedLinuxDesktopProfiles = [
     "none"
-    "niri"
     "river"
   ];
   allowedDarwinDesktopProfiles = [
