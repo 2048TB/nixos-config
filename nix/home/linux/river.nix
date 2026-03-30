@@ -80,11 +80,9 @@ _:
           "Super Up" = "focus-view previous";
           "Super Right" = "focus-view next";
 
-          # ===== 窗口位置移动（SDFG）=====
+          # ===== 窗口交换（SD）=====
           "Super S" = "swap previous";
           "Super D" = "swap next";
-          "Super F" = "swap previous";
-          "Super G" = "swap next";
 
           # ===== 浮动窗口移动（Alt+方向键，像素级）=====
           "Super+Alt Left" = "move left 100";
@@ -104,15 +102,18 @@ _:
           "Super+Alt+Shift Up" = "resize vertical -100";
           "Super+Alt+Shift Right" = "resize horizontal 100";
 
-          # ===== 布局比例 =====
-          "Super R" = "send-layout-cmd rivertile \"main-ratio -0.05\"";
-          "Super T" = "send-layout-cmd rivertile \"main-ratio +0.05\"";
-          "Super+Shift R" = "send-layout-cmd rivertile \"main-count +1\"";
-          "Super+Shift T" = "send-layout-cmd rivertile \"main-count -1\"";
+          # ===== 布局比例（FG）=====
+          "Super F" = "send-layout-cmd rivertile \"main-ratio -0.1\"";
+          "Super G" = "send-layout-cmd rivertile \"main-ratio +0.1\"";
+
+          # ===== 主区数量（RT）=====
+          "Super R" = "send-layout-cmd rivertile \"main-count +1\"";
+          "Super T" = "send-layout-cmd rivertile \"main-count -1\"";
 
           # ===== 核心操作（XCVB）=====
-          "Super X" = "zoom";
-          "Super C" = "focus-output next";
+          "Super X" = "send-layout-cmd rivertile \"main-location-cycle left top right bottom\"";
+          "Super C" = "zoom";
+          "Super O" = "focus-output next";
           "Super V" = "spawn 'cliphist list | fuzzel -d | cliphist decode | wl-copy'";
           "Super B" = "send-to-output next";
 
@@ -186,7 +187,7 @@ _:
       riverctl map normal Super+Shift 0 set-view-tags "$all_tags"
 
       # ===== Layout generator（主区占 80%）=====
-      rivertile -view-padding 6 -outer-padding 6 -main-ratio 0.8 &
+      rivertile -view-padding 6 -outer-padding 6 -main-ratio 0.6 &
     '';
   };
 }
