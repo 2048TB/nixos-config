@@ -70,8 +70,6 @@ in
       // {
         "qt6ct/colors/darker.conf".source = "${pkgs.qt6Packages.qt6ct}/share/qt6ct/colors/darker.conf";
         "niri/outputs.kdl".text = generatedNiriOutputs;
-        # 切到 repo 工作树中的可写目录，让 GUI 修改可直接持久化。
-        "noctalia".source = mkSymlink "${configRepoPath}/nix/home/configs/noctalia";
         # 覆盖上游桌面自启动：避免与 provider-app-vpn-ui.service 双启动导致日志噪音与崩溃。
         "autostart/provider-app-vpn.desktop" = {
           text = ''

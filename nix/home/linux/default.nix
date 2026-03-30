@@ -1,7 +1,6 @@
 { config
 , pkgs
 , lib
-, noctalia
 , mainUser
 , ...
 }:
@@ -10,7 +9,6 @@
 
   imports = [
     ../base
-    noctalia.homeModules.default
   ] ++ (import ./_mixins { inherit lib; });
 
   home = {
