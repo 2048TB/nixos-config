@@ -89,7 +89,7 @@ let
     "dosfstools"
     "fuse"
     "gnome-keyring"
-    "niri"
+    "river"
     "iptables"
     "less"
     "shadow"

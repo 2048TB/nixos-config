@@ -109,7 +109,7 @@ rec {
   inherit nixosSystem macosSystem;
   inherit mkNixosHost mkDarwinHost;
   inherit (hostCapabilitiesLib) deriveHostCapabilities;
-  inherit (displayTopologyLib) primaryDisplay mkNiriOutputs;
+  inherit (displayTopologyLib) primaryDisplay mkKanshiSettings mkKanshiConfig;
   inherit (attrsLib)
     hasNonEmptyString
     hasPositiveInt
