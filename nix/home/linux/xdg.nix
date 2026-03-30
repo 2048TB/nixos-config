@@ -2,19 +2,12 @@
 , pkgs
 , lib
 , mytheme
-, mylib
-, myvars
-, configRepoPath
-, osConfig ? null
 , ...
 }:
 let
   homeDir = config.home.homeDirectory;
   localShareDir = "${homeDir}/.local/share";
   configFiles = import ../base/config-files.nix;
-  hostCfg = import ../base/resolve-host.nix { inherit myvars osConfig; };
-  generatedNiriOutputs = mylib.mkNiriOutputs hostCfg;
-  mkSymlink = config.lib.file.mkOutOfStoreSymlink;
 
   imageMimeTypes = [
     "image/jpeg"
@@ -69,7 +62,6 @@ in
       // themedConfigFiles
       // {
         "qt6ct/colors/darker.conf".source = "${pkgs.qt6Packages.qt6ct}/share/qt6ct/colors/darker.conf";
-        "niri/outputs.kdl".text = generatedNiriOutputs;
         # 覆盖上游桌面自启动：避免与 provider-app-vpn-ui.service 双启动导致日志噪音与崩溃。
         "autostart/provider-app-vpn.desktop" = {
           text = ''
@@ -94,6 +86,7 @@ in
       xdgOpenUsePortal = true;
       extraPortals = with pkgs; [
         xdg-desktop-portal-gtk
+        xdg-desktop-portal-wlr
       ];
       # portal 接口映射由 flake specialArgs 统一提供，避免 system/home 漂移。
       config = portalConfig;
