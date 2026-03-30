@@ -8,6 +8,32 @@ let
   # - 若当前 focused-tags 不含 scratch → 把当前窗口扔到 scratch tag（隐藏）
   # - 若当前 focused-tags 含 scratch → 关闭 scratch tag（隐藏区的窗口消失）
   scratchTag = "2147483648"; # 1 << 31
+  scratchState = "$HOME/.local/state/river-scratch-shown";
+
+  # 隐藏：如果 scratch 正在显示（Super B 开启过），先关闭再隐藏窗口
+  scratchHide = pkgs.writeShellScript "river-scratch-hide" ''
+    set -eu
+    state="${scratchState}"
+    ${mkdirExe} -p "$(${dirnameExe} "$state")"
+    if [ -f "$state" ]; then
+      riverctl toggle-focused-tags ${scratchTag}
+      rm -f "$state"
+    fi
+    riverctl set-view-tags ${scratchTag}
+  '';
+
+  # 显示/隐藏 toggle：跟踪 scratch 可见性状态
+  scratchShow = pkgs.writeShellScript "river-scratch-show" ''
+    set -eu
+    state="${scratchState}"
+    ${mkdirExe} -p "$(${dirnameExe} "$state")"
+    riverctl toggle-focused-tags ${scratchTag}
+    if [ -f "$state" ]; then
+      rm -f "$state"
+    else
+      touch "$state"
+    fi
+  '';
 
   locationCycle = pkgs.writeShellScript "rivertile-location-cycle" ''
     set -eu
@@ -143,8 +169,8 @@ in
           "Super C" = "zoom";
           "Super O" = "focus-output next";
           "Super+Shift O" = "send-to-output next";
-          "Super V" = "set-view-tags ${scratchTag}";
-          "Super B" = "toggle-focused-tags ${scratchTag}";
+          "Super V" = "spawn '${scratchHide}'";
+          "Super B" = "spawn '${scratchShow}'";
           "Super+Shift V" = "spawn 'cliphist list | fuzzel -d | cliphist decode | wl-copy'";
 
           # ===== 程序启动 =====
