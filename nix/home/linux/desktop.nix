@@ -86,10 +86,15 @@ in
     };
     settings = {
       border-width = 2;
+      border-color-focused = "0x61afef";   # mytheme blue
+      border-color-unfocused = "0x3e4451"; # mytheme bg2
       set-repeat = "50 300";
       default-layout = "rivertile";
       focus-follows-cursor = "normal";
       set-cursor-warp = "on-focus-change";
+
+      # Passthrough 模式：远程桌面/VNC 时让所有按键穿透
+      declare-mode = [ "normal" "passthrough" ];
 
       # SSD 规则：这些应用的装饰由 compositor 绘制
       rule-add = {
@@ -108,13 +113,26 @@ in
         ];
       };
 
+      # 鼠标绑定（声明式）
+      map-pointer.normal = {
+        "Super BTN_LEFT" = "move-view";
+        "Super BTN_RIGHT" = "resize-view";
+        "Super BTN_MIDDLE" = "toggle-float";
+      };
+
       map = {
+        # Passthrough 模式退出键
+        passthrough."Super F11" = "enter-mode normal";
+
         normal = {
           # ===== 窗口管理 =====
-          "Super Q" = "close";                       # niri: Mod+Q
-          "Super Z" = "toggle-fullscreen";           # 全屏
-          "Super W" = "toggle-float";                # 浮动切换（niri: Mod+W）
-          "Super E" = "focus-view next";             # 浮动/平铺焦点切换
+          "Super Q" = "close";
+          "Super Z" = "toggle-fullscreen";
+          "Super W" = "toggle-float";
+          "Super E" = "focus-view next";
+
+          # ===== Passthrough 模式进入 =====
+          "Super F11" = "enter-mode passthrough";
 
           # ===== 焦点移动（方向键）=====
           "Super Left" = "focus-view previous";
@@ -123,36 +141,54 @@ in
           "Super Right" = "focus-view next";
 
           # ===== 窗口位置移动（SDFG）=====
-          "Super S" = "swap previous";               # 左移
-          "Super D" = "swap next";                    # 下移
-          "Super F" = "swap previous";               # 上移
-          "Super G" = "swap next";                    # 右移
+          "Super S" = "swap previous";
+          "Super D" = "swap next";
+          "Super F" = "swap previous";
+          "Super G" = "swap next";
+
+          # ===== 浮动窗口移动（Alt+方向键，像素级）=====
+          "Super+Alt Left" = "move left 100";
+          "Super+Alt Down" = "move down 100";
+          "Super+Alt Up" = "move up 100";
+          "Super+Alt Right" = "move right 100";
+
+          # ===== 浮动窗口吸附（Alt+Ctrl+方向键）=====
+          "Super+Alt+Control Left" = "snap left";
+          "Super+Alt+Control Down" = "snap down";
+          "Super+Alt+Control Up" = "snap up";
+          "Super+Alt+Control Right" = "snap right";
+
+          # ===== 浮动窗口缩放（Alt+Shift+方向键）=====
+          "Super+Alt+Shift Left" = "resize horizontal -100";
+          "Super+Alt+Shift Down" = "resize vertical 100";
+          "Super+Alt+Shift Up" = "resize vertical -100";
+          "Super+Alt+Shift Right" = "resize horizontal 100";
 
           # ===== 布局比例 =====
-          "Super R" = "send-layout-cmd rivertile \"main-ratio -0.05\"";  # 缩小主区
-          "Super T" = "send-layout-cmd rivertile \"main-ratio +0.05\"";  # 放大主区
-          "Super+Shift R" = "send-layout-cmd rivertile \"main-count +1\""; # 主区数量 +1
-          "Super+Shift T" = "send-layout-cmd rivertile \"main-count -1\""; # 主区数量 -1
+          "Super R" = "send-layout-cmd rivertile \"main-ratio -0.05\"";
+          "Super T" = "send-layout-cmd rivertile \"main-ratio +0.05\"";
+          "Super+Shift R" = "send-layout-cmd rivertile \"main-count +1\"";
+          "Super+Shift T" = "send-layout-cmd rivertile \"main-count -1\"";
 
           # ===== 核心操作（XCVB）=====
-          "Super X" = "zoom";                        # 提升为主窗口
-          "Super C" = "focus-output next";            # 焦点切换到下一输出
-          "Super V" = "spawn 'cliphist list | fuzzel -d | cliphist decode | wl-copy'"; # 剪贴板历史
-          "Super B" = "send-to-output next";          # 发送窗口到下一输出
+          "Super X" = "zoom";
+          "Super C" = "focus-output next";
+          "Super V" = "spawn 'cliphist list | fuzzel -d | cliphist decode | wl-copy'";
+          "Super B" = "send-to-output next";
 
-          # ===== 程序启动（对齐 niri）=====
-          "Super Return" = "spawn ghostty";          # niri: Mod+Return
-          "Super Space" = "spawn fuzzel";            # niri: Mod+Space
+          # ===== 程序启动 =====
+          "Super Return" = "spawn ghostty";
+          "Super Space" = "spawn fuzzel";
 
-          # ===== 会话管理（对齐 niri）=====
-          "Super+Shift E" = "spawn wlogout";         # niri: Mod+Shift+E
-          "Super+Shift L" = "spawn 'swaylock -f --clock --indicator --effect-blur 7x5'"; # niri: Mod+Shift+L
-          "Super+Shift P" = "spawn 'riverctl output \"*\" power off'"; # niri: Mod+Shift+P
+          # ===== 会话管理 =====
+          "Super+Shift E" = "spawn wlogout";
+          "Super+Shift L" = "spawn 'swaylock -f --clock --indicator --effect-blur 7x5'";
+          "Super+Shift P" = "spawn 'riverctl output \"*\" power off'";
 
           # ===== 截图 =====
-          "Super A" = "spawn 'grim -g \"$(slurp)\" - | wl-copy'";       # 选区截图
-          "Super+Shift A" = "spawn 'grim - | wl-copy'";                  # 全屏截图
-          "None Print" = "spawn 'grim - | wl-copy'";                     # Print 键备用
+          "Super A" = "spawn 'grim -g \"$(slurp)\" - | wl-copy'";
+          "Super+Shift A" = "spawn 'grim - | wl-copy'";
+          "None Print" = "spawn 'grim - | wl-copy'";
 
           # ===== 音量控制 =====
           "None XF86AudioRaiseVolume" = "spawn 'wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.02+ --limit 1.0'";
@@ -174,7 +210,7 @@ in
           "Super N" = "spawn 'swaync-client -t -sw'";
         };
 
-        # 锁屏模式下的键位（音量/媒体）
+        # 锁屏模式下的键位（音量/媒体/亮度）
         locked = {
           "None XF86AudioRaiseVolume" = "spawn 'wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.02+ --limit 1.0'";
           "None XF86AudioLowerVolume" = "spawn 'wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.02-'";
@@ -182,25 +218,23 @@ in
           "None XF86AudioPlay" = "spawn 'playerctl play-pause'";
           "None XF86AudioPrev" = "spawn 'playerctl previous'";
           "None XF86AudioNext" = "spawn 'playerctl next'";
+          "None XF86MonBrightnessUp" = "spawn 'brightnessctl --class=backlight set 1%+'";
+          "None XF86MonBrightnessDown" = "spawn 'brightnessctl --class=backlight set 1%-'";
         };
       };
     };
     extraConfig = ''
-      # ===== Tag 切换（bitmask，对齐 niri Mod+1~9 工作区）=====
+      # ===== Tag 切换（bitmask）=====
       for i in $(seq 1 9); do
         tags=$((1 << (i - 1)))
         riverctl map normal Super "$i" set-focused-tags "$tags"
         riverctl map normal Super+Shift "$i" set-view-tags "$tags"
         riverctl map normal Super+Control "$i" toggle-focused-tags "$tags"
+        riverctl map normal Super+Shift+Control "$i" toggle-view-tags "$tags"
       done
       all_tags=$(((1 << 32) - 1))
       riverctl map normal Super 0 set-focused-tags "$all_tags"
       riverctl map normal Super+Shift 0 set-view-tags "$all_tags"
-
-      # ===== 鼠标绑定 =====
-      riverctl map-pointer normal Super BTN_LEFT move-view
-      riverctl map-pointer normal Super BTN_RIGHT resize-view
-      riverctl map-pointer normal Super BTN_MIDDLE toggle-float
 
       # ===== Layout generator（主区占 80%）=====
       rivertile -view-padding 6 -outer-padding 6 -main-ratio 0.8 &
