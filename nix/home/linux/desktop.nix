@@ -16,6 +16,43 @@ let
   mkdirExe = lib.getExe' pkgs.coreutils "mkdir";
   touchExe = lib.getExe' pkgs.coreutils "touch";
   catExe = lib.getExe' pkgs.coreutils "cat";
+  lsExe = lib.getExe' pkgs.coreutils "ls";
+  sortExe = lib.getExe' pkgs.coreutils "sort";
+  shufExe = lib.getExe' pkgs.coreutils "shuf";
+  wcExe = lib.getExe' pkgs.coreutils "wc";
+  sedExe = lib.getExe pkgs.gnused;
+  killallExe = lib.getExe pkgs.killall;
+  swaybgExe = "${pkgs.swaybg}/bin/swaybg";
+
+  wallpaperDir = "$HOME/Pictures/Wallpapers";
+  wallpaperStateFile = "$HOME/.local/state/wallpaper-index";
+  wallpaperRotate = pkgs.writeShellScript "wallpaper-rotate" ''
+    set -eu
+    dir="${wallpaperDir}"
+    state="${wallpaperStateFile}"
+    ${mkdirExe} -p "$(dirname "$state")"
+
+    files=$(${lsExe} -1 "$dir" 2>/dev/null | ${sortExe})
+    count=$(echo "$files" | ${wcExe} -l)
+    [ "$count" -eq 0 ] && exit 0
+
+    mode="''${1:-random}"
+    case "$mode" in
+      next)
+        idx=0
+        [ -f "$state" ] && idx=$(${catExe} "$state")
+        idx=$(( (idx + 1) % count ))
+        ;;
+      random)
+        idx=$(${shufExe} -i 0-$((count - 1)) -n 1)
+        ;;
+    esac
+    echo "$idx" > "$state"
+
+    file=$(echo "$files" | ${sedExe} -n "$((idx + 1))p")
+    ${killallExe} swaybg 2>/dev/null || true
+    exec ${swaybgExe} -i "$dir/$file" -m fill
+  '';
 
   # ===== Log-filtered launcher 定义 =====
   udiskieLogFiltered = mkLogFilteredLauncher "udiskie-log-filtered" "${pkgs.udiskie}/bin/udiskie" [
@@ -139,9 +176,25 @@ in
           Install.WantedBy = [ "graphical-session.target" ];
           Service = {
             Type = "simple";
-            ExecStart = "${pkgs.swaybg}/bin/swaybg -i %h/.config/wallpapers/1.png -m fill";
+            ExecStart = "${wallpaperRotate} random";
             Restart = "on-failure";
             RestartSec = 2;
+          };
+        };
+
+        wallpaper-rotate = {
+          Unit.Description = "Rotate wallpaper randomly";
+          Service = {
+            Type = "oneshot";
+            ExecStart = "${wallpaperRotate} random";
+          };
+        };
+
+        wallpaper-next = {
+          Unit.Description = "Switch to next wallpaper in order";
+          Service = {
+            Type = "oneshot";
+            ExecStart = "${wallpaperRotate} next";
           };
         };
 
@@ -202,5 +255,14 @@ in
           };
         };
       };
+
+    user.timers.wallpaper-rotate = {
+      Unit.Description = "Rotate wallpaper every 30 minutes";
+      Timer = {
+        OnActiveSec = "30min";
+        OnUnitActiveSec = "30min";
+      };
+      Install.WantedBy = [ "graphical-session.target" ];
+    };
   };
 }
