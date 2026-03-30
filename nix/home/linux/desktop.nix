@@ -149,9 +149,10 @@ in
           "Super+Shift L" = "spawn 'swaylock -f --clock --indicator --effect-blur 7x5'"; # niri: Mod+Shift+L
           "Super+Shift P" = "spawn 'riverctl output \"*\" power off'"; # niri: Mod+Shift+P
 
-          # ===== 截图（对齐 niri）=====
-          "None Print" = "spawn 'grim - | wl-copy'";
-          "Super+Shift A" = "spawn 'grim -g \"$(slurp)\" - | wl-copy'";
+          # ===== 截图 =====
+          "Super A" = "spawn 'grim -g \"$(slurp)\" - | wl-copy'";       # 选区截图
+          "Super+Shift A" = "spawn 'grim - | wl-copy'";                  # 全屏截图
+          "None Print" = "spawn 'grim - | wl-copy'";                     # Print 键备用
 
           # ===== 音量控制 =====
           "None XF86AudioRaiseVolume" = "spawn 'wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.02+ --limit 1.0'";
