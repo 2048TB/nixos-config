@@ -10,6 +10,7 @@ let
   hostCfg = import ../base/resolve-host.nix { inherit myvars osConfig; };
   roleFlags = mylib.roleFlags hostCfg;
   inherit (roleFlags) enableMullvadVpn;
+  isLaptop = (hostCfg.formFactor or "desktop") == "laptop";
 
   mkLogFilteredLauncher = mylib.mkLogFilteredLauncher pkgs;
   mkdirExe = lib.getExe' pkgs.coreutils "mkdir";
@@ -325,7 +326,7 @@ in
           };
         };
 
-        swayidle = {
+        swayidle = lib.mkIf isLaptop {
           Unit = {
             Description = "Idle manager for Wayland";
             After = [ "graphical-session.target" ];
