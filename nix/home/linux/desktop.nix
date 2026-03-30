@@ -106,6 +106,7 @@ in
         "Super+Shift K" = "swap previous";
         "Super H" = "send-layout-cmd rivertile \"main-ratio -0.05\"";
         "Super L" = "send-layout-cmd rivertile \"main-ratio +0.05\"";
+        "Super+Shift E" = "spawn wlogout";
       };
     };
     extraConfig = ''

@@ -2,12 +2,30 @@
 , pkgs
 , lib
 , mytheme
+, myvars
+, osConfig ? null
 , ...
 }:
 let
   homeDir = config.home.homeDirectory;
   localShareDir = "${homeDir}/.local/share";
   configFiles = import ../base/config-files.nix;
+  hostCfg = import ../base/resolve-host.nix { inherit myvars osConfig; };
+  supportsHibernate = (hostCfg.resumeOffset or null) != null;
+  wlogoutLayoutLib = import ../../lib/wlogout-layout.nix { inherit lib; };
+  wlogoutLayout = wlogoutLayoutLib.mkWlogoutLayout { inherit supportsHibernate; };
+  wlogoutIconNames = [
+    "lock"
+    "logout"
+    "suspend"
+    "hibernate"
+    "reboot"
+    "shutdown"
+  ];
+  wlogoutIconFiles =
+    lib.genAttrs
+      (map (name: "wlogout/icons/${name}.png") wlogoutIconNames)
+      (path: { source = "${pkgs.wlogout}/share/${path}"; });
 
   imageMimeTypes = [
     "image/jpeg"
@@ -74,11 +92,14 @@ in
         };
         "waybar/config.jsonc".source = ../configs/waybar/config.jsonc;
         "waybar/style.css".text = mytheme.apply (builtins.readFile ../configs/waybar/style.css);
+        "wlogout/layout".text = wlogoutLayout;
+        "wlogout/style.css".text = mytheme.apply (builtins.readFile ../configs/wlogout/style.css);
         "pnpm/rc".text = ''
           global-dir=${localShareDir}/pnpm/global
           global-bin-dir=${localShareDir}/pnpm/bin
         '';
-      };
+      }
+      // wlogoutIconFiles;
 
     # Home Manager 会设置 NIX_XDG_DESKTOP_PORTAL_DIR，并优先从用户 profile 读取 .portal。
     # 需显式注入 gtk backend，否则会出现 "Requested gtk.portal is unrecognized"，

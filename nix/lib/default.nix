@@ -95,6 +95,7 @@ let
   displayTopologyLib = import ./display-topology.nix { inherit lib; };
   sessionToolsLib = { pkgs, ... }: import ./session-tools.nix { inherit pkgs; };
   launchersLib = import ./launchers.nix { inherit lib; };
+  wlogoutLayoutLib = import ./wlogout-layout.nix { inherit lib; };
   validationLib = import ./validation.nix { inherit lib attrsLib; };
   defaultHomeStateVersion = "25.11";
   defaultInitrdAvailableKernelModules = [
@@ -128,6 +129,7 @@ rec {
   inherit sessionToolsLib;
   mkSessionTools = sessionToolsLib;
   inherit (launchersLib) mkLogFilteredLauncher;
+  inherit (wlogoutLayoutLib) mkWlogoutLayout;
   inherit (validationLib)
     assertPathExists
     assertNonEmptyAttrs
