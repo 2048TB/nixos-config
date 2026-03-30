@@ -72,6 +72,8 @@ in
           '';
           force = true;
         };
+        "waybar/config.jsonc".source = ../configs/waybar/config.jsonc;
+        "waybar/style.css".text = mytheme.apply (builtins.readFile ../configs/waybar/style.css);
         "pnpm/rc".text = ''
           global-dir=${localShareDir}/pnpm/global
           global-bin-dir=${localShareDir}/pnpm/bin
