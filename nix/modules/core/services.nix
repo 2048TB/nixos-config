@@ -117,6 +117,10 @@ in
     })
   ];
 
+  # greetd 登录时通过 PAM 自动解锁 gnome-keyring，
+  # 避免 Chrome 等应用首次访问密码时弹出解锁弹窗。
+  security.pam.services.greetd.enableGnomeKeyring = lib.mkIf hasDesktopSession true;
+
   systemd = {
     sleep.extraConfig = lib.mkIf isLaptop ''
       AllowSuspend=yes
