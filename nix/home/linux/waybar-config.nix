@@ -93,9 +93,9 @@ in
     format-icons = {
       default = [ "󰕿" "󰖀" "󰕾" ];
     };
-    on-click = "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle";
-    on-scroll-up = "wpctl set-volume @DEFAULT_AUDIO_SINK@ 2%+";
-    on-scroll-down = "wpctl set-volume @DEFAULT_AUDIO_SINK@ 2%-";
+    on-click = "/run/current-system/sw/bin/wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle";
+    on-scroll-up = "/run/current-system/sw/bin/wpctl set-volume @DEFAULT_AUDIO_SINK@ 2%+";
+    on-scroll-down = "/run/current-system/sw/bin/wpctl set-volume @DEFAULT_AUDIO_SINK@ 2%-";
     tooltip-format = "{desc}\n{volume}%";
   };
 
