@@ -11,7 +11,9 @@ let
   localShareDir = "${homeDir}/.local/share";
   configFiles = import ../base/config-files.nix;
   hostCfg = import ../base/resolve-host.nix { inherit myvars osConfig; };
+  isLaptop = (hostCfg.formFactor or "desktop") == "laptop";
   supportsHibernate = (hostCfg.resumeOffset or null) != null;
+  waybarConfig = import ./waybar-config.nix { inherit lib isLaptop; };
   wlogoutLayoutLib = import ../../lib/wlogout-layout.nix { inherit lib; };
   wlogoutLayout = wlogoutLayoutLib.mkWlogoutLayout { inherit supportsHibernate; };
   wlogoutIconNames = [
@@ -90,7 +92,7 @@ in
           '';
           force = true;
         };
-        "waybar/config.jsonc".source = ../configs/waybar/config.jsonc;
+        "waybar/config.jsonc".text = builtins.toJSON waybarConfig;
         "waybar/style.css".text = mytheme.apply (builtins.readFile ../configs/waybar/style.css);
         "wlogout/layout".text = wlogoutLayout;
         "wlogout/style.css".text = mytheme.apply (builtins.readFile ../configs/wlogout/style.css);
