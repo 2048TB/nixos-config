@@ -45,11 +45,8 @@ in
         pkgs.wineWowPackages.stable
       ];
       extraPackages = with pkgs; [
-        winetricks
         gamescope
         gamemode
-        mangohud
-        umu-launcher
       ];
     };
 
