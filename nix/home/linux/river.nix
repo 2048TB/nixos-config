@@ -165,8 +165,8 @@ in
           "Super T" = "send-layout-cmd rivertile \"main-count -1\"";
 
           # ===== 核心操作（XCVB）=====
-          "Super X" = "spawn '${locationCycle}'";
-          "Super C" = "zoom";
+          "Super X" = "zoom";
+          "Super C" = "spawn '${locationCycle}'";
           "Super O" = "focus-output next";
           "Super+Shift O" = "send-to-output next";
           "Super V" = "spawn '${scratchHide}'";
