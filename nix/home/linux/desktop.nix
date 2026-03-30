@@ -88,29 +88,101 @@ in
       border-width = 2;
       set-repeat = "50 300";
       default-layout = "rivertile";
+      focus-follows-cursor = "normal";
+      set-cursor-warp = "on-focus-change";
+
+      # SSD 规则：这些应用的装饰由 compositor 绘制
       rule-add = {
         ssd = [
           [ "-app-id" "'google-chrome'" ]
           [ "-app-id" "'steam'" ]
+          [ "-app-id" "'virt-manager'" ]
+        ];
+        float = [
+          [ "-app-id" "'pavucontrol'" ]
+          [ "-app-id" "'nm-connection-editor'" ]
+          [ "-app-id" "'imv'" ]
+          [ "-app-id" "'nomacs'" ]
+          [ "-app-id" "'org.gnome.FileRoller'" ]
+          [ "-app-id" "'ghostty-float'" ]
         ];
       };
-      map.normal = {
-        "Super Q" = "close";
-        "Super Return" = "spawn ghostty";
-        "Super Space" = "spawn fuzzel";
-        "Super F" = "toggle-fullscreen";
-        "Super+Shift Return" = "zoom";
-        "Super J" = "focus-view next";
-        "Super K" = "focus-view previous";
-        "Super+Shift J" = "swap next";
-        "Super+Shift K" = "swap previous";
-        "Super H" = "send-layout-cmd rivertile \"main-ratio -0.05\"";
-        "Super L" = "send-layout-cmd rivertile \"main-ratio +0.05\"";
-        "Super+Shift E" = "spawn wlogout";
+
+      map = {
+        normal = {
+          # ===== 窗口管理（对齐 niri）=====
+          "Super Q" = "close";                       # niri: Mod+Q
+          "Super M" = "toggle-fullscreen";           # niri: Mod+M
+          "Super W" = "toggle-float";                # niri: Mod+W
+
+          # ===== 焦点移动 =====
+          "Super J" = "focus-view next";             # niri: Mod+Down
+          "Super K" = "focus-view previous";         # niri: Mod+Up
+          "Super Left" = "focus-view previous";      # niri: Mod+Left（列焦点）
+          "Super Right" = "focus-view next";         # niri: Mod+Right（列焦点）
+
+          # ===== 窗口移动/交换 =====
+          "Super+Shift J" = "swap next";             # niri: Mod+Shift+;
+          "Super+Shift K" = "swap previous";         # niri: Mod+Shift+'
+          "Super+Shift Return" = "zoom";             # 交换主窗口
+
+          # ===== 布局比例（River 专有，niri 无等价）=====
+          "Super H" = "send-layout-cmd rivertile \"main-ratio -0.05\"";  # niri: Mod+Minus 缩小
+          "Super L" = "send-layout-cmd rivertile \"main-ratio +0.05\"";  # niri: Mod+Equal 放大
+
+          # ===== 程序启动（对齐 niri）=====
+          "Super Return" = "spawn ghostty";          # niri: Mod+Return
+          "Super Space" = "spawn fuzzel";            # niri: Mod+Space
+          "Super E" = "spawn 'ghostty --class=ghostty-float'"; # niri: Mod+Shift+Return → 浮动终端
+
+          # ===== 会话管理（对齐 niri）=====
+          "Super+Shift E" = "spawn wlogout";         # niri: Mod+Shift+E（quit → wlogout）
+          "Super+Shift L" = "spawn 'swaylock -f --clock --indicator --effect-blur 7x5'"; # niri: Mod+Shift+L
+          "Super+Shift P" = "spawn 'riverctl output \"*\" power off'"; # niri: Mod+Shift+P
+
+          # ===== 截图（对齐 niri Print/Mod+Shift+A）=====
+          "None Print" = "spawn 'grim - | wl-copy'";
+          "Super+Shift A" = "spawn 'grim -g \"$(slurp)\" - | wl-copy'";
+
+          # ===== 音量控制（对齐 niri XF86Audio*）=====
+          "None XF86AudioRaiseVolume" = "spawn 'wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.02+ --limit 1.0'";
+          "None XF86AudioLowerVolume" = "spawn 'wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.02-'";
+          "None XF86AudioMute" = "spawn 'wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle'";
+          "None XF86AudioMicMute" = "spawn 'wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle'";
+
+          # ===== 媒体控制（playerctl，对齐 niri）=====
+          "None XF86AudioPlay" = "spawn 'playerctl play-pause'";
+          "None XF86AudioStop" = "spawn 'playerctl stop'";
+          "None XF86AudioPrev" = "spawn 'playerctl previous'";
+          "None XF86AudioNext" = "spawn 'playerctl next'";
+
+          # ===== 亮度控制（对齐 niri）=====
+          "None XF86MonBrightnessUp" = "spawn 'brightnessctl --class=backlight set 1%+'";
+          "None XF86MonBrightnessDown" = "spawn 'brightnessctl --class=backlight set 1%-'";
+
+          # ===== 剪贴板历史（cliphist + fuzzel）=====
+          "Super V" = "spawn 'cliphist list | fuzzel -d | cliphist decode | wl-copy'";
+
+          # ===== 通知中心 =====
+          "Super N" = "spawn 'swaync-client -t -sw'"; # 切换通知面板
+
+          # ===== 实用工具 =====
+          "Super+Control S" = "spawn pavucontrol";   # 音量控制（对齐 niri Mod+Ctrl+S）
+        };
+
+        # 锁屏模式下的键位（音量/媒体）
+        locked = {
+          "None XF86AudioRaiseVolume" = "spawn 'wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.02+ --limit 1.0'";
+          "None XF86AudioLowerVolume" = "spawn 'wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.02-'";
+          "None XF86AudioMute" = "spawn 'wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle'";
+          "None XF86AudioPlay" = "spawn 'playerctl play-pause'";
+          "None XF86AudioPrev" = "spawn 'playerctl previous'";
+          "None XF86AudioNext" = "spawn 'playerctl next'";
+        };
       };
     };
     extraConfig = ''
-      # Tag switching (bitmask)
+      # ===== Tag 切换（bitmask，对齐 niri Mod+1~9 工作区）=====
       for i in $(seq 1 9); do
         tags=$((1 << (i - 1)))
         riverctl map normal Super "$i" set-focused-tags "$tags"
@@ -121,10 +193,12 @@ in
       riverctl map normal Super 0 set-focused-tags "$all_tags"
       riverctl map normal Super+Shift 0 set-view-tags "$all_tags"
 
-      # Float/fullscreen controls
-      riverctl map normal Super+Shift Space toggle-float
+      # ===== 鼠标绑定 =====
+      riverctl map-pointer normal Super BTN_LEFT move-view
+      riverctl map-pointer normal Super BTN_RIGHT resize-view
+      riverctl map-pointer normal Super BTN_MIDDLE toggle-float
 
-      # Layout generator
+      # ===== Layout generator =====
       rivertile -view-padding 6 -outer-padding 6 &
     '';
   };
