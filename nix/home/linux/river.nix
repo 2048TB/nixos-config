@@ -146,6 +146,9 @@ _:
           "None XF86MonBrightnessUp" = "spawn 'brightnessctl --class=backlight set 1%+'";
           "None XF86MonBrightnessDown" = "spawn 'brightnessctl --class=backlight set 1%-'";
 
+          # ===== 壁纸切换（顺序）=====
+          "Super+Shift W" = "spawn 'systemctl --user start wallpaper-next'";
+
           # ===== 通知中心 =====
           "Super N" = "spawn 'swaync-client -t -sw'";
         };
