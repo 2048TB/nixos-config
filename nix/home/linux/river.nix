@@ -4,6 +4,21 @@ let
   mkdirExe = lib.getExe' pkgs.coreutils "mkdir";
   dirnameExe = lib.getExe' pkgs.coreutils "dirname";
 
+  # scratch tag（bit 31）用于隐藏窗口；toggle 逻辑：
+  # - 若当前 focused-tags 不含 scratch → 把当前窗口扔到 scratch tag（隐藏）
+  # - 若当前 focused-tags 含 scratch → 关闭 scratch tag（隐藏区的窗口消失）
+  scratchTag = "2147483648"; # 1 << 31
+  scratchToggle = pkgs.writeShellScript "river-scratch-toggle" ''
+    set -eu
+    scratch=${scratchTag}
+    focused=$(riverctl get-focused-tags 2>/dev/null || echo 0)
+    if [ $((focused & scratch)) -ne 0 ]; then
+      riverctl toggle-focused-tags "$scratch"
+    else
+      riverctl set-view-tags "$scratch"
+    fi
+  '';
+
   locationCycle = pkgs.writeShellScript "rivertile-location-cycle" ''
     set -eu
     state="$HOME/.local/state/rivertile-location"
@@ -137,8 +152,9 @@ in
           "Super X" = "spawn '${locationCycle}'";
           "Super C" = "zoom";
           "Super O" = "focus-output next";
+          "Super+Shift O" = "send-to-output next";
           "Super V" = "spawn 'cliphist list | fuzzel -d | cliphist decode | wl-copy'";
-          "Super B" = "send-to-output next";
+          "Super B" = "spawn '${scratchToggle}'";
 
           # ===== 程序启动 =====
           "Super Return" = "spawn ghostty";
