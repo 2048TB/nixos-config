@@ -102,7 +102,7 @@ in
       set-cursor-warp = "on-focus-change";
 
       # Passthrough 模式：远程桌面/VNC 时让所有按键穿透
-      declare-mode = [ "normal" "passthrough" ];
+      declare-mode = [ "passthrough" ];
 
       # SSD 规则：这些应用的装饰由 compositor 绘制
       rule-add = {
@@ -191,7 +191,7 @@ in
           # ===== 会话管理 =====
           "Super+Shift E" = "spawn wlogout";
           "Super+Shift L" = "spawn 'swaylock -f --clock --indicator --effect-blur 7x5'";
-          "Super+Shift P" = "spawn 'riverctl output \"*\" power off'";
+          "Super+Shift P" = "spawn 'wlopm --off *'";
 
           # ===== 截图 =====
           "Super A" = "spawn 'grim -g \"$(slurp)\" - | wl-copy'";
@@ -223,6 +223,7 @@ in
           "None XF86AudioRaiseVolume" = "spawn 'wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.02+ --limit 1.0'";
           "None XF86AudioLowerVolume" = "spawn 'wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.02-'";
           "None XF86AudioMute" = "spawn 'wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle'";
+          "None XF86AudioMicMute" = "spawn 'wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle'";
           "None XF86AudioPlay" = "spawn 'playerctl play-pause'";
           "None XF86AudioPrev" = "spawn 'playerctl previous'";
           "None XF86AudioNext" = "spawn 'playerctl next'";
@@ -336,8 +337,8 @@ in
             ExecStart = builtins.concatStringsSep " " [
               "${pkgs.swayidle}/bin/swayidle -w"
               "timeout 300 '${pkgs.swaylock-effects}/bin/swaylock -f'"
-              "timeout 600 'riverctl output \"*\" power off'"
-              "resume 'riverctl output \"*\" power on'"
+              "timeout 600 'wlopm --off *'"
+              "resume 'wlopm --on *'"
             ];
             Restart = "on-failure";
             RestartSec = 2;

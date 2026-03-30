@@ -69,7 +69,7 @@
     "swayidle"
     "swaylock-effects"
     "wlogout"
-    "rivercarro"
+    "wlopm"
     "wlr-randr"
     "wl-screenrec"
     "gnome-text-editor"
