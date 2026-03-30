@@ -60,6 +60,8 @@
     "file-roller"
     "ghostty"
     "papirus-icon-theme"
+    "wl-clipboard"
+    "cliphist"
     "satty"
     "wl-screenrec"
     "gnome-text-editor"
