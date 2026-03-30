@@ -44,6 +44,7 @@ in
     kanshi = {
       enable = true;
       systemdTarget = "river-session.target";
+      settings = mylib.mkKanshiSettings hostCfg;
     };
 
     playerctld.enable = true;
