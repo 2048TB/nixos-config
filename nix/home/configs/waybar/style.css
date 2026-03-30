@@ -38,6 +38,7 @@ window#waybar {
   margin-right: 4px;
 }
 
+#custom-launcher,
 #window,
 #clock,
 #mpris,
@@ -48,7 +49,8 @@ window#waybar {
 #battery,
 #idle_inhibitor,
 #tray,
-#custom-notification {
+#custom-notification,
+#custom-power {
   background: transparent;
   color: #@THEME_FG@;
   margin: 0;
@@ -136,6 +138,14 @@ window#waybar {
   border-color: rgba(@THEME_BG3_RGB@, 0.2);
   font-weight: 600;
   padding-right: 8px;
+}
+
+#custom-launcher {
+  color: #@THEME_BLUE@;
+  font-size: 17px;
+  background: linear-gradient(180deg, rgba(@THEME_BLUE_RGB@, 0.14), rgba(@THEME_DEEP_RGB@, 0.2));
+  border-color: rgba(@THEME_BLUE_RGB@, 0.2);
+  padding: 0 8px;
 }
 
 #clock {
@@ -271,6 +281,15 @@ window#waybar {
   color: #@THEME_RED@;
 }
 
+#custom-power {
+  color: #@THEME_RED@;
+  font-size: 15px;
+  background: linear-gradient(180deg, rgba(@THEME_RED_RGB@, 0.1), rgba(@THEME_DEEP_RGB@, 0.16));
+  border-color: rgba(@THEME_RED_RGB@, 0.16);
+  padding: 0 8px;
+}
+
+#custom-launcher:hover,
 #window:hover,
 #clock:hover,
 #mpris:hover,
@@ -280,7 +299,8 @@ window#waybar {
 #pulseaudio:hover,
 #battery:hover,
 #idle_inhibitor:hover,
-#custom-notification:hover {
+#custom-notification:hover,
+#custom-power:hover {
   background: rgba(@THEME_BG2_RGB@, 0.44);
   color: #@THEME_FG2@;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
@@ -304,9 +324,14 @@ window#waybar {
   background: linear-gradient(180deg, rgba(@THEME_PURPLE_RGB@, 0.16), rgba(@THEME_DEEP_RGB@, 0.24));
 }
 
+#custom-launcher:hover,
 #clock:hover,
 #custom-notification:hover {
   background: linear-gradient(180deg, rgba(@THEME_BLUE_RGB@, 0.2), rgba(@THEME_DEEP_RGB@, 0.28));
+}
+
+#custom-power:hover {
+  background: linear-gradient(180deg, rgba(@THEME_RED_RGB@, 0.2), rgba(@THEME_DEEP_RGB@, 0.28));
 }
 
 #network:hover {

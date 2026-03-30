@@ -12,9 +12,9 @@ in
   spacing = 5;
   reload_style_on_change = true;
 
-  modules-left = [ "clock" "river/window" ];
+  modules-left = [ "custom/launcher" "clock" "river/window" ];
   modules-center = [ "river/tags" ];
-  modules-right = modulesRight;
+  modules-right = modulesRight ++ [ "custom/power" ];
 
   "river/tags" = {
     num-tags = 9;
@@ -144,9 +144,21 @@ in
     escape = true;
   };
 
+  "custom/launcher" = {
+    format = "󱄅";
+    tooltip = false;
+    on-click = "fuzzel";
+  };
+
   tray = {
     spacing = 5;
     icon-size = 13;
     show-passive-items = true;
+  };
+
+  "custom/power" = {
+    format = "⏻";
+    tooltip = false;
+    on-click = "wlogout";
   };
 }
