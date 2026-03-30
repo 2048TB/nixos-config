@@ -9,6 +9,7 @@ map
     "files.nix"
     "packages.nix"
     "programs.nix"
+    "river.nix"
     "session.nix"
     "xdg.nix"
   ]
