@@ -78,15 +78,23 @@ in
     systemd = {
       enable = true;
       variables = [
-        "DISPLAY" "WAYLAND_DISPLAY" "XDG_CURRENT_DESKTOP"
-        "NIXOS_OZONE_WL" "XCURSOR_THEME" "XCURSOR_SIZE"
+        "DISPLAY"
+        "WAYLAND_DISPLAY"
+        "XDG_CURRENT_DESKTOP"
+        "NIXOS_OZONE_WL"
+        "XCURSOR_THEME"
+        "XCURSOR_SIZE"
         "QT_QPA_PLATFORMTHEME"
-        "INPUT_METHOD" "GTK_IM_MODULE" "QT_IM_MODULE" "XMODIFIERS" "SDL_IM_MODULE"
+        "INPUT_METHOD"
+        "GTK_IM_MODULE"
+        "QT_IM_MODULE"
+        "XMODIFIERS"
+        "SDL_IM_MODULE"
       ];
     };
     settings = {
       border-width = 2;
-      border-color-focused = "0x61afef";   # mytheme blue
+      border-color-focused = "0x61afef"; # mytheme blue
       border-color-unfocused = "0x3e4451"; # mytheme bg2
       set-repeat = "50 300";
       default-layout = "rivertile";

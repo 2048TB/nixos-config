@@ -107,9 +107,9 @@ in
     portal = {
       enable = true;
       xdgOpenUsePortal = true;
+      # xdg-desktop-portal-wlr 已由 NixOS programs.river-classic 模块提供，仅补充 gtk backend
       extraPortals = with pkgs; [
         xdg-desktop-portal-gtk
-        xdg-desktop-portal-wlr
       ];
       # portal 接口映射由 flake specialArgs 统一提供，避免 system/home 漂移。
       config = portalConfig;

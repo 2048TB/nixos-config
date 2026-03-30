@@ -25,7 +25,6 @@ lib.mkIf hasDesktopSession {
       xwayland.enable = true;
       extraPackages = with pkgs; [
         foot
-        fuzzel
       ];
     };
 
@@ -48,12 +47,10 @@ lib.mkIf hasDesktopSession {
     zsh
   ];
 
+  # portal 由 programs.river-classic 模块自动配置（wlr + gtk backends）
   xdg.portal = {
     enable = true;
     xdgOpenUsePortal = true;
-    extraPortals = with pkgs; [
-      xdg-desktop-portal-wlr
-    ];
   };
 
   fonts.packages = with pkgs; [
