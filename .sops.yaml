@@ -6,7 +6,7 @@ keys:
   - &recovery age1ulflqcz2quc2y9w9lefsmvhft0nxl8p667nm3nkmugmp3wghuqhs9at0ra
 
 creation_rules:
-  - path_regex: secrets/.*\.yaml$
+  - path_regex: ^secrets/.*\.yaml$
     key_groups:
       - age:
           - *main
