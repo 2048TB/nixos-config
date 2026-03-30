@@ -11,11 +11,22 @@ let
   scratchToggle = pkgs.writeShellScript "river-scratch-toggle" ''
     set -eu
     scratch=${scratchTag}
+    state="$HOME/.local/state/river-scratch"
+    ${mkdirExe} -p "$(${dirnameExe} "$state")"
     focused=$(riverctl get-focused-tags 2>/dev/null || echo 0)
+
     if [ $((focused & scratch)) -ne 0 ]; then
+      # scratch 正在显示 → 隐藏
       riverctl toggle-focused-tags "$scratch"
+      rm -f "$state"
+    elif [ -f "$state" ]; then
+      # 有隐藏的窗口 → 显示 scratch tag
+      riverctl toggle-focused-tags "$scratch"
+      rm -f "$state"
     else
+      # 把当前窗口扔到 scratch tag（隐藏）
       riverctl set-view-tags "$scratch"
+      touch "$state"
     fi
   '';
 
