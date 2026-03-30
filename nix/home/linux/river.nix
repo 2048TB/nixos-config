@@ -4,34 +4,54 @@ let
   mkdirExe = lib.getExe' pkgs.coreutils "mkdir";
   dirnameExe = lib.getExe' pkgs.coreutils "dirname";
 
-  # scratch tag（bit 31）用于隐藏窗口；toggle 逻辑：
-  # - 若当前 focused-tags 不含 scratch → 把当前窗口扔到 scratch tag（隐藏）
-  # - 若当前 focused-tags 含 scratch → 关闭 scratch tag（隐藏区的窗口消失）
+  # scratch tag（bit 31）用于隐藏/恢复窗口（逐个操作）
   scratchTag = "2147483648"; # 1 << 31
-  scratchState = "$HOME/.local/state/river-scratch-shown";
+  focusedTagFile = "$HOME/.local/state/river-focused-tags";
 
-  # 隐藏：如果 scratch 正在显示（Super B 开启过），先关闭再隐藏窗口
+  # 隐藏：把当前 focused window 扔到 scratch tag（逐个）
   scratchHide = pkgs.writeShellScript "river-scratch-hide" ''
     set -eu
-    state="${scratchState}"
-    ${mkdirExe} -p "$(${dirnameExe} "$state")"
-    if [ -f "$state" ]; then
-      riverctl toggle-focused-tags ${scratchTag}
-      rm -f "$state"
-    fi
     riverctl set-view-tags ${scratchTag}
   '';
 
-  # 显示/隐藏 toggle：跟踪 scratch 可见性状态
+  # 恢复：从 scratch 取回一个窗口到当前 workspace（逐个）
   scratchShow = pkgs.writeShellScript "river-scratch-show" ''
     set -eu
-    state="${scratchState}"
+    tag_file="${focusedTagFile}"
+    current_tag=1
+    [ -f "$tag_file" ] && current_tag=$(${catExe} "$tag_file")
+    # 临时切到 scratch-only 视图；若无 scratch 窗口则直接返回
+    riverctl set-focused-tags ${scratchTag}
+    if ! riverctl focus-view next 2>/dev/null && ! riverctl focus-view previous 2>/dev/null; then
+      # 没有 scratch 窗口，切回原 workspace
+      riverctl set-focused-tags "$current_tag"
+      exit 0
+    fi
+    # 把该窗口移回当前 workspace
+    riverctl set-view-tags "$current_tag"
+    # 切回原 workspace
+    riverctl set-focused-tags "$current_tag"
+  '';
+
+  # monocle toggle：把窗口移到独占 tag 铺满 tiling 区域（保留 waybar），再按恢复原位
+  monocleTag = "1073741824"; # 1 << 30
+  monocleState = "$HOME/.local/state/river-monocle";
+  monocleToggle = pkgs.writeShellScript "river-monocle-toggle" ''
+    set -eu
+    state="${monocleState}"
+    tag_file="${focusedTagFile}"
     ${mkdirExe} -p "$(${dirnameExe} "$state")"
-    riverctl toggle-focused-tags ${scratchTag}
     if [ -f "$state" ]; then
+      saved_tag=$(${catExe} "$state")
+      riverctl set-view-tags "$saved_tag"
+      riverctl set-focused-tags "$saved_tag"
+      echo "$saved_tag" > "$tag_file"
       rm -f "$state"
     else
-      touch "$state"
+      current_tag=$(${catExe} "$tag_file" 2>/dev/null || echo 1)
+      echo "$current_tag" > "$state"
+      riverctl set-view-tags ${monocleTag}
+      riverctl set-focused-tags ${monocleTag}
     fi
   '';
 
@@ -121,7 +141,8 @@ in
         normal = {
           # ===== 窗口管理 =====
           "Super Q" = "close";
-          "Super Z" = "toggle-fullscreen";
+          "Super Z" = "spawn '${monocleToggle}'";
+          "Super+Shift Z" = "toggle-fullscreen";
           "Super W" = "toggle-float";
           "Super E" = "focus-view next";
 
@@ -231,18 +252,23 @@ in
       riverctl set-cursor-theme Adwaita 24
 
       # ===== Tag 切换（bitmask）=====
+      # Super+数字 切换 workspace 时同步记录当前 tag，供 scratch/monocle 恢复使用
+      # bit 30 = monocle, bit 31 = scratch → 普通 tag 只用 bit 0-29
+      tag_file="$HOME/.local/state/river-focused-tags"
+      mkdir -p "$(dirname "$tag_file")"
       for i in $(seq 1 9); do
         tags=$((1 << (i - 1)))
-        riverctl map normal Super "$i" set-focused-tags "$tags"
+        riverctl map normal Super "$i" spawn "riverctl set-focused-tags $tags; echo $tags > $tag_file"
         riverctl map normal Super+Shift "$i" set-view-tags "$tags"
-        riverctl map normal Super+Control "$i" toggle-focused-tags "$tags"
+        riverctl map normal Super+Control "$i" spawn "riverctl toggle-focused-tags $tags; echo $tags > $tag_file"
         riverctl map normal Super+Shift+Control "$i" toggle-view-tags "$tags"
       done
-      all_tags=$(((1 << 32) - 1))
-      riverctl map normal Super 0 set-focused-tags "$all_tags"
+      # all_tags 排除 bit 30（monocle）和 bit 31（scratch）
+      all_tags=$(((1 << 30) - 1))
+      riverctl map normal Super 0 spawn "riverctl set-focused-tags $all_tags; echo $all_tags > $tag_file"
       riverctl map normal Super+Shift 0 set-view-tags "$all_tags"
 
-      # ===== Layout generator（主区占 80%）=====
+      # ===== Layout generator（主区占 60%）=====
       rivertile -view-padding 6 -outer-padding 6 -main-ratio 0.6 &
     '';
   };
