@@ -89,16 +89,15 @@ let
     ];
 
   kanshiOutputToString =
-    {
-      criteria,
-      status ? null,
-      mode ? null,
-      position ? null,
-      scale ? null,
-      transform ? null,
-      adaptiveSync ? null,
-      alias ? null,
-      ...
+    { criteria
+    , status ? null
+    , mode ? null
+    , position ? null
+    , scale ? null
+    , transform ? null
+    , adaptiveSync ? null
+    , alias ? null
+    , ...
     }:
     ''output "${criteria}"''
     + optionalString (status != null) " ${status}"
@@ -110,11 +109,10 @@ let
     + optionalString (alias != null) " alias \$${alias}";
 
   kanshiProfileToString =
-    {
-      name ? "",
-      outputs ? [ ],
-      exec ? [ ],
-      ...
+    { name ? ""
+    , outputs ? [ ]
+    , exec ? [ ]
+    , ...
     }:
     ''
       profile ${name} {
