@@ -1,6 +1,7 @@
 { lib }:
 let
   getDisplays = host: host.displays or [ ];
+  optionalString = condition: value: if condition then value else "";
 
   primaryDisplay =
     host:
@@ -22,7 +23,7 @@ let
     else if name != null && name != "" then name
     else null;
 
-  renderMode =
+  renderKanshiMode =
     display:
     let
       width = display.width or null;
@@ -31,30 +32,113 @@ let
     in
     if width == null || height == null then null
     else if refresh == null then "${toString width}x${toString height}"
-    else "${toString width}x${toString height}@${toString refresh}";
+    else "${toString width}x${toString height}@${toString refresh}Hz";
 
-  mkNiriOutputBlock =
-    display:
+  normalizeScale =
+    scale:
+    if scale == null then null
+    else if builtins.isInt scale then scale * 1.0
+    else scale;
+
+  orderedDisplays =
+    host:
     let
-      identifier = outputIdentifier display;
-      mode = renderMode display;
-      scale = display.scale or null;
-      lines =
-        lib.filter (line: line != null) [
-          (if identifier == null then null else "output \"${identifier}\" {")
-          (if mode == null then null else "    mode \"${mode}\"")
-          (if scale == null then null else "    scale ${toString scale}")
-          (if identifier == null then null else "}")
-        ];
+      displays = getDisplays host;
+      primaryDisplays = builtins.filter (display: display.primary or false) displays;
+      secondaryDisplays = builtins.filter (display: !(display.primary or false)) displays;
     in
-    if identifier == null then "" else lib.concatStringsSep "\n" lines;
+    primaryDisplays ++ secondaryDisplays;
+
+  mkKanshiOutputs =
+    host:
+    let
+      displays = orderedDisplays host;
+      build =
+        state: display:
+        let
+          identifier = outputIdentifier display;
+          width = display.width or 0;
+          mode = renderKanshiMode display;
+          scale = normalizeScale (display.scale or null);
+          output =
+            {
+              criteria = identifier;
+              status = "enable";
+            }
+            // lib.optionalAttrs (mode != null) { inherit mode; }
+            // lib.optionalAttrs (scale != null) { inherit scale; }
+            // lib.optionalAttrs ((builtins.length displays) > 1) { position = "${toString state.x},0"; };
+        in
+        {
+          x = state.x + width;
+          outputs = state.outputs ++ lib.optional (identifier != null) output;
+        };
+    in
+    (builtins.foldl' build { x = 0; outputs = [ ]; } displays).outputs;
+
+  mkKanshiSettings =
+    host:
+    let
+      outputs = mkKanshiOutputs host;
+    in
+    if outputs == [ ] then [ ] else [
+      {
+        profile.name = "default";
+        profile.outputs = outputs;
+      }
+    ];
+
+  kanshiOutputToString =
+    {
+      criteria,
+      status ? null,
+      mode ? null,
+      position ? null,
+      scale ? null,
+      transform ? null,
+      adaptiveSync ? null,
+      alias ? null,
+      ...
+    }:
+    ''output "${criteria}"''
+    + optionalString (status != null) " ${status}"
+    + optionalString (mode != null) " mode ${mode}"
+    + optionalString (position != null) " position ${position}"
+    + optionalString (scale != null) " scale ${toString scale}"
+    + optionalString (transform != null) " transform ${transform}"
+    + optionalString (adaptiveSync != null) " adaptive_sync ${if adaptiveSync then "on" else "off"}"
+    + optionalString (alias != null) " alias \$${alias}";
+
+  kanshiProfileToString =
+    {
+      name ? "",
+      outputs ? [ ],
+      exec ? [ ],
+      ...
+    }:
+    ''
+      profile ${name} {
+        ${lib.concatStringsSep "\n  " (map kanshiOutputToString outputs ++ map (cmd: "exec ${cmd}") exec)}
+      }
+    '';
+
+  kanshiDirectiveToString =
+    directive:
+    if directive ? profile then
+      kanshiProfileToString directive.profile
+    else if directive ? output then
+      kanshiOutputToString directive.output
+    else if directive ? include then
+      ''include "${directive.include}"''
+    else
+      throw "Unknown kanshi directive keys: ${lib.concatStringsSep ", " (builtins.attrNames directive)}";
 in
 {
   inherit primaryDisplay;
 
-  mkNiriOutputs =
+  inherit mkKanshiSettings;
+
+  mkKanshiConfig =
     host:
-    lib.concatStringsSep "\n\n" (
-      lib.filter (block: block != "") (map mkNiriOutputBlock (getDisplays host))
-    );
+    lib.concatStringsSep "\n" (map kanshiDirectiveToString (mkKanshiSettings host));
 }
