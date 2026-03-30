@@ -16,6 +16,7 @@ let
   mkdirExe = lib.getExe' pkgs.coreutils "mkdir";
   touchExe = lib.getExe' pkgs.coreutils "touch";
   catExe = lib.getExe' pkgs.coreutils "cat";
+  dirnameExe = lib.getExe' pkgs.coreutils "dirname";
   lsExe = lib.getExe' pkgs.coreutils "ls";
   sortExe = lib.getExe' pkgs.coreutils "sort";
   shufExe = lib.getExe' pkgs.coreutils "shuf";
@@ -30,7 +31,7 @@ let
     set -eu
     dir="${wallpaperDir}"
     state="${wallpaperStateFile}"
-    ${mkdirExe} -p "$(dirname "$state")"
+    ${mkdirExe} -p "$(${dirnameExe} "$state")"
 
     files=$(${lsExe} -1 "$dir" 2>/dev/null | ${sortExe})
     count=$(echo "$files" | ${wcExe} -l)
