@@ -1,0 +1,105 @@
+* {
+  background-image: none;
+  box-shadow: none;
+  font-family: "Maple Mono NF CN", "Sarasa UI SC", "JetBrainsMono Nerd Font", sans-serif;
+}
+
+window {
+  background-color: rgba(@THEME_BG_RGB@, 0.85);
+}
+
+button {
+  margin: 8px;
+  min-width: 144px;
+  min-height: 60px;
+  padding: 30px 16px 10px 16px;
+  border-radius: 20px;
+  border: 1px solid rgba(@THEME_BG3_RGB@, 0.34);
+  background-color: rgba(@THEME_BG1_RGB@, 0.65);
+  background-repeat: no-repeat;
+  background-position: center 6px;
+  background-size: 22px 22px;
+  color: #@THEME_FG@;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.35px;
+  transition: all 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+button label {
+  color: inherit;
+  margin-bottom: 2px;
+}
+
+#lock {
+  background-image: url("icons/lock.png");
+}
+
+#logout {
+  background-image: url("icons/logout.png");
+}
+
+#suspend {
+  background-image: url("icons/suspend.png");
+}
+
+#hibernate {
+  background-image: url("icons/hibernate.png");
+}
+
+#reboot {
+  background-image: url("icons/reboot.png");
+}
+
+#shutdown {
+  background-image: url("icons/shutdown.png");
+}
+
+button:focus,
+button:active,
+button:hover {
+  outline-style: none;
+  color: #@THEME_FG2@;
+}
+
+#lock:focus, #lock:active, #lock:hover {
+  background-color: rgba(@THEME_BLUE_RGB@, 0.15);
+  border-color: rgba(@THEME_BLUE_RGB@, 0.55);
+  box-shadow: 0 0 24px rgba(@THEME_BLUE_RGB@, 0.12), inset 0 0 12px rgba(@THEME_BLUE_RGB@, 0.04);
+  color: #@THEME_BLUE@;
+}
+
+#logout:focus, #logout:active, #logout:hover {
+  background-color: rgba(@THEME_GREEN_RGB@, 0.15);
+  border-color: rgba(@THEME_GREEN_RGB@, 0.55);
+  box-shadow: 0 0 24px rgba(@THEME_GREEN_RGB@, 0.12), inset 0 0 12px rgba(@THEME_GREEN_RGB@, 0.04);
+  color: #@THEME_GREEN@;
+}
+
+#suspend:focus, #suspend:active, #suspend:hover {
+  background-color: rgba(@THEME_CYAN_RGB@, 0.15);
+  border-color: rgba(@THEME_CYAN_RGB@, 0.55);
+  box-shadow: 0 0 24px rgba(@THEME_CYAN_RGB@, 0.12), inset 0 0 12px rgba(@THEME_CYAN_RGB@, 0.04);
+  color: #@THEME_CYAN@;
+}
+
+#hibernate:focus, #hibernate:active, #hibernate:hover {
+  background-color: rgba(@THEME_PURPLE_RGB@, 0.15);
+  border-color: rgba(@THEME_PURPLE_RGB@, 0.55);
+  box-shadow: 0 0 24px rgba(@THEME_PURPLE_RGB@, 0.12), inset 0 0 12px rgba(@THEME_PURPLE_RGB@, 0.04);
+  color: #@THEME_PURPLE@;
+}
+
+#reboot:focus, #reboot:active, #reboot:hover {
+  background-color: rgba(@THEME_ORANGE_RGB@, 0.15);
+  border-color: rgba(@THEME_ORANGE_RGB@, 0.55);
+  box-shadow: 0 0 24px rgba(@THEME_ORANGE_RGB@, 0.12), inset 0 0 12px rgba(@THEME_ORANGE_RGB@, 0.04);
+  color: #@THEME_ORANGE@;
+}
+
+#shutdown:focus, #shutdown:active, #shutdown:hover {
+  background-color: rgba(@THEME_RED_RGB@, 0.15);
+  border-color: rgba(@THEME_RED_RGB@, 0.55);
+  box-shadow: 0 0 24px rgba(@THEME_RED_RGB@, 0.12), inset 0 0 12px rgba(@THEME_RED_RGB@, 0.04);
+  color: #@THEME_RED@;
+}
