@@ -40,10 +40,12 @@ window#waybar {
 
 #window,
 #clock,
+#mpris,
 #cpu,
 #memory,
 #network,
 #pulseaudio,
+#battery,
 #idle_inhibitor,
 #tray,
 #custom-notification {
@@ -63,8 +65,10 @@ window#waybar {
 }
 
 #clock,
+#mpris,
 #network,
 #pulseaudio,
+#battery,
 #idle_inhibitor,
 #custom-notification {
   border: 1px solid transparent;
@@ -188,6 +192,39 @@ window#waybar {
   color: #@THEME_FG2@;
 }
 
+#mpris {
+  color: #@THEME_PURPLE@;
+  background: linear-gradient(180deg, rgba(@THEME_PURPLE_RGB@, 0.1), rgba(@THEME_DEEP_RGB@, 0.16));
+  border-color: rgba(@THEME_PURPLE_RGB@, 0.14);
+  font-size: 13px;
+}
+
+#mpris.paused {
+  color: #@THEME_FG2@;
+}
+
+#battery {
+  color: #@THEME_GREEN@;
+  background: linear-gradient(180deg, rgba(@THEME_GREEN_RGB@, 0.1), rgba(@THEME_DEEP_RGB@, 0.16));
+  border-color: rgba(@THEME_GREEN_RGB@, 0.14);
+}
+
+#battery.warning {
+  color: #@THEME_ORANGE@;
+}
+
+#battery.critical {
+  color: #@THEME_RED@;
+}
+
+#battery.charging {
+  color: #@THEME_GREEN@;
+}
+
+#battery.full {
+  color: #@THEME_FG2@;
+}
+
 #idle_inhibitor {
   color: #@THEME_FG2@;
   padding: 0 5px;
@@ -236,10 +273,12 @@ window#waybar {
 
 #window:hover,
 #clock:hover,
+#mpris:hover,
 #cpu:hover,
 #memory:hover,
 #network:hover,
 #pulseaudio:hover,
+#battery:hover,
 #idle_inhibitor:hover,
 #custom-notification:hover {
   background: rgba(@THEME_BG2_RGB@, 0.44);
@@ -256,8 +295,13 @@ window#waybar {
   background: linear-gradient(180deg, rgba(@THEME_YELLOW_RGB@, 0.16), rgba(@THEME_DEEP_RGB@, 0.24));
 }
 
-#pulseaudio:hover {
+#pulseaudio:hover,
+#battery:hover {
   background: linear-gradient(180deg, rgba(@THEME_GREEN_RGB@, 0.16), rgba(@THEME_DEEP_RGB@, 0.24));
+}
+
+#mpris:hover {
+  background: linear-gradient(180deg, rgba(@THEME_PURPLE_RGB@, 0.16), rgba(@THEME_DEEP_RGB@, 0.24));
 }
 
 #clock:hover,
