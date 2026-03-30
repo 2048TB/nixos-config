@@ -7,11 +7,10 @@
 let
   hostCfg = config.my.host;
   roleFlags = mylib.roleFlags hostCfg;
-  inherit (roleFlags) enableProvider appVpn enableLibvirtd enableDocker;
+  inherit (roleFlags) enableProvider appVpn enableLibvirtd enableDocker useRootfulDocker;
   inherit (config.my.capabilities) hasDesktopSession hasFingerprintReader;
   enableFlatpak = hasDesktopSession;
   hibernateEnabled = hostCfg.resumeOffset != null;
-  useRootfulDocker = hostCfg.dockerMode == "rootful";
 in
 {
   preservation.enable = true;

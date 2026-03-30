@@ -35,5 +35,13 @@ in
       assertion = (!usesHybridNvidia) || hasValidPciBusId hostCfg.nvidiaBusId;
       message = "my.host.nvidiaBusId must use the explicit NixOS PRIME form PCI:<bus>@<domain>:<device>:<function> with decimal numbers.";
     }
+    {
+      assertion = usesHybridNvidia || (hostCfg.nvidiaBusId == null && hostCfg.amdgpuBusId == null);
+      message = "my.host.nvidiaBusId and my.host.amdgpuBusId are only used when gpuMode is amd-nvidia-hybrid; current gpuMode is '${hostCfg.gpuMode}'.";
+    }
+    {
+      assertion = usesNvidia || hostCfg.nvidiaOpen == null;
+      message = "my.host.nvidiaOpen is only used when gpuMode is nvidia or amd-nvidia-hybrid; current gpuMode is '${hostCfg.gpuMode}'.";
+    }
   ];
 }

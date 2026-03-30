@@ -71,9 +71,15 @@ resolve_age_key_src() {
 
 while [ "$#" -gt 0 ]; do
   case "$1" in
-    --host) host="${2:-}"; shift 2 ;;
-    --disk) disk="${2:-}"; shift 2 ;;
-    --repo) repo="${2:-}"; repo_explicit=1; shift 2 ;;
+    --host)
+      if [ "$#" -lt 2 ]; then echo "error: --host requires a value" >&2; exit 2; fi
+      host="$2"; shift 2 ;;
+    --disk)
+      if [ "$#" -lt 2 ]; then echo "error: --disk requires a value" >&2; exit 2; fi
+      disk="$2"; shift 2 ;;
+    --repo)
+      if [ "$#" -lt 2 ]; then echo "error: --repo requires a value" >&2; exit 2; fi
+      repo="$2"; repo_explicit=1; shift 2 ;;
     --yes) assume_yes=1; shift ;;
     -h|--help) usage; exit 0 ;;
     *) echo "error: unknown argument: $1" >&2; usage >&2; exit 2 ;;
@@ -139,6 +145,8 @@ if ! sudo findmnt /mnt/persistent >/dev/null 2>&1; then
   exit 1
 fi
 
+# shellcheck disable=SC2064
+trap "sudo rm -rf '$TARGET_FLAKE_TMP'" EXIT
 sudo rm -rf "$TARGET_FLAKE_TMP"
 sudo mkdir -p "$TARGET_FLAKE_TMP"
 sudo cp -a "$repo/." "$TARGET_FLAKE_TMP/"
@@ -154,6 +162,7 @@ target_owner="$(resolve_target_owner_from_rootfs /mnt "$target_user")"
 sudo chown -R "$target_owner" "$TARGET_FLAKE_TMP"
 sudo rm -rf "$TARGET_FLAKE_DIR"
 sudo mv "$TARGET_FLAKE_TMP" "$TARGET_FLAKE_DIR"
+trap - EXIT
 
 # 6. Ensure target /etc/nixos points to persistent repo
 sudo rm -rf /mnt/etc/nixos

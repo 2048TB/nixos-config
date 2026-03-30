@@ -142,17 +142,23 @@ rec {
             let
               name = display.name or "";
               scale = display.scale or null;
+              width = display.width or null;
+              height = display.height or null;
+              refresh = display.refresh or null;
               workspaceSet = display.workspaceSet or [ ];
             in
             builtins.isString name
             && name != ""
             && (scale == null || (builtins.isFloat scale || builtins.isInt scale) && scale > 0)
+            && (width == null || builtins.isInt width && width > 0)
+            && (height == null || builtins.isInt height && height > 0)
+            && (refresh == null || (builtins.isFloat refresh || builtins.isInt refresh) && refresh > 0)
             && builtins.isList workspaceSet
             && builtins.all (workspace: builtins.isInt workspace && workspace > 0) workspaceSet
           )
           state.displays
       )
-      "${registryPath}[${hostName}].displays entries must define non-empty name, positive scale, and positive workspaceSet values"
+      "${registryPath}[${hostName}].displays entries must define non-empty name, positive scale, positive width/height/refresh (when set), and positive workspaceSet values"
     && lib.assertMsg
       (
         builtins.length

@@ -14,17 +14,17 @@ forbidden_path_pattern='(^|/)\.keys/|(^|/)main\.agekey$|(^|/)id_ed25519(\.pub)?$
 
 tracked_hits="$(git ls-files | rg -n "$forbidden_path_pattern" || true)"
 if [ -n "$tracked_hits" ]; then
-  echo "ERROR: forbidden secret-like files are tracked by Git:"
-  echo "$tracked_hits"
-  echo "Fix: git rm --cached <file>  (keep local file), then retry."
+  echo "ERROR: forbidden secret-like files are tracked by Git:" >&2
+  echo "$tracked_hits" >&2
+  echo "Fix: git rm --cached <file>  (keep local file), then retry." >&2
   exit 1
 fi
 
 staged_hits="$(git diff --cached --name-only | rg -n "$forbidden_path_pattern" || true)"
 if [ -n "$staged_hits" ]; then
-  echo "ERROR: forbidden secret-like files are staged:"
-  echo "$staged_hits"
-  echo "Fix: git restore --staged <file>, then retry."
+  echo "ERROR: forbidden secret-like files are staged:" >&2
+  echo "$staged_hits" >&2
+  echo "Fix: git restore --staged <file>, then retry." >&2
   exit 1
 fi
 
@@ -35,8 +35,8 @@ if git diff --cached --name-only | grep -q .; then
       continue
     fi
     if git show ":$file" 2>/dev/null | rg -n --ignore-case 'BEGIN (OPENSSH|RSA|EC|DSA|PGP) PRIVATE KEY|AGE-SECRET-KEY-1' >/dev/null; then
-      echo "ERROR: staged file contains private key material: $file"
-      echo "Fix: git restore --staged \"$file\" and remove secret content."
+      echo "ERROR: staged file contains private key material: $file" >&2
+      echo "Fix: git restore --staged \"$file\" and remove secret content." >&2
       exit 1
     fi
   done < <(git diff --cached --name-only)

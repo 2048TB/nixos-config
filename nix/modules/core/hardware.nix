@@ -9,9 +9,8 @@ let
   driverAmdgpu = "amdgpu";
   driverAmdNvidiaHybrid = "amd-nvidia-hybrid";
   driverModesetting = "modesetting";
-  gpuDefaultValue = "modesetting";
 
-  gpuChoice = hostCfg.gpuMode or gpuDefaultValue;
+  gpuChoice = hostCfg.gpuMode;
   isNvidia = gpuChoice == driverNvidia;
   isAmd = gpuChoice == driverAmdgpu;
   isAmdNvidiaHybrid = gpuChoice == driverAmdNvidiaHybrid;

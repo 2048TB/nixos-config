@@ -86,10 +86,11 @@ encrypt_yaml_to_target() {
   local tmp
 
   tmp="$(mktemp)"
+  # shellcheck disable=SC2064
+  trap "rm -f '$tmp'" RETURN
   cat > "$tmp"
   mkdir -p "$(dirname "$target")"
   run_sops_encrypt_yaml "$recipients_csv" "$target" < "$tmp"
-  rm -f "$tmp"
 }
 
 # ── subcommands ───────────────────────────────────────────────
@@ -286,10 +287,15 @@ cmd_rekey() {
     tmp_plain="$(mktemp)"
     tmp_enc="$(mktemp)"
 
+    # Ensure temp files (which may contain decrypted secrets) are cleaned on failure
+    # shellcheck disable=SC2064
+    trap "rm -f '$tmp_plain' '$tmp_enc'" EXIT
+
     run_sops --decrypt "$file" > "$tmp_plain"
     run_sops --encrypt --age "$recipients_csv" --input-type yaml --output-type yaml "$tmp_plain" > "$tmp_enc"
     mv "$tmp_enc" "$file"
-    rm -f "$tmp_plain"
+    rm -f "$tmp_plain" "$tmp_enc"
+    trap - EXIT
     echo "rekeyed: $file"
   done < <(find "$repo_root/secrets" -type f -name '*.yaml' | sort)
 

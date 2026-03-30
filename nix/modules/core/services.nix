@@ -10,8 +10,7 @@ let
   homeDir = "/home/${mainUser}";
   hibernateEnabled = hostCfg.resumeOffset != null;
   inherit (config.my.capabilities) isLaptop hasDesktopSession hasFingerprintReader;
-  desktopProfile = hostCfg.desktopProfile or "niri";
-  desktopSessionName = desktopProfile;
+  desktopProfile = hostCfg.desktopProfile;
   desktopExec =
     if desktopProfile == "niri" then
       "/run/current-system/sw/bin/niri-session"
@@ -28,8 +27,8 @@ let
     # greetd 启动链路下，systemd user 可能不会自动继承 HM session vars。
     # 显式导入最小 GUI activation 变量，确保 user service / D-Bus 激活应用
     # 与交互式会话在输入法、Wayland/Ozone、Qt 主题、portal 发现上保持一致。
-    export XDG_CURRENT_DESKTOP="''${XDG_CURRENT_DESKTOP:-${desktopSessionName}}"
-    export XDG_SESSION_DESKTOP="''${XDG_SESSION_DESKTOP:-${desktopSessionName}}"
+    export XDG_CURRENT_DESKTOP="''${XDG_CURRENT_DESKTOP:-${desktopProfile}}"
+    export XDG_SESSION_DESKTOP="''${XDG_SESSION_DESKTOP:-${desktopProfile}}"
     /run/current-system/sw/bin/systemctl --user import-environment \
       QT_IM_MODULE SDL_IM_MODULE \
       NIXOS_OZONE_WL QT_QPA_PLATFORMTHEME NIX_XDG_DESKTOP_PORTAL_DIR \
@@ -124,11 +123,6 @@ in
       AllowSuspendThenHibernate=${if hibernateEnabled then "yes" else "no"}
       AllowHybridSleep=no
     '';
-
-    # Provider app settings（lockdown-mode / auto-connect / allow-lan）通过 GUI 或 CLI 一次性配置，
-    # 持久化在 /etc/provider-app-vpn/settings.json（已由 storage.nix preservation 保留）。
-    # 不再通过 ExecStartPre 每次覆盖，避免与 GUI 锁定模式设置竞态。
-    services = { };
 
     tmpfiles.rules = [
       "d ${configRepoPath} 0755 ${mainUser} ${mainUser} -"

@@ -146,11 +146,16 @@ run_sops() {
 # Encrypt YAML from stdin to target path with selected age recipients.
 # Usage: run_sops_encrypt_yaml <recipient-csv> <target-file>
 run_sops_encrypt_yaml() {
-  local recipients="$1"
-  local target_file="$2"
+  local recipients="${1:-}"
+  local target_file="${2:-}"
 
   if [ -z "$recipients" ]; then
     echo "error: empty sops recipient list" >&2
+    return 1
+  fi
+
+  if [ -z "$target_file" ]; then
+    echo "error: empty sops target file path" >&2
     return 1
   fi
 
