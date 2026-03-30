@@ -1,5 +1,9 @@
-{ lib, isLaptop }:
+{ lib, pkgs, isLaptop }:
 let
+  fuzzelExe = lib.getExe pkgs.fuzzel;
+  wlogoutExe = lib.getExe pkgs.wlogout;
+  swayncClientExe = "${pkgs.swaynotificationcenter}/bin/swaync-client";
+  wpctlExe = "/run/current-system/sw/bin/wpctl";
   modulesRight =
     [ "mpris" "cpu" "memory" "network" "pulseaudio" ]
     ++ lib.optional isLaptop "battery"
@@ -93,9 +97,9 @@ in
     format-icons = {
       default = [ "󰕿" "󰖀" "󰕾" ];
     };
-    on-click = "/run/current-system/sw/bin/wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle";
-    on-scroll-up = "/run/current-system/sw/bin/wpctl set-volume @DEFAULT_AUDIO_SINK@ 2%+";
-    on-scroll-down = "/run/current-system/sw/bin/wpctl set-volume @DEFAULT_AUDIO_SINK@ 2%-";
+    on-click = "${wpctlExe} set-mute @DEFAULT_AUDIO_SINK@ toggle";
+    on-scroll-up = "${wpctlExe} set-volume @DEFAULT_AUDIO_SINK@ 2%+";
+    on-scroll-down = "${wpctlExe} set-volume @DEFAULT_AUDIO_SINK@ 2%-";
     tooltip-format = "{desc}\n{volume}%";
   };
 
@@ -137,17 +141,17 @@ in
       dnd-inhibited-none = "";
     };
     return-type = "json";
-    exec-if = "which swaync-client";
-    exec = "swaync-client -swb";
-    on-click = "swaync-client -t -sw";
-    on-click-right = "swaync-client -d -sw";
+    exec-if = "which ${swayncClientExe}";
+    exec = "${swayncClientExe} -swb";
+    on-click = "${swayncClientExe} -t -sw";
+    on-click-right = "${swayncClientExe} -d -sw";
     escape = true;
   };
 
   "custom/launcher" = {
     format = "󱄅";
     tooltip = false;
-    on-click = "fuzzel";
+    on-click = "${fuzzelExe}";
   };
 
   tray = {
@@ -159,6 +163,6 @@ in
   "custom/power" = {
     format = "⏻";
     tooltip = false;
-    on-click = "wlogout";
+    on-click = "${wlogoutExe}";
   };
 }

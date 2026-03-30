@@ -13,7 +13,7 @@ let
   hostCfg = import ../base/resolve-host.nix { inherit myvars osConfig; };
   isLaptop = (hostCfg.formFactor or "desktop") == "laptop";
   supportsHibernate = (hostCfg.resumeOffset or null) != null;
-  waybarConfig = import ./waybar-config.nix { inherit lib isLaptop; };
+  waybarConfig = import ./waybar-config.nix { inherit lib pkgs isLaptop; };
   wlogoutLayoutLib = import ../../lib/wlogout-layout.nix { inherit lib; };
   wlogoutLayout = wlogoutLayoutLib.mkWlogoutLayout { inherit supportsHibernate; };
   wlogoutIconNames = [
