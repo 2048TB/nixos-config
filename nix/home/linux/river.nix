@@ -8,27 +8,6 @@ let
   # - 若当前 focused-tags 不含 scratch → 把当前窗口扔到 scratch tag（隐藏）
   # - 若当前 focused-tags 含 scratch → 关闭 scratch tag（隐藏区的窗口消失）
   scratchTag = "2147483648"; # 1 << 31
-  scratchToggle = pkgs.writeShellScript "river-scratch-toggle" ''
-    set -eu
-    scratch=${scratchTag}
-    state="$HOME/.local/state/river-scratch"
-    ${mkdirExe} -p "$(${dirnameExe} "$state")"
-    focused=$(riverctl get-focused-tags 2>/dev/null || echo 0)
-
-    if [ $((focused & scratch)) -ne 0 ]; then
-      # scratch 正在显示 → 隐藏
-      riverctl toggle-focused-tags "$scratch"
-      rm -f "$state"
-    elif [ -f "$state" ]; then
-      # 有隐藏的窗口 → 显示 scratch tag
-      riverctl toggle-focused-tags "$scratch"
-      rm -f "$state"
-    else
-      # 把当前窗口扔到 scratch tag（隐藏）
-      riverctl set-view-tags "$scratch"
-      touch "$state"
-    fi
-  '';
 
   locationCycle = pkgs.writeShellScript "rivertile-location-cycle" ''
     set -eu
@@ -164,8 +143,9 @@ in
           "Super C" = "zoom";
           "Super O" = "focus-output next";
           "Super+Shift O" = "send-to-output next";
-          "Super V" = "spawn 'cliphist list | fuzzel -d | cliphist decode | wl-copy'";
-          "Super B" = "spawn '${scratchToggle}'";
+          "Super V" = "set-view-tags ${scratchTag}";
+          "Super B" = "toggle-focused-tags ${scratchTag}";
+          "Super+Shift V" = "spawn 'cliphist list | fuzzel -d | cliphist decode | wl-copy'";
 
           # ===== 程序启动 =====
           "Super Return" = "spawn ghostty";
