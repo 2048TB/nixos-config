@@ -51,6 +51,14 @@ in
     };
   };
 
+  programs.waybar = {
+    enable = true;
+    systemd = {
+      enable = true;
+      target = "river-session.target";
+    };
+  };
+
   wayland.windowManager.river = {
     enable = true;
     package = null; # NixOS programs.river-classic 提供安装
