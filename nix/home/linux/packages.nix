@@ -31,15 +31,6 @@ let
   gpuChoice = hostCfg.gpuMode or "modesetting";
   isHybridGpu = gpuChoice == "amd-nvidia-hybrid";
   ollamaVulkan = pkgs.ollama or null;
-  tensorflowCudaPkg = pkgs.python3Packages.tensorflowWithCuda or null;
-  tensorflowCudaEnv =
-    if tensorflowCudaPkg != null
-    then pkgs.python3.withPackages (_: [ tensorflowCudaPkg ])
-    else null;
-  primaryPythonPackage =
-    if tensorflowCudaEnv != null
-    then tensorflowCudaEnv
-    else pkgs.python3;
   hashcatPkg = pkgs.hashcat or null;
   hybridPackages = lib.optionals isHybridGpu (
     lib.optional (ollamaVulkan != null) ollamaVulkan
@@ -87,30 +78,11 @@ let
       rm -f "$out/bin/cc" "$out/bin/c++" "$out/bin/cpp"
     '';
   };
-  devToolchainPackages = with pkgs; [
-    neovim
-    (rust-bin.stable.latest.default.override {
-      targets = [ "x86_64-pc-windows-gnu" ];
-    })
-    rust-bin.stable.latest.rust-analyzer
+  devToolchainPackages = [
+    pkgs.neovim
     mingwToolchainBinOnly
     clangWithoutCompatAliases
-    zig
-    zls
-    go
-    gcc
-    gopls
-    delve
-    gotools
-    nodejs
-    nodePackages.typescript
-    nodePackages.typescript-language-server
-    primaryPythonPackage
-    python3Packages.pip
-    pyright
-    ruff
-    black
-    uv
+    pkgs.gcc
   ];
 
   basePackageNames = lib.flatten [

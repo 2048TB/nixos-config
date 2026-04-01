@@ -45,9 +45,6 @@
     "nix-index"
     "shellcheck"
     "git-lfs"
-    "bun"
-    "pnpm"
-    "pipx"
   ];
 
   desktop = [

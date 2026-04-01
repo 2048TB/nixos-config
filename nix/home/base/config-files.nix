@@ -1,6 +1,7 @@
 {
   sharedSourceFiles = {
     "git/config" = ../configs/git/config;
+    "mise/config.toml" = ../configs/mise/config.toml;
     "television/config.toml" = ../configs/television/config.toml;
     "television/cable/alias.toml" = ../configs/television/cable/alias.toml;
     "television/cable/dirs.toml" = ../configs/television/cable/dirs.toml;

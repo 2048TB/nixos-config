@@ -1,0 +1,22 @@
+# Global runtime defaults stay current without pushing language versions through Nix.
+# Individual repos can still override these with their own mise.toml.
+
+[tools]
+node = "24"
+python = "3.14"
+go = "1.26"
+"rust" = { version = "stable", components = "rust-analyzer", targets = "x86_64-pc-windows-gnu" }
+bun = "1.3"
+zig = "0.15"
+zls = "latest"
+uv = "latest"
+pnpm = "latest"
+"npm:typescript" = "latest"
+"npm:typescript-language-server" = "latest"
+"npm:pyright" = "latest"
+"go:golang.org/x/tools/gopls" = "latest"
+"go:golang.org/x/tools/cmd/goimports" = "latest"
+"go:github.com/go-delve/delve/cmd/dlv" = "latest"
+"pipx:black" = "latest"
+"pipx:ruff" = "latest"
+"pipx:pipx" = "latest"

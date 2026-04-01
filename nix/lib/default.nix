@@ -137,6 +137,7 @@ rec {
   sharedPackageNames = [
     "git"
     "gh"
+    "mise"
     "tmux"
     "television"
     "zellij"
