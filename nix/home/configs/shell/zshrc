@@ -62,10 +62,9 @@ function cdx() {
     if [[ "$1" == "r" ]]; then
         shift
         codex resume "$@"
-        return
+    else
+        codex "$@"
     fi
-
-    codex --dangerously-bypass-approvals-and-sandbox "$@"
 }
 
 ############################################
