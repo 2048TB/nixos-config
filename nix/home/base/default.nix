@@ -84,10 +84,12 @@ in
 
     sessionVariables = {
       NIX_HOSTNAME = hostCfg.hostname;
+      NPM_CONFIG_PREFIX = "${homeDir}/.npm-global";
       UV_PYTHON_DOWNLOADS = "never";
     };
 
     sessionPath = [
+      "${homeDir}/.npm-global/bin"
       "${homeDir}/tools"
       localBinDir
     ];
