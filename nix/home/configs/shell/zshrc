@@ -56,6 +56,26 @@ function ccv() {
 }
 
 ############################################
+# CLI 快捷命令
+############################################
+function clii() {
+    local env_vars=(
+        "ENABLE_BACKGROUND_TASKS=true"
+        "FORCE_AUTO_BACKGROUND_TASKS=true"
+        "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=true"
+        "CLAUDE_CODE_ENABLE_UNIFIED_READ_TOOL=true"
+    )
+
+    local cli_args=("--dangerously-skip-permissions")
+
+    if [[ "$1" == "r" ]]; then
+        cli_args+=("--resume")
+    fi
+
+    env "${env_vars[@]}" cli "${cli_args[@]}"
+}
+
+############################################
 # Codex 快捷命令
 ############################################
 function cdx() {
