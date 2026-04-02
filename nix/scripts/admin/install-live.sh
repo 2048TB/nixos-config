@@ -24,6 +24,7 @@ assume_yes=0
 repo_explicit=0
 key_dir_rel=".keys"
 age_key_rel="$key_dir_rel/main.agekey"
+main_pub_rel="secrets/keys/main.age.pub"
 
 is_age_private_key_file() {
   local path="${1:-}"
@@ -45,6 +46,37 @@ is_age_private_key_file() {
   [[ "$first_data_line" == AGE-SECRET-KEY-* ]]
 }
 
+read_repo_main_pub() {
+  local repo_pub="${repo}/${main_pub_rel}"
+
+  if [ ! -r "$repo_pub" ]; then
+    echo "error: missing repo main age public key: $repo_pub" >&2
+    return 1
+  fi
+
+  awk '
+    {
+      line = $0
+      gsub(/^[[:space:]]+|[[:space:]]+$/, "", line)
+      if (line == "" || line ~ /^#/) {
+        next
+      }
+      print line
+      exit
+    }
+  ' "$repo_pub"
+}
+
+age_key_matches_repo_pub() {
+  local key_path="${1:-}"
+  local candidate_pub=""
+  local repo_pub=""
+
+  candidate_pub="$(run_age_keygen -y "$key_path" | awk 'NF { print; exit }')"
+  repo_pub="$(read_repo_main_pub)"
+  [ -n "$candidate_pub" ] && [ "$candidate_pub" = "$repo_pub" ]
+}
+
 resolve_age_key_src() {
   declare -A seen=()
   local candidates=(
@@ -61,8 +93,12 @@ resolve_age_key_src() {
     seen[$candidate]=1
     [ -f "$candidate" ] || continue
     if is_age_private_key_file "$candidate"; then
-      printf '%s\n' "$candidate"
-      return 0
+      if age_key_matches_repo_pub "$candidate"; then
+        printf '%s\n' "$candidate"
+        return 0
+      fi
+      echo "warning: ignore age key that does not match ${repo}/${main_pub_rel}: $candidate" >&2
+      continue
     fi
     echo "warning: ignore invalid age key file (expected AGE-SECRET-KEY-*): $candidate" >&2
   done
@@ -126,11 +162,11 @@ if age_key_src="$(resolve_age_key_src)"; then
   sudo install -D -m 0400 -o root -g root "$age_key_src" /mnt/persistent/keys/main.agekey
   echo ">>> sops key installed: $age_key_src -> /mnt/persistent/keys/main.agekey"
 else
-  echo "error: sops key not found (or invalid) in search paths below:" >&2
+  echo "error: sops key not found (or invalid / mismatched) in search paths below:" >&2
   echo "  - $PWD/$age_key_rel" >&2
   echo "  - $repo/$age_key_rel" >&2
   echo "  - ${HOME:-}/$age_key_rel" >&2
-  echo "hint: place AGE private key 'main.agekey' into one of these paths, then retry." >&2
+  echo "hint: place the AGE private key matching $repo/$main_pub_rel into one of these paths, then retry." >&2
   exit 1
 fi
 

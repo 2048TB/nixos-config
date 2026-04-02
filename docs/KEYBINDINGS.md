@@ -1,5 +1,7 @@
 # 快捷键说明
 
+本页是快捷键摘要，不是事实源。行为与映射若有冲突，以配置文件为准。
+
 先记住“必会 15 个”，其余按需查表。
 
 `Mod` = `Super`（Windows 键）；winit 窗口环境中 = `Alt`。
@@ -231,9 +233,9 @@
 
 ---
 
-## 以配置文件为准
+## 事实源
 
-文档与实际不一致时，以源文件为准：
+文档与实际不一致时，以这些源文件为准：
 - `nix/home/configs/niri/interaction.kdl`
 - `nix/home/configs/niri/appearance.kdl`
 - `nix/home/configs/tmux/tmux.conf`

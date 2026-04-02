@@ -16,6 +16,7 @@ main_key="$key_dir/main.agekey"
 main_pub="$secrets_key_dir/main.age.pub"
 recovery_key="$key_dir/recovery.agekey"
 recovery_pub="$secrets_key_dir/recovery.age.pub"
+rotation_backup_glob="$key_dir/main.agekey.pre-rotate.*"
 
 # ── helpers ───────────────────────────────────────────────────
 require_main_key() {
@@ -35,6 +36,47 @@ require_main_pub() {
     echo "error: empty public key file: $main_pub" >&2
     exit 1
   fi
+}
+
+list_rotation_backup_keys() {
+  find "$key_dir" -maxdepth 1 -type f -name 'main.agekey.pre-rotate.*' | sort
+}
+
+build_identity_file() {
+  local identity_file
+
+  identity_file="$(mktemp)"
+  chmod 0600 "$identity_file"
+  cat "$main_key" > "$identity_file"
+
+  if [ -f "$recovery_key" ]; then
+    printf '\n' >> "$identity_file"
+    cat "$recovery_key" >> "$identity_file"
+  fi
+
+  while IFS= read -r backup_key; do
+    [ -n "$backup_key" ] || continue
+    printf '\n' >> "$identity_file"
+    cat "$backup_key" >> "$identity_file"
+  done < <(list_rotation_backup_keys)
+
+  printf '%s\n' "$identity_file"
+}
+
+collect_file_age_recipients() {
+  local file="${1:-}"
+
+  awk '
+    $1 == "recipient:" && $2 ~ /^age1/ { print $2; next }
+    $1 == "-" && $2 == "recipient:" && $3 ~ /^age1/ { print $3; next }
+  ' "$file" | awk 'NF && !seen[$0]++'
+}
+
+join_csv() {
+  if [ "$#" -eq 0 ]; then
+    return 0
+  fi
+  printf '%s\n' "$@" | paste -sd, -
 }
 
 trim_line() {
@@ -89,7 +131,6 @@ encrypt_yaml_to_target() {
   # shellcheck disable=SC2064
   trap "rm -f '$tmp'" RETURN
   cat > "$tmp"
-  mkdir -p "$(dirname "$target")"
   run_sops_encrypt_yaml "$recipients_csv" "$target" < "$tmp"
 }
 
@@ -97,10 +138,15 @@ encrypt_yaml_to_target() {
 
 cmd_init() {
   local mode="default"
+  local assume_yes=0
+  local backup_key=""
+  local temp_main_dir=""
+  local temp_main_key=""
   while [ "$#" -gt 0 ]; do
     case "$1" in
       --create) mode="create"; shift ;;
       --rotate) mode="rotate"; shift ;;
+      --yes) assume_yes=1; shift ;;
       *) echo "error: unknown argument: $1" >&2; exit 2 ;;
     esac
   done
@@ -123,9 +169,26 @@ cmd_init() {
       fi
       ;;
     rotate)
-      run_age_keygen -o "$main_key" >/dev/null
+      require_main_key
+      require_main_pub
+      confirm_destructive_action \
+        "ROTATE SOPS MAIN KEY" \
+        "warning: this will generate a new main age identity, keep a backup of the old key for rekey, and update $main_pub" \
+        "$assume_yes"
+      backup_key="$key_dir/main.agekey.pre-rotate.$(date +%Y%m%d%H%M%S)"
+      temp_main_dir="$(mktemp -d "$key_dir/.main.agekey.new.XXXXXX")"
+      temp_main_key="$temp_main_dir/main.agekey"
+      # shellcheck disable=SC2064
+      trap "rm -rf '$temp_main_dir'" RETURN
+      run_age_keygen -o "$temp_main_key" >/dev/null
+      cp "$main_key" "$backup_key"
+      chmod 0400 "$backup_key"
+      mv "$temp_main_key" "$main_key"
+      trap - RETURN
+      rmdir "$temp_main_dir"
       echo "rotated main key: $main_key"
-      echo "warning: run 'nix/scripts/admin/sops.sh rekey' before next deployment."
+      echo "backup kept for decrypt/rekey: $backup_key"
+      echo "warning: run 'nix/scripts/admin/sops.sh rekey' before next deployment, then remove obsolete backups from $rotation_backup_glob."
       ;;
   esac
 
@@ -275,30 +338,59 @@ cmd_recipients() {
 }
 
 cmd_rekey() {
-  local recipients_csv file tmp_plain tmp_enc
+  local recipients_csv file identity_file
+  local -a desired_recipients current_recipients add_age rm_age rotate_cmd
 
   require_main_key
   require_main_pub
   recipients_csv="$(collect_age_recipients_csv)"
+  identity_file="$(build_identity_file)"
+  # shellcheck disable=SC2064
+  trap "rm -f '$identity_file'" RETURN
 
-  export SOPS_AGE_KEY_FILE="$main_key"
+  export SOPS_AGE_KEY_FILE="$identity_file"
 
   while IFS= read -r file; do
-    tmp_plain="$(mktemp)"
-    tmp_enc="$(mktemp)"
+    desired_recipients=()
+    current_recipients=()
+    add_age=()
+    rm_age=()
+    rotate_cmd=(run_sops rotate -i)
 
-    # Ensure temp files (which may contain decrypted secrets) are cleaned on failure
-    # shellcheck disable=SC2064
-    trap "rm -f '$tmp_plain' '$tmp_enc'" EXIT
+    while IFS= read -r recipient; do
+      [ -n "$recipient" ] && desired_recipients+=("$recipient")
+    done < <(printf '%s\n' "$recipients_csv" | tr ',' '\n')
 
-    run_sops --decrypt "$file" > "$tmp_plain"
-    run_sops --encrypt --age "$recipients_csv" --input-type yaml --output-type yaml "$tmp_plain" > "$tmp_enc"
-    mv "$tmp_enc" "$file"
-    rm -f "$tmp_plain" "$tmp_enc"
-    trap - EXIT
+    while IFS= read -r recipient; do
+      [ -n "$recipient" ] && current_recipients+=("$recipient")
+    done < <(collect_file_age_recipients "$file")
+
+    for recipient in "${desired_recipients[@]}"; do
+      if [[ ! " ${current_recipients[*]} " =~ [[:space:]]${recipient}[[:space:]] ]]; then
+        add_age+=("$recipient")
+      fi
+    done
+
+    for recipient in "${current_recipients[@]}"; do
+      if [[ ! " ${desired_recipients[*]} " =~ [[:space:]]${recipient}[[:space:]] ]]; then
+        rm_age+=("$recipient")
+      fi
+    done
+
+    if [ "${#add_age[@]}" -gt 0 ]; then
+      rotate_cmd+=(--add-age "$(join_csv "${add_age[@]}")")
+    fi
+
+    if [ "${#rm_age[@]}" -gt 0 ]; then
+      rotate_cmd+=(--rm-age "$(join_csv "${rm_age[@]}")")
+    fi
+
+    rotate_cmd+=("$file")
+    "${rotate_cmd[@]}"
     echo "rekeyed: $file"
   done < <(find "$repo_root/secrets" -type f -name '*.yaml' | sort)
 
+  trap - RETURN
   echo "rekey completed."
 }
 
@@ -308,7 +400,7 @@ usage() {
 usage: sops.sh <command> [args]
 
 commands:
-  init [--create|--rotate]       Initialize/sync main age key
+  init [--create|--rotate] [--yes]  Initialize/sync main age key
   password-set <sha512-hash>     Encrypt password hash for user + root
   ssh-key-set                    Encrypt .keys/github_id_ed25519 via sops
   recovery-init [--force]        Create/update recovery key pair

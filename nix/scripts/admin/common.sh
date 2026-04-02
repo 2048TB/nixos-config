@@ -148,6 +148,8 @@ run_sops() {
 run_sops_encrypt_yaml() {
   local recipients="${1:-}"
   local target_file="${2:-}"
+  local target_dir=""
+  local temp_file=""
 
   if [ -z "$recipients" ]; then
     echo "error: empty sops recipient list" >&2
@@ -159,14 +161,25 @@ run_sops_encrypt_yaml() {
     return 1
   fi
 
+  target_dir="$(dirname "$target_file")"
+  mkdir -p "$target_dir"
+  temp_file="$(mktemp "$target_dir/.tmp.$(basename "$target_file").XXXXXX")"
+  # shellcheck disable=SC2064
+  trap "rm -f '$temp_file'" RETURN
+
   # shellcheck disable=SC2094  # stdin and stdout target are distinct fds
-  run_sops \
+  if ! run_sops \
     --encrypt \
     --filename-override "$target_file" \
     --age "$recipients" \
     --input-type yaml \
     --output-type yaml \
-    /dev/stdin >"$target_file"
+    /dev/stdin >"$temp_file"; then
+    return 1
+  fi
+
+  mv "$temp_file" "$target_file"
+  trap - RETURN
 }
 
 confirm_destructive_action() {

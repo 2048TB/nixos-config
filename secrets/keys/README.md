@@ -1,62 +1,54 @@
-# secrets/keys 说明（新手版）
+# secrets/keys
 
-这个目录只放 **public keys**（可以提交到 Git）。
+本目录只放可提交到 Git 的 public keys。完整流程与脚本行为见 `docs/README.md`。
 
----
+## 文件含义
 
-## 1. 文件含义
+- `main.age.pub`：主运维 public key
+- `recovery.age.pub`：恢复 public key
+- `hosts/*.ssh_host_ed25519.pub`：各主机 SSH host public keys
 
-- `main.age.pub`：主运维公钥
-- `recovery.age.pub`：恢复公钥
-- `hosts/*.ssh_host_ed25519.pub`：各主机 SSH host 公钥（可选，当前目录保留 `.gitkeep`）
-
----
-
-## 2. 什么绝对不能放这里
+## 绝对不能放这里的内容
 
 - 私钥（`*.agekey`）
-- 任意明文密码
-- 任意私有 token
+- 明文密码
+- 私有 token
 
-私钥只能放在本地仓库 `./.keys/`（被 `.gitignore` 忽略）。
+私钥只能放在本地 `.keys/` 或运行时的 `/persistent/keys/`。
 
-运行时主密钥位置：`/persistent/keys/main.agekey`
-
----
-
-## 3. 常用命令
+## 常用命令
 
 ```bash
-# 初始化/同步主密钥（默认不创建）
 just sops-init
-
-# 首次创建主密钥
 just sops-init-create
-
-# 初始化 recovery key
+just sops-init-rotate
 just sops-recovery-init
-
-# 添加主机 host 公钥作为 recipient
 just sops-host-key-add zly /etc/ssh/ssh_host_ed25519_key.pub
-
-# 重加密 secrets
-just sops-rekey
-
-# 查看 recipients
 just sops-recipients
+just sops-rekey
 ```
 
-安装/初始化时主密钥搜索顺序：
+非交互 rotate：
+
+```bash
+bash nix/scripts/admin/sops.sh init --rotate --yes
+bash nix/scripts/admin/sops.sh rekey
+```
+
+## 当前 key 流程
+
+- `init --create`：创建新的 `main.agekey` 与 `main.age.pub`
+- `init --rotate`：生成新的 `main.agekey`，并保留旧 key 为 `.keys/main.agekey.pre-rotate.<timestamp>`
+- `rekey`：使用当前 key、recovery key 与 backup keys，把所有 secrets recipients 同步到最新集合
+- `install-live.sh`：安装时只接受“与 `main.age.pub` 匹配”的 private key
+
+key 搜索顺序：
+
 - `./.keys/main.agekey`
 - `<repo>/.keys/main.agekey`
 - `~/.keys/main.agekey`
 
-补充：
-- `nix/scripts/admin/sops.sh` 可从仓库外直接调用，脚本会自行定位 repo root
-- `hosts/*.ssh_host_ed25519.pub` 若内容无效，`sops.sh recipients` / `sops.sh rekey` 会直接失败，不再静默跳过
+## 额外约束
 
----
-
-## 4. 工作原理（简版）
-
-`nix/scripts/admin/sops.sh` 会读取本目录中的公钥集合，作为 `secrets/*.yaml` 的 recipients。
+- `nix/scripts/admin/sops.sh` 可从仓库外直接调用
+- `hosts/*.ssh_host_ed25519.pub` 若内容无效，`recipients` / `rekey` 会直接失败

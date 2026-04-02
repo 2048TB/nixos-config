@@ -29,8 +29,8 @@ update-nixpkgs:
 
 upgrade:
     @if [ -z "{{host}}" ]; then echo "error: 需要指定主机. 用法: just host=zly upgrade" >&2; exit 2; fi
-    @just update
-    @just host={{host}} switch
+    @just repo={{repo}} update
+    @just repo={{repo}} host={{host}} switch
 
 show:
     @flake_repo="$(bash {{repo}}/nix/scripts/admin/print-flake-repo.sh {{repo}})"; {{nix_cmd}} flake show --all-systems "path:$flake_repo"
@@ -96,30 +96,30 @@ hooks-enable:
     @echo "✓ 已启用 .githooks"
 
 guard-secrets:
-    @{{repo}}/nix/scripts/admin/guard-secrets.sh
+    @NIXOS_CONFIG_REPO={{repo}} {{repo}}/nix/scripts/admin/guard-secrets.sh
 
 # ========== Sops ==========
 
 sops-init:
-    @{{repo}}/nix/scripts/admin/sops.sh init
+    @NIXOS_CONFIG_REPO={{repo}} {{repo}}/nix/scripts/admin/sops.sh init
 
 sops-init-create:
-    @{{repo}}/nix/scripts/admin/sops.sh init --create
+    @NIXOS_CONFIG_REPO={{repo}} {{repo}}/nix/scripts/admin/sops.sh init --create
 
 sops-init-rotate:
-    @{{repo}}/nix/scripts/admin/sops.sh init --rotate
+    @NIXOS_CONFIG_REPO={{repo}} {{repo}}/nix/scripts/admin/sops.sh init --rotate
 
 sops-recovery-init:
-    @{{repo}}/nix/scripts/admin/sops.sh recovery-init
+    @NIXOS_CONFIG_REPO={{repo}} {{repo}}/nix/scripts/admin/sops.sh recovery-init
 
 sops-host-key-add HOST PUB="/etc/ssh/ssh_host_ed25519_key.pub":
-    @{{repo}}/nix/scripts/admin/sops.sh host-add '{{HOST}}' '{{PUB}}'
+    @NIXOS_CONFIG_REPO={{repo}} {{repo}}/nix/scripts/admin/sops.sh host-add '{{HOST}}' '{{PUB}}'
 
 sops-recipients:
-    @{{repo}}/nix/scripts/admin/sops.sh recipients
+    @NIXOS_CONFIG_REPO={{repo}} {{repo}}/nix/scripts/admin/sops.sh recipients
 
 sops-rekey:
-    @{{repo}}/nix/scripts/admin/sops.sh rekey
+    @NIXOS_CONFIG_REPO={{repo}} {{repo}}/nix/scripts/admin/sops.sh rekey
 
 password-hash:
     if command -v mkpasswd >/dev/null 2>&1; then \
@@ -136,7 +136,7 @@ password-hashes:
     @just password-hash
 
 password-set-hash HASH:
-    @{{repo}}/nix/scripts/admin/sops.sh password-set '{{HASH}}'
+    @NIXOS_CONFIG_REPO={{repo}} {{repo}}/nix/scripts/admin/sops.sh password-set '{{HASH}}'
 
 ssh-key-set:
-    @{{repo}}/nix/scripts/admin/sops.sh ssh-key-set
+    @NIXOS_CONFIG_REPO={{repo}} {{repo}}/nix/scripts/admin/sops.sh ssh-key-set

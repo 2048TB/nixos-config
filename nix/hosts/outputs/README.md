@@ -1,32 +1,41 @@
 # outputs 目录
 
-将所有主机汇总为 flake outputs（`nixosConfigurations` / `darwinConfigurations` / `apps` / `checks`），并对外导出可复用接口（`packages` / `overlays` / `nixosModules`）。
-当前仓库的 CI 只消费其中少量 read-only 能力；不要把本目录理解为自动 deploy / switch 入口。
+本目录负责把 hosts 聚合成 flake outputs，并提供共享校验入口。它不是 deploy wrapper，也不是日常改机器参数的第一落点。
 
----
+## 主要文件
 
-## 文件
-
-- `default.nix`：总入口（`genSpecialArgs`、`mkApp`、平台聚合、对外导出面）
+- `default.nix`：总入口
 - `common.nix`：共享 registry 校验与 eval helper
-- `x86_64-linux/default.nix`：NixOS 聚合 + eval tests + pre-commit check + apps
-- `aarch64-darwin/default.nix`：Darwin 聚合 + eval tests + apps
-
----
+- `x86_64-linux/default.nix`：NixOS 聚合、checks、apps
+- `aarch64-darwin/default.nix`：Darwin 聚合、checks、apps
 
 ## 自动发现
 
-聚合层自动扫描：
-- `nix/hosts/nixos/*`（需 `hardware.nix` + `hardware-modules.nix` + `disko.nix` + `vars.nix`；`default.nix` 可选）
-- `nix/hosts/darwin/*`（需 `default.nix` + `vars.nix`）
+- `nix/hosts/nixos/*` 需要 `hardware.nix`、`hardware-modules.nix`、`disko.nix`、`vars.nix`
+- `nix/hosts/darwin/*` 需要 `default.nix`、`vars.nix`
 
-## apps 行为
+## 当前导出面
+
+- `nixosConfigurations`
+- `darwinConfigurations`
+- `apps`
+- `checks`
+- `packages`
+- `overlays`
+- `nixosModules`
+
+当前 `apps` 行为：
 
 - Linux：仅保留 `install`
-- Darwin：当前不再导出 app
+- Darwin：不导出 app
 
-`install` app 读取 `NIXOS_HOST`；未设置时会直接报错退出，避免误装到默认 host。
-eval tests 的通用表达式在 `common.nix`，平台目录只保留各自入口。
+## 什么时候改这里
 
-通常无需手动修改此目录，除非新增平台级逻辑（apps/checks/devShell/formatter）或补充对外复用输出。
-若只是新增主机或调机器参数，优先改 `nix/hosts/<platform>/<host>/` 与 `nix/hosts/registry/systems.toml`，不要先动本目录。
+- 新增平台级 `apps` / `checks`
+- 修改统一 registry 校验
+- 增减对外复用导出面
+
+如果只是新增主机、改某台机器参数或改 metadata，优先去：
+
+- `nix/hosts/<platform>/<host>/`
+- `nix/hosts/registry/systems.toml`

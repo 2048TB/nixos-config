@@ -1,15 +1,6 @@
 # home 目录
 
-Home Manager 配置（用户级）。
-
-- 改系统级（服务/内核/磁盘）→ `nix/modules/` 或 `nix/hosts/`
-- 改用户级（终端/主题/快捷键）→ 本目录
-- 主账号一致开发环境（语言/工具链）→ 优先放在 Home Manager
-- Linux/Darwin 共享 CLI 包入口在 `nix/lib/default.nix` 的 `sharedPackageNames`
-- 跨平台共享 config file 映射在 `nix/home/base/config-files.nix`
-- Linux 侧入口通过 `_mixins` 统一收敛导入列表，新增 self-gating 模块时优先更新 allowlist
-
----
+本目录承载用户级配置。全仓库流程与脚本行为见 `docs/README.md`；这里只描述 Home Manager 结构与常见落点。
 
 ## 结构
 
@@ -31,8 +22,6 @@ nix/home/
 └── configs/            # 应用配置文件（niri/tmux/zellij/shell/television/...）
 ```
 
----
-
 ## 常见修改
 
 | 目标 | 文件 |
@@ -48,10 +37,14 @@ nix/home/
 | Tmux | `configs/tmux/tmux.conf` |
 | Zellij | `configs/zellij/config.kdl` |
 
-应用方式：当前仓库不再提供 `switch/check/test` 包装入口；修改本目录后，优先做 read-only flake eval/show，必要时再手动执行底层 NixOS/Home Manager 应用命令。
-若 checkout 中存在不可读的 `.keys/main.agekey`，read-only flake eval/show 先通过 `nix/scripts/admin/print-flake-repo.sh` 获取 filtered repo。
+额外约束：
 
----
+- Linux/Darwin 共享 CLI 包入口在 `nix/lib/default.nix` 的 `sharedPackageNames`
+- 跨平台共享 config file 映射在 `nix/home/base/config-files.nix`
+- Linux 侧入口通过 `_mixins` allowlist 收敛导入列表
+- `nix/home/configs/noctalia/` 当前按设计直接映射到 repo 工作树；GUI 改动会直接修改 tracked files
+
+read-only 验证时，若 checkout 中存在不可读的 `.keys/main.agekey`，先通过 `nix/scripts/admin/print-flake-repo.sh` 获取 filtered repo。
 
 ## 文档同步
 
@@ -61,7 +54,8 @@ nix/home/
 - `configs/tmux/tmux.conf`
 - `configs/zellij/config.kdl`
 
-改了以下文件通常不需要同步 `docs/KEYBINDINGS.md`，但建议补看 Home Manager 入口说明：
+改了以下文件通常不需要同步 `docs/KEYBINDINGS.md`：
+
 - `base/config-files.nix`
 - `configs/shell/zshrc`
 - `configs/television/*`

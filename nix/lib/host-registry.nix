@@ -141,6 +141,8 @@ rec {
             display:
             let
               name = display.name or "";
+              match = display.match or null;
+              primary = display.primary or false;
               scale = display.scale or null;
               width = display.width or null;
               height = display.height or null;
@@ -149,6 +151,8 @@ rec {
             in
             builtins.isString name
             && name != ""
+            && (match == null || builtins.isString match)
+            && builtins.isBool primary
             && (scale == null || (builtins.isFloat scale || builtins.isInt scale) && scale > 0)
             && (width == null || builtins.isInt width && width > 0)
             && (height == null || builtins.isInt height && height > 0)
@@ -158,7 +162,7 @@ rec {
           )
           state.displays
       )
-      "${registryPath}[${hostName}].displays entries must define non-empty name, positive scale, positive width/height/refresh (when set), and positive workspaceSet values"
+      "${registryPath}[${hostName}].displays entries must define non-empty name, string match (when set), boolean primary (when set), positive scale, positive width/height/refresh (when set), and positive workspaceSet values"
     && lib.assertMsg
       (
         builtins.length

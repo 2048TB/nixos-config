@@ -1,26 +1,29 @@
 # nixos-config
 
-最小化维护的 Nix 配置仓库。
+最小脚本 surface 的 Nix 配置仓库。
 
-当前仓库只保留少量脚本入口：
+本页不是事实源。实际流程、脚本行为、风险边界与 FAQ 统一见 `docs/README.md`。
+
+## 文档入口
+
+- 权威手册：`docs/README.md`
+- 环境差异：`docs/ENV-USAGE.md`
+- 命令速查：`docs/NIX-COMMANDS.md`
+- 主机目录与 metadata：`nix/hosts/README.md`
+- Home Manager 结构：`nix/home/README.md`
+- 公钥与 secrets 流程：`secrets/keys/README.md`
+- 代理规则：`AGENTS.md`、`CLAUDE.md`
+
+## 当前保留入口
+
 - 安装：`nix/scripts/admin/install-live.sh`
-- filtered flake 路径：`nix/scripts/admin/print-flake-repo.sh`
+- filtered flake repo：`nix/scripts/admin/print-flake-repo.sh`
 - `flake.lock` 更新：`nix/scripts/admin/update-flake.sh`
 - secrets / sops：`nix/scripts/admin/sops.sh`
-- Git 密钥泄露保护：`nix/scripts/admin/guard-secrets.sh`
+- Git secrets guard：`nix/scripts/admin/guard-secrets.sh`
+- `just`：build / check / switch / upgrade / clean / install 的主要入口
 
-当前 CI 只保留两项：
-- 手动触发的 `flake.lock` 新鲜度检查
-- 定时/手动触发的旧 workflow run 清理
-
-文档分工：
-- `docs/README.md`：权威运维手册（安装、锁更新、secrets、FAQ）
-- `docs/ENV-USAGE.md`：按环境区分的差异说明
-- `docs/NIX-COMMANDS.md`：纯命令速查
-- `nix/hosts/README.md`：主机目录与 metadata
-- `nix/home/README.md`：Home Manager 结构，以及共享 CLI / config / shell 入口
-
-最常用命令：
+## 常用命令
 
 ```bash
 just host=zly disk=/dev/nvme0n1 install
@@ -29,14 +32,16 @@ just info
 just host=zly check
 just host=zly switch
 just host=zly upgrade
-just clean
 just sops-init-create
+just sops-recipients
 just guard-secrets
 ```
 
-危险操作说明：
-- `just install` 会清盘，并要求确认
-- `just check` / `just switch` / `just boot` / `just test` / `just upgrade` 会直接调用 `nixos-rebuild`，必须显式传 `host=...`
-- `sops.sh` 相关命令会改动仓库内密钥/secret 文件
+## 风险提示
 
-具体操作、环境差异和 FAQ 不在本页展开，统一见 `docs/README.md`。
+- `install` / `install-live.sh` 会清盘
+- `switch` / `boot` / `test` / `upgrade` 会直接改系统状态
+- `sops.sh init --rotate` 会生成新 `main.agekey`
+- `nix/home/configs/noctalia/` 当前按设计直接映射到 repo 工作树；GUI 改动会把 `nix/home/configs/noctalia/settings.json` 弄脏
+
+其余细节不在本页展开，统一以 `docs/README.md` 为准。

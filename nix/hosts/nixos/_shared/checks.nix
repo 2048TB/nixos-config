@@ -368,6 +368,7 @@ in
   # 验证 NM dispatcher 使用 `provider-app connect`（而非 reconnect，后者在 Disconnected 状态下静默无操作）
   "eval-${name}-provider-app-dispatcher-uses-connect" = pkgs.runCommand "eval-${name}-provider-app-dispatcher-uses-connect" { } ''
     script_path="${provider-appDispatcherPath}"
+    non_comment_script="$(grep -v '^[[:space:]]*#' "$script_path")"
 
     if [ -z "$script_path" ] || [ ! -f "$script_path" ]; then
       echo "missing provider-app NM dispatcher script" >&2
@@ -376,8 +377,11 @@ in
 
     # 必须使用 connect 而非 reconnect（上游 #6220：reconnect 在断连状态下不生效）
     # 只检测非注释行中的实际命令调用
-    grep -qF 'connect' "$script_path"
-    if grep -v '^\s*#' "$script_path" | grep -qF 'reconnect'; then
+    if ! printf '%s\n' "$non_comment_script" | grep -qE '(^|[^[:alnum:]_])connect([^[:alnum:]_]|$)'; then
+      echo "dispatcher should use 'provider-app connect'" >&2
+      exit 1
+    fi
+    if printf '%s\n' "$non_comment_script" | grep -qE '(^|[^[:alnum:]_])reconnect([^[:alnum:]_]|$)'; then
       echo "dispatcher should use 'provider-app connect', not 'provider-app reconnect'" >&2
       exit 1
     fi
