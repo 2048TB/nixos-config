@@ -30,7 +30,7 @@ let
   # 仅在混合显卡（amd-nvidia-hybrid）时安装 GPU 加速相关软件
   gpuChoice = hostCfg.gpuMode or "modesetting";
   isHybridGpu = gpuChoice == "amd-nvidia-hybrid";
-  ollamaVulkan = pkgs.ollama or null;
+  ollamaVulkan = pkgsUnstable.ollama or null;
   hashcatPkg = pkgs.hashcat or null;
   hybridPackages = lib.optionals isHybridGpu (
     lib.optional (ollamaVulkan != null) ollamaVulkan
