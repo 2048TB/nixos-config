@@ -9,7 +9,7 @@
 , hostRegistry ? { }
 , extraModules ? [ ]
 , homeModules ? [ (mylib.relativeToRoot "nix/home/linux") ]
-  , nixpkgsOverlays ? [ ]
+, nixpkgsOverlays ? [ ]
 , nixpkgsConfig ? { inherit (mylib) allowUnfreePredicate; }
 , ...
 }:
