@@ -10,7 +10,7 @@ let
   homeDir = "/home/${mainUser}";
   hibernateEnabled = hostCfg.resumeOffset != null;
   inherit (config.my.capabilities) isLaptop hasDesktopSession hasFingerprintReader;
-  desktopProfile = hostCfg.desktopProfile;
+  inherit (hostCfg) desktopProfile;
   desktopExec =
     if desktopProfile == "niri" then
       "/run/current-system/sw/bin/niri-session"
