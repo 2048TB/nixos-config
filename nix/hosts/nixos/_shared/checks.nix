@@ -85,27 +85,28 @@ let
       (pkg: builtins.elem pkg.outPath systemDuplicateOutPaths)
       cfg.environment.systemPackages;
   systemDuplicateNames = getNames systemDuplicatePkgs;
+  # 当前各主机（按 outPath 语义）真实出现的重复项白名单。
+  # 保持最小集合；新增项前应先定位上游来源并记录理由。
   allowedSystemDuplicateNames = [
-    "dosfstools"
-    "fuse"
-    "gnome-keyring"
-    "niri"
-    "iptables"
-    "less"
-    "shadow"
-    "zsh"
+    "dosfstools" # 磁盘/恢复工具链的交叉依赖
+    "fuse" # 用户态文件系统依赖链
+    "gnome-keyring" # 桌面与 secrets 依赖链
+    "iptables" # firewall/container 栈中的兼容工具
+    "less" # 显式工具与传递依赖并存
+    "niri" # compositor 依赖链与显式声明并存
+    "shadow" # 用户管理工具链依赖
+    "zsh" # 默认 shell 与显式工具链并存
   ];
   unexpectedSystemDuplicateNames = excludeAllowed allowedSystemDuplicateNames systemDuplicateNames;
+  # 当前各主机 system/home 真实重叠项白名单（按 outPath 与 by-name 双重检查）。
+  # 保持最小集合，避免“误放行”掩盖新增漂移。
   allowedSystemHomeOverlapNames = [
-    "xwayland"
-    "xdg-desktop-portal"
-    "xdg-desktop-portal-gnome"
-    "xdg-desktop-portal-gtk"
-    "python3"
-    "zsh"
-    "nix-zsh-completions"
     "man-db"
+    "nix-zsh-completions"
     "shared-mime-info"
+    "xdg-desktop-portal"
+    "xdg-desktop-portal-gtk"
+    "zsh"
   ];
   unexpectedSystemHomeOverlapNames = excludeAllowed allowedSystemHomeOverlapNames systemHomeOverlapNames;
   unexpectedOverlapByNameFiltered = excludeAllowed allowedSystemHomeOverlapNames unexpectedOverlapByName;
@@ -319,43 +320,43 @@ in
   '';
 
   "eval-${name}-binbash-script-uses-store-tools" = pkgs.runCommand "eval-${name}-binbash-script-uses-store-tools" { } ''
-    source_module='${builtins.readFile ../../../modules/core/default.nix}'
-    binbash_block="$(
-      printf '%s\n' "$source_module" \
-        | sed -n '/binbash[[:space:]]*=[[:space:]]*{/,/^[[:space:]]*};[[:space:]]*$/p'
-    )"
+    script='${cfg.system.activationScripts.binbash.text or ""}'
 
-    test -n "$binbash_block"
-    printf '%s\n' "$binbash_block" | grep -F '/bin/mkdir -p /bin' >/dev/null
-    printf '%s\n' "$binbash_block" | grep -F '/bin/ln -sfn /run/current-system/sw/bin/bash /bin/bash' >/dev/null
+    test -n "$script"
+    printf '%s\n' "$script" | grep -F '${pkgs.coreutils}/bin/mkdir -p /bin' >/dev/null
+    printf '%s\n' "$script" | grep -F '${pkgs.coreutils}/bin/ln -sfn /run/current-system/sw/bin/bash /bin/bash' >/dev/null
+
+    # 负向匹配：禁止回退为 PATH 依赖的裸命令调用。
+    if printf '%s\n' "$script" | grep -qE '(^|[[:space:];|&])mkdir[[:space:]]+-p[[:space:]]+/bin($|[[:space:];|&])'; then
+      echo "binbash activation script should not invoke bare 'mkdir'" >&2
+      exit 1
+    fi
+    if printf '%s\n' "$script" | grep -qE '(^|[[:space:];|&])ln[[:space:]]+-sfn[[:space:]]+/run/current-system/sw/bin/bash[[:space:]]+/bin/bash($|[[:space:];|&])'; then
+      echo "binbash activation script should not invoke bare 'ln'" >&2
+      exit 1
+    fi
     touch "$out"
   '';
 
   "eval-${name}-ensure-user-ssh-dir-uses-store-tools" = pkgs.runCommand "eval-${name}-ensure-user-ssh-dir-uses-store-tools" { } ''
-    source_module='${builtins.readFile ../../../modules/core/secrets.nix}'
-    ensure_ssh_dir_block="$(
-      printf '%s\n' "$source_module" \
-        | sed -n '/ensureUserSshDir[[:space:]]*=[[:space:]]*{/,/^[[:space:]]*};[[:space:]]*$/p'
-    )"
+    script='${cfg.system.activationScripts.ensureUserSshDir.text or ""}'
 
-    test -n "$ensure_ssh_dir_block"
-    printf '%s\n' "$ensure_ssh_dir_block" | grep -F '/bin/install -d -m 0700 -o ' >/dev/null
+    test -n "$script"
+    printf '%s\n' "$script" | grep -F '${pkgs.coreutils}/bin/install -d -m 0700 -o ' >/dev/null
+    if printf '%s\n' "$script" | grep -qE '(^|[[:space:];|&])install[[:space:]]+-d[[:space:]]+-m[[:space:]]+0700($|[[:space:];|&])'; then
+      echo "ensureUserSshDir activation script should not invoke bare 'install'" >&2
+      exit 1
+    fi
     touch "$out"
   '';
 
   "eval-${name}-nix-ld-libraries-not-hardcoded-store-paths" = pkgs.runCommand "eval-${name}-nix-ld-libraries-not-hardcoded-store-paths" { } ''
     if [ "${if cfg.programs.nix-ld.enable or false then "1" else "0"}" = "1" ]; then
-      desktop_module='${builtins.readFile ../../../modules/core/desktop.nix}'
-      nix_ld_block="$(
-        printf '%s\n' "$desktop_module" \
-          | sed -n '/nix-ld[[:space:]]*=[[:space:]]*{/,/^[[:space:]]*};[[:space:]]*$/p'
-      )"
-
-      test -n "$nix_ld_block"
-      if printf '%s\n' "$nix_ld_block" | grep -q '/nix/store/'; then
-        echo "programs.nix-ld.libraries should not hardcode /nix/store paths" >&2
-        exit 1
-      fi
+      test "${if (builtins.length cfg.programs.nix-ld.libraries) > 0 then "1" else "0"}" = "1"
+      test "${if builtins.all lib.isDerivation cfg.programs.nix-ld.libraries then "1" else "0"}" = "1"
+      # 负向匹配：禁止字面量 string/path 混入 libraries（例如硬编码 /nix/store/...）。
+      test "${if builtins.any builtins.isString cfg.programs.nix-ld.libraries then "1" else "0"}" = "0"
+      test "${if builtins.any builtins.isPath cfg.programs.nix-ld.libraries then "1" else "0"}" = "0"
     fi
     touch "$out"
   '';
