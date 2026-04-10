@@ -2,6 +2,7 @@
 let
   coreDir = builtins.dirOf ./.;
   roleDir = coreDir + "/roles";
+  roleEntries = builtins.readDir roleDir;
   coreMixins = map
     (name: coreDir + "/${name}")
     [
@@ -21,10 +22,10 @@ let
       builtins.filter
         (
           name:
-          (builtins.readDir roleDir).${name} == "regular"
+          roleEntries.${name} == "regular"
           && lib.hasSuffix ".nix" name
         )
-        (builtins.attrNames (builtins.readDir roleDir))
+        (builtins.attrNames roleEntries)
     ));
 in
 coreMixins ++ roleMixins
