@@ -25,12 +25,10 @@
 - `nix/scripts/admin/update-flake.sh`
 - `nix/scripts/admin/sops.sh`
 - `nix/scripts/admin/guard-secrets.sh`
+- `nix/scripts/admin/host-meta-schema-sync.sh`
 - `nix/scripts/admin/common.sh`
 
-常用 build / check / switch / upgrade / clean 入口通过 `just` 暴露。当前 CI 只保留两类工作：
-
-- manual `flake.lock` freshness check
-- schedule/manual workflow run cleanup
+常用 build / check / switch / upgrade / clean 入口通过 `just` 暴露，检查以本地命令为准。
 
 ## 2. 全局约定
 
@@ -51,6 +49,8 @@ just update-nixpkgs
 just info
 just show
 just flake-check
+just registry-meta-sync-check
+just validate-local
 just host=zly check
 just host=zly switch
 just host=zly upgrade
@@ -86,7 +86,7 @@ nix flake show "path:$flake_repo"
 ### 5.1 Live ISO 最短流程
 
 ```bash
-git clone https://github.com/2048TB/nixos.git ~/nixos
+git clone https://github.com/2048TB/nixos-config.git ~/nixos
 cd ~/nixos
 export NIX_CONFIG="experimental-features = nix-command flakes"
 nix shell nixpkgs#just -c just sops-init-create
@@ -111,6 +111,7 @@ bash nix/scripts/admin/install-live.sh --host zly --disk /dev/nvme0n1 --repo "$P
 - 会要求确认；自动化环境可用 `--yes`
 - 会清空目标盘并运行 `disko`
 - 会把仓库同步到目标系统的 `/persistent/nixos-config`
+- 仅同步 Git tracked 文件（allowlist，同步前要求 `--repo` 是 Git checkout）
 - 会把 `/etc/nixos` 链接到 `/persistent/nixos-config`
 - 会执行一次 `nixos-rebuild dry-build`
 - 安装 `main.agekey` 前，会校验该 private key 派生出的 public key 是否与 `<repo>/secrets/keys/main.age.pub` 一致
@@ -142,6 +143,11 @@ just show
 just metadata
 just hosts
 just flake-check
+just flake-check-exec
+just registry-schema-check
+just registry-meta-sync-check
+just validate-local
+just validate-local-full
 ```
 
 系统级入口：
@@ -163,6 +169,11 @@ just host=zly upgrade
 - `switch` / `boot` / `test` 会直接改系统状态
 - `upgrade` 现在会保留外层 `repo={{repo}}`，先在指定 repo 上执行 `update`，再执行 `switch`
 - `flake-check` 做 `nix flake check --all-systems --no-build`
+- `flake-check-exec` 会实际构建并执行一个 check target（`checks.x86_64-linux.pre-commit-check`）
+- `registry-schema-check` 会校验 `nix/hosts/registry/systems.toml` 是否符合 `nix/hosts/registry/systems.schema.json`
+- `registry-meta-sync-check` 会校验 `nix/lib/host-meta.nix` 与 `systems.schema.json` 枚举/字段是否漂移
+- `validate-local` 会串行执行 `guard-secrets --all-tracked`、registry schema/sync 检查和 `flake-check`
+- `validate-local-full` 在 `validate-local` 之后再执行 `flake-check-exec`
 
 清理相关：
 
@@ -181,6 +192,7 @@ just use
 ```bash
 just hooks-enable
 just guard-secrets
+just guard-secrets-all
 just sops-init
 just sops-init-create
 just sops-init-rotate
@@ -203,7 +215,7 @@ just password-set-hash '<sha512-hash>'
 注意：
 
 - `just sops-init-rotate` 只是交互式入口；需要非交互确认时，直接调用 `nix/scripts/admin/sops.sh init --rotate --yes`
-- rotation 完成后，旧 backup key 仍需保留到 `rekey` 和部署完成
+- rotation 完成后，旧 backup key 仍需保留到 `rekey` 和系统切换完成
 - `run_sops_encrypt_yaml` 现在先写临时文件，再原子替换，避免加密失败时截断原 secret
 
 ### 7.3 私钥与公钥边界
@@ -211,12 +223,13 @@ just password-set-hash '<sha512-hash>'
 - `secrets/keys/` 只放可提交的 public keys
 - `.keys/*.agekey` 不可提交
 - 运行时主密钥目标路径：`/persistent/keys/main.agekey`
-- `guard-secrets.sh` 应作为提交前 guard，而不是事后补救
+- `guard-secrets.sh` 应作为提交前 guard，而不是事后补救；默认检查 staged 内容，可用 `--all-tracked` 做全量巡检
+- 当前会拦截私钥内容、常见 token 前缀和明显的明文 `token/password/apiKey/secret` 赋值
 
 ## 8. Host Metadata 与桌面约束
 
 - host metadata 事实源：`nix/hosts/registry/systems.toml`
-- 常见字段：`system`、`kind`、`formFactor`、`desktopSession`、`desktopProfile`、`tags`、`gpuVendors`、`displays`、deploy metadata
+- 常见字段：`system`、`kind`、`formFactor`、`desktopSession`、`desktopProfile`、`tags`、`gpuVendors`、`displays`
 - `roles` 是功能开关；不要重新引入旧 `profiles` 模型
 - `tags` 只保留无法稳定派生的事实；`multi-monitor` / `hidpi` 不再手写
 - `displays.primary` 现在必须是 `bool`

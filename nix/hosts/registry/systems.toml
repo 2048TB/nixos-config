@@ -11,10 +11,6 @@ kind = "workstation"
 formFactor = "laptop"
 tags = []
 gpuVendors = ["nvidia"]
-deployEnabled = true
-deployHost = "zky"
-deployUser = "root"
-deployPort = 22
 
 [[nixos.zky.displays]]
 name = "eDP-1"
@@ -28,10 +24,6 @@ kind = "workstation"
 formFactor = "desktop"
 tags = []
 gpuVendors = ["amd", "nvidia"]
-deployEnabled = true
-deployHost = "zly"
-deployUser = "root"
-deployPort = 22
 
 [[nixos.zly.displays]]
 name = "DP-1"
@@ -51,10 +43,6 @@ kind = "workstation"
 formFactor = "desktop"
 tags = []
 gpuVendors = ["amd"]
-deployEnabled = true
-deployHost = "zl"
-deployUser = "root"
-deployPort = 22
 
 [[nixos.zl.displays]]
 name = "DP-1"
@@ -75,10 +63,6 @@ formFactor = "desktop"
 tags = []
 gpuVendors = ["amd"]
 displays = []
-deployEnabled = true
-deployHost = "zzly"
-deployUser = "root"
-deployPort = 22
 
 [darwin.zly-mac]
 system = "aarch64-darwin"
@@ -89,7 +73,3 @@ formFactor = "laptop"
 tags = []
 gpuVendors = []
 displays = []
-deployEnabled = true
-deployHost = "zly-mac"
-deployUser = "z"
-deployPort = 22

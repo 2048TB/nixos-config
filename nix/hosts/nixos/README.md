@@ -103,10 +103,6 @@ formFactor = "desktop"
 tags = []
 gpuVendors = []
 displays = []
-deployEnabled = true
-deployHost = "<new-host>"
-deployUser = "root"
-deployPort = 22
 ```
 
 说明：
@@ -118,7 +114,7 @@ deployPort = 22
 
 不要在 README 中抄写当前主机参数；以下文件才是事实源：
 
-- 主机注册与 metadata/deploy 信息：`nix/hosts/registry/systems.toml`
+- 主机注册与 metadata：`nix/hosts/registry/systems.toml`
 - 某台主机运行时参数：`nix/hosts/nixos/<host>/vars.nix`
 - NixOS 主机共享默认值：`nix/hosts/nixos/_shared/vars-common.nix`
 - 某台主机硬件模块清单：`nix/hosts/nixos/<host>/hardware-modules.nix`

@@ -69,20 +69,22 @@ rec {
     lib.mapAttrs (_: cfg: lib.attrByPath path null cfg) configurations;
 
   mapHomeDirectories =
-    configurations:
+    { configurations
+    , mainUsers
+    }:
     lib.mapAttrs
       (
         hostName:
         cfg:
         let
-          users = builtins.attrNames (cfg.config.home-manager.users or { });
-          user = builtins.head users;
+          users = cfg.config.home-manager.users or { };
+          user = mainUsers.${hostName} or "";
         in
-        assert lib.assertMsg (users != [ ]) "No Home Manager users found for host ${hostName}"
+        assert lib.assertMsg (user != "") "No main user recorded for host ${hostName}"
           && lib.assertMsg
-          (builtins.length users == 1)
-          "Expected exactly one Home Manager user for host ${hostName}, got ${toString (builtins.length users)}";
-        cfg.config.home-manager.users.${user}.home.homeDirectory
+          (builtins.hasAttr user users)
+          "Home Manager user '${user}' not found for host ${hostName}";
+        users.${user}.home.homeDirectory
       )
       configurations;
 
@@ -125,7 +127,10 @@ rec {
         mapHostValuesByPath [ "config" "networking" "hostName" ] configurations
         == mkExpectedHostNames hostNames;
       home =
-        mapHomeDirectories configurations
+        mapHomeDirectories
+          {
+            inherit configurations mainUsers;
+          }
         == mkExpectedHomeDirectories homeRoot mainUsers;
       platform =
         mapHostValuesByPath [ "pkgs" "stdenv" "hostPlatform" "system" ] configurations

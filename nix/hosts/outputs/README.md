@@ -1,6 +1,6 @@
 # outputs 目录
 
-本目录负责把 hosts 聚合成 flake outputs，并提供共享校验入口。它不是 deploy wrapper，也不是日常改机器参数的第一落点。
+本目录负责把 hosts 聚合成 flake outputs，并提供共享校验入口。它不是日常改机器参数的第一落点。
 
 ## 主要文件
 

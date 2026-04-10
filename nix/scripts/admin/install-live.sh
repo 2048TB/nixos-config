@@ -105,6 +105,35 @@ resolve_age_key_src() {
   return 1
 }
 
+require_git_checkout_repo() {
+  local src_repo="${1:?source repo required}"
+  if ! git -C "$src_repo" rev-parse --show-toplevel >/dev/null 2>&1; then
+    echo "error: repo sync requires a Git checkout to enforce tracked-file allowlist: $src_repo" >&2
+    return 1
+  fi
+}
+
+sync_tracked_repo_payload() {
+  local src_repo="${1:?source repo required}"
+  local dst_dir="${2:?destination directory required}"
+  local tracked_list=""
+
+  require_git_checkout_repo "$src_repo"
+
+  tracked_list="$(mktemp)"
+  # shellcheck disable=SC2064
+  trap "rm -f '$tracked_list'" RETURN
+  git -C "$src_repo" ls-files -z >"$tracked_list"
+
+  if [ ! -s "$tracked_list" ]; then
+    echo "error: no tracked files found under repo: $src_repo" >&2
+    return 1
+  fi
+
+  sudo rsync -a --delete --from0 --files-from="$tracked_list" "$src_repo/" "$dst_dir/"
+  trap - RETURN
+}
+
 while [ "$#" -gt 0 ]; do
   case "$1" in
     --host)
@@ -138,6 +167,7 @@ if [ "$repo_explicit" -eq 1 ] || [ -n "${NIXOS_CONFIG_REPO:-}" ]; then
 else
   repo="$(resolve_repo_path)"
 fi
+require_git_checkout_repo "$repo"
 prepare_flake_repo_path "$repo"
 flake_repo="$PREPARED_FLAKE_REPO"
 validate_block_device_path "$disk"
@@ -185,7 +215,8 @@ fi
 trap "sudo rm -rf '$TARGET_FLAKE_TMP'" EXIT
 sudo rm -rf "$TARGET_FLAKE_TMP"
 sudo mkdir -p "$TARGET_FLAKE_TMP"
-sudo cp -a "$repo/." "$TARGET_FLAKE_TMP/"
+# Sync only Git tracked files to avoid copying local/private/untracked data.
+sync_tracked_repo_payload "$repo" "$TARGET_FLAKE_TMP"
 # Keep decrypt key in repo copy for post-install sops workflows.
 sudo install -D -m 0400 -o root -g root "$age_key_src" "$TARGET_FLAKE_TMP/.keys/main.agekey"
 if [ ! -f "$TARGET_FLAKE_TMP/flake.nix" ]; then

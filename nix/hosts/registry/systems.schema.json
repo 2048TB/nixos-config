@@ -25,7 +25,6 @@
         "system",
         "desktopSession",
         "desktopProfile",
-        "deployEnabled",
         "kind",
         "formFactor",
         "tags",
@@ -47,21 +46,6 @@
             "niri",
             "aqua"
           ]
-        },
-        "deployEnabled": {
-          "type": "boolean"
-        },
-        "deployHost": {
-          "type": "string",
-          "minLength": 1
-        },
-        "deployUser": {
-          "type": "string",
-          "minLength": 1
-        },
-        "deployPort": {
-          "type": "integer",
-          "minimum": 1
         },
         "kind": {
           "type": "string",

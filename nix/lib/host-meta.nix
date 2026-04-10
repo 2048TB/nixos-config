@@ -42,6 +42,16 @@ let
       "aqua"
     ];
 
+    allowedLinuxDesktopProfiles = [
+      "none"
+      "niri"
+    ];
+
+    allowedDarwinDesktopProfiles = [
+      "none"
+      "aqua"
+    ];
+
     allowedHostTags = [
       "fingerprint-reader"
       "docked"
@@ -62,6 +72,28 @@ let
     optionalNullableStringOptions = [
       "amdgpuBusId"
       "nvidiaBusId"
+    ];
+
+    registryOwnedKeys = [
+      "system"
+      "desktopSession"
+      "desktopProfile"
+      "kind"
+      "formFactor"
+      "tags"
+      "gpuVendors"
+      "displays"
+    ];
+
+    requiredRegistryKeys = [
+      "system"
+      "desktopSession"
+      "desktopProfile"
+      "kind"
+      "formFactor"
+      "tags"
+      "gpuVendors"
+      "displays"
     ];
   };
 in

@@ -1,29 +1,15 @@
 { lib }:
 let
   inherit ((import ./host-meta.nix { })) hostMetaSchema;
-  inherit (hostMetaSchema) allowedKinds allowedFormFactors allowedGpuVendors;
-  allowedLinuxDesktopProfiles = [
-    "none"
-    "niri"
-  ];
-  allowedDarwinDesktopProfiles = [
-    "none"
-    "aqua"
-  ];
-  allowedRegistryKeys = [
-    "system"
-    "desktopSession"
-    "desktopProfile"
-    "deployEnabled"
-    "deployHost"
-    "deployUser"
-    "deployPort"
-    "kind"
-    "formFactor"
-    "tags"
-    "gpuVendors"
-    "displays"
-  ];
+  inherit (hostMetaSchema)
+    allowedKinds
+    allowedFormFactors
+    allowedGpuVendors
+    allowedLinuxDesktopProfiles
+    allowedDarwinDesktopProfiles
+    registryOwnedKeys
+    ;
+  allowedRegistryKeys = registryOwnedKeys;
 in
 rec {
   inherit allowedRegistryKeys allowedKinds allowedFormFactors allowedGpuVendors;
@@ -49,10 +35,6 @@ rec {
       inherit unknownRegistryKeys conflictingRegistryKeys;
       desktopSession = hostRegistry.desktopSession or false;
       desktopProfile = hostRegistry.desktopProfile or "none";
-      deployEnabled = hostRegistry.deployEnabled or true;
-      deployHost = hostRegistry.deployHost or "";
-      deployUser = hostRegistry.deployUser or "";
-      deployPort = hostRegistry.deployPort or 22;
       kind = hostRegistry.kind or "workstation";
       formFactor = hostRegistry.formFactor or "desktop";
       tags = hostRegistry.tags or [ ];
@@ -101,12 +83,6 @@ rec {
     && lib.assertMsg
       (!state.desktopSession || state.desktopProfile != "none")
       "${registryPath}[${hostName}].desktopProfile must not be \"none\" when desktopSession = true"
-    && lib.assertMsg
-      (builtins.isBool state.deployEnabled)
-      "${registryPath}[${hostName}].deployEnabled must be a boolean"
-    && lib.assertMsg
-      (builtins.isInt state.deployPort && state.deployPort > 0)
-      "${registryPath}[${hostName}].deployPort must be a positive integer"
     && lib.assertMsg
       (builtins.elem state.kind allowedKinds)
       "${registryPath}[${hostName}].kind must be one of: ${lib.concatStringsSep ", " allowedKinds}"
@@ -170,7 +146,5 @@ rec {
         <= 1
       )
       "${registryPath}[${hostName}].displays may define at most one primary = true entry"
-    && lib.assertMsg
-      (!state.deployEnabled || (state.deployHost != "" && state.deployUser != ""))
-      "${registryPath}[${hostName}] requires deployHost and deployUser when deployEnabled = true";
+  ;
 }

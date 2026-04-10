@@ -19,6 +19,11 @@ just show
 just metadata
 just hosts
 just flake-check
+just flake-check-exec
+just registry-schema-check
+just registry-meta-sync-check
+just validate-local
+just validate-local-full
 ```
 
 ```bash
@@ -26,6 +31,8 @@ REPO=/persistent/nixos-config
 flake_repo="$(bash "$REPO/nix/scripts/admin/print-flake-repo.sh" "$REPO")"
 nix flake show "path:$flake_repo"
 nix flake check --all-systems --no-build "path:$flake_repo"
+nix shell nixpkgs#check-jsonschema -c check-jsonschema --schemafile "$REPO/nix/hosts/registry/systems.schema.json" "$REPO/nix/hosts/registry/systems.toml"
+bash "$REPO/nix/scripts/admin/host-meta-schema-sync.sh"
 nix eval "path:$flake_repo#nixosConfigurations" --apply builtins.attrNames
 nix eval "path:$flake_repo#packages.x86_64-linux" --apply builtins.attrNames
 nix eval "path:$flake_repo#overlays" --apply builtins.attrNames
@@ -64,7 +71,7 @@ just sops-recovery-init
 just sops-recipients
 just sops-host-key-add zly /etc/ssh/ssh_host_ed25519_key.pub
 just sops-rekey
-just password-hash 'password'
+just password-hash
 just password-hashes
 just password-set-hash '<sha512-hash>'
 just ssh-key-set
@@ -80,9 +87,11 @@ bash /persistent/nixos-config/nix/scripts/admin/sops.sh rekey
 ```bash
 just hooks-enable
 just guard-secrets
+just guard-secrets-all
 just status
 ```
 
 ```bash
 bash /persistent/nixos-config/nix/scripts/admin/guard-secrets.sh
+bash /persistent/nixos-config/nix/scripts/admin/guard-secrets.sh --all-tracked
 ```

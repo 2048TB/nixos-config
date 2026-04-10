@@ -53,6 +53,19 @@ info:
 flake-check:
     @flake_repo="$(bash {{repo}}/nix/scripts/admin/print-flake-repo.sh {{repo}})"; {{nix_cmd}} flake check --all-systems --no-build "path:$flake_repo"
 
+flake-check-exec:
+    @flake_repo="$(bash {{repo}}/nix/scripts/admin/print-flake-repo.sh {{repo}})"; {{nix_cmd}} build "path:$flake_repo#checks.x86_64-linux.pre-commit-check"
+
+registry-schema-check:
+    if command -v check-jsonschema >/dev/null 2>&1; then \
+      check-jsonschema --schemafile "{{repo}}/nix/hosts/registry/systems.schema.json" "{{repo}}/nix/hosts/registry/systems.toml"; \
+    else \
+      nix shell nixpkgs#check-jsonschema -c check-jsonschema --schemafile "{{repo}}/nix/hosts/registry/systems.schema.json" "{{repo}}/nix/hosts/registry/systems.toml"; \
+    fi
+
+registry-meta-sync-check:
+    @NIXOS_CONFIG_REPO={{repo}} {{repo}}/nix/scripts/admin/host-meta-schema-sync.sh
+
 use:
     @flake_repo="$(bash {{repo}}/nix/scripts/admin/print-flake-repo.sh {{repo}})"; echo ">>> entering filtered flake repo: $flake_repo"; cd "$flake_repo" && exec "${SHELL:-bash}" -l
 
@@ -97,6 +110,19 @@ hooks-enable:
 
 guard-secrets:
     @NIXOS_CONFIG_REPO={{repo}} {{repo}}/nix/scripts/admin/guard-secrets.sh
+
+guard-secrets-all:
+    @NIXOS_CONFIG_REPO={{repo}} {{repo}}/nix/scripts/admin/guard-secrets.sh --all-tracked
+
+validate-local:
+    @just repo={{repo}} guard-secrets-all
+    @just repo={{repo}} registry-schema-check
+    @just repo={{repo}} registry-meta-sync-check
+    @just repo={{repo}} flake-check
+
+validate-local-full:
+    @just repo={{repo}} validate-local
+    @just repo={{repo}} flake-check-exec
 
 # ========== Sops ==========
 

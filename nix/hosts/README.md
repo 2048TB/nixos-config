@@ -13,7 +13,7 @@ nix/hosts/
 └── outputs/          # flake 输出聚合
 ```
 
-当前主机清单、metadata 与 deploy metadata 统一以 `nix/hosts/registry/systems.toml` 为准。
+当前主机清单与 metadata 统一以 `nix/hosts/registry/systems.toml` 为准。
 
 ## 事实源
 

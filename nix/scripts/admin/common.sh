@@ -16,6 +16,9 @@ resolve_repo_path() {
 
   if [ "$#" -gt 0 ] && [ -n "${1:-}" ]; then
     explicit_candidate=1
+  elif [ -n "${NIXOS_CONFIG_REPO:-}" ]; then
+    # NIXOS_CONFIG_REPO is user-supplied explicit intent; never silently fallback.
+    explicit_candidate=1
   fi
 
   if [ -f "$candidate/flake.nix" ]; then

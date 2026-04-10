@@ -75,7 +75,7 @@ just sops-rekey
 适用场景：
 
 - 非 NixOS 主机
-- CI/临时 shell
+- 临时 shell
 - 只想做 `show` / `eval` / `no-build` 检查
 
 差异点：
