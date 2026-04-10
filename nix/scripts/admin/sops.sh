@@ -122,6 +122,42 @@ collect_age_recipients_csv() {
   collect_age_recipients | paste -sd, -
 }
 
+ensure_sops_secret_path_rule() {
+  local sops_cfg="$repo_root/.sops.yaml"
+  local expected_path_regex='^secrets/.*\.yaml$'
+  local -a path_rules
+
+  if [ ! -f "$sops_cfg" ]; then
+    echo "error: missing $sops_cfg" >&2
+    return 1
+  fi
+
+  mapfile -t path_rules < <(
+    awk '
+      /^[[:space:]]*-[[:space:]]*path_regex:[[:space:]]*/ {
+        sub(/^[[:space:]]*-[[:space:]]*path_regex:[[:space:]]*/, "", $0)
+        print
+        next
+      }
+      /^[[:space:]]*path_regex:[[:space:]]*/ {
+        sub(/^[[:space:]]*path_regex:[[:space:]]*/, "", $0)
+        print
+      }
+    ' "$sops_cfg"
+  )
+
+  if [ "${#path_rules[@]}" -ne 1 ]; then
+    echo "error: expected exactly one creation_rules.path_regex in $sops_cfg, got ${#path_rules[@]}" >&2
+    return 1
+  fi
+
+  if [ "${path_rules[0]}" != "$expected_path_regex" ]; then
+    echo "error: unexpected creation_rules.path_regex in $sops_cfg: '${path_rules[0]}'" >&2
+    echo "hint: expected '$expected_path_regex'" >&2
+    return 1
+  fi
+}
+
 encrypt_yaml_to_target() {
   local target="$1"
   local recipients_csv="$2"
@@ -343,6 +379,7 @@ cmd_rekey() {
 
   require_main_key
   require_main_pub
+  ensure_sops_secret_path_rule
   recipients_csv="$(collect_age_recipients_csv)"
   identity_file="$(build_identity_file)"
   # shellcheck disable=SC2064
