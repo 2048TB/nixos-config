@@ -148,6 +148,7 @@ just show
 just metadata
 just hosts
 just flake-check
+just flake-check-full
 just flake-check-exec
 just registry-schema-check
 just registry-meta-sync-check
@@ -174,11 +175,12 @@ just host=zly upgrade
 - `switch` / `boot` / `test` 会直接改系统状态
 - `upgrade` 现在会保留外层 `repo={{repo}}`，先在指定 repo 上执行 `update`，再执行 `switch`
 - `flake-check` 做 `nix flake check --all-systems --no-build`
+- `flake-check-full` 做 `nix flake check --all-systems`（含 build）
 - `flake-check-exec` 会实际构建并执行一个 check target（`checks.x86_64-linux.pre-commit-check`）
 - `registry-schema-check` 会校验 `nix/hosts/registry/systems.toml` 是否符合 `nix/hosts/registry/systems.schema.json`
 - `registry-meta-sync-check` 会校验 `nix/lib/host-meta.nix` 与 `systems.schema.json` 枚举/字段是否漂移
 - `validate-local` 会串行执行 `guard-secrets --all-tracked`、registry schema/sync 检查和 `flake-check`
-- `validate-local-full` 在 `validate-local` 之后再执行 `flake-check-exec`
+- `validate-local-full` 在 `validate-local` 之后再执行 `flake-check-full`
 
 清理相关：
 
@@ -213,7 +215,7 @@ just password-set-hash '<sha512-hash>'
 - `init`：同步已有 `main.agekey`
 - `init --create`：创建新的 `main.agekey`
 - `init --rotate [--yes]`：生成新的 `main.agekey`，更新 `secrets/keys/main.age.pub`，并保留旧 key 为 `.keys/main.agekey.pre-rotate.<timestamp>`
-- `rekey`：基于当前 `main.agekey`、`recovery.agekey` 和现存 rotation backup keys 构造 identity file，然后对每个 secret 执行 `sops rotate -i --add-age/--rm-age`
+- `rekey`：先校验 `.sops.yaml` 的 `creation_rules.path_regex` 必须为 `^secrets/.*\.yaml$`，再基于当前 `main.agekey`、`recovery.agekey` 和现存 rotation backup keys 构造 identity file，然后对每个 secret 执行 `sops rotate -i --add-age/--rm-age`
 - `recipients`：列出当前收件人
 - `host-key-add`：把 host SSH public key 同步到 `secrets/keys/hosts/`
 

@@ -53,6 +53,9 @@ info:
 flake-check:
     @flake_repo="$(bash {{repo}}/nix/scripts/admin/print-flake-repo.sh {{repo}})"; {{nix_cmd}} flake check --all-systems --no-build "path:$flake_repo"
 
+flake-check-full:
+    @flake_repo="$(bash {{repo}}/nix/scripts/admin/print-flake-repo.sh {{repo}})"; {{nix_cmd}} flake check --all-systems "path:$flake_repo"
+
 flake-check-exec:
     @flake_repo="$(bash {{repo}}/nix/scripts/admin/print-flake-repo.sh {{repo}})"; {{nix_cmd}} build "path:$flake_repo#checks.x86_64-linux.pre-commit-check"
 
@@ -122,7 +125,7 @@ validate-local:
 
 validate-local-full:
     @just repo={{repo}} validate-local
-    @just repo={{repo}} flake-check-exec
+    @just repo={{repo}} flake-check-full
 
 # ========== Sops ==========
 
