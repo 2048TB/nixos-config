@@ -30,6 +30,11 @@
 
 常用 build / check / switch / upgrade / clean 入口通过 `just` 暴露，检查以本地命令为准。
 
+推荐验证基线：
+
+- 快速基线：`just validate-local`
+- 包含 check build：`just validate-local-full`
+
 ## 2. 全局约定
 
 - 危险操作必须显式写 `host=...`、`disk=...` 或 `--repo <path>`
@@ -277,4 +282,17 @@ bash nix/scripts/admin/sops.sh rekey
 ```bash
 just hooks-enable
 just guard-secrets
+just guard-secrets-all
+```
+
+### 9.7 推送前最低验证是什么
+
+```bash
+just validate-local
+```
+
+如果本次改动涉及 `checks` 产物或你想额外确认执行链路，再跑：
+
+```bash
+just validate-local-full
 ```

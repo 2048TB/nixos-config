@@ -63,11 +63,19 @@ key 相关差异：
 
 ```bash
 cd /persistent/nixos-config
+just validate-local
 just update
 just host=zly check
 just host=zly switch
 just sops-recipients
 just sops-rekey
+```
+
+需要包含 check build 时：
+
+```bash
+cd /persistent/nixos-config
+just validate-local-full
 ```
 
 ## 3. 其他环境中的只读 flake 操作

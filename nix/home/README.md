@@ -46,6 +46,12 @@ nix/home/
 
 read-only 验证时，若 checkout 中存在不可读的 `.keys/main.agekey`，先通过 `nix/scripts/admin/print-flake-repo.sh` 获取 filtered repo。
 
+涉及 Home Manager 行为改动后，建议至少执行：
+
+```bash
+just validate-local
+```
+
 ## 文档同步
 
 改了以下文件需同步 `docs/KEYBINDINGS.md`：

@@ -26,6 +26,8 @@ just sops-recovery-init
 just sops-host-key-add zly /etc/ssh/ssh_host_ed25519_key.pub
 just sops-recipients
 just sops-rekey
+just guard-secrets
+just guard-secrets-all
 ```
 
 非交互 rotate：
@@ -52,3 +54,4 @@ key 搜索顺序：
 
 - `nix/scripts/admin/sops.sh` 可从仓库外直接调用
 - `hosts/*.ssh_host_ed25519.pub` 若内容无效，`recipients` / `rekey` 会直接失败
+- `guard-secrets.sh` 默认检查 staged，`--all-tracked` 用于全量巡检

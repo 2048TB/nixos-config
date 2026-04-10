@@ -31,6 +31,7 @@ REPO=/persistent/nixos-config
 flake_repo="$(bash "$REPO/nix/scripts/admin/print-flake-repo.sh" "$REPO")"
 nix flake show "path:$flake_repo"
 nix flake check --all-systems --no-build "path:$flake_repo"
+nix build "path:$flake_repo#checks.x86_64-linux.pre-commit-check"
 nix shell nixpkgs#check-jsonschema -c check-jsonschema --schemafile "$REPO/nix/hosts/registry/systems.schema.json" "$REPO/nix/hosts/registry/systems.toml"
 bash "$REPO/nix/scripts/admin/host-meta-schema-sync.sh"
 nix eval "path:$flake_repo#nixosConfigurations" --apply builtins.attrNames

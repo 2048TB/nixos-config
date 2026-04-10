@@ -29,12 +29,27 @@
 just host=zly disk=/dev/nvme0n1 install
 just update
 just info
+just validate-local
 just host=zly check
 just host=zly switch
 just host=zly upgrade
 just sops-init-create
 just sops-recipients
 just guard-secrets
+```
+
+## 本地验证基线
+
+仓库当前以本地验证为准（不依赖 CI gate），推送前至少执行：
+
+```bash
+just validate-local
+```
+
+需要额外执行 check build 时再跑：
+
+```bash
+just validate-local-full
 ```
 
 ## 风险提示

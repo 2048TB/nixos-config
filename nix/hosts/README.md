@@ -91,4 +91,11 @@ flake_repo="$(bash "$REPO/nix/scripts/admin/print-flake-repo.sh" "$REPO")"
 nix eval "path:$flake_repo#nixosConfigurations" --apply builtins.attrNames
 ```
 
+改动 `nix/hosts/registry/*` 或 host metadata 后，至少补跑：
+
+```bash
+just registry-schema-check
+just registry-meta-sync-check
+```
+
 命令细节与系统级流程见 `docs/README.md`。
