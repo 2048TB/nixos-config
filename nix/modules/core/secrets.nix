@@ -123,7 +123,7 @@ in
     ensureUserSshDir = {
       text = ''
         if id -u ${mainUser} >/dev/null 2>&1; then
-          install -d -m 0700 -o ${mainUser} -g ${mainUser} ${homeDir}/.ssh
+          ${pkgs.coreutils}/bin/install -d -m 0700 -o ${mainUser} -g ${mainUser} ${homeDir}/.ssh
         fi
       '';
       deps = [ "users" ];

@@ -318,6 +318,48 @@ in
     touch "$out"
   '';
 
+  "eval-${name}-binbash-script-uses-store-tools" = pkgs.runCommand "eval-${name}-binbash-script-uses-store-tools" { } ''
+    source_module='${builtins.readFile ../../../modules/core/default.nix}'
+    binbash_block="$(
+      printf '%s\n' "$source_module" \
+        | sed -n '/binbash[[:space:]]*=[[:space:]]*{/,/^[[:space:]]*};[[:space:]]*$/p'
+    )"
+
+    test -n "$binbash_block"
+    printf '%s\n' "$binbash_block" | grep -F '/bin/mkdir -p /bin' >/dev/null
+    printf '%s\n' "$binbash_block" | grep -F '/bin/ln -sfn /run/current-system/sw/bin/bash /bin/bash' >/dev/null
+    touch "$out"
+  '';
+
+  "eval-${name}-ensure-user-ssh-dir-uses-store-tools" = pkgs.runCommand "eval-${name}-ensure-user-ssh-dir-uses-store-tools" { } ''
+    source_module='${builtins.readFile ../../../modules/core/secrets.nix}'
+    ensure_ssh_dir_block="$(
+      printf '%s\n' "$source_module" \
+        | sed -n '/ensureUserSshDir[[:space:]]*=[[:space:]]*{/,/^[[:space:]]*};[[:space:]]*$/p'
+    )"
+
+    test -n "$ensure_ssh_dir_block"
+    printf '%s\n' "$ensure_ssh_dir_block" | grep -F '/bin/install -d -m 0700 -o ' >/dev/null
+    touch "$out"
+  '';
+
+  "eval-${name}-nix-ld-libraries-not-hardcoded-store-paths" = pkgs.runCommand "eval-${name}-nix-ld-libraries-not-hardcoded-store-paths" { } ''
+    if [ "${if cfg.programs.nix-ld.enable or false then "1" else "0"}" = "1" ]; then
+      desktop_module='${builtins.readFile ../../../modules/core/desktop.nix}'
+      nix_ld_block="$(
+        printf '%s\n' "$desktop_module" \
+          | sed -n '/nix-ld[[:space:]]*=[[:space:]]*{/,/^[[:space:]]*};[[:space:]]*$/p'
+      )"
+
+      test -n "$nix_ld_block"
+      if printf '%s\n' "$nix_ld_block" | grep -q '/nix/store/'; then
+        echo "programs.nix-ld.libraries should not hardcode /nix/store paths" >&2
+        exit 1
+      fi
+    fi
+    touch "$out"
+  '';
+
   "eval-${name}-system-home-package-overlap" = mkNonEmptyCheck
     "eval-${name}-system-home-package-overlap"
     unexpectedSystemHomeOverlapNames
