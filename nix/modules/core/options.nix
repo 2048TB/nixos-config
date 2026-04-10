@@ -25,6 +25,12 @@ in
         description = "System timezone.";
       };
 
+      locale = lib.mkOption {
+        type = types.str;
+        default = myvars.locale or "zh_CN.UTF-8";
+        description = "System locale.";
+      };
+
       systemStateVersion = lib.mkOption {
         type = types.str;
         default = myvars.systemStateVersion or "25.11";

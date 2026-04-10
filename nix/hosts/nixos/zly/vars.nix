@@ -5,6 +5,8 @@ common // {
   # zly 独立主机变量（保持与 zky 同结构，便于对比与后续分化）
   systemStateVersion = "25.11";
   homeStateVersion = "25.11";
+  timezone = "America/Vancouver";
+  locale = "en_CA.UTF-8";
 
   # Storage / Hibernate
   resumeOffset = 7182282;

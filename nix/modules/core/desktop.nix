@@ -4,6 +4,7 @@
 , ...
 }:
 let
+  hostCfg = config.my.host;
   inherit (config.my.capabilities) hasDesktopSession;
   gnupgCacheTtlSeconds = 4 * 60 * 60; # 4 小时
 in
@@ -65,7 +66,7 @@ lib.mkIf hasDesktopSession {
   ];
 
   i18n = {
-    defaultLocale = "zh_CN.UTF-8";
+    defaultLocale = hostCfg.locale;
     extraLocales = [ "en_US.UTF-8/UTF-8" ];
     inputMethod = {
       enable = true;

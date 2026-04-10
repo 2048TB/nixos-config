@@ -2,6 +2,7 @@
   # Identity
   username = "z";
   timezone = "Asia/Shanghai";
+  locale = "zh_CN.UTF-8";
 
   # Storage / Hibernate
   diskDevice = "/dev/nvme0n1";
