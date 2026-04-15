@@ -29,7 +29,7 @@ let
       in
       {
         unstable = import inputs.nixpkgs-unstable {
-          inherit (final) system;
+          system = final.stdenv.hostPlatform.system;
           config.allowUnfreePredicate = mylib.allowUnfreePredicate;
         };
       };
