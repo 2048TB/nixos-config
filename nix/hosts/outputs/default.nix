@@ -6,6 +6,7 @@ let
   mylib = import ../../lib { inherit lib; };
   mytheme = import ../../lib/theme.nix { inherit lib; };
   configRepoPath = "/persistent/nixos-config";
+  exportedOverlays = import ../../overlays { inherit inputs; };
 
   genSpecialArgs =
     system:
@@ -40,6 +41,7 @@ let
 
   args = {
     inherit inputs lib mylib genSpecialArgs mkApp appRepoPreamble;
+    nixpkgsOverlays = [ exportedOverlays.default ];
   };
 
   nixosSystems = {
@@ -52,7 +54,6 @@ let
   nixosSystemValues = builtins.attrValues nixosSystems;
   darwinSystemValues = builtins.attrValues darwinSystems;
   allSystemValues = nixosSystemValues ++ darwinSystemValues;
-  exportedOverlays = import ../../overlays { inherit inputs; };
   exportedNixosModules = import ../../modules/nixos;
   exportedPackages = {
     x86_64-linux = import ../../pkgs (
