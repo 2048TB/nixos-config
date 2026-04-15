@@ -3,7 +3,24 @@ let
   self = rec {
     additions = final: _prev: import ../pkgs final;
 
-    modifications = _final: _prev: { };
+    modifications =
+      final: prev:
+      {
+        antigravity =
+          if final.stdenv.hostPlatform.system == "x86_64-linux" then
+            final.callPackage ../pkgs/antigravity.nix
+              {
+                vscode-generic = inputs.nixpkgs + "/pkgs/applications/editors/vscode/generic.nix";
+              }
+          else
+            prev.antigravity;
+
+        vscode =
+          if final.stdenv.hostPlatform.system == "x86_64-linux" then
+            final.unstable.vscode
+          else
+            prev.vscode;
+      };
 
     unstable-packages =
       final: _prev:
