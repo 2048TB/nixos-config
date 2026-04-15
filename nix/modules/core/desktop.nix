@@ -10,6 +10,11 @@ let
 in
 lib.mkIf hasDesktopSession {
   programs = {
+    appimage = {
+      enable = true;
+      binfmt = true;
+    };
+
     dconf.enable = true;
 
     gnupg.agent = {
