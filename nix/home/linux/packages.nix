@@ -25,6 +25,7 @@ let
   enableSplayer = myvars.enableSplayer or false;
   enableTelegramDesktop = myvars.enableTelegramDesktop or false;
   enableLocalSend = myvars.enableLocalSend or false;
+  enableAntigravity = myvars.enableAntigravity or false;
   wpsOfficePackage = pkgs.wpsoffice;
 
   # 仅在混合显卡（amd-nvidia-hybrid）时安装 GPU 加速相关软件
@@ -106,6 +107,7 @@ in
       ++ lib.optional enableSplayer pkgs.splayer
       ++ lib.optional enableTelegramDesktop pkgsUnstable.telegram-desktop
       ++ lib.optional enableWpsOffice wpsOfficePackage
+      ++ lib.optional enableAntigravity pkgs.antigravity
       ++ lib.optionals enableSteam gamingPackages
       ++ lib.optionals enableLibvirtd virtualisationPackages
       ++ lib.optionals enableDocker dockerPackages

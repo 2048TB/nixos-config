@@ -181,6 +181,7 @@ rec {
     };
 
   allowedUnfreePackageNames = [
+    "antigravity"
     "google-chrome"
     "nvidia-settings"
     "nvidia-x11"
