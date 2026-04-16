@@ -1,9 +1,19 @@
-{ lib, nixpkgs, ... }:
+{ lib, nixpkgs, configRepoPath, ... }:
 let
   nixCache = import ../../lib/nix-cache.nix;
   inherit (nixCache) cacheSubstituters cacheTrustedPublicKeys trustedUsers;
 in
 {
+  programs.nh = {
+    enable = true;
+    flake = configRepoPath;
+    clean = {
+      enable = true;
+      dates = "Mon 03:15"; # 每周一凌晨，避免与日常使用冲突
+      extraArgs = "--keep-since 14d --keep 0";
+    };
+  };
+
   nix = {
     settings = {
       experimental-features = [ "nix-command" "flakes" ];
@@ -39,9 +49,9 @@ in
 
     channel.enable = false;
 
-    # 自动垃圾回收配置
+    # 垃圾回收交由 programs.nh.clean 负责，避免与 nh 模块冲突。
     gc = {
-      automatic = true;
+      automatic = false;
       dates = "Mon 03:15"; # 每周一凌晨，避免与日常使用冲突
       options = "--delete-older-than 14d";
     };

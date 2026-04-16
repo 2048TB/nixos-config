@@ -45,6 +45,26 @@ let
   dataWithoutPaths = builtins.attrValues data;
   nixosConfigurations = mylib.mergeAttrFromList "nixosConfigurations" dataWithoutPaths;
   mainUsers = mylib.mergeAttrFromList "mainUsers" dataWithoutPaths;
+  homeConfigurations =
+    builtins.listToAttrs (
+      map
+        (
+          hostName:
+          let
+            user = mainUsers.${hostName};
+            hmUsers = nixosConfigurations.${hostName}.config.home-manager.users or { };
+            hmConfig = hmUsers.${user};
+          in
+          {
+            name = "${user}@${hostName}";
+            value = {
+              config = hmConfig;
+              activationPackage = hmConfig.home.activationPackage;
+            };
+          }
+        )
+        (builtins.attrNames nixosConfigurations)
+    );
   resolvedHostNames = builtins.attrNames nixosConfigurations;
 
   hostEvalTests = common.mkStandardEvalTests {
@@ -124,7 +144,7 @@ assert common.assertRegistryState
 {
   inherit data;
   registeredHosts = resolvedHostNames;
-  inherit nixosConfigurations;
+  inherit nixosConfigurations homeConfigurations;
   apps = platformApps;
   checks = mylib.mergeAttrFromListWithExtra "checks" dataWithoutPaths [
     evalTestChecks

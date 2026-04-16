@@ -15,6 +15,11 @@ nixos-rebuild action:
     @if [ -z "{{host}}" ]; then echo "error: 需要指定主机. 用法: just host=<hostname> {{action}}" >&2; exit 2; fi
     @flake_repo="$(bash {{repo}}/nix/scripts/admin/print-flake-repo.sh {{repo}})"; sudo nixos-rebuild {{action}} --flake "path:$flake_repo#{{host}}"
 
+[private]
+nh-os action:
+    @if [ -z "{{host}}" ]; then echo "error: 需要指定主机. 用法: just host=<hostname> nh-{{action}}" >&2; exit 2; fi
+    @flake_repo="$(bash {{repo}}/nix/scripts/admin/print-flake-repo.sh {{repo}})"; {{nix_cmd}} shell nixpkgs#nh -c nh os {{action}} "path:$flake_repo" -H "{{host}}"
+
 # ========== 安装 / Flake ==========
 
 install:
@@ -74,9 +79,7 @@ use:
 
 # ========== 构建 / 切换 ==========
 
-build:
-    @if [ -z "{{host}}" ]; then echo "error: 需要指定主机. 用法: just host=<hostname> build" >&2; exit 2; fi
-    @flake_repo="$(bash {{repo}}/nix/scripts/admin/print-flake-repo.sh {{repo}})"; {{nix_cmd}} build "path:$flake_repo#nixosConfigurations.{{host}}.config.system.build.toplevel"
+build: (nh-os "build")
 
 check: (nixos-rebuild "dry-build")
 
@@ -84,7 +87,18 @@ dry-build:
     @if [ -z "{{host}}" ]; then echo "error: 需要指定主机. 用法: just host=<hostname> dry-build" >&2; exit 2; fi
     @flake_repo="$(bash {{repo}}/nix/scripts/admin/print-flake-repo.sh {{repo}})"; {{nix_cmd}} build --dry-run "path:$flake_repo#nixosConfigurations.{{host}}.config.system.build.toplevel"
 
-switch: (nixos-rebuild "switch")
+home-switch:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    flake_repo="$(bash {{repo}}/nix/scripts/admin/print-flake-repo.sh {{repo}})"
+    target_host="{{host}}"
+    if [ -z "$target_host" ]; then
+      target_host="$(hostname)"
+    fi
+    target_user="${HOME_MANAGER_USER:-$(id -un)}"
+    {{nix_cmd}} shell nixpkgs#nh -c nh home switch "path:$flake_repo" -c "${target_user}@${target_host}"
+
+switch: (nh-os "switch")
 boot: (nixos-rebuild "boot")
 test: (nixos-rebuild "test")
 
@@ -94,10 +108,10 @@ gc:
     @sudo nix store gc
 
 clean:
-    @sudo nix-collect-garbage --delete-older-than 7d
+    @{{nix_cmd}} shell nixpkgs#nh -c nh clean all --keep-since 14d --keep 0
 
 clean-all:
-    @sudo nix-collect-garbage -d
+    @{{nix_cmd}} shell nixpkgs#nh -c nh clean all --keep-since 0h --keep 0
 
 optimize:
     @sudo nix store optimise

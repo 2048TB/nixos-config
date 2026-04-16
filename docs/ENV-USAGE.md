@@ -55,9 +55,10 @@ key 相关差异：
 差异点：
 
 - 默认 repo 应位于 `/persistent/nixos-config`
-- `switch` / `boot` / `test` / `upgrade` 会直接改系统状态
+- `switch` / `home-switch` / `boot` / `test` / `upgrade` 会直接改系统状态
 - `upgrade` 会先在指定 repo 上更新 `flake.lock`，再执行 `switch`
 - `sops.sh` / `guard-secrets.sh` 可以从任意目录直接调用
+- 系统默认启用 `programs.nh.clean` 自动清理；若手动执行清理，`just clean` / `just clean-all` 与自动清理参数语义保持一致
 
 常用命令：
 
@@ -67,6 +68,7 @@ just validate-local
 just update
 just host=zly check
 just host=zly switch
+just home-switch
 just sops-recipients
 just sops-rekey
 ```

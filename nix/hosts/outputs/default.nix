@@ -79,6 +79,10 @@ in
     map (it: it.darwinConfigurations or { }) darwinSystemValues
   );
 
+  homeConfigurations = lib.attrsets.mergeAttrsList (
+    map (it: it.homeConfigurations or { }) allSystemValues
+  );
+
   apps = mylib.mergeRecursiveAttrsList (map (it: it.apps or { }) allSystemValues);
   checks = mylib.mergeRecursiveAttrsList (map (it: it.checks or { }) allSystemValues);
   devShells = mylib.mergeRecursiveAttrsList (map (it: it.devShells or { }) allSystemValues);

@@ -29,6 +29,8 @@
 - `nix/scripts/admin/common.sh`
 
 常用 build / check / switch / upgrade / clean 入口通过 `just` 暴露，检查以本地命令为准。
+其中 `build` / `switch` / `clean` 现通过 `nh` 执行，但仍保留仓库自己的 filtered flake repo 与显式 `host` / `repo` 约束。
+系统同时启用 `programs.nh` 与 `programs.nh.clean`，作为默认 `nh` 入口和自动清理来源。
 
 推荐验证基线：
 
@@ -58,6 +60,7 @@ just registry-meta-sync-check
 just validate-local
 just host=zly check
 just host=zly switch
+just home-switch
 just host=zly upgrade
 just clean
 just sops-init-create
@@ -163,6 +166,7 @@ just host=zly build
 just host=zly dry-build
 just host=zly check
 just host=zly switch
+just home-switch
 just host=zly boot
 just host=zly test
 just host=zly upgrade
@@ -170,9 +174,12 @@ just host=zly upgrade
 
 当前行为说明：
 
-- `build` / `dry-build` 会先取 filtered repo，再做只读构建
+- `build` 现在通过 `nh os build` 执行，并继续先取 filtered repo
+- `dry-build` 会先取 filtered repo，再做只读构建
 - `check` 走 `sudo nixos-rebuild dry-build --flake ...`
-- `switch` / `boot` / `test` 会直接改系统状态
+- `switch` 现在通过 `nh os switch` 执行，并继续先取 filtered repo
+- `home-switch` 通过 `nh home switch` 执行，目标为 `homeConfigurations.<user>@<host>`
+- `boot` / `test` 会直接改系统状态
 - `upgrade` 现在会保留外层 `repo={{repo}}`，先在指定 repo 上执行 `update`，再执行 `switch`
 - `flake-check` 做 `nix flake check --all-systems --no-build`
 - `flake-check-full` 做 `nix flake check --all-systems`（含 build）
@@ -191,6 +198,11 @@ just clean-all
 just optimize
 just use
 ```
+
+- `clean` 现在通过 `nh clean all --keep-since 14d --keep 0` 执行
+- `clean-all` 现在通过 `nh clean all --keep-since 0h --keep 0` 执行
+- 自动清理由 `programs.nh.clean` 执行：每周一 `03:15`，参数为 `--keep-since 14d --keep 0`
+- `nix.gc.automatic` 已关闭，避免与 `programs.nh.clean` 冲突
 
 ## 7. Secrets 与 Git 安全
 

@@ -37,6 +37,26 @@ let
 
   darwinConfigurations = mylib.mergeAttrFromList "darwinConfigurations" dataWithoutPaths;
   mainUsers = mylib.mergeAttrFromList "mainUsers" dataWithoutPaths;
+  homeConfigurations =
+    builtins.listToAttrs (
+      map
+        (
+          hostName:
+          let
+            user = mainUsers.${hostName};
+            hmUsers = darwinConfigurations.${hostName}.config.home-manager.users or { };
+            hmConfig = hmUsers.${user};
+          in
+          {
+            name = "${user}@${hostName}";
+            value = {
+              config = hmConfig;
+              activationPackage = hmConfig.home.activationPackage;
+            };
+          }
+        )
+        (builtins.attrNames darwinConfigurations)
+    );
   resolvedHostNames = builtins.attrNames darwinConfigurations;
   hostEvalTests = common.mkStandardEvalTests {
     configurations = darwinConfigurations;
@@ -63,7 +83,7 @@ assert common.assertRegistryState
 {
   inherit data;
   registeredHosts = resolvedHostNames;
-  inherit darwinConfigurations;
+  inherit darwinConfigurations homeConfigurations;
   apps = { };
   checks = mylib.mergeAttrFromListWithExtra "checks" dataWithoutPaths [ evalTestChecks ];
   devShells = mylib.mergeAttrFromListWithExtra "devShells" dataWithoutPaths [ ];
