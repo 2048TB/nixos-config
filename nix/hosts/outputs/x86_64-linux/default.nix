@@ -59,7 +59,7 @@ let
             name = "${user}@${hostName}";
             value = {
               config = hmConfig;
-              activationPackage = hmConfig.home.activationPackage;
+              inherit (hmConfig.home) activationPackage;
             };
           }
         )

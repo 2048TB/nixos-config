@@ -26,6 +26,33 @@ key_dir_rel=".keys"
 age_key_rel="$key_dir_rel/main.agekey"
 main_pub_rel="secrets/keys/main.age.pub"
 
+run_nix_flake() {
+  nix --extra-experimental-features 'nix-command flakes' "$@"
+}
+
+require_mountpoint() {
+  local mountpoint="${1:?mountpoint required}"
+
+  if ! findmnt "$mountpoint" >/dev/null 2>&1; then
+    echo "error: required mountpoint is not mounted: $mountpoint" >&2
+    return 1
+  fi
+
+  findmnt "$mountpoint"
+}
+
+cleanup_target_flake_tmp() {
+  local status=$?
+
+  if [ -n "${TARGET_FLAKE_TMP:-}" ] && sudo test -e "$TARGET_FLAKE_TMP"; then
+    if ! sudo rm -rf "$TARGET_FLAKE_TMP"; then
+      echo "warning: failed to remove temporary flake directory: $TARGET_FLAKE_TMP" >&2
+    fi
+  fi
+
+  return "$status"
+}
+
 is_age_private_key_file() {
   local path="${1:-}"
   local first_data_line=""
@@ -117,21 +144,27 @@ sync_tracked_repo_payload() {
   local src_repo="${1:?source repo required}"
   local dst_dir="${2:?destination directory required}"
   local tracked_list=""
+  local status=0
 
   require_git_checkout_repo "$src_repo"
 
   tracked_list="$(mktemp)"
-  # shellcheck disable=SC2064
-  trap "rm -f '$tracked_list'" RETURN
   git -C "$src_repo" ls-files -z >"$tracked_list"
 
   if [ ! -s "$tracked_list" ]; then
     echo "error: no tracked files found under repo: $src_repo" >&2
+    rm -f "$tracked_list"
     return 1
   fi
 
-  sudo rsync -a --delete --from0 --files-from="$tracked_list" "$src_repo/" "$dst_dir/"
-  trap - RETURN
+  if sudo rsync -a --delete --from0 --files-from="$tracked_list" "$src_repo/" "$dst_dir/"; then
+    :
+  else
+    status=$?
+  fi
+
+  rm -f "$tracked_list"
+  return "$status"
 }
 
 while [ "$#" -gt 0 ]; do
@@ -179,13 +212,13 @@ confirm_destructive_action \
 echo ">>> host=$host disk=$disk"
 
 # 1. Run disko
-disko_script="$(env NIXOS_DISK_DEVICE="$disk" nix build --impure --no-link --print-out-paths "path:${flake_repo}#nixosConfigurations.${host}.config.system.build.diskoScript")"
+disko_script="$(env NIXOS_DISK_DEVICE="$disk" run_nix_flake build --impure --no-link --print-out-paths "path:${flake_repo}#nixosConfigurations.${host}.config.system.build.diskoScript")"
 echo ">>> disko_script=$disko_script"
 sudo env NIXOS_DISK_DEVICE="$disk" "$disko_script"
 
 # 2. Verify mounts
-findmnt /mnt/boot
-findmnt /mnt/persistent
+require_mountpoint /mnt/boot
+require_mountpoint /mnt/persistent
 
 # 3. Install sops age key
 if age_key_src="$(resolve_age_key_src)"; then
@@ -211,8 +244,7 @@ if ! sudo findmnt /mnt/persistent >/dev/null 2>&1; then
   exit 1
 fi
 
-# shellcheck disable=SC2064
-trap "sudo rm -rf '$TARGET_FLAKE_TMP'" EXIT
+trap cleanup_target_flake_tmp EXIT
 sudo rm -rf "$TARGET_FLAKE_TMP"
 sudo mkdir -p "$TARGET_FLAKE_TMP"
 # Sync only Git tracked files to avoid copying local/private/untracked data.
@@ -224,7 +256,7 @@ if [ ! -f "$TARGET_FLAKE_TMP/flake.nix" ]; then
   exit 1
 fi
 
-target_user="$(nix eval --raw "path:${flake_repo}#nixosConfigurations.${host}.config.my.host.username")"
+target_user="$(run_nix_flake eval --raw "path:${flake_repo}#nixosConfigurations.${host}.config.my.host.username")"
 target_owner="$(resolve_target_owner_from_rootfs /mnt "$target_user")"
 sudo chown -R "$target_owner" "$TARGET_FLAKE_TMP"
 sudo rm -rf "$TARGET_FLAKE_DIR"

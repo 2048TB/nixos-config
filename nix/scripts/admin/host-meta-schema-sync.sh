@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# shellcheck disable=SC2034
 script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck disable=SC1091
 source "$script_dir/common.sh"
@@ -9,6 +8,8 @@ source "$script_dir/common.sh"
 repo_root="$(enter_repo_root)"
 cd "$repo_root"
 
+# shellcheck disable=SC2016
+# The Nix expression is single-quoted on purpose so `${...}` reaches `nix eval`.
 nix --extra-experimental-features 'nix-command' eval --raw --impure --expr '
 let
   hostMeta = (import ./nix/lib/host-meta.nix { }).hostMetaSchema;

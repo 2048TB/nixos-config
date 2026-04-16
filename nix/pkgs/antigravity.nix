@@ -1,5 +1,4 @@
 { lib
-, stdenv
 , callPackage
 , vscode-generic
 , fetchurl

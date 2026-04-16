@@ -162,12 +162,22 @@ encrypt_yaml_to_target() {
   local target="$1"
   local recipients_csv="$2"
   local tmp
+  local status=0
 
   tmp="$(mktemp)"
-  # shellcheck disable=SC2064
-  trap "rm -f '$tmp'" RETURN
-  cat > "$tmp"
-  run_sops_encrypt_yaml "$recipients_csv" "$target" < "$tmp"
+  if ! cat > "$tmp"; then
+    rm -f "$tmp"
+    return 1
+  fi
+
+  if run_sops_encrypt_yaml "$recipients_csv" "$target" < "$tmp"; then
+    :
+  else
+    status=$?
+  fi
+
+  rm -f "$tmp"
+  return "$status"
 }
 
 # ── subcommands ───────────────────────────────────────────────

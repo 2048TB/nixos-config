@@ -39,6 +39,7 @@ cd "$repo_root"
 # 路径级阻断：任何被 Git 跟踪/暂存的密钥路径都直接失败
 forbidden_path_pattern='(^|/)\.keys/|(^|/)main\.agekey$|(^|/)id_ed25519(\.pub)?$|\.pem$|\.p12$|\.pfx$'
 private_key_content_pattern='BEGIN (OPENSSH|RSA|EC|DSA|PGP) PRIVATE KEY|AGE-SECRET-KEY-1'
+private_key_content_pattern_ci="(?i:${private_key_content_pattern})"
 credential_content_pattern='ghp_[A-Za-z0-9]{36}|github_pat_[A-Za-z0-9_]{82}|glpat-[A-Za-z0-9_-]{20,}|xox[baprs]-[A-Za-z0-9-]{10,}|AKIA[0-9A-Z]{16}|ASIA[0-9A-Z]{16}|AIza[0-9A-Za-z_-]{35}|sk-[A-Za-z0-9]{20,}|(?i)(api[_-]?key|token|secret|password|passwd)[[:space:]]*[:=][[:space:]]*[A-Za-z0-9_.+=-]{24,}'
 
 tracked_hits="$(git ls-files | rg -n "$forbidden_path_pattern" || true)"
@@ -68,7 +69,8 @@ list_content_scan_files() {
   fi
 }
 
-if list_content_scan_files | grep -q .; then
+mapfile -t content_scan_files < <(list_content_scan_files)
+if [ "${#content_scan_files[@]}" -gt 0 ]; then
   read_file_content() {
     local file="${1:-}"
     if [ "$scan_mode" = "all-tracked" ]; then
@@ -78,29 +80,30 @@ if list_content_scan_files | grep -q .; then
     fi
   }
 
-  while IFS= read -r file; do
+  combined_secret_pattern="$private_key_content_pattern_ci|$credential_content_pattern"
+
+  for file in "${content_scan_files[@]}"; do
     if [ "$file" = "nix/scripts/admin/guard-secrets.sh" ] || [ "$file" = "nix/scripts/admin/common.sh" ]; then
       continue
     fi
-    if read_file_content "$file" 2>/dev/null | rg -n --ignore-case "$private_key_content_pattern" >/dev/null; then
-      if [ "$scan_mode" = "all-tracked" ]; then
-        echo "ERROR: tracked file contains private key material: $file" >&2
+    if read_file_content "$file" 2>/dev/null | rg -n "$combined_secret_pattern" >/dev/null; then
+      if read_file_content "$file" 2>/dev/null | rg -n "$private_key_content_pattern_ci" >/dev/null; then
+        if [ "$scan_mode" = "all-tracked" ]; then
+          echo "ERROR: tracked file contains private key material: $file" >&2
+        else
+          echo "ERROR: staged file contains private key material: $file" >&2
+        fi
       else
-        echo "ERROR: staged file contains private key material: $file" >&2
+        if [ "$scan_mode" = "all-tracked" ]; then
+          echo "ERROR: tracked file contains token/password-like secret material: $file" >&2
+        else
+          echo "ERROR: staged file contains token/password-like secret material: $file" >&2
+        fi
       fi
       echo "Fix: remove secret content before commit/push." >&2
       exit 1
     fi
-    if read_file_content "$file" 2>/dev/null | rg -n "$credential_content_pattern" >/dev/null; then
-      if [ "$scan_mode" = "all-tracked" ]; then
-        echo "ERROR: tracked file contains token/password-like secret material: $file" >&2
-      else
-        echo "ERROR: staged file contains token/password-like secret material: $file" >&2
-      fi
-      echo "Fix: remove secret content before commit/push." >&2
-      exit 1
-    fi
-  done < <(list_content_scan_files)
+  done
 fi
 
 echo "secret-guard: OK"
