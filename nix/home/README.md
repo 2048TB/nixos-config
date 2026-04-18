@@ -6,7 +6,7 @@
 
 ```text
 nix/home/
-├── base/default.nix    # 跨平台共享（session 变量、PATH、zsh/vim）
+├── base/default.nix    # 跨平台共享（session 变量、PATH、mise shims、zsh/vim）
 ├── base/config-files.nix # 跨平台 configFile 映射清单
 ├── linux/
 │   ├── default.nix     # 入口（identity、imports、dconf、assertions）
@@ -16,7 +16,7 @@ nix/home/
 │   ├── packages.nix    # home.packages（含主账号开发环境）
 │   ├── package-groups.nix # Linux 包分类清单（纯数据）
 │   ├── programs.nix    # fzf/mpv/lutris 等
-│   ├── desktop.nix     # 桌面用户服务与 Noctalia 包接入（udiskie/provider-app）
+│   ├── desktop.nix     # 桌面用户服务、Noctalia 包接入、mise-upgrade timer
 │   └── xdg.nix         # portal/mimeApps/configFile
 ├── darwin/default.nix  # macOS 专用
 └── configs/            # 应用配置文件（niri/tmux/zellij/shell/television/...）
@@ -42,9 +42,11 @@ nix/home/
 
 - Linux/Darwin 共享 CLI 包入口在 `nix/lib/default.nix` 的 `sharedPackageNames`
 - 跨平台共享 config file 映射在 `nix/home/base/config-files.nix`
+- `base/default.nix` 当前会把 `~/.local/share/mise/shims` 放进 session `PATH`
 - Linux 侧入口通过 `_mixins` allowlist 收敛导入列表
 - `nix/home/configs/noctalia/` 当前按设计直接映射到 repo 工作树；GUI 改动会直接修改 tracked files
 - `linux/files.nix` 当前还负责 `~/.local/bin/code` 与 `~/.local/bin/antigravity` wrapper：前置 `mise` shims，并过滤已知 Electron Wayland 参数告警
+- `linux/desktop.nix` 当前还负责 `mise-upgrade.service` / `mise-upgrade.timer`，按周执行全局 `mise upgrade`
 
 read-only 验证时，若 checkout 中存在不可读的 `.keys/main.agekey`，先通过 `nix/scripts/admin/print-flake-repo.sh` 获取 filtered repo。
 

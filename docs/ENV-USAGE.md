@@ -59,6 +59,7 @@ key 相关差异：
 - `upgrade` 会先在指定 repo 上更新 `flake.lock`，再执行 `switch`
 - `sops.sh` / `guard-secrets.sh` 可以从任意目录直接调用
 - 系统默认启用 `programs.nh.clean` 自动清理；若手动执行清理，`just clean` / `just clean-all` 与自动清理参数语义保持一致
+- 全局 `mise` 工具会通过 `systemd --user` timer 自动执行 `mise upgrade --yes`
 
 常用命令：
 
@@ -80,6 +81,12 @@ cd /persistent/nixos-config
 just validate-local-full
 ```
 
+手动触发 `mise` 升级：
+
+```bash
+systemctl --user start mise-upgrade.service
+```
+
 ## 3. GUI 应用与交互式 shell 的差异
 
 适用场景：
@@ -91,9 +98,10 @@ just validate-local-full
 
 - GUI 进程不会读取交互式 `zshrc`
 - 因此不能只依赖 `mise activate zsh` 把工具链注入 `PATH`
+- 当前仓库通过 Home Manager 把 `~/.local/share/mise/shims` 放进 session `PATH`
 - 当前仓库通过 Home Manager 在 `~/.local/bin/code` 与 `~/.local/bin/antigravity` 安装 wrapper
-- wrapper 会前置 `~/.local/share/mise/shims`
 - wrapper 还会导出 `CHECKPOINTING=false`，绕过当前 `Gemini Code Assist` 扩展的 checkpointing 启动问题
+- 全局 `mise` 工具的远端更新仍由 `systemd --user` timer 定期执行 `mise upgrade`
 
 应用方式：
 

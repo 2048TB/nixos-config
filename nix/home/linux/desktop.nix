@@ -17,6 +17,11 @@ let
   mkdirExe = lib.getExe' pkgs.coreutils "mkdir";
   touchExe = lib.getExe' pkgs.coreutils "touch";
   catExe = lib.getExe' pkgs.coreutils "cat";
+  miseUpgrade = pkgs.writeShellScript "mise-upgrade" ''
+    set -eu
+    cd "$HOME"
+    exec ${lib.getExe pkgs.mise} upgrade --yes
+  '';
 
   # ===== Log-filtered launcher 定义 =====
   udiskieLogFiltered = mkLogFilteredLauncher "udiskie-log-filtered" "${pkgs.udiskie}/bin/udiskie" [
@@ -169,6 +174,32 @@ in
             Restart = "on-failure";
             RestartSec = 2;
           };
+        };
+
+        mise-upgrade = {
+          Unit = {
+            Description = "Upgrade global mise tools";
+          };
+          Service = {
+            Type = "oneshot";
+            ExecStart = "${miseUpgrade}";
+          };
+        };
+      };
+
+    user.timers =
+      {
+        mise-upgrade = {
+          Unit = {
+            Description = "Periodic upgrade for global mise tools";
+          };
+          Timer = {
+            OnCalendar = "Mon *-*-* 04:30:00";
+            Persistent = true;
+            RandomizedDelaySec = "1h";
+            Unit = "mise-upgrade.service";
+          };
+          Install.WantedBy = [ "timers.target" ];
         };
       };
   };

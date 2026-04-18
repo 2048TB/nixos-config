@@ -2,6 +2,7 @@
 let
   homeDir = config.home.homeDirectory;
   localBinDir = "${homeDir}/.local/bin";
+  miseShimDir = "${homeDir}/.local/share/mise/shims";
   hostCfg = import ./resolve-host.nix { inherit myvars osConfig; };
 in
 {
@@ -89,6 +90,7 @@ in
     };
 
     sessionPath = [
+      miseShimDir
       "${homeDir}/.npm-global/bin"
       "${homeDir}/tools"
       localBinDir

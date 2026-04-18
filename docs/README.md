@@ -46,7 +46,7 @@
 - `nix/hosts/registry/systems.toml` 是 host metadata 的事实源
 - `displays` metadata 是 monitor topology 的事实源；不要再在别处重复手写 connector facts
 - `nix/home/configs/noctalia/` 当前按设计直接映射到 repo 工作树；GUI 改动会直接改动 tracked config
-- `code` / `antigravity` 当前通过 Home Manager 在 `~/.local/bin/` 安装 wrapper：会前置 `~/.local/share/mise/shims`，并过滤已知 Electron Wayland 参数告警；涉及此行为的改动需重新执行 `just home-switch`
+- Home Manager 当前会把 `~/.local/share/mise/shims` 放进 session `PATH`；`code` / `antigravity` 还会额外通过 `~/.local/bin/` wrapper 过滤已知 Electron Wayland 参数告警；全局 `mise` 工具通过 `systemd --user` timer 定期执行 `mise upgrade`；涉及此行为的改动需重新执行 `just home-switch`
 
 ## 3. 最常用命令
 
@@ -318,8 +318,8 @@ GUI 进程不会读取交互式 `zshrc`，因此不能依赖 `mise activate zsh`
 
 当前仓库的处理方式是：
 
+- 通过 Home Manager 把 `~/.local/share/mise/shims` 放进 session `PATH`
 - 通过 Home Manager 在 `~/.local/bin/code` 与 `~/.local/bin/antigravity` 安装 wrapper
-- wrapper 会前置 `~/.local/share/mise/shims`
 - wrapper 同时导出 `CHECKPOINTING=false`，绕过当前 `Gemini Code Assist` 扩展在 checkpointing 启动链路中的 `git` 探测问题
 
 应用方式：
@@ -330,3 +330,20 @@ just home-switch
 ```
 
 然后完全退出 `VSCode` / `Antigravity` 再重开。
+
+### 9.9 `mise` 写成 `latest` 后为什么还需要自动升级
+
+`mise` 官方语义里，config 文件中的 `latest` 默认只表示“当前已安装版本中的最新”，不会自动跟踪远端最新版本。因此仅把 `~/.config/mise/config.toml` 写成 `latest` 还不够，仍需定期执行 `mise upgrade`。
+
+当前仓库的处理方式是：
+
+- 全局 `mise` 配置默认使用 rolling channel（如 `latest` / `stable`）
+- 通过 `systemd --user` 定时执行 `mise upgrade --yes`
+- 调度为每周一 `04:30:00`，并附加 `RandomizedDelaySec=1h`
+- `Persistent=true`，因此关机错过上次窗口后，下次登录会补跑
+
+手动触发：
+
+```bash
+systemctl --user start mise-upgrade.service
+```
