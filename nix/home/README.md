@@ -12,7 +12,7 @@ nix/home/
 │   ├── default.nix     # 入口（identity、imports、dconf、assertions）
 │   ├── _mixins/default.nix # Linux 模块 auto-import allowlist
 │   ├── session.nix     # Linux session vars、activation
-│   ├── files.nix       # repo link / wallpapers / user-level dotfiles
+│   ├── files.nix       # repo link / wallpapers / user-level dotfiles / GUI wrapper
 │   ├── packages.nix    # home.packages（含主账号开发环境）
 │   ├── package-groups.nix # Linux 包分类清单（纯数据）
 │   ├── programs.nix    # fzf/mpv/lutris 等
@@ -29,6 +29,7 @@ nix/home/
 | 终端 | `configs/ghostty/`、`configs/foot/`、`configs/shell/` |
 | 共享 CLI 包 | `../lib/default.nix`（`sharedPackageNames`） |
 | 跨平台 config file 映射 | `base/config-files.nix` |
+| GUI IDE wrapper | `linux/files.nix` |
 | Television | `configs/television/` + `base/config-files.nix` + `configs/shell/zshrc` |
 | 状态栏 | `configs/niri/config.kdl`（Noctalia autostart） + `linux/desktop.nix`（包接入） |
 | 窗口快捷键 | `configs/niri/interaction.kdl` + `configs/niri/appearance.kdl` |
@@ -43,6 +44,7 @@ nix/home/
 - 跨平台共享 config file 映射在 `nix/home/base/config-files.nix`
 - Linux 侧入口通过 `_mixins` allowlist 收敛导入列表
 - `nix/home/configs/noctalia/` 当前按设计直接映射到 repo 工作树；GUI 改动会直接修改 tracked files
+- `linux/files.nix` 当前还负责 `~/.local/bin/code` 与 `~/.local/bin/antigravity` wrapper：前置 `mise` shims，并过滤已知 Electron Wayland 参数告警
 
 read-only 验证时，若 checkout 中存在不可读的 `.keys/main.agekey`，先通过 `nix/scripts/admin/print-flake-repo.sh` 获取 filtered repo。
 

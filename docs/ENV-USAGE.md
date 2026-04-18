@@ -80,7 +80,31 @@ cd /persistent/nixos-config
 just validate-local-full
 ```
 
-## 3. 其他环境中的只读 flake 操作
+## 3. GUI 应用与交互式 shell 的差异
+
+适用场景：
+
+- 从桌面直接启动 `VSCode` / `Antigravity`
+- 依赖 `mise` 管理的 `go` / `gopls` / `node` 等工具链
+
+差异点：
+
+- GUI 进程不会读取交互式 `zshrc`
+- 因此不能只依赖 `mise activate zsh` 把工具链注入 `PATH`
+- 当前仓库通过 Home Manager 在 `~/.local/bin/code` 与 `~/.local/bin/antigravity` 安装 wrapper
+- wrapper 会前置 `~/.local/share/mise/shims`
+- wrapper 还会导出 `CHECKPOINTING=false`，绕过当前 `Gemini Code Assist` 扩展的 checkpointing 启动问题
+
+应用方式：
+
+```bash
+cd /persistent/nixos-config
+just home-switch
+```
+
+然后完全退出相关 GUI 应用再重开。
+
+## 4. 其他环境中的只读 flake 操作
 
 适用场景：
 
@@ -102,6 +126,6 @@ nix flake show "path:$flake_repo"
 nix flake check --all-systems --no-build "path:$flake_repo"
 ```
 
-## 4. 手动安装与恢复
+## 5. 手动安装与恢复
 
 只有在你明确不想用 `install-live.sh` 时，才手动拼装 `disko`、`nixos-install` 和 repo 同步流程。完整行为准则仍以 `docs/README.md` 为准；本文不再重复整套手动安装脚本。

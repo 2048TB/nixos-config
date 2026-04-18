@@ -46,6 +46,7 @@
 - `nix/hosts/registry/systems.toml` 是 host metadata 的事实源
 - `displays` metadata 是 monitor topology 的事实源；不要再在别处重复手写 connector facts
 - `nix/home/configs/noctalia/` 当前按设计直接映射到 repo 工作树；GUI 改动会直接改动 tracked config
+- `code` / `antigravity` 当前通过 Home Manager 在 `~/.local/bin/` 安装 wrapper：会前置 `~/.local/share/mise/shims`，并过滤已知 Electron Wayland 参数告警；涉及此行为的改动需重新执行 `just home-switch`
 
 ## 3. 最常用命令
 
@@ -310,3 +311,22 @@ just validate-local
 ```bash
 just validate-local-full
 ```
+
+### 9.8 从桌面启动的 `VSCode` / `Antigravity` 找不到 `go` / `gopls`
+
+GUI 进程不会读取交互式 `zshrc`，因此不能依赖 `mise activate zsh` 给 `PATH` 注入语言工具链。
+
+当前仓库的处理方式是：
+
+- 通过 Home Manager 在 `~/.local/bin/code` 与 `~/.local/bin/antigravity` 安装 wrapper
+- wrapper 会前置 `~/.local/share/mise/shims`
+- wrapper 同时导出 `CHECKPOINTING=false`，绕过当前 `Gemini Code Assist` 扩展在 checkpointing 启动链路中的 `git` 探测问题
+
+应用方式：
+
+```bash
+cd /persistent/nixos-config
+just home-switch
+```
+
+然后完全退出 `VSCode` / `Antigravity` 再重开。

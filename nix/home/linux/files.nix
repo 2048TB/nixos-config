@@ -1,6 +1,37 @@
-{ config, pkgs, configRepoPath, ... }:
+{ config, pkgs, lib, configRepoPath, userProfileBin, ... }:
 let
   homeDir = config.home.homeDirectory;
+  miseShimDir = "${homeDir}/.local/share/mise/shims";
+  chromiumArgWarningFilters = [
+    "Warning: 'ozone-platform-hint' is not in the list of known options, but still passed to Electron/Chromium."
+    "Warning: 'enable-features' is not in the list of known options, but still passed to Electron/Chromium."
+    "Warning: 'enable-wayland-ime' is not in the list of known options, but still passed to Electron/Chromium."
+    "Warning: 'wayland-text-input-version' is not in the list of known options, but still passed to Electron/Chromium."
+  ];
+  mkSedDeleteExpr = pattern:
+    let
+      escapedPattern = lib.replaceStrings [ "/" ] [ "\\/" ] pattern;
+    in
+    "/${escapedPattern}/d";
+  chromiumArgWarningDeleteArgs =
+    lib.concatMapStringsSep " \\\n"
+      (pattern: "      -e ${lib.escapeShellArg (mkSedDeleteExpr pattern)}")
+      chromiumArgWarningFilters;
+  mkGuiCliWrapper = binaryName: ''
+    #!${pkgs.runtimeShell}
+    set -euo pipefail
+
+    export CHECKPOINTING=false
+    export PATH="${miseShimDir}:$PATH"
+
+    exec 3>&2
+    "${userProfileBin}/${binaryName}" "$@" \
+      2> >(
+        ${pkgs.gnused}/bin/sed -u \
+${chromiumArgWarningDeleteArgs}
+          >&3
+      )
+  '';
 in
 {
   home.file = {
@@ -45,5 +76,15 @@ in
     ".yarnrc".text = ''
       prefix "${homeDir}/.local"
     '';
+
+    ".local/bin/code" = {
+      executable = true;
+      text = mkGuiCliWrapper "code";
+    };
+
+    ".local/bin/antigravity" = {
+      executable = true;
+      text = mkGuiCliWrapper "antigravity";
+    };
   };
 }
