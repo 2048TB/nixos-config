@@ -71,6 +71,10 @@ list_content_scan_files() {
 
 mapfile -t content_scan_files < <(list_content_scan_files)
 if [ "${#content_scan_files[@]}" -gt 0 ]; then
+  content_scan_tmp="$(mktemp)"
+  # shellcheck disable=SC2064
+  trap "rm -f '$content_scan_tmp'" EXIT
+
   read_file_content() {
     local file="${1:-}"
     if [ "$scan_mode" = "all-tracked" ]; then
@@ -80,30 +84,36 @@ if [ "${#content_scan_files[@]}" -gt 0 ]; then
     fi
   }
 
-  combined_secret_pattern="$private_key_content_pattern_ci|$credential_content_pattern"
-
   for file in "${content_scan_files[@]}"; do
     if [ "$file" = "nix/scripts/admin/guard-secrets.sh" ] || [ "$file" = "nix/scripts/admin/common.sh" ]; then
       continue
     fi
-    if read_file_content "$file" 2>/dev/null | rg -n "$combined_secret_pattern" >/dev/null; then
-      if read_file_content "$file" 2>/dev/null | rg -n "$private_key_content_pattern_ci" >/dev/null; then
-        if [ "$scan_mode" = "all-tracked" ]; then
-          echo "ERROR: tracked file contains private key material: $file" >&2
-        else
-          echo "ERROR: staged file contains private key material: $file" >&2
-        fi
+    if ! read_file_content "$file" >"$content_scan_tmp"; then
+      echo "error: failed to read file content for secret scan: $file (mode=$scan_mode)" >&2
+      exit 1
+    fi
+    if rg -n "$private_key_content_pattern_ci" "$content_scan_tmp" >/dev/null; then
+      if [ "$scan_mode" = "all-tracked" ]; then
+        echo "ERROR: tracked file contains private key material: $file" >&2
       else
-        if [ "$scan_mode" = "all-tracked" ]; then
-          echo "ERROR: tracked file contains token/password-like secret material: $file" >&2
-        else
-          echo "ERROR: staged file contains token/password-like secret material: $file" >&2
-        fi
+        echo "ERROR: staged file contains private key material: $file" >&2
+      fi
+      echo "Fix: remove secret content before commit/push." >&2
+      exit 1
+    fi
+    if rg -n "$credential_content_pattern" "$content_scan_tmp" >/dev/null; then
+      if [ "$scan_mode" = "all-tracked" ]; then
+        echo "ERROR: tracked file contains token/password-like secret material: $file" >&2
+      else
+        echo "ERROR: staged file contains token/password-like secret material: $file" >&2
       fi
       echo "Fix: remove secret content before commit/push." >&2
       exit 1
     fi
   done
+
+  rm -f "$content_scan_tmp"
+  trap - EXIT
 fi
 
 echo "secret-guard: OK"

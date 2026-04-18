@@ -85,24 +85,33 @@ trim_line() {
 
 collect_age_recipients() {
   local item host_file host_rec
+  local ssh_to_age_stderr=""
+  local ssh_to_age_stderr_file=""
   local -a recipients
 
   if [ -f "$main_pub" ]; then
-    item="$(trim_line < "$main_pub")"
+    item="$(read_first_meaningful_line "$main_pub")"
     [ -n "$item" ] && recipients+=("$item")
   fi
 
   if [ -f "$recovery_pub" ]; then
-    item="$(trim_line < "$recovery_pub")"
+    item="$(read_first_meaningful_line "$recovery_pub")"
     [ -n "$item" ] && recipients+=("$item")
   fi
 
   if [ -d "$host_key_dir" ]; then
     while IFS= read -r host_file; do
-      if ! host_rec="$(run_ssh_to_age < "$host_file" 2>/dev/null | trim_line)"; then
+      ssh_to_age_stderr_file="$(mktemp)"
+      if ! host_rec="$(run_ssh_to_age < "$host_file" 2>"$ssh_to_age_stderr_file" | trim_line)"; then
+        ssh_to_age_stderr="$(tr '\n' ' ' < "$ssh_to_age_stderr_file" | sed 's/[[:space:]]\+/ /g; s/^ //; s/ $//')"
+        rm -f "$ssh_to_age_stderr_file"
         echo "error: invalid host recipient file: $host_file" >&2
+        if [ -n "$ssh_to_age_stderr" ]; then
+          echo "hint: ssh-to-age said: $ssh_to_age_stderr" >&2
+        fi
         return 1
       fi
+      rm -f "$ssh_to_age_stderr_file"
       if [ -z "$host_rec" ]; then
         echo "error: empty host recipient derived from: $host_file" >&2
         return 1
@@ -119,7 +128,10 @@ collect_age_recipients() {
 }
 
 collect_age_recipients_csv() {
-  collect_age_recipients | paste -sd, -
+  local -a recipients
+
+  mapfile -t recipients < <(collect_age_recipients)
+  join_csv "${recipients[@]}"
 }
 
 ensure_sops_secret_path_rule() {

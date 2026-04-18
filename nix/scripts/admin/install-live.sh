@@ -32,13 +32,14 @@ run_nix_flake() {
 
 require_mountpoint() {
   local mountpoint="${1:?mountpoint required}"
+  local mount_info=""
 
-  if ! findmnt "$mountpoint" >/dev/null 2>&1; then
+  if ! mount_info="$(findmnt "$mountpoint" 2>/dev/null)"; then
     echo "error: required mountpoint is not mounted: $mountpoint" >&2
     return 1
   fi
 
-  findmnt "$mountpoint"
+  printf '%s\n' "$mount_info"
 }
 
 cleanup_target_flake_tmp() {
@@ -55,21 +56,10 @@ cleanup_target_flake_tmp() {
 
 is_age_private_key_file() {
   local path="${1:-}"
-  local first_data_line=""
   [ -r "$path" ] || return 1
-  first_data_line="$(
-    awk '
-      {
-        line = $0
-        gsub(/^[[:space:]]+|[[:space:]]+$/, "", line)
-        if (line == "" || line ~ /^#/) {
-          next
-        }
-        print line
-        exit
-      }
-    ' "$path"
-  )"
+  local first_data_line=""
+
+  first_data_line="$(read_first_meaningful_line "$path")"
   [[ "$first_data_line" == AGE-SECRET-KEY-* ]]
 }
 
@@ -81,26 +71,28 @@ read_repo_main_pub() {
     return 1
   fi
 
-  awk '
-    {
-      line = $0
-      gsub(/^[[:space:]]+|[[:space:]]+$/, "", line)
-      if (line == "" || line ~ /^#/) {
-        next
-      }
-      print line
-      exit
-    }
-  ' "$repo_pub"
+  read_first_meaningful_line "$repo_pub"
 }
 
 age_key_matches_repo_pub() {
   local key_path="${1:-}"
   local candidate_pub=""
   local repo_pub=""
+  local age_stderr=""
+  local age_stderr_file=""
 
-  candidate_pub="$(run_age_keygen -y "$key_path" | awk 'NF { print; exit }')"
-  repo_pub="$(read_repo_main_pub)"
+  repo_pub="$(read_repo_main_pub)" || return 1
+  age_stderr_file="$(mktemp)"
+  if ! candidate_pub="$(run_age_keygen -y "$key_path" 2>"$age_stderr_file" | awk 'NF { print; exit }')"; then
+    age_stderr="$(tr '\n' ' ' < "$age_stderr_file" | sed 's/[[:space:]]\+/ /g; s/^ //; s/ $//')"
+    rm -f "$age_stderr_file"
+    echo "error: failed to derive public key from candidate age key: $key_path" >&2
+    if [ -n "$age_stderr" ]; then
+      echo "hint: age-keygen said: $age_stderr" >&2
+    fi
+    return 1
+  fi
+  rm -f "$age_stderr_file"
   [ -n "$candidate_pub" ] && [ "$candidate_pub" = "$repo_pub" ]
 }
 
@@ -124,10 +116,11 @@ resolve_age_key_src() {
         printf '%s\n' "$candidate"
         return 0
       fi
-      echo "warning: ignore age key that does not match ${repo}/${main_pub_rel}: $candidate" >&2
-      continue
+      echo "error: age key does not match ${repo}/${main_pub_rel}: $candidate" >&2
+      return 1
     fi
-    echo "warning: ignore invalid age key file (expected AGE-SECRET-KEY-*): $candidate" >&2
+    echo "error: invalid age key file (expected AGE-SECRET-KEY-*): $candidate" >&2
+    return 1
   done
   return 1
 }
@@ -149,7 +142,11 @@ sync_tracked_repo_payload() {
   require_git_checkout_repo "$src_repo"
 
   tracked_list="$(mktemp)"
-  git -C "$src_repo" ls-files -z >"$tracked_list"
+  if ! git -C "$src_repo" ls-files -z >"$tracked_list"; then
+    echo "error: failed to enumerate tracked files for repo sync: $src_repo" >&2
+    rm -f "$tracked_list"
+    return 1
+  fi
 
   if [ ! -s "$tracked_list" ]; then
     echo "error: no tracked files found under repo: $src_repo" >&2
@@ -161,6 +158,7 @@ sync_tracked_repo_payload() {
     :
   else
     status=$?
+    echo "error: failed to sync tracked repo payload from $src_repo to $dst_dir" >&2
   fi
 
   rm -f "$tracked_list"

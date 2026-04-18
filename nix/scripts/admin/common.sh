@@ -8,6 +8,22 @@ is_valid_host_name() {
   [[ "$name" =~ ^[A-Za-z0-9][A-Za-z0-9_-]*$ ]]
 }
 
+read_first_meaningful_line() {
+  local file_path="${1:?file path required}"
+
+  awk '
+    {
+      line = $0
+      gsub(/^[[:space:]]+|[[:space:]]+$/, "", line)
+      if (line == "" || line ~ /^#/) {
+        next
+      }
+      print line
+      exit
+    }
+  ' "$file_path"
+}
+
 resolve_repo_path() {
   local candidate="${1:-${NIXOS_CONFIG_REPO:-$PWD}}"
   local explicit_candidate=0
@@ -77,7 +93,9 @@ prepare_flake_repo_path() {
   else
     cache_base="${TMPDIR:-/tmp}"
   fi
-  find "$cache_base" -mindepth 1 -maxdepth 1 -type d -name "flake-$(id -u)-${cache_key}-*" -mmin +120 -exec rm -rf {} + >/dev/null 2>&1 || true
+  if ! find "$cache_base" -mindepth 1 -maxdepth 1 -type d -name "flake-$(id -u)-${cache_key}-*" -mmin +120 -exec rm -rf {} + >/dev/null 2>&1; then
+    echo "warning: failed to prune stale filtered flake repos under cache: $cache_base" >&2
+  fi
   # Use a per-process cache dir so concurrent script runs do not delete each
   # other's prepared flake repo while a command is still evaluating it.
   cache_root="${cache_base}/flake-$(id -u)-${cache_key}-$$"
@@ -85,14 +103,17 @@ prepare_flake_repo_path() {
   rm -rf "$cache_root/repo"
   mkdir -p "$cache_root/repo"
 
-  rsync -a --delete \
+  if ! rsync -a --delete \
     --exclude '.git/' \
     --exclude '.cache/' \
     --exclude '.keys/' \
     --exclude '.serena/' \
     --exclude 'result' \
     --exclude 'result-*' \
-    "$repo_root/" "$cache_root/repo/"
+    "$repo_root/" "$cache_root/repo/"; then
+    echo "error: failed to prepare filtered flake repo from $repo_root into $cache_root/repo" >&2
+    return 1
+  fi
 
   # shellcheck disable=SC2034
   PREPARED_FLAKE_REPO="$cache_root/repo"
@@ -115,34 +136,30 @@ enter_repo_root() {
 }
 
 run_age_keygen() {
-  if command -v age-keygen >/dev/null 2>&1; then
-    age-keygen "$@"
-  else
-    nix shell nixpkgs#age -c age-keygen "$@"
-  fi
+  run_command_with_nix_fallback nixpkgs#age age-keygen "$@"
 }
 
 run_ssh_keygen() {
-  if command -v ssh-keygen >/dev/null 2>&1; then
-    ssh-keygen "$@"
-  else
-    nix shell nixpkgs#openssh -c ssh-keygen "$@"
-  fi
+  run_command_with_nix_fallback nixpkgs#openssh ssh-keygen "$@"
 }
 
 run_ssh_to_age() {
-  if command -v ssh-to-age >/dev/null 2>&1; then
-    ssh-to-age "$@"
-  else
-    nix shell nixpkgs#age -c ssh-to-age "$@"
-  fi
+  run_command_with_nix_fallback nixpkgs#age ssh-to-age "$@"
 }
 
 run_sops() {
-  if command -v sops >/dev/null 2>&1; then
-    sops "$@"
+  run_command_with_nix_fallback nixpkgs#sops sops "$@"
+}
+
+run_command_with_nix_fallback() {
+  local fallback_package="${1:?fallback package required}"
+  local command_name="${2:?command name required}"
+  shift 2
+
+  if command -v "$command_name" >/dev/null 2>&1; then
+    "$command_name" "$@"
   else
-    nix shell nixpkgs#sops -c sops "$@"
+    nix shell "$fallback_package" -c "$command_name" "$@"
   fi
 }
 
