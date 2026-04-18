@@ -33,7 +33,11 @@ keymap = [
   { on = "h", run = "search --via=rg", desc = "Search files by content via ripgrep" },
   { on = "/", run = "filter --smart", desc = "Filter files" },
   { on = "<C-s>", run = "escape --search", desc = "Cancel the ongoing search" },
-  { on = "a", run = "create", desc = "Create a file (ends with / for directories)" },
+  { on = [ "a", "a" ], run = "create --dir", desc = "Create a directory" },
+  { on = [ "a", "s" ], run = "create", desc = "Create a file (ends with / for directories)" },
+  { on = [ "b", "b" ], run = "cd --interactive", desc = "Jump to a typed / bookmarked directory" },
+  { on = [ "b", "z" ], run = "plugin zoxide", desc = "Jump to a directory via zoxide" },
+  { on = [ "b", "f" ], run = "plugin fzf", desc = "Jump to a file/directory via fzf" },
   { on = "r", run = "rename --cursor=before_ext", desc = "Rename selected file(s)" },
   { on = "d", run = "remove", desc = "Trash selected files" },
   { on = "z", run = "plugin zoxide", desc = "Jump to a directory via zoxide" },
@@ -58,6 +62,11 @@ keymap = [
   { on = [ "p", "-" ], run = "link", desc = "Symlink the absolute path of yanked files" },
   { on = [ "p", "+" ], run = "link --relative", desc = "Symlink the relative path of yanked files" },
   { on = [ "p", "z" ], run = "remove --permanently", desc = "Permanently delete selected files" },
+
+  # Undo / cancel helpers
+  { on = [ "u", "u" ], run = "unyank", desc = "Cancel the yank status" },
+  { on = [ "u", "f" ], run = "escape --filter", desc = "Cancel the current filter" },
+  { on = [ "u", "s" ], run = "escape --search", desc = "Cancel the ongoing search" },
 
   # Copy paths
   { on = [ "y", "y" ], run = "copy path", desc = "Copy the file path" },
