@@ -19,7 +19,7 @@
   inherit commandLineArgs useVSCodeRipgrep;
 
   pname = "antigravity";
-  version = "1.22.2";
+  version = "1.23.2";
   vscodeVersion = "1.107.0";
 
   executableName = "antigravity";
@@ -29,8 +29,8 @@
   iconName = "antigravity";
 
   src = fetchurl {
-    url = "https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/1.22.2-5206900187463680/linux-x64/Antigravity.tar.gz";
-    hash = "sha256-hcay3s/v7yxuCtrxYbYC2nweyy22FX7ApMr/z+SBEgk=";
+    url = "https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/1.23.2-4781536860569600/linux-x64/Antigravity.tar.gz";
+    hash = "sha256-UjKkBI/0+hVoXZqYG6T7pXPil/PvybdvY455S693VyU=";
   };
 
   sourceRoot = "Antigravity";
