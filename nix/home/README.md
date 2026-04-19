@@ -43,6 +43,7 @@ nix/home/
 - Linux/Darwin 共享 CLI 包入口在 `nix/lib/default.nix` 的 `sharedPackageNames`
 - 跨平台共享 config file 映射在 `nix/home/base/config-files.nix`
 - `base/default.nix` 当前会把 `~/.local/share/mise/shims` 放进 session `PATH`
+- `linux/session.nix` 当前会把 `/run/opengl-driver/lib:/run/current-system/sw/lib` 放进 Linux session `LD_LIBRARY_PATH`，用于 pip 安装的 CUDA wheels 解析 `libcuda.so.1`
 - `configs/mise/config.toml` 当前默认将全局 `python` 固定在 `3.12`，其余常用工具继续跟随 rolling channel
 - Linux 侧入口通过 `_mixins` allowlist 收敛导入列表
 - `nix/home/configs/noctalia/` 当前按设计直接映射到 repo 工作树；GUI 改动会直接修改 tracked files
