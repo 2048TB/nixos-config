@@ -12,7 +12,7 @@
 
 可选：
 
-- `default.nix`：宿主机专属模块入口，用于放不适合进入共享 role / core module 的 host-only 配置（例如单机专用的 CUDA toolkit、实验性服务或临时迁移逻辑）
+- 额外 host-only module：例如 `ml-stack.nix`，再由 `hardware.nix` 或其它 host module 显式 `import`
 
 ## 最小模板
 

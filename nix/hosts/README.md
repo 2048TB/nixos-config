@@ -43,7 +43,6 @@ nix/hosts/
 
 可选：
 
-- `default.nix`
 - `home.nix`
 - `checks.nix`
 
