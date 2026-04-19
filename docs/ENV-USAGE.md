@@ -60,6 +60,7 @@ key 相关差异：
 - `sops.sh` / `guard-secrets.sh` 可以从任意目录直接调用
 - 系统默认启用 `programs.nh.clean` 自动清理；若手动执行清理，`just clean` / `just clean-all` 与自动清理参数语义保持一致
 - 全局 `mise` 工具会通过 `systemd --user` timer 自动执行 `mise upgrade --yes`；其中 `python` 当前固定在 `3.12`
+- Linux 会话当前会导出 `/run/opengl-driver/lib:/run/current-system/sw/lib` 到 `LD_LIBRARY_PATH`，用于 pip 安装的 CUDA wheels 解析 `libcuda.so.1`
 
 常用命令：
 

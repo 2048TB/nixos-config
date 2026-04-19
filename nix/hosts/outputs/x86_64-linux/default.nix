@@ -83,6 +83,13 @@ let
     inherit system;
     config.allowUnfreePredicate = mylib.allowUnfreePredicate;
   };
+  pkgsMl = import inputs.nixpkgs {
+    inherit system;
+    config = {
+      allowUnfreePredicate = mylib.allowUnfreePredicate;
+      cudaSupport = true;
+    };
+  };
   mkAppLocal = mkApp pkgs;
   mkEvalCheck = common.mkEvalCheck pkgs;
   evalCheckSpecs = common.mkEvalCheckSpecs "" hostEvalTests;
@@ -112,23 +119,94 @@ let
   platformChecks.${system}.pre-commit-check = preCommitCheck;
 
   defaultHost = builtins.head resolvedHostNames;
-  platformDevShells.${system}.default = pkgs.mkShell {
-    name = "nixos-config-dev";
-    packages = with pkgs; [
-      nix-tree
-      nixpkgs-fmt
-      statix
-      deadnix
-    ] ++ preCommitCheck.enabledPackages;
-    shellHook = ''
-      ${preCommitCheck.shellHook}
-      if [ -d .githooks ] && [ "$(git config core.hooksPath 2>/dev/null)" != ".githooks" ]; then
-        git config core.hooksPath .githooks
-      fi
-      echo "NixOS config dev shell"
-      echo "nixos-rebuild switch --flake .#${defaultHost}"
-      echo "nixos-rebuild test --flake .#${defaultHost}"
-    '';
+  mlPython = pkgsMl.python312.override {
+    packageOverrides = final: prev: {
+      torch = prev."torch-bin";
+      pytorch = prev."pytorch-bin";
+      triton = prev."triton-bin";
+      openai-triton = prev."openai-triton-bin";
+    };
+  };
+  mlCudaToolkit = pkgsMl.cudaPackages.cudatoolkit;
+  mlCudnn = pkgsMl.cudaPackages.cudnn;
+  mlNccl = pkgsMl.cudaPackages.nccl;
+  mlPythonPackages = mlPython.pkgs;
+  mlCudaLibPath = pkgsMl.lib.makeLibraryPath [
+    mlCudaToolkit
+    mlCudnn
+    mlNccl
+    pkgsMl.stdenv.cc.cc
+    pkgsMl.zlib
+  ];
+  mlPythonEnv = mlPython.withPackages (_: with mlPythonPackages; [
+    torch
+    transformers
+    datasets
+    accelerate
+    peft
+    trl
+    safetensors
+    sentencepiece
+    protobuf
+    evaluate
+    tensorboard
+    ipykernel
+    jupyterlab
+  ]);
+  platformDevShells.${system} = {
+    default = pkgs.mkShell {
+      name = "nixos-config-dev";
+      packages = with pkgs; [
+        nix-tree
+        nixpkgs-fmt
+        statix
+        deadnix
+      ] ++ preCommitCheck.enabledPackages;
+      shellHook = ''
+        ${preCommitCheck.shellHook}
+        if [ -d .githooks ] && [ "$(git config core.hooksPath 2>/dev/null)" != ".githooks" ]; then
+          git config core.hooksPath .githooks
+        fi
+        echo "NixOS config dev shell"
+        echo "nixos-rebuild switch --flake .#${defaultHost}"
+        echo "nixos-rebuild test --flake .#${defaultHost}"
+      '';
+    };
+
+    ml = pkgsMl.mkShell {
+      name = "nixos-ml-dev";
+      packages = with pkgsMl; [
+        mlPythonEnv
+        uv
+        git
+        git-lfs
+        cmake
+        ninja
+        pkg-config
+        cudaPackages.cuda_nvcc
+        mlCudaToolkit
+        mlCudnn
+        mlNccl
+      ];
+      shellHook = ''
+        export CUDA_PATH="${mlCudaToolkit}"
+        export CUDA_HOME="${mlCudaToolkit}"
+        export CUDA_ROOT="${mlCudaToolkit}"
+        export CUDNN_PATH="${mlCudnn}"
+        export CUDNN_INCLUDE_DIR="${mlCudnn}/include"
+        export CUDNN_LIB_DIR="${mlCudnn}/lib"
+        export NCCL_ROOT_DIR="${mlNccl}"
+        export NCCL_LIB_DIR="${mlNccl}/lib"
+        export LD_LIBRARY_PATH="${mlCudaLibPath}:''${LD_LIBRARY_PATH:-}"
+        export HF_HOME="''${HOME}/.cache/huggingface"
+        export TRANSFORMERS_CACHE="''${HF_HOME}/hub"
+        export TORCH_HOME="''${HOME}/.cache/torch"
+        export TORCH_CUDA_ARCH_LIST="8.9"
+        echo "ML shell ready"
+        echo "python --version"
+        echo "python -c 'import torch; print(torch.__version__, torch.cuda.is_available())'"
+      '';
+    };
   };
 
   platformFormatter.${system} = pkgs.nixpkgs-fmt;

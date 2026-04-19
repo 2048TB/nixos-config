@@ -77,6 +77,9 @@ registry-meta-sync-check:
 use:
     @flake_repo="$(bash {{repo}}/nix/scripts/admin/print-flake-repo.sh {{repo}})"; echo ">>> entering filtered flake repo: $flake_repo"; cd "$flake_repo" && exec "${SHELL:-bash}" -l
 
+ml-shell:
+    @flake_repo="$(bash {{repo}}/nix/scripts/admin/print-flake-repo.sh {{repo}})"; {{nix_cmd}} develop --option connect-timeout 60 "path:$flake_repo#ml"
+
 # ========== 构建 / 切换 ==========
 
 build: (nh-os "build")

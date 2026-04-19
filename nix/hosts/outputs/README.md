@@ -23,11 +23,18 @@
 - `packages`
 - `overlays`
 - `nixosModules`
+- `devShells`
 
 当前 `apps` 行为：
 
 - Linux：仅保留 `install`
 - Darwin：不导出 app
+
+当前 `devShells` 行为：
+
+- Linux：导出 `default` 与 `ml`
+- `ml` 只覆盖主训练栈；`bitsandbytes`、`vLLM`、`llama.cpp` 不在默认 shell 中
+- Darwin：不导出 dev shell
 
 ## 什么时候改这里
 

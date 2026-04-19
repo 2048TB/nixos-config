@@ -21,6 +21,10 @@ in
         QT_IM_MODULE = "fcitx";
         SDL_IM_MODULE = "fcitx";
 
+        # Python ML stack on NixOS needs the runtime driver path to resolve
+        # libcuda.so.1 for pip-installed CUDA wheels.
+        LD_LIBRARY_PATH = "/run/opengl-driver/lib:/run/current-system/sw/lib";
+
         # OpenSSL for Rust openssl-sys on NixOS (user-wide)
         OPENSSL_INCLUDE_DIR = "${pkgs.openssl.dev}/include";
         OPENSSL_LIB_DIR = "${pkgs.openssl.out}/lib";

@@ -25,6 +25,7 @@ just registry-schema-check
 just registry-meta-sync-check
 just validate-local
 just validate-local-full
+just ml-shell
 ```
 
 ```bash

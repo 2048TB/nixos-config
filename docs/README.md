@@ -59,6 +59,7 @@ just show
 just flake-check
 just registry-meta-sync-check
 just validate-local
+just ml-shell
 just host=zly check
 just host=zly switch
 just home-switch
@@ -159,6 +160,19 @@ just registry-meta-sync-check
 just validate-local
 just validate-local-full
 ```
+
+开发环境：
+
+```bash
+just ml-shell
+```
+
+- `ml` 当前覆盖主训练栈：`PyTorch`、`Transformers`、`Datasets`、`Accelerate`、`PEFT`、`TRL`
+- shell 会显式注入 `CUDA/cuDNN/NCCL` 路径与常用 cache 目录
+- `ml` 当前优先使用 `torch-bin` / `triton-bin`，并在进入 shell 时依赖较长的网络超时完成官方 wheel 下载；这样比本地编译 `magma` 更稳妥
+- `just ml-shell` 当前会显式传 `--option connect-timeout 60`
+- Linux 会话当前还会导出 `/run/opengl-driver/lib:/run/current-system/sw/lib` 到 `LD_LIBRARY_PATH`，用于 pip 安装的 CUDA wheels 解析 `libcuda.so.1`
+- `bitsandbytes`、`vLLM`、`llama.cpp` 暂不放进默认入口；它们会显著放大闭包或引入额外源码构建，按需单独处理更稳
 
 系统级入口：
 
