@@ -337,7 +337,7 @@ just home-switch
 
 当前仓库的处理方式是：
 
-- 全局 `mise` 配置默认使用 rolling channel（如 `latest` / `stable`）
+- 全局 `mise` 配置默认使用 rolling channel（如 `latest` / `stable`），但 `python` 固定在 `3.12`
 - 通过 `systemd --user` 定时执行 `mise upgrade --yes`
 - 调度为每周一 `04:30:00`，并附加 `RandomizedDelaySec=1h`
 - `Persistent=true`，因此关机错过上次窗口后，下次登录会补跑

@@ -10,6 +10,10 @@
 4. `disko.nix`
 5. `nix/hosts/registry/systems.toml` 中对应条目
 
+可选：
+
+- `default.nix`：宿主机专属模块入口，用于放不适合进入共享 role / core module 的 host-only 配置（例如单机专用的 CUDA toolkit、实验性服务或临时迁移逻辑）
+
 ## 最小模板
 
 ### `vars.nix`

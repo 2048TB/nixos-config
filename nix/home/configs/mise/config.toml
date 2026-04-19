@@ -11,7 +11,8 @@ precompiled_flavor = "install_only_stripped"
 
 [tools]
 node = "latest"
-python = "latest"
+# Keep the global Python on a vLLM/PyTorch-compatible minor by default.
+python = "3.12"
 go = "latest"
 "rust" = { version = "stable", components = "rust-analyzer", targets = "x86_64-pc-windows-gnu" }
 bun = "latest"
