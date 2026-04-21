@@ -14,11 +14,30 @@ let
     "/home/${mainUser}/nixos/.keys/main.agekey"
   ];
 
-  userPasswordSecretFile = ../../../secrets/passwords/user-password.yaml;
-  rootPasswordSecretFile = ../../../secrets/passwords/root-password.yaml;
-  githubSshPrivateSecretFile = ../../../secrets/ssh/github_id_ed25519.yaml;
-  githubSshPublicSecretFile = ../../../secrets/ssh/github_id_ed25519_pub.yaml;
-  aria2RpcSecretFile = ../../../secrets/services/aria2-rpc-secret.yaml;
+  repoRoot = ../../..;
+  secretPath = rel: repoRoot + "/${rel}";
+  firstExistingSecretFile = preferred: legacy:
+    let
+      preferredPath = secretPath preferred;
+      legacyPath = secretPath legacy;
+    in
+    if builtins.pathExists preferredPath then preferredPath else legacyPath;
+
+  userPasswordSecretFile = firstExistingSecretFile
+    "secrets/common/passwords/user-password.yaml"
+    "secrets/passwords/user-password.yaml";
+  rootPasswordSecretFile = firstExistingSecretFile
+    "secrets/common/passwords/root-password.yaml"
+    "secrets/passwords/root-password.yaml";
+  githubSshPrivateSecretFile = firstExistingSecretFile
+    "secrets/users/${mainUser}/ssh/github_id_ed25519.yaml"
+    "secrets/ssh/github_id_ed25519.yaml";
+  githubSshPublicSecretFile = firstExistingSecretFile
+    "secrets/users/${mainUser}/ssh/github_id_ed25519_pub.yaml"
+    "secrets/ssh/github_id_ed25519_pub.yaml";
+  aria2RpcSecretFile = firstExistingSecretFile
+    "secrets/common/services/aria2-rpc-secret.yaml"
+    "secrets/services/aria2-rpc-secret.yaml";
 
   hasGithubSshPrivateSecret = builtins.pathExists githubSshPrivateSecretFile;
   hasGithubSshPublicSecret = builtins.pathExists githubSshPublicSecretFile;

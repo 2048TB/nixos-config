@@ -28,9 +28,6 @@ let
   baseSpecialArgs = genSpecialArgs system;
   hostDir = "nix/hosts/nixos/${name}";
   registryPath = "nix/hosts/registry/systems.toml";
-  registryState = hostRegistryLib.mkRegistryState {
-    inherit hostRegistry hostMyvars;
-  };
   hostDefaultPath = mylib.relativeToRoot "${hostDir}/default.nix";
   hostEntryPath =
     if hostPath != null then
@@ -46,6 +43,13 @@ let
   hostHardwareModuleNames = import hostHardwareModulesPath;
   cpuVendor = mylib.cpuVendorFromHardwareModules hostHardwareModuleNames;
   derivedGpuMode = mylib.gpuModeFromHardwareModules hostHardwareModuleNames;
+  resolvedGpuMode = hostMyvars.gpuMode or derivedGpuMode;
+  registryState = hostRegistryLib.mkRegistryState {
+    inherit hostRegistry;
+    hostMyvars = hostMyvars // {
+      gpuMode = resolvedGpuMode;
+    };
+  };
   hostHardwareModules =
     map
       (moduleName:
@@ -56,7 +60,7 @@ let
 
   resolvedMyvars = hostMyvars // hostRegistry // {
     hostname = name;
-    gpuMode = hostMyvars.gpuMode or derivedGpuMode;
+    gpuMode = resolvedGpuMode;
   };
   mainUser = resolvedMyvars.username;
 

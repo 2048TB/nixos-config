@@ -18,6 +18,6 @@ common // {
   ];
 
   # Credentials are managed by sops secrets:
-  # - secrets/passwords/user-password.yaml
-  # - secrets/passwords/root-password.yaml
+  # - secrets/common/passwords/user-password.yaml
+  # - secrets/common/passwords/root-password.yaml
 }

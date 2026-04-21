@@ -66,6 +66,13 @@ just optimize
 just use
 ```
 
+## 5. 工具升级
+
+```bash
+just mise-upgrade
+just tool-upgrade
+```
+
 ```bash
 flake_repo="$(bash /persistent/nixos-config/nix/scripts/admin/print-flake-repo.sh /persistent/nixos-config)"
 nix shell nixpkgs#nh -c nh os build "path:$flake_repo" -H zly
@@ -75,7 +82,7 @@ nix shell nixpkgs#nh -c nh clean all --keep-since 14d --keep 0
 nix shell nixpkgs#nh -c nh clean all --keep-since 0h --keep 0
 ```
 
-## 5. `sops`
+## 6. `sops`
 
 ```bash
 just sops-init
@@ -96,7 +103,7 @@ bash /persistent/nixos-config/nix/scripts/admin/sops.sh init --rotate --yes
 bash /persistent/nixos-config/nix/scripts/admin/sops.sh rekey
 ```
 
-## 6. Git Secrets Guard
+## 7. Git Secrets Guard
 
 ```bash
 just hooks-enable

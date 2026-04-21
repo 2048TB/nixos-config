@@ -138,6 +138,7 @@ let
     pkgsMl.stdenv.cc.cc
     pkgsMl.zlib
   ];
+  mlCudaRuntimeLibPath = "/run/opengl-driver/lib:/run/current-system/sw/lib:${mlCudaLibPath}";
   mlPythonEnv = mlPython.withPackages (_: with mlPythonPackages; [
     torch
     transformers
@@ -164,6 +165,9 @@ let
       ] ++ preCommitCheck.enabledPackages;
       shellHook = ''
         ${preCommitCheck.shellHook}
+        export OPENSSL_INCLUDE_DIR="${pkgs.openssl.dev}/include"
+        export OPENSSL_LIB_DIR="${pkgs.openssl.out}/lib"
+        export OPENSSL_DIR="${pkgs.openssl.dev}"
         if [ -d .githooks ] && [ "$(git config core.hooksPath 2>/dev/null)" != ".githooks" ]; then
           git config core.hooksPath .githooks
         fi
@@ -197,7 +201,10 @@ let
         export CUDNN_LIB_DIR="${mlCudnn}/lib"
         export NCCL_ROOT_DIR="${mlNccl}"
         export NCCL_LIB_DIR="${mlNccl}/lib"
-        export LD_LIBRARY_PATH="${mlCudaLibPath}:''${LD_LIBRARY_PATH:-}"
+        export OPENSSL_INCLUDE_DIR="${pkgsMl.openssl.dev}/include"
+        export OPENSSL_LIB_DIR="${pkgsMl.openssl.out}/lib"
+        export OPENSSL_DIR="${pkgsMl.openssl.dev}"
+        export LD_LIBRARY_PATH="${mlCudaRuntimeLibPath}:''${LD_LIBRARY_PATH:-}"
         export HF_HOME="''${HOME}/.cache/huggingface"
         export TRANSFORMERS_CACHE="''${HF_HOME}/hub"
         export TORCH_HOME="''${HOME}/.cache/torch"

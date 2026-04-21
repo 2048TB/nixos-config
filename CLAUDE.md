@@ -31,7 +31,7 @@ AI/自动化工具专用。
 ## 安全规则
 
 - 禁止提交私钥、token、明文密码
-- `secrets/*.yaml` 可提交，`.keys/*.agekey` 不可提交
+- `secrets/` 下加密后的 `*.yaml` 可提交，`.keys/*.agekey` 不可提交
 - 安装、分区、`switch`、`boot`、`test`、`upgrade` 属于危险操作
 - `hosts/*.ssh_host_ed25519.pub` 无效时，`sops` 相关操作应直接失败
 

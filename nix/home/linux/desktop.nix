@@ -16,9 +16,12 @@ let
   mkdirExe = lib.getExe' pkgs.coreutils "mkdir";
   touchExe = lib.getExe' pkgs.coreutils "touch";
   catExe = lib.getExe' pkgs.coreutils "cat";
+  dateExe = lib.getExe' pkgs.coreutils "date";
+  enableMiseAutoUpgrade = hostCfg.miseAutoUpgrade or false;
   miseUpgrade = pkgs.writeShellScript "mise-upgrade" ''
     set -eu
     cd "$HOME"
+    echo "[mise-upgrade] $(${dateExe} -Is) running: mise upgrade --yes"
     exec ${lib.getExe pkgs.mise} upgrade --yes
   '';
 
@@ -162,10 +165,10 @@ in
       };
 
     user.timers =
-      {
+      lib.optionalAttrs enableMiseAutoUpgrade {
         mise-upgrade = {
           Unit = {
-            Description = "Periodic upgrade for global mise tools";
+            Description = "Periodic upgrade for global mise tools (explicit opt-in)";
           };
           Timer = {
             OnCalendar = "Mon *-*-* 04:30:00";

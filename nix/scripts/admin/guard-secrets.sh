@@ -63,7 +63,9 @@ fi
 # - --all-tracked: 检查全部 tracked 文件
 list_content_scan_files() {
   if [ "$scan_mode" = "all-tracked" ]; then
-    git ls-files
+    git ls-files | while IFS= read -r file; do
+      [ -f "$file" ] && printf '%s\n' "$file"
+    done
   else
     git diff --cached --name-only
   fi

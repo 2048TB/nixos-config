@@ -189,6 +189,12 @@ in
         description = "Override hardware.nvidia.open when a host requires proprietary-only kernel modules.";
       };
 
+      miseAutoUpgrade = lib.mkOption {
+        type = types.bool;
+        default = myvars.miseAutoUpgrade or false;
+        description = "Opt in to the Home Manager user timer that runs mise upgrade.";
+      };
+
       luksMapperDevice = lib.mkOption {
         type = types.str;
         readOnly = true;

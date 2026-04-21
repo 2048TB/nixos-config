@@ -14,16 +14,13 @@ in
 
   system.stateVersion = hostCfg.systemStateVersion;
 
-  system.activationScripts = {
-    # 为硬编码 /bin/bash 的脚本提供兼容路径。
-    binbash = {
-      text = ''
-        ${pkgs.coreutils}/bin/mkdir -p /bin
-        ${pkgs.coreutils}/bin/ln -sfn /run/current-system/sw/bin/bash /bin/bash
-      '';
-      deps = [ "specialfs" ];
-    };
-  };
+  # 为硬编码 /bin/bash 的脚本提供兼容路径；用 tmpfiles 声明，避免 switch 阶段命令式改根目录。
+  systemd.tmpfiles.rules = [
+    "d /bin 0755 root root -"
+    "L+ /bin/bash - - - - /run/current-system/sw/bin/bash"
+  ];
+
+  programs.zsh.enable = true;
 
   networking = {
     hostName = hostCfg.hostname;

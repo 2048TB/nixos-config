@@ -113,6 +113,10 @@ displays = []
 
 - Linux `desktopProfile` 当前只支持 `niri`
 - `displays` 是 monitor topology 的唯一事实源；不要再用 `tags` 表达 `multi-monitor` / `hidpi`
+- 声明 `displays` 时必须且只能有一个 `primary = true`
+- `gpuVendors` 必须与 `gpuMode` 匹配；例如 `amd-nvidia-hybrid` 必须同时声明 `amd` 与 `nvidia`
+- hybrid GPU 主机必须在 `vars.nix` 中声明 `amdgpuBusId` 与 `nvidiaBusId`
+- `gaming` role 必须搭配 `desktopSession = true`
 
 ## 实际数据入口
 

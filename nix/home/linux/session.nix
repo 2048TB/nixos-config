@@ -5,7 +5,7 @@ let
 in
 {
   home = {
-    # 会话变量（仅 Linux 特有：Wayland/输入法/OpenSSL）
+    # 会话变量（仅 Linux 特有：Wayland/输入法）
     sessionVariables =
       {
         # Wayland 支持
@@ -20,15 +20,6 @@ in
         # Qt < 6.7 仍需 QT_IM_MODULE；SDL2 文字输入需 SDL_IM_MODULE。
         QT_IM_MODULE = "fcitx";
         SDL_IM_MODULE = "fcitx";
-
-        # Python ML stack on NixOS needs the runtime driver path to resolve
-        # libcuda.so.1 for pip-installed CUDA wheels.
-        LD_LIBRARY_PATH = "/run/opengl-driver/lib:/run/current-system/sw/lib";
-
-        # OpenSSL for Rust openssl-sys on NixOS (user-wide)
-        OPENSSL_INCLUDE_DIR = "${pkgs.openssl.dev}/include";
-        OPENSSL_LIB_DIR = "${pkgs.openssl.out}/lib";
-        OPENSSL_DIR = "${pkgs.openssl.dev}";
       };
 
     # Rime 会缓存编译后的 build 产物；配置更新后若不清理，fcitx5 可能继续吃旧配置。

@@ -49,11 +49,9 @@ in
 
     channel.enable = false;
 
-    # 垃圾回收交由 programs.nh.clean 负责，避免与 nh 模块冲突。
+    # 垃圾回收交由 programs.nh.clean 负责；这里只显式关闭 Nix 自带 timer，避免双重调度。
     gc = {
       automatic = false;
-      dates = "Mon 03:15"; # 每周一凌晨，避免与日常使用冲突
-      options = "--delete-older-than 14d";
     };
 
   };

@@ -43,10 +43,13 @@
 - 显式传入的 `--repo` / `NIXOS_CONFIG_REPO` 若无效，脚本会直接失败，不会静默回退
 - read-only `eval` / `show` / `build` 优先通过 filtered flake repo，避免直接触碰不可读的 `.keys/main.agekey`
 - `sops.sh` 与 `guard-secrets.sh` 可以从仓库外直接调用
+- `/bin/bash` 兼容链接由 `systemd.tmpfiles.rules` 声明为 `/run/current-system/sw/bin/bash`，不再通过 activation script 命令式创建
 - `nix/hosts/registry/systems.toml` 是 host metadata 的事实源
 - `displays` metadata 是 monitor topology 的事实源；不要再在别处重复手写 connector facts
 - `nix/home/configs/noctalia/` 当前按设计直接映射到 repo 工作树；GUI 改动会直接改动 tracked config
-- Home Manager 当前会把 `~/.local/share/mise/shims` 放进 session `PATH`；`code` / `antigravity` 还会额外通过 `~/.local/bin/` wrapper 过滤已知 Electron Wayland 参数告警；全局 `mise` 工具通过 `systemd --user` timer 定期执行 `mise upgrade`；涉及此行为的改动需重新执行 `just home-switch`
+- Home Manager 当前会把 `~/.local/share/mise/shims` 放进 session `PATH`；`code` / `antigravity` 还会额外通过 `~/.local/bin/` wrapper 过滤已知 Electron Wayland 参数告警；`mise upgrade` 默认手动执行（`just mise-upgrade`），只有主机显式设置 `my.host.miseAutoUpgrade = true` 时才启用 `systemd --user` timer；涉及此行为的改动需重新执行 `just home-switch`
+- greetd 会话启动前只导入 HM/GUI 基础变量；`WAYLAND_DISPLAY` / `DISPLAY` 等显示变量由 Niri `spawn-at-startup` 的 `wayland-session-env-sync` 在 compositor 启动后再导入 systemd user / D-Bus activation 环境
+- 启用 hibernate 的主机会安装 `swapfile-resume-check.service`；swapfile size 或 resume offset 异常会体现在 unit 失败状态与 journal，而不是只出现在 activation 输出中
 - 启用 `"vpn"` role 的 NixOS 主机只做 Provider app 最小集成：启用 Provider app VPN 与 `systemd-resolved`；连接、恢复和 kill switch 交给 Provider app app / daemon 自己管理
 
 ## 3. 最常用命令
@@ -61,6 +64,7 @@ just flake-check
 just registry-meta-sync-check
 just validate-local
 just ml-shell
+just mise-upgrade
 just host=zly check
 just host=zly switch
 just home-switch
@@ -169,10 +173,10 @@ just ml-shell
 ```
 
 - `ml` 当前覆盖主训练栈：`PyTorch`、`Transformers`、`Datasets`、`Accelerate`、`PEFT`、`TRL`
-- shell 会显式注入 `CUDA/cuDNN/NCCL` 路径与常用 cache 目录
+- shell 会显式注入 `CUDA/cuDNN/NCCL`、OpenSSL build env、`/run/opengl-driver/lib` 与常用 cache 目录
 - `ml` 当前优先使用 `torch-bin` / `triton-bin`，并在进入 shell 时依赖较长的网络超时完成官方 wheel 下载；这样比本地编译 `magma` 更稳妥
 - `just ml-shell` 当前会显式传 `--option connect-timeout 60`
-- Linux 会话当前还会导出 `/run/opengl-driver/lib:/run/current-system/sw/lib` 到 `LD_LIBRARY_PATH`，用于 pip 安装的 CUDA wheels 解析 `libcuda.so.1`
+- Linux 用户会话不再全局导出 `LD_LIBRARY_PATH` / `OPENSSL_*`；pip CUDA wheels 需要的 `libcuda.so.1` 解析路径收敛到 `ml` devShell
 - `bitsandbytes`、`vLLM`、`llama.cpp` 暂不放进默认入口；它们会显著放大闭包或引入额外源码构建，按需单独处理更稳
 
 系统级入口：
@@ -243,15 +247,24 @@ just password-set-hash '<sha512-hash>'
 - `init`：同步已有 `main.agekey`
 - `init --create`：创建新的 `main.agekey`
 - `init --rotate [--yes]`：生成新的 `main.agekey`，更新 `secrets/keys/main.age.pub`，并保留旧 key 为 `.keys/main.agekey.pre-rotate.<timestamp>`
-- `rekey`：先校验 `.sops.yaml` 的 `creation_rules.path_regex` 必须为 `^secrets/.*\.yaml$`，再基于当前 `main.agekey`、`recovery.agekey` 和现存 rotation backup keys 构造 identity file，然后对每个 secret 执行 `sops rotate -i --add-age/--rm-age`
+- `rekey`：先校验 `.sops.yaml` 必须包含 `secrets/common/`、`secrets/hosts/<host>/`、`secrets/users/<user>/`、`secrets/install/` 与旧路径兼容规则，且不得退回 `^secrets/.*\.yaml$` catch-all；再基于当前 `main.agekey`、`recovery.agekey` 和现存 rotation backup keys 构造 identity file，然后对每个 secret 执行 `sops rotate -i --add-age/--rm-age`
 - `recipients`：列出当前收件人
 - `host-key-add`：把 host SSH public key 同步到 `secrets/keys/hosts/`
+- `ssh-key-set`：默认把 `.keys/github_id_ed25519` 写入当前主用户的 `secrets/users/<user>/ssh/`；需要覆盖目标用户时设置 `SOPS_USER=<user>`
 
 注意：
 
 - `just sops-init-rotate` 只是交互式入口；需要非交互确认时，直接调用 `nix/scripts/admin/sops.sh init --rotate --yes`
 - rotation 完成后，旧 backup key 仍需保留到 `rekey` 和系统切换完成
 - `run_sops_encrypt_yaml` 现在先写临时文件，再原子替换，避免加密失败时截断原 secret
+
+当前 secret 路径约定：
+
+- `secrets/common/...`：跨 host / user 共用 secret，例如 `passwords/` 与 `services/`
+- `secrets/hosts/<hostname>/...`：预留 host-specific secret；后续可按 host SSH recipient 细化
+- `secrets/users/<username>/...`：用户级 secret，例如 SSH key
+- `secrets/install/...`：安装、恢复或 Live ISO bootstrap 场景
+- `secrets/passwords/`、`secrets/ssh/`、`secrets/services/` 仍由 `.sops.yaml` 兼容，但新写入入口会使用分层路径
 
 ### 7.3 私钥与公钥边界
 
@@ -269,6 +282,10 @@ just password-set-hash '<sha512-hash>'
 - `tags` 只保留无法稳定派生的事实；`multi-monitor` / `hidpi` 不再手写
 - `displays.primary` 现在必须是 `bool`
 - `displays.match` 现在必须是 `string` 或 `null`
+- 若声明了 `displays`，必须且只能有一个 `primary = true`
+- `gpuVendors` 必须与 `gpuMode` 语义匹配；例如 `amd-nvidia-hybrid` 必须同时声明 `amd` 与 `nvidia`
+- hybrid GPU 主机必须声明 `amdgpuBusId` 与 `nvidiaBusId`
+- `gaming` role 必须运行在 `desktopSession = true` 的 host 上
 - Linux `desktopProfile` 当前只支持 `niri`
 - `nix/home/configs/noctalia/settings.json` 会因为 GUI 改动直接漂移；这是当前保留设计，不是文档错误
 
@@ -346,19 +363,20 @@ just home-switch
 
 然后完全退出 `VSCode` / `Antigravity` 再重开。
 
-### 9.9 `mise` 写成 `latest` 后为什么还需要自动升级
+### 9.9 `mise` 写成 `latest` 后为什么还需要显式升级
 
-`mise` 官方语义里，config 文件中的 `latest` 默认只表示“当前已安装版本中的最新”，不会自动跟踪远端最新版本。因此仅把 `~/.config/mise/config.toml` 写成 `latest` 还不够，仍需定期执行 `mise upgrade`。
+`mise` 官方语义里，config 文件中的 `latest` 默认只表示“当前已安装版本中的最新”，不会自动跟踪远端最新版本。因此仅把 `~/.config/mise/config.toml` 写成 `latest` 还不够，需要按需显式执行 `mise upgrade`。
 
 当前仓库的处理方式是：
 
 - 全局 `mise` 配置默认使用 rolling channel（如 `latest` / `stable`），但 `python` 固定在 `3.12`
-- 通过 `systemd --user` 定时执行 `mise upgrade --yes`
-- 调度为每周一 `04:30:00`，并附加 `RandomizedDelaySec=1h`
-- `Persistent=true`，因此关机错过上次窗口后，下次登录会补跑
+- 默认不自动升级，避免 flake 外状态静默漂移
+- 手动入口是 `just mise-upgrade`
+- 若某台主机确实需要自动升级，显式设置 `my.host.miseAutoUpgrade = true` 后才会启用 `systemd --user` timer
+- opt-in timer 调度为每周一 `04:30:00`，附加 `RandomizedDelaySec=1h`，且 `Persistent=true`
 
 手动触发：
 
 ```bash
-systemctl --user start mise-upgrade.service
+just mise-upgrade
 ```

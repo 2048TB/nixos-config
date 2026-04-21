@@ -16,6 +16,29 @@ let
       "/run/current-system/sw/bin/niri-session"
     else
       throw "Unsupported Linux desktopProfile '${desktopProfile}'";
+  waylandSessionEnvSync = pkgs.writeShellScriptBin "wayland-session-env-sync" ''
+    set -u
+
+    # compositor autostart 阶段再导入显示变量；此时 WAYLAND_DISPLAY/DISPLAY
+    # 已由 compositor/session wrapper 写入环境，比 greetd pre-exec 阶段更完整。
+    for _ in $(${pkgs.coreutils}/bin/seq 1 40); do
+      if [ -n "''${WAYLAND_DISPLAY:-}" ] || [ -n "''${DISPLAY:-}" ]; then
+        break
+      fi
+      ${pkgs.coreutils}/bin/sleep 0.25
+    done
+
+    export XDG_SESSION_TYPE="''${XDG_SESSION_TYPE:-wayland}"
+    export XDG_CURRENT_DESKTOP="''${XDG_CURRENT_DESKTOP:-${desktopProfile}}"
+    export XDG_SESSION_DESKTOP="''${XDG_SESSION_DESKTOP:-${desktopProfile}}"
+
+    /run/current-system/sw/bin/systemctl --user import-environment \
+      WAYLAND_DISPLAY DISPLAY \
+      XDG_CURRENT_DESKTOP XDG_SESSION_TYPE XDG_SESSION_DESKTOP || true
+    /run/current-system/sw/bin/dbus-update-activation-environment --systemd \
+      WAYLAND_DISPLAY DISPLAY \
+      XDG_CURRENT_DESKTOP XDG_SESSION_TYPE XDG_SESSION_DESKTOP || true
+  '';
   tuigreetPackage = pkgs.tuigreet or pkgs.greetd.tuigreet or (throw "tuigreet package not found in pkgs.tuigreet or pkgs.greetd.tuigreet");
   waylandSessionCommand = pkgs.writeShellScript "wayland-session" ''
     hm_vars="/etc/profiles/per-user/${mainUser}/etc/profile.d/hm-session-vars.sh"
@@ -29,14 +52,15 @@ let
     # 与交互式会话在输入法、Wayland/Ozone、Qt 主题、portal 发现上保持一致。
     export XDG_CURRENT_DESKTOP="''${XDG_CURRENT_DESKTOP:-${desktopProfile}}"
     export XDG_SESSION_DESKTOP="''${XDG_SESSION_DESKTOP:-${desktopProfile}}"
+    export XDG_SESSION_TYPE="''${XDG_SESSION_TYPE:-wayland}"
     /run/current-system/sw/bin/systemctl --user import-environment \
       QT_IM_MODULE SDL_IM_MODULE \
       NIXOS_OZONE_WL QT_QPA_PLATFORMTHEME NIX_XDG_DESKTOP_PORTAL_DIR \
-      XDG_CURRENT_DESKTOP XDG_SESSION_DESKTOP || true
+      XDG_CURRENT_DESKTOP XDG_SESSION_DESKTOP XDG_SESSION_TYPE || true
     /run/current-system/sw/bin/dbus-update-activation-environment --systemd \
       QT_IM_MODULE SDL_IM_MODULE \
       NIXOS_OZONE_WL QT_QPA_PLATFORMTHEME NIX_XDG_DESKTOP_PORTAL_DIR \
-      XDG_CURRENT_DESKTOP XDG_SESSION_DESKTOP || true
+      XDG_CURRENT_DESKTOP XDG_SESSION_DESKTOP XDG_SESSION_TYPE || true
 
     exec ${desktopExec}
   '';
@@ -54,6 +78,10 @@ let
   '';
 in
 {
+  environment.systemPackages = lib.mkIf hasDesktopSession [
+    waylandSessionEnvSync
+  ];
+
   services = lib.mkMerge [
     {
       # 日志保留策略：/var/log 已持久化，限制总量防止磁盘占满

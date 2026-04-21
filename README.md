@@ -30,10 +30,13 @@ just host=zly disk=/dev/nvme0n1 install
 just update
 just info
 just validate-local
+just ml-shell
+just mise-upgrade
 just host=zly check
 just host=zly switch
 just host=zly upgrade
 just sops-init-create
+just sops-rekey
 just sops-recipients
 just guard-secrets
 ```
@@ -57,6 +60,7 @@ just validate-local-full
 - `install` / `install-live.sh` 会清盘
 - `switch` / `boot` / `test` / `upgrade` 会直接改系统状态
 - `sops.sh init --rotate` 会生成新 `main.agekey`
+- `mise-upgrade` 会更新用户目录中的 flake 外工具版本
 - `nix/home/configs/noctalia/` 当前按设计直接映射到 repo 工作树；GUI 改动会把 `nix/home/configs/noctalia/settings.json` 弄脏
 
 其余细节不在本页展开，统一以 `docs/README.md` 为准。

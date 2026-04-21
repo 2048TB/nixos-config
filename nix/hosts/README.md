@@ -80,6 +80,9 @@ rg -n 'zly|zly-mac' nix/hosts/<platform>/<new-host>
 - `gpuMode` 当前值为 `none` / `modesetting` / `amdgpu` / `nvidia` / `amd-nvidia-hybrid`
 - `displays.primary` 必须是 `bool`
 - `displays.match` 必须是 `string` 或 `null`
+- 声明 `displays` 时必须且只能有一个 `primary = true`
+- `gpuVendors` 必须与 `gpuMode` 匹配；hybrid 模式还必须有 `amdgpuBusId` / `nvidiaBusId`
+- `gaming` role 必须搭配 `desktopSession = true`
 
 ## 验证
 
@@ -96,6 +99,7 @@ nix eval "path:$flake_repo#nixosConfigurations" --apply builtins.attrNames
 ```bash
 just registry-schema-check
 just registry-meta-sync-check
+just flake-check
 ```
 
 命令细节与系统级流程见 `docs/README.md`。

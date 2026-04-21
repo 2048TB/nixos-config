@@ -10,6 +10,7 @@ include "./outputs.kdl"
 
 // Noctalia shell 仍使用仓库工作树中的本地持久化 settings.json，
 // 但启动改为官方当前推荐的 compositor autostart。
+spawn-at-startup "wayland-session-env-sync"
 spawn-at-startup "noctalia-shell"
 
 debug {

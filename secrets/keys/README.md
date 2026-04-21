@@ -44,6 +44,14 @@ bash nix/scripts/admin/sops.sh rekey
 - `rekey`：使用当前 key、recovery key 与 backup keys，把所有 secrets recipients 同步到最新集合
 - `install-live.sh`：安装时只接受“与 `main.age.pub` 匹配”的 private key
 
+secret 路径分层：
+
+- `secrets/common/...`：共享 secret
+- `secrets/hosts/<hostname>/...`：主机级 secret 预留路径
+- `secrets/users/<username>/...`：用户级 secret
+- `secrets/install/...`：安装 / 恢复流程 secret
+- 旧 `secrets/passwords/`、`secrets/ssh/`、`secrets/services/` 路径仅作为兼容层保留
+
 key 搜索顺序：
 
 - `./.keys/main.agekey`

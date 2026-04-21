@@ -39,6 +39,10 @@ rec {
       formFactor = hostRegistry.formFactor or "desktop";
       tags = hostRegistry.tags or [ ];
       gpuVendors = hostRegistry.gpuVendors or [ ];
+      gpuMode = hostMyvars.gpuMode or null;
+      roles = hostMyvars.roles or hostMetaSchema.defaultRoles;
+      amdgpuBusId = hostMyvars.amdgpuBusId or null;
+      nvidiaBusId = hostMyvars.nvidiaBusId or null;
       displays = hostRegistry.displays or [ ];
     };
 
@@ -48,6 +52,19 @@ rec {
     , hostName
     , state
     }:
+    let
+      hasVendor = vendor: builtins.elem vendor state.gpuVendors;
+      gpuVendorsMatchMode =
+        if state.gpuMode == null then true
+        else if state.gpuMode == "none" then state.gpuVendors == [ ]
+        else if state.gpuMode == "modesetting" then !(hasVendor "amd") && !(hasVendor "nvidia")
+        else if state.gpuMode == "amdgpu" then (hasVendor "amd") && !(hasVendor "nvidia")
+        else if state.gpuMode == "nvidia" then (hasVendor "nvidia") && !(hasVendor "amd")
+        else if state.gpuMode == "amd-nvidia-hybrid" then (hasVendor "amd") && (hasVendor "nvidia")
+        else false;
+      primaryDisplayCount =
+        builtins.length (builtins.filter (display: display.primary or false) state.displays);
+    in
     lib.assertMsg
       (state.unknownRegistryKeys == [ ])
       "Host ${hostDir} registry entry has unsupported keys: ${lib.concatStringsSep ", " state.unknownRegistryKeys}"
@@ -105,6 +122,15 @@ rec {
       (builtins.all (vendor: builtins.elem vendor allowedGpuVendors) state.gpuVendors)
       "${registryPath}[${hostName}].gpuVendors must only contain: ${lib.concatStringsSep ", " allowedGpuVendors}"
     && lib.assertMsg
+      gpuVendorsMatchMode
+      "${registryPath}[${hostName}].gpuVendors (${builtins.toJSON state.gpuVendors}) is incompatible with ${hostDir}/vars.nix gpuMode='${state.gpuMode}'"
+    && lib.assertMsg
+      (state.gpuMode != "amd-nvidia-hybrid" || (state.amdgpuBusId != null && state.nvidiaBusId != null))
+      "${hostDir}/vars.nix gpuMode='amd-nvidia-hybrid' requires both amdgpuBusId and nvidiaBusId"
+    && lib.assertMsg
+      (!(builtins.elem "gaming" state.roles) || state.desktopSession)
+      "${hostDir}/vars.nix role 'gaming' requires ${registryPath}[${hostName}].desktopSession = true"
+    && lib.assertMsg
       (builtins.isList state.displays)
       "${registryPath}[${hostName}].displays must be a list"
     && lib.assertMsg
@@ -141,10 +167,11 @@ rec {
       "${registryPath}[${hostName}].displays entries must define non-empty name, string match (when set), boolean primary (when set), positive scale, positive width/height/refresh (when set), and positive workspaceSet values"
     && lib.assertMsg
       (
-        builtins.length
-          (builtins.filter (display: display.primary or false) state.displays)
-        <= 1
+        primaryDisplayCount <= 1
       )
       "${registryPath}[${hostName}].displays may define at most one primary = true entry"
+    && lib.assertMsg
+      (state.displays == [ ] || primaryDisplayCount == 1)
+      "${registryPath}[${hostName}].displays must define exactly one primary = true entry when display metadata is declared"
   ;
 }

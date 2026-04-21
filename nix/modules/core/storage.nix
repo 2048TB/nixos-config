@@ -11,6 +11,44 @@ let
   inherit (config.my.capabilities) hasDesktopSession hasFingerprintReader;
   enableFlatpak = hasDesktopSession;
   hibernateEnabled = hostCfg.resumeOffset != null;
+  swapfileResumeCheck = pkgs.writeShellScript "swapfile-resume-check" ''
+    set -eu
+
+    status=0
+    target_size_bytes=$(( ${toString hostCfg.swapSizeGb} * 1024 * 1024 * 1024 ))
+
+    if [ ! -f /swap/swapfile ]; then
+      echo "ERROR: /swap/swapfile is missing on host ${hostCfg.hostname}; hibernate resume is configured but cannot be verified." >&2
+      exit 1
+    fi
+
+    current_size_bytes="$(${pkgs.coreutils}/bin/stat -c %s /swap/swapfile 2>/dev/null || echo 0)"
+    if [ "$current_size_bytes" -ne "$target_size_bytes" ]; then
+      echo "ERROR: /swap/swapfile size ($current_size_bytes bytes) != configured ${toString hostCfg.swapSizeGb}GiB ($target_size_bytes bytes) on host ${hostCfg.hostname}." >&2
+      echo "ERROR: recreate swapfile and refresh my.host.resumeOffset before relying on hibernate." >&2
+      status=1
+    fi
+
+    configured_resume_offset="${if hostCfg.resumeOffset != null then toString hostCfg.resumeOffset else ""}"
+    if [ -n "$configured_resume_offset" ]; then
+      actual_resume_offset="$(${pkgs.btrfs-progs}/bin/btrfs inspect-internal map-swapfile -r /swap/swapfile 2>/dev/null | ${pkgs.coreutils}/bin/head -n 1 || true)"
+      case "$actual_resume_offset" in
+        ""|*[!0-9]*)
+          echo "ERROR: failed to read actual /swap/swapfile resume offset on host ${hostCfg.hostname}." >&2
+          status=1
+          ;;
+        *)
+          if [ "$actual_resume_offset" != "$configured_resume_offset" ]; then
+            echo "ERROR: my.host.resumeOffset ($configured_resume_offset) != actual swapfile resume offset ($actual_resume_offset) on host ${hostCfg.hostname}." >&2
+            echo "ERROR: update hosts/nixos/${hostCfg.hostname}/vars.nix: resumeOffset = $actual_resume_offset;" >&2
+            status=1
+          fi
+          ;;
+      esac
+    fi
+
+    exit "$status"
+  '';
 in
 {
   preservation.enable = true;
@@ -117,41 +155,19 @@ in
       '';
       deps = [ "specialfs" ];
     };
+  };
 
-    warnSwapfileSizeMismatch = {
-      text = ''
-        if [ "${if hibernateEnabled then "1" else "0"}" = "1" ] && [ -f /swap/swapfile ]; then
-          current_size_bytes="$(${pkgs.coreutils}/bin/stat -c %s /swap/swapfile 2>/dev/null || echo 0)"
-          target_size_bytes=$(( ${toString hostCfg.swapSizeGb} * 1024 * 1024 * 1024 ))
-          if [ "$current_size_bytes" -ne "$target_size_bytes" ]; then
-            echo "WARNING: /swap/swapfile size ($current_size_bytes bytes) != configured ${toString hostCfg.swapSizeGb}GiB ($target_size_bytes bytes) on host ${hostCfg.hostname}." >&2
-            echo "WARNING: recreate swapfile and refresh my.host.resumeOffset before relying on hibernate." >&2
-          fi
-        fi
-      '';
-      deps = [ "specialfs" ];
-    };
-
-    warnResumeOffsetMismatch = {
-      text = ''
-          configured_resume_offset="${if hostCfg.resumeOffset != null then toString hostCfg.resumeOffset else ""}"
-          if [ "${if hibernateEnabled then "1" else "0"}" = "1" ] && [ -f /swap/swapfile ] && [ -n "$configured_resume_offset" ]; then
-            btrfs_bin="${pkgs.btrfs-progs}/bin/btrfs"
-            head_bin="${pkgs.coreutils}/bin/head"
-            actual_resume_offset="$("$btrfs_bin" inspect-internal map-swapfile -r /swap/swapfile 2>/dev/null | "$head_bin" -n 1 || true)"
-            case "$actual_resume_offset" in
-              ""|*[!0-9]*)
-                ;;
-              *)
-                if [ "$actual_resume_offset" != "$configured_resume_offset" ]; then
-                  echo "WARNING: my.host.resumeOffset ($configured_resume_offset) != actual swapfile resume offset ($actual_resume_offset) on host ${hostCfg.hostname}." >&2
-                  echo "WARNING: update hosts/nixos/${hostCfg.hostname}/vars.nix: resumeOffset = $actual_resume_offset;" >&2
-                fi
-                ;;
-            esac
-        fi
-      '';
-      deps = [ "specialfs" ];
+  systemd.services.swapfile-resume-check = lib.mkIf hibernateEnabled {
+    description = "Check swapfile size and resume offset for hibernate";
+    wantedBy = [ "multi-user.target" ];
+    after = [
+      "local-fs.target"
+      "swap-swapfile.swap"
+    ];
+    wants = [ "swap-swapfile.swap" ];
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStart = "${swapfileResumeCheck}";
     };
   };
 }

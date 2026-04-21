@@ -22,6 +22,25 @@ let
   hostCfg = cfg.my.host;
   hostRoles = hostCfg.roles or [ ];
   hasDesktopSession = cfg.my.capabilities.hasDesktopSession or false;
+  hasGpuVendor = vendor: builtins.elem vendor hostCfg.gpuVendors;
+  hasExpectedGpuVendorsForMode =
+    if hostCfg.gpuMode == "none" then hostCfg.gpuVendors == [ ]
+    else if hostCfg.gpuMode == "modesetting" then !(hasGpuVendor "amd") && !(hasGpuVendor "nvidia")
+    else if hostCfg.gpuMode == "amdgpu" then (hasGpuVendor "amd") && !(hasGpuVendor "nvidia")
+    else if hostCfg.gpuMode == "nvidia" then (hasGpuVendor "nvidia") && !(hasGpuVendor "amd")
+    else if hostCfg.gpuMode == "amd-nvidia-hybrid" then (hasGpuVendor "amd") && (hasGpuVendor "nvidia")
+    else false;
+  declaredPrimaryDisplays = builtins.filter (display: display.primary or false) hostCfg.displays;
+  hasExpectedPrimaryDisplayCount =
+    hostCfg.displays == [ ] || builtins.length declaredPrimaryDisplays == 1;
+  hasExpectedDesktopMetadata =
+    (hostCfg.desktopSession && hostCfg.desktopProfile != "none")
+    || (!hostCfg.desktopSession && hostCfg.desktopProfile == "none");
+  hasExpectedHybridMetadata =
+    hostCfg.gpuMode != "amd-nvidia-hybrid"
+    || (hostCfg.amdgpuBusId != null && hostCfg.nvidiaBusId != null);
+  hasExpectedGamingRoleMetadata =
+    !(builtins.elem "gaming" hostRoles) || hostCfg.desktopSession;
   resolvedExpectedLuksName =
     if expectedLuksName != null then expectedLuksName else hostCfg.luksName;
   resolvedExpectedResumeOffset =
@@ -152,6 +171,25 @@ let
     then (cfg.users.users.${mainUser}.linger or false)
     else true;
   actualKvmModules = builtins.filter (m: lib.hasPrefix "kvm-" m) cfg.boot.kernelModules;
+  sessionVariables = hmCfg.home.sessionVariables or { };
+  hasGlobalMlRuntimeLibraryPath = builtins.hasAttr "LD_LIBRARY_PATH" sessionVariables;
+  hasGlobalOpenSslBuildEnv =
+    builtins.any
+      (name': builtins.hasAttr name' sessionVariables)
+      [
+        "OPENSSL_INCLUDE_DIR"
+        "OPENSSL_LIB_DIR"
+        "OPENSSL_DIR"
+      ];
+  miseAutoUpgradeEnabled = cfg.my.host.miseAutoUpgrade or false;
+  hasMiseUpgradeTimer = hmCfg.systemd.user.timers ? mise-upgrade;
+  tmpfilesRules = cfg.systemd.tmpfiles.rules or [ ];
+  hasBinBashTmpfilesLink =
+    builtins.elem "d /bin 0755 root root -" tmpfilesRules
+    && builtins.elem "L+ /bin/bash - - - - /run/current-system/sw/bin/bash" tmpfilesRules;
+  hasLegacyBinBashActivation = cfg.system.activationScripts ? binbash;
+  swapfileResumeCheckEnabled = cfg.systemd.services ? swapfile-resume-check;
+  niriConfigSource = hmCfg.xdg.configFile."niri/config.kdl".source or null;
 
   mkNonEmptyCheck = name': items: msg:
     pkgs.runCommand name' { } ''
@@ -207,6 +245,46 @@ in
 
   "eval-${name}-host-gpu-vendors" = pkgs.runCommand "eval-${name}-host-gpu-vendors" { } ''
     test "${if lib.hasPrefix "[" (builtins.toJSON cfg.my.host.gpuVendors) then "1" else "0"}" = "1"
+    touch "$out"
+  '';
+
+  "eval-${name}-host-gpu-mode-vendors" = pkgs.runCommand "eval-${name}-host-gpu-mode-vendors" { } ''
+    if [ "${if hasExpectedGpuVendorsForMode then "1" else "0"}" != "1" ]; then
+      echo "host ${name}: gpuMode=${hostCfg.gpuMode} is incompatible with gpuVendors=${builtins.toJSON hostCfg.gpuVendors}" >&2
+      exit 1
+    fi
+    touch "$out"
+  '';
+
+  "eval-${name}-host-desktop-metadata" = pkgs.runCommand "eval-${name}-host-desktop-metadata" { } ''
+    if [ "${if hasExpectedDesktopMetadata then "1" else "0"}" != "1" ]; then
+      echo "host ${name}: desktopSession=${toString hostCfg.desktopSession} requires matching desktopProfile metadata, got ${hostCfg.desktopProfile}" >&2
+      exit 1
+    fi
+    touch "$out"
+  '';
+
+  "eval-${name}-host-hybrid-gpu-metadata" = pkgs.runCommand "eval-${name}-host-hybrid-gpu-metadata" { } ''
+    if [ "${if hasExpectedHybridMetadata then "1" else "0"}" != "1" ]; then
+      echo "host ${name}: gpuMode=amd-nvidia-hybrid requires amdgpuBusId and nvidiaBusId" >&2
+      exit 1
+    fi
+    touch "$out"
+  '';
+
+  "eval-${name}-host-primary-display-count" = pkgs.runCommand "eval-${name}-host-primary-display-count" { } ''
+    if [ "${if hasExpectedPrimaryDisplayCount then "1" else "0"}" != "1" ]; then
+      echo "host ${name}: displays must declare exactly one primary=true entry when display metadata exists" >&2
+      exit 1
+    fi
+    touch "$out"
+  '';
+
+  "eval-${name}-host-role-metadata" = pkgs.runCommand "eval-${name}-host-role-metadata" { } ''
+    if [ "${if hasExpectedGamingRoleMetadata then "1" else "0"}" != "1" ]; then
+      echo "host ${name}: role 'gaming' requires desktopSession=true" >&2
+      exit 1
+    fi
     touch "$out"
   '';
 
@@ -315,22 +393,25 @@ in
     touch "$out"
   '';
 
-  "eval-${name}-binbash-script-uses-store-tools" = pkgs.runCommand "eval-${name}-binbash-script-uses-store-tools" { } ''
-    script='${cfg.system.activationScripts.binbash.text or ""}'
+  "eval-${name}-session-env-no-global-ml-runtime-libs" = pkgs.runCommand "eval-${name}-session-env-no-global-ml-runtime-libs" { } ''
+    test "${if !hasGlobalMlRuntimeLibraryPath then "1" else "0"}" = "1"
+    test "${if !hasGlobalOpenSslBuildEnv then "1" else "0"}" = "1"
+    touch "$out"
+  '';
 
-    test -n "$script"
-    printf '%s\n' "$script" | grep -F '${pkgs.coreutils}/bin/mkdir -p /bin' >/dev/null
-    printf '%s\n' "$script" | grep -F '${pkgs.coreutils}/bin/ln -sfn /run/current-system/sw/bin/bash /bin/bash' >/dev/null
+  "eval-${name}-mise-upgrade-auto-opt-in" = pkgs.runCommand "eval-${name}-mise-upgrade-auto-opt-in" { } ''
+    test "${if hasMiseUpgradeTimer == miseAutoUpgradeEnabled then "1" else "0"}" = "1"
+    touch "$out"
+  '';
 
-    # 负向匹配：禁止回退为 PATH 依赖的裸命令调用。
-    if printf '%s\n' "$script" | grep -qE '(^|[[:space:];|&])mkdir[[:space:]]+-p[[:space:]]+/bin($|[[:space:];|&])'; then
-      echo "binbash activation script should not invoke bare 'mkdir'" >&2
-      exit 1
-    fi
-    if printf '%s\n' "$script" | grep -qE '(^|[[:space:];|&])ln[[:space:]]+-sfn[[:space:]]+/run/current-system/sw/bin/bash[[:space:]]+/bin/bash($|[[:space:];|&])'; then
-      echo "binbash activation script should not invoke bare 'ln'" >&2
-      exit 1
-    fi
+  "eval-${name}-system-zsh-enabled" = pkgs.runCommand "eval-${name}-system-zsh-enabled" { } ''
+    test "${if cfg.programs.zsh.enable or false then "1" else "0"}" = "1"
+    touch "$out"
+  '';
+
+  "eval-${name}-binbash-tmpfiles" = pkgs.runCommand "eval-${name}-binbash-tmpfiles" { } ''
+    test "${if hasBinBashTmpfilesLink then "1" else "0"}" = "1"
+    test "${if !hasLegacyBinBashActivation then "1" else "0"}" = "1"
     touch "$out"
   '';
 
@@ -392,6 +473,15 @@ in
     touch "$out"
   '';
 
+  "eval-${name}-swapfile-resume-check-service" = pkgs.runCommand "eval-${name}-swapfile-resume-check-service" { } ''
+    if [ "${if expectsHibernate then "1" else "0"}" = "1" ]; then
+      test "${if swapfileResumeCheckEnabled then "1" else "0"}" = "1"
+    else
+      test "${if !swapfileResumeCheckEnabled then "1" else "0"}" = "1"
+    fi
+    touch "$out"
+  '';
+
   "eval-${name}-swap-device" = pkgs.runCommand "eval-${name}-swap-device" { } ''
     test "${cfg.fileSystems."/swap".device}" = "/dev/mapper/${resolvedExpectedLuksName}"
     touch "$out"
@@ -449,7 +539,8 @@ in
     for expected_var in \
       NIXOS_OZONE_WL \
       QT_QPA_PLATFORMTHEME \
-      NIX_XDG_DESKTOP_PORTAL_DIR
+      NIX_XDG_DESKTOP_PORTAL_DIR \
+      XDG_SESSION_TYPE
     do
       if ! grep -Fq "$expected_var" "$session_wrapper"; then
         echo "greetd wayland-session wrapper does not import $expected_var" >&2
@@ -457,6 +548,14 @@ in
       fi
     done
 
+    touch "$out"
+  '';
+
+  "eval-${name}-wayland-session-env-sync-autostart" = pkgs.runCommand "eval-${name}-wayland-session-env-sync-autostart" { } ''
+    test "${if builtins.elem "wayland-session-env-sync" systemPackageNames then "1" else "0"}" = "1"
+    niri_config="${if niriConfigSource == null then "" else niriConfigSource}"
+    test -n "$niri_config"
+    grep -F 'spawn-at-startup "wayland-session-env-sync"' "$niri_config" >/dev/null
     touch "$out"
   '';
 }

@@ -6,7 +6,37 @@ keys:
   - &recovery age1ulflqcz2quc2y9w9lefsmvhft0nxl8p667nm3nkmugmp3wghuqhs9at0ra
 
 creation_rules:
-  - path_regex: ^secrets/.*\.yaml$
+  # Shared secrets used by multiple hosts/users. Keep at least main + recovery.
+  - path_regex: ^secrets/common/.*\.yaml$
+    key_groups:
+      - age:
+          - *main
+          - *recovery
+
+  # Host-specific secrets. Host SSH recipients can be added later per path.
+  - path_regex: ^secrets/hosts/[^/]+/.*\.yaml$
+    key_groups:
+      - age:
+          - *main
+          - *recovery
+
+  # User-specific secrets keyed by the primary user name.
+  - path_regex: ^secrets/users/[^/]+/.*\.yaml$
+    key_groups:
+      - age:
+          - *main
+          - *recovery
+
+  # Installation/recovery secrets for live or bootstrap workflows.
+  - path_regex: ^secrets/install/.*\.yaml$
+    key_groups:
+      - age:
+          - *main
+          - *recovery
+
+  # Legacy compatibility for existing checked-in paths; new secrets should use
+  # common/, hosts/, users/, or install/.
+  - path_regex: ^secrets/(passwords|ssh|services)/.*\.yaml$
     key_groups:
       - age:
           - *main

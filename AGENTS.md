@@ -25,7 +25,7 @@
 - read-only `eval` / `show` / `build` 优先走 `print-flake-repo.sh`
 - 显式传入的 `--repo` / `NIXOS_CONFIG_REPO` 若无效，应直接视为错误
 - 不提交私钥、token、明文密码
-- `secrets/*.yaml` 可提交，`.keys/*.agekey` 不可提交
+- `secrets/` 下加密后的 `*.yaml` 可提交，`.keys/*.agekey` 不可提交
 
 ## 文档同步规则
 

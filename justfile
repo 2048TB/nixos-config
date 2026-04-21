@@ -119,6 +119,12 @@ clean-all:
 optimize:
     @sudo nix store optimise
 
+mise-upgrade:
+    @{{nix_cmd}} shell nixpkgs#mise -c mise upgrade --yes
+
+tool-upgrade:
+    @just repo={{repo}} mise-upgrade
+
 # ========== Git / 安全 ==========
 
 status:

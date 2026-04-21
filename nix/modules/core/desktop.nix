@@ -24,8 +24,6 @@ lib.mkIf hasDesktopSession {
       settings.default-cache-ttl = toString gnupgCacheTtlSeconds;
     };
 
-    zsh.enable = true;
-
     niri = {
       enable = true;
       useNautilus = false;

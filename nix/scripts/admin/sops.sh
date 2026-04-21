@@ -17,6 +17,13 @@ main_pub="$secrets_key_dir/main.age.pub"
 recovery_key="$key_dir/recovery.agekey"
 recovery_pub="$secrets_key_dir/recovery.age.pub"
 rotation_backup_glob="$key_dir/main.agekey.pre-rotate.*"
+required_sops_path_rules=(
+  '^secrets/common/.*\.yaml$'
+  '^secrets/hosts/[^/]+/.*\.yaml$'
+  '^secrets/users/[^/]+/.*\.yaml$'
+  '^secrets/install/.*\.yaml$'
+  '^secrets/(passwords|ssh|services)/.*\.yaml$'
+)
 
 # ── helpers ───────────────────────────────────────────────────
 require_main_key() {
@@ -83,6 +90,25 @@ trim_line() {
   tr -d '\r\n' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//'
 }
 
+primary_user_name() {
+  if [ -n "${SOPS_USER:-}" ]; then
+    printf '%s\n' "$SOPS_USER"
+    return 0
+  fi
+
+  if [ -n "${USER:-}" ] && [ "$USER" != "root" ]; then
+    printf '%s\n' "$USER"
+    return 0
+  fi
+
+  awk -F'"' '
+    /^[[:space:]]*username[[:space:]]*=/ {
+      print $2
+      exit
+    }
+  ' "$repo_root/nix/hosts/nixos/_shared/vars-common.nix"
+}
+
 collect_age_recipients() {
   local item host_file host_rec
   local ssh_to_age_stderr=""
@@ -136,7 +162,7 @@ collect_age_recipients_csv() {
 
 ensure_sops_secret_path_rule() {
   local sops_cfg="$repo_root/.sops.yaml"
-  local expected_path_regex='^secrets/.*\.yaml$'
+  local expected found rule
   local -a path_rules
 
   if [ ! -f "$sops_cfg" ]; then
@@ -158,16 +184,27 @@ ensure_sops_secret_path_rule() {
     ' "$sops_cfg"
   )
 
-  if [ "${#path_rules[@]}" -ne 1 ]; then
-    echo "error: expected exactly one creation_rules.path_regex in $sops_cfg, got ${#path_rules[@]}" >&2
-    return 1
-  fi
+  for rule in "${path_rules[@]}"; do
+    if [ "$rule" = '^secrets/.*\.yaml$' ]; then
+      echo "error: $sops_cfg still uses the legacy catch-all secret rule: $rule" >&2
+      echo "hint: use common/hosts/users/install path-specific rules instead" >&2
+      return 1
+    fi
+  done
 
-  if [ "${path_rules[0]}" != "$expected_path_regex" ]; then
-    echo "error: unexpected creation_rules.path_regex in $sops_cfg: '${path_rules[0]}'" >&2
-    echo "hint: expected '$expected_path_regex'" >&2
-    return 1
-  fi
+  for expected in "${required_sops_path_rules[@]}"; do
+    found=0
+    for rule in "${path_rules[@]}"; do
+      if [ "$rule" = "$expected" ]; then
+        found=1
+        break
+      fi
+    done
+    if [ "$found" -ne 1 ]; then
+      echo "error: missing creation_rules.path_regex in $sops_cfg: '$expected'" >&2
+      return 1
+    fi
+  done
 }
 
 encrypt_yaml_to_target() {
@@ -265,8 +302,8 @@ cmd_password_set() {
   fi
 
   local password_hash="$1"
-  local user_secret="$repo_root/secrets/passwords/user-password.yaml"
-  local root_secret="$repo_root/secrets/passwords/root-password.yaml"
+  local user_secret="$repo_root/secrets/common/passwords/user-password.yaml"
+  local root_secret="$repo_root/secrets/common/passwords/root-password.yaml"
   local recipients_csv
 
   require_main_pub
@@ -288,9 +325,18 @@ EOF_HASH
 cmd_ssh_key_set() {
   local private_src="$repo_root/.keys/github_id_ed25519"
   local public_src="$repo_root/.keys/github_id_ed25519.pub"
-  local private_secret="$repo_root/secrets/ssh/github_id_ed25519.yaml"
-  local public_secret="$repo_root/secrets/ssh/github_id_ed25519_pub.yaml"
+  local target_user
+  local private_secret
+  local public_secret
   local recipients_csv
+
+  target_user="$(primary_user_name)"
+  if [ -z "$target_user" ]; then
+    echo "error: could not determine SOPS target user; set SOPS_USER explicitly" >&2
+    exit 1
+  fi
+  private_secret="$repo_root/secrets/users/$target_user/ssh/github_id_ed25519.yaml"
+  public_secret="$repo_root/secrets/users/$target_user/ssh/github_id_ed25519_pub.yaml"
 
   if [ ! -f "$private_src" ]; then
     echo "error: missing $private_src" >&2
@@ -461,7 +507,7 @@ usage: sops.sh <command> [args]
 commands:
   init [--create|--rotate] [--yes]  Initialize/sync main age key
   password-set <sha512-hash>     Encrypt password hash for user + root
-  ssh-key-set                    Encrypt .keys/github_id_ed25519 via sops
+  ssh-key-set                    Encrypt .keys/github_id_ed25519 via sops (SOPS_USER overrides target user)
   recovery-init [--force]        Create/update recovery key pair
   host-add <host> [pub-path]     Register host SSH public key as recipient
   recipients                     List current recipient key files
