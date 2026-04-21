@@ -430,10 +430,11 @@ in
     grep -F '${pkgs.provider-app}/bin/provider-app connect' "$script" >/dev/null
     grep -F 'action_cooldown=900' "$script" >/dev/null
     grep -F 'min_trouble_age=600' "$script" >/dev/null
-    grep -F 'classify_status_line()' "$script" >/dev/null
+    grep -F 'normalize_status()' "$script" >/dev/null
     grep -F 'status_line="$(printf' "$script" >/dev/null
-    grep -F 'status_class="$(classify_status_line "$status_line")"' "$script" >/dev/null
-    grep -F 'post_restart_status_class="$(classify_status_line "$post_restart_status_line")"' "$script" >/dev/null
+    grep -F 'normalized_status="$(normalize_status "$status_line" "$status_exit")"' "$script" >/dev/null
+    grep -F 'post_restart_normalized_status="$(normalize_status "$post_restart_status_line" "$post_restart_status_exit")"' "$script" >/dev/null
+    grep -F 'printf '"'"'%s\n'"'"' error' "$script" >/dev/null
     grep -F 'provider-app-recover' "$script" >/dev/null
     if grep -F '*Connected*' "$script" >/dev/null; then
       echo "recovery script must not use broad *Connected* status matching" >&2

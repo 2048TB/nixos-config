@@ -77,19 +77,27 @@ in
             [ "$ts" -gt 0 ] && [ $((now - ts)) -lt "$window" ]
           }
 
-          classify_status_line() {
+          normalize_status() {
+            if [ "$2" -ne 0 ]; then
+              printf '%s\n' error
+              return
+            fi
+
             case "$1" in
               Connected|Connected\ *)
-                printf '%s\n' healthy
+                printf '%s\n' connected
                 ;;
               Connecting|Connecting\ *)
                 printf '%s\n' connecting
                 ;;
-              Disconnected|Disconnected\ *|"")
-                printf '%s\n' unhealthy
+              Disconnected|Disconnected\ *)
+                printf '%s\n' disconnected
+                ;;
+              "")
+                printf '%s\n' unknown
                 ;;
               *)
-                printf '%s\n' unhealthy
+                printf '%s\n' unknown
                 ;;
             esac
           }
@@ -100,13 +108,14 @@ in
             exit 0
           fi
 
-          status="$(${provider-appExe} status 2>&1 || true)"
+          status_exit=0
+          status="$(${provider-appExe} status 2>&1)" || status_exit="$?"
           status_line="$(printf '%s\n' "$status" | ${headExe} -n 1)"
-          status_class="$(classify_status_line "$status_line")"
-          case "$status_class" in
-            healthy)
+          normalized_status="$(normalize_status "$status_line" "$status_exit")"
+          case "$normalized_status" in
+            connected)
               ${rmExe} -f "$trouble_since_file"
-              log "status healthy, class=$status_class, line: $status_line"
+              log "status healthy, normalized=$normalized_status, line: $status_line"
               exit 0
               ;;
             connecting)
@@ -120,39 +129,40 @@ in
           trouble_since="$(read_ts "$trouble_since_file")"
           if [ "$trouble_since" -le 0 ]; then
             printf '%s\n' "$now" > "$trouble_since_file"
-            log "observed $trouble_kind status, class=$status_class, line: $status_line; waiting before recovery"
+            log "observed $trouble_kind status, normalized=$normalized_status, line: $status_line; waiting before recovery"
             exit 0
           fi
 
           trouble_age=$((now - trouble_since))
           if [ "$trouble_age" -lt "$min_trouble_age" ]; then
-            log "status still $trouble_kind for ''${trouble_age}s, below ''${min_trouble_age}s threshold, class=$status_class, line: $status_line"
+            log "status still $trouble_kind for ''${trouble_age}s, below ''${min_trouble_age}s threshold, normalized=$normalized_status, line: $status_line"
             exit 0
           fi
 
           last_action="$(read_ts "$last_action_file")"
           if is_recent "$last_action" "$action_cooldown"; then
-            log "status still $trouble_kind, but recovery is cooling down, class=$status_class, line: $status_line"
+            log "status still $trouble_kind, but recovery is cooling down, normalized=$normalized_status, line: $status_line"
             exit 0
           fi
 
           printf '%s\n' "$now" > "$last_action_file"
-          log "status stuck for ''${trouble_age}s, restarting provider-app-daemon, class=$status_class, line: $status_line"
+          log "status stuck for ''${trouble_age}s, restarting provider-app-daemon, normalized=$normalized_status, line: $status_line"
           ${systemctlExe} restart provider-app-daemon.service
           ${sleepExe} 10
 
-          post_restart_status="$(${provider-appExe} status 2>&1 || true)"
+          post_restart_status_exit=0
+          post_restart_status="$(${provider-appExe} status 2>&1)" || post_restart_status_exit="$?"
           post_restart_status_line="$(printf '%s\n' "$post_restart_status" | ${headExe} -n 1)"
-          post_restart_status_class="$(classify_status_line "$post_restart_status_line")"
-          case "$post_restart_status_class" in
-            healthy)
-              log "daemon restart restored healthy status, class=$post_restart_status_class, line: $post_restart_status_line"
+          post_restart_normalized_status="$(normalize_status "$post_restart_status_line" "$post_restart_status_exit")"
+          case "$post_restart_normalized_status" in
+            connected)
+              log "daemon restart restored healthy status, normalized=$post_restart_normalized_status, line: $post_restart_status_line"
               ;;
             connecting)
-              log "daemon restart left provider-app connecting, class=$post_restart_status_class, line: $post_restart_status_line"
+              log "daemon restart left provider-app connecting, normalized=$post_restart_normalized_status, line: $post_restart_status_line"
               ;;
             *)
-              log "daemon restart did not restore active state, class=$post_restart_status_class, line: $post_restart_status_line; requesting provider-app connect"
+              log "daemon restart did not restore active state, normalized=$post_restart_normalized_status, line: $post_restart_status_line; requesting provider-app connect"
               ${provider-appExe} connect 2>&1 | ${loggerExe} -t "$tag" || true
               ;;
           esac
