@@ -86,7 +86,7 @@ let
   pkgsMl = import inputs.nixpkgs {
     inherit system;
     config = {
-      allowUnfreePredicate = mylib.allowUnfreePredicate;
+      inherit (mylib) allowUnfreePredicate;
       cudaSupport = true;
     };
   };
@@ -120,7 +120,7 @@ let
 
   defaultHost = builtins.head resolvedHostNames;
   mlPython = pkgsMl.python312.override {
-    packageOverrides = final: prev: {
+    packageOverrides = _: prev: {
       torch = prev."torch-bin";
       pytorch = prev."pytorch-bin";
       triton = prev."triton-bin";
@@ -208,7 +208,8 @@ let
         export HF_HOME="''${HOME}/.cache/huggingface"
         export TRANSFORMERS_CACHE="''${HF_HOME}/hub"
         export TORCH_HOME="''${HOME}/.cache/torch"
-        export TORCH_CUDA_ARCH_LIST="8.9"
+        # 若需编译 CUDA 扩展（如 flash-attn），请根据实际显卡架构按需设置
+        # export TORCH_CUDA_ARCH_LIST="8.9"
         echo "ML shell ready"
         echo "python --version"
         echo "python -c 'import torch; print(torch.__version__, torch.cuda.is_available())'"

@@ -4,12 +4,10 @@
 , mylib
 , myvars
 , osConfig ? null
-, userProfileBin
 , ...
 }:
 let
   hostCfg = import ../base/resolve-host.nix { inherit myvars osConfig; };
-  roleFlags = mylib.roleFlags hostCfg;
 
   mkLogFilteredLauncher = mylib.mkLogFilteredLauncher pkgs;
   noctaliaShellPkg = noctalia.packages.${pkgs.stdenv.hostPlatform.system}.default;

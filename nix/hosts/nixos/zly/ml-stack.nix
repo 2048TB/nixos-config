@@ -2,8 +2,7 @@
 let
   cudaToolkit = pkgs.cudaPackages.cudatoolkit;
   cudaNvcc = pkgs.cudaPackages.cuda_nvcc;
-  cudnn = pkgs.cudaPackages.cudnn;
-  nccl = pkgs.cudaPackages.nccl;
+  inherit (pkgs.cudaPackages) cudnn nccl;
 in
 {
   environment.systemPackages = [
