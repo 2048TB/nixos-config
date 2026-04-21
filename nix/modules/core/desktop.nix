@@ -33,10 +33,10 @@ lib.mkIf hasDesktopSession {
 
     nix-ld = {
       enable = true;
-      # steam-run FHS 环境的共享库集（multiPkgs）：glibc, mesa, vulkan-loader, libva 等。
-      # 覆盖非 Steam 游戏（Heroic/itch.io 等）和预编译二进制的常见运行时依赖。
+      # appimageTools 提供的默认 FHS 环境共享库集：glibc, mesa, vulkan-loader, libva 等。
+      # 覆盖预编译二进制的常见运行时依赖。
       libraries =
-        (pkgs.steam-run.passthru.args.multiPkgs pkgs)
+        (pkgs.appimageTools.defaultFhsEnvArgs.multiPkgs pkgs)
         ++ (with pkgs; [
           openssl
         ]);
