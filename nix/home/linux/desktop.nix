@@ -10,7 +10,6 @@
 let
   hostCfg = import ../base/resolve-host.nix { inherit myvars osConfig; };
   roleFlags = mylib.roleFlags hostCfg;
-  inherit (roleFlags) enableProvider appVpn;
 
   mkLogFilteredLauncher = mylib.mkLogFilteredLauncher pkgs;
   noctaliaShellPkg = noctalia.packages.${pkgs.stdenv.hostPlatform.system}.default;
@@ -26,9 +25,6 @@ let
   # ===== Log-filtered launcher 定义 =====
   udiskieLogFiltered = mkLogFilteredLauncher "udiskie-log-filtered" "${pkgs.udiskie}/bin/udiskie" [
     "gtk_widget_get_scale_factor: assertion 'GTK_IS_WIDGET \\(widget\\)' failed"
-  ];
-  provider-appVpnLogFiltered = mkLogFilteredLauncher "provider-app-vpn-log-filtered" "${pkgs.provider-app-vpn}/bin/provider-app-vpn" [
-    "Gtk: gtk_widget_get_scale_factor: assertion 'GTK_IS_WIDGET \\(widget\\)' failed"
   ];
   aria2PrepareSession = pkgs.writeShellScript "aria2-prepare-session" ''
     set -eu
@@ -149,28 +145,6 @@ in
             Type = "simple";
             ExecStartPre = "${aria2PrepareSession}";
             ExecStart = "${aria2Start}";
-            Restart = "on-failure";
-            RestartSec = 2;
-          };
-        };
-
-        provider-app-vpn-ui = lib.mkIf enableProvider appVpn {
-          Unit = {
-            Description = "Provider app VPN GUI";
-            After = [ "graphical-session.target" ];
-            PartOf = [ "graphical-session.target" ];
-          };
-          Install.WantedBy = [ "graphical-session.target" ];
-          Service = {
-            Type = "simple";
-            Environment = [
-              # Provider app wrapper 仅注入 coreutils/grep PATH；补齐 gsettings 与图形库搜索路径
-              "PATH=${pkgs.glib}/bin:/run/current-system/sw/bin:${userProfileBin}"
-              "LD_LIBRARY_PATH=${pkgs.libglvnd}/lib:/run/opengl-driver/lib:/run/opengl-driver-32/lib:/run/current-system/sw/lib"
-              "LIBGL_DRIVERS_PATH=/run/opengl-driver/lib/dri"
-              "GSETTINGS_SCHEMA_DIR=${pkgs.gsettings-desktop-schemas}/share/gsettings-schemas/${pkgs.gsettings-desktop-schemas.name}/glib-2.0/schemas"
-            ];
-            ExecStart = "${lib.getExe provider-appVpnLogFiltered}";
             Restart = "on-failure";
             RestartSec = 2;
           };
