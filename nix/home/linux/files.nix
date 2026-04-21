@@ -17,21 +17,21 @@ let
     lib.concatMapStringsSep " \\\n"
       (pattern: "      -e ${lib.escapeShellArg (mkSedDeleteExpr pattern)}")
       chromiumArgWarningFilters;
-  mkGuiCliWrapper = binaryName: ''
-    #!${pkgs.runtimeShell}
-    set -euo pipefail
+  mkGuiCliWrapper = binaryName: pkgs.writeShellApplication {
+    name = binaryName;
+    text = ''
+          export CHECKPOINTING=false
+          export PATH="${miseShimDir}:$PATH"
 
-    export CHECKPOINTING=false
-    export PATH="${miseShimDir}:$PATH"
-
-    exec 3>&2
-    "${userProfileBin}/${binaryName}" "$@" \
-      2> >(
-        ${pkgs.gnused}/bin/sed -u \
-${chromiumArgWarningDeleteArgs}
-          >&3
-      )
-  '';
+          exec 3>&2
+          "${userProfileBin}/${binaryName}" "$@" \
+            2> >(
+              ${pkgs.gnused}/bin/sed -u \
+      ${chromiumArgWarningDeleteArgs} \
+                >&3
+            )
+    '';
+  };
 in
 {
   home.file = {
@@ -79,12 +79,12 @@ in
 
     ".local/bin/code" = {
       executable = true;
-      text = mkGuiCliWrapper "code";
+      source = lib.getExe (mkGuiCliWrapper "code");
     };
 
     ".local/bin/antigravity" = {
       executable = true;
-      text = mkGuiCliWrapper "antigravity";
+      source = lib.getExe (mkGuiCliWrapper "antigravity");
     };
   };
 }
