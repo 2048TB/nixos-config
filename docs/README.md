@@ -47,6 +47,8 @@
 - `displays` metadata 是 monitor topology 的事实源；不要再在别处重复手写 connector facts
 - `nix/home/configs/noctalia/` 当前按设计直接映射到 repo 工作树；GUI 改动会直接改动 tracked config
 - Home Manager 当前会把 `~/.local/share/mise/shims` 放进 session `PATH`；`code` / `antigravity` 还会额外通过 `~/.local/bin/` wrapper 过滤已知 Electron Wayland 参数告警；全局 `mise` 工具通过 `systemd --user` timer 定期执行 `mise upgrade`；涉及此行为的改动需重新执行 `just home-switch`
+- 启用 `"vpn"` role 的 NixOS 主机会启用 Provider app daemon、`systemd-resolved`、`provider-app-recover.service` / `provider-app-recover.timer` 与最小出站 kill switch；不要通过 NetworkManager dispatcher 在 `connectivity-change` / `up` 时直接执行 `provider-app connect`
+- Provider app kill switch 当前以 NixOS firewall `extraCommands` 管理 `nixos-provider-app-killswitch` output 链：允许 `lo`、`wg-provider-app` / `tun0`、DHCP，以及 root 侧用于 Provider app relay/API bootstrap 的少量端口；其目标是阻止普通用户流量在 tunnel 消失后回退到物理网卡
 
 ## 3. 最常用命令
 

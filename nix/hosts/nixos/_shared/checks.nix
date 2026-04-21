@@ -55,9 +55,10 @@ let
     else null;
   hasProvider appVpn = cfg.services.provider-app-vpn.enable or false;
   provider-appDispatcherScripts = cfg.networking.networkmanager.dispatcherScripts or [ ];
-  provider-appDispatcherPath =
-    if provider-appDispatcherScripts == [ ] then ""
-    else toString (builtins.head provider-appDispatcherScripts).source or "";
+  provider-appDispatcherPaths = map (script: toString (script.source or "")) provider-appDispatcherScripts;
+  provider-appRecoveryScript = cfg.systemd.services.provider-app-recover.script or "";
+  provider-appKillSwitchCommands = cfg.networking.firewall.extraCommands or "";
+  provider-appKillSwitchStopCommands = cfg.networking.firewall.extraStopCommands or "";
   hmCfg = cfg.home-manager.users.${mainUser};
   expectedHome = "/home/${mainUser}";
 
@@ -408,26 +409,43 @@ in
   '';
 }
 // lib.optionalAttrs hasProvider appVpn {
-  # 验证 NM dispatcher 使用 `provider-app connect`（而非 reconnect，后者在 Disconnected 状态下静默无操作）
-  "eval-${name}-provider-app-dispatcher-uses-connect" = pkgs.runCommand "eval-${name}-provider-app-dispatcher-uses-connect" { } ''
-    script_path="${provider-appDispatcherPath}"
-    non_comment_script="$(grep -v '^[[:space:]]*#' "$script_path")"
+  "eval-${name}-provider-app-no-nm-dispatcher" = pkgs.runCommand "eval-${name}-provider-app-no-nm-dispatcher" { } ''
+    test '${builtins.toJSON provider-appDispatcherPaths}' = '[]'
+    touch "$out"
+  '';
 
-    if [ -z "$script_path" ] || [ ! -f "$script_path" ]; then
-      echo "missing provider-app NM dispatcher script" >&2
-      exit 1
-    fi
+  "eval-${name}-provider-app-recovery-systemd-units" = pkgs.runCommand "eval-${name}-provider-app-recovery-systemd-units" { } ''
+    test "${if cfg.systemd.services ? provider-app-recover then "1" else "0"}" = "1"
+    test "${if cfg.systemd.timers ? provider-app-recover then "1" else "0"}" = "1"
+    test "${toString (cfg.systemd.services.provider-app-recover.serviceConfig.StateDirectory or "")}" = "provider-app-recover"
+    test "${toString (cfg.systemd.services.provider-app-recover.serviceConfig.RuntimeDirectory or "")}" = "provider-app-recover"
+    touch "$out"
+  '';
 
-    # 必须使用 connect 而非 reconnect（上游 #6220：reconnect 在断连状态下不生效）
-    # 只检测非注释行中的实际命令调用
-    if ! printf '%s\n' "$non_comment_script" | grep -qE '(^|[^[:alnum:]_])connect([^[:alnum:]_]|$)'; then
-      echo "dispatcher should use 'provider-app connect'" >&2
-      exit 1
-    fi
-    if printf '%s\n' "$non_comment_script" | grep -qE '(^|[^[:alnum:]_])reconnect([^[:alnum:]_]|$)'; then
-      echo "dispatcher should use 'provider-app connect', not 'provider-app reconnect'" >&2
-      exit 1
-    fi
+  "eval-${name}-provider-app-recovery-script" = pkgs.runCommand "eval-${name}-provider-app-recovery-script" { } ''
+    script=${pkgs.writeText "eval-${name}-provider-app-recovery-script" provider-appRecoveryScript}
+
+    grep -F '${pkgs.util-linux}/bin/flock' "$script" >/dev/null
+    grep -F '${pkgs.systemd}/bin/systemctl restart provider-app-daemon.service' "$script" >/dev/null
+    grep -F '${pkgs.provider-app}/bin/provider-app connect' "$script" >/dev/null
+    grep -F 'action_cooldown=900' "$script" >/dev/null
+    grep -F 'min_trouble_age=600' "$script" >/dev/null
+    grep -F 'provider-app-recover' "$script" >/dev/null
+    touch "$out"
+  '';
+
+  "eval-${name}-provider-app-killswitch-firewall" = pkgs.runCommand "eval-${name}-provider-app-killswitch-firewall" { } ''
+    commands=${pkgs.writeText "eval-${name}-provider-app-killswitch-commands" provider-appKillSwitchCommands}
+    stop_commands=${pkgs.writeText "eval-${name}-provider-app-killswitch-stop-commands" provider-appKillSwitchStopCommands}
+
+    grep -F 'nixos-provider-app-killswitch' "$commands" >/dev/null
+    grep -F -- '-o wg-provider-app -j RETURN' "$commands" >/dev/null
+    grep -F -- '-o tun0 -j RETURN' "$commands" >/dev/null
+    grep -F -- '--uid-owner 0 -p udp -m multiport --dports 53,123,51820' "$commands" >/dev/null
+    grep -F -- '--uid-owner 0 -p tcp --dport 443' "$commands" >/dev/null
+    grep -F 'provider-app killswitch drop: ' "$commands" >/dev/null
+    grep -F -- '-j REJECT' "$commands" >/dev/null
+    grep -F 'nixos-provider-app-killswitch' "$stop_commands" >/dev/null
     touch "$out"
   '';
 }
