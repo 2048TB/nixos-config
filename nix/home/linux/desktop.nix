@@ -4,6 +4,7 @@
 , mylib
 , myvars
 , osConfig ? null
+, config
 , ...
 }:
 let
@@ -178,4 +179,8 @@ in
         };
       };
   };
+
+  home.sessionPath = [
+    "${config.home.homeDirectory}/.local/share/mise/shims"
+  ];
 }

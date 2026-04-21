@@ -68,6 +68,12 @@ lib.mkIf hasDesktopSession {
     noto-fonts-cjk-serif # CJK serif（独立字型类别）
   ];
 
+  fonts.fontconfig.defaultFonts = {
+    sansSerif = [ "Sarasa Gothic SC" "Noto Sans CJK SC" "Noto Sans" ];
+    serif = [ "Noto Serif CJK SC" "Noto Serif" ];
+    monospace = [ "Cascadia Code" "Sarasa Term SC" ];
+  };
+
   i18n = {
     defaultLocale = hostCfg.locale;
     extraLocales = [ "en_US.UTF-8/UTF-8" ];

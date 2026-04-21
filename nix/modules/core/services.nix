@@ -62,7 +62,7 @@ let
       NIXOS_OZONE_WL QT_QPA_PLATFORMTHEME NIX_XDG_DESKTOP_PORTAL_DIR \
       XDG_CURRENT_DESKTOP XDG_SESSION_DESKTOP XDG_SESSION_TYPE || true
 
-    exec ${desktopExec}
+    exec /run/current-system/sw/bin/systemd-cat -t wayland-session ${desktopExec}
   '';
   tuigreetCommand = pkgs.writeShellScript "greetd-tuigreet-session" ''
     exec ${lib.getExe tuigreetPackage} \
