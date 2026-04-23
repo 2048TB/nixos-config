@@ -18,7 +18,6 @@ let
     name:
     let
       hostDir = "nix/hosts/nixos/${name}";
-      hostDefaultPath = mylib.relativeToRoot "${hostDir}/default.nix";
       hostVarsPath = mylib.relativeToRoot "${hostDir}/vars.nix";
       hostChecksPath = mylib.relativeToRoot "${hostDir}/checks.nix";
       sharedChecksPath = mylib.relativeToRoot "nix/hosts/nixos/_shared/checks.nix";
@@ -27,7 +26,6 @@ let
       hostRegistry = mylib.hostRegistryEntry "nixos" name;
       hostCtx = mylib.mkNixosHost (args // {
         inherit name hostMyvars hostRegistry;
-        hostPath = if builtins.pathExists hostDefaultPath then hostDefaultPath else null;
       });
       hostCheckArgs = hostCtx // { inherit (args) lib mylib; };
       hostChecks =
@@ -45,6 +43,7 @@ let
   dataWithoutPaths = builtins.attrValues data;
   nixosConfigurations = mylib.mergeAttrFromList "nixosConfigurations" dataWithoutPaths;
   mainUsers = mylib.mergeAttrFromList "mainUsers" dataWithoutPaths;
+  resolvedHostNames = builtins.attrNames nixosConfigurations;
   homeConfigurations =
     builtins.listToAttrs (
       map
@@ -63,9 +62,8 @@ let
             };
           }
         )
-        (builtins.attrNames nixosConfigurations)
+        resolvedHostNames
     );
-  resolvedHostNames = builtins.attrNames nixosConfigurations;
 
   hostEvalTests = common.mkStandardEvalTests {
     configurations = nixosConfigurations;

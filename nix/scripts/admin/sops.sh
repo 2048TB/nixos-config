@@ -113,7 +113,7 @@ collect_age_recipients() {
   local item host_file host_rec
   local ssh_to_age_stderr=""
   local ssh_to_age_stderr_file=""
-  local -a recipients
+  local -a recipients=()
 
   if [ -f "$main_pub" ]; then
     item="$(read_first_meaningful_line "$main_pub")"
@@ -147,6 +147,7 @@ collect_age_recipients() {
   fi
 
   if [ "${#recipients[@]}" -eq 0 ]; then
+    echo "error: no age recipients resolved" >&2
     return 1
   fi
 
@@ -154,9 +155,20 @@ collect_age_recipients() {
 }
 
 collect_age_recipients_csv() {
-  local -a recipients
+  local recipients_file=""
+  local -a recipients=()
 
-  mapfile -t recipients < <(collect_age_recipients)
+  recipients_file="$(mktemp)"
+  if ! collect_age_recipients >"$recipients_file"; then
+    rm -f "$recipients_file"
+    return 1
+  fi
+  mapfile -t recipients <"$recipients_file"
+  rm -f "$recipients_file"
+  if [ "${#recipients[@]}" -eq 0 ]; then
+    echo "error: no age recipients resolved" >&2
+    return 1
+  fi
   join_csv "${recipients[@]}"
 }
 

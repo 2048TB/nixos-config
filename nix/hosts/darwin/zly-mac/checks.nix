@@ -2,12 +2,16 @@
 , name
 , mainUser
 , darwinSystem
+, specialArgs
 , ...
 }:
 let
   cfg = darwinSystem.config;
   hmCfg = cfg.home-manager.users.${mainUser};
   expectedHome = "/Users/${mainUser}";
+  expectedTimezone = specialArgs.myvars.timezone;
+  configuredTimezone = cfg.time.timeZone or null;
+  resolvedTimezone = if configuredTimezone == null then "" else configuredTimezone;
 in
 {
   "eval-${name}-hostname" = pkgs.runCommand "eval-${name}-hostname" { } ''
@@ -17,6 +21,11 @@ in
 
   "eval-${name}-home-directory" = pkgs.runCommand "eval-${name}-home-directory" { } ''
     test "${hmCfg.home.homeDirectory}" = "${expectedHome}"
+    touch "$out"
+  '';
+
+  "eval-${name}-timezone" = pkgs.runCommand "eval-${name}-timezone" { } ''
+    test "${resolvedTimezone}" = "${expectedTimezone}"
     touch "$out"
   '';
 

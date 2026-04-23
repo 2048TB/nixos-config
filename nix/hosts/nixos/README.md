@@ -105,7 +105,7 @@ desktopProfile = "niri"
 kind = "workstation"
 formFactor = "desktop"
 tags = []
-gpuVendors = []
+gpuVendors = ["amd"]
 displays = []
 ```
 

@@ -25,16 +25,25 @@ read_first_meaningful_line() {
 }
 
 resolve_repo_path() {
-  local candidate="${1:-${NIXOS_CONFIG_REPO:-$PWD}}"
+  local candidate=""
   local explicit_candidate=0
   local repo_root=""
   local script_repo=""
 
-  if [ "$#" -gt 0 ] && [ -n "${1:-}" ]; then
+  if [ "$#" -gt 0 ]; then
+    candidate="${1:-}"
     explicit_candidate=1
-  elif [ -n "${NIXOS_CONFIG_REPO:-}" ]; then
+  elif [ "${NIXOS_CONFIG_REPO+x}" = "x" ]; then
+    candidate="$NIXOS_CONFIG_REPO"
     # NIXOS_CONFIG_REPO is user-supplied explicit intent; never silently fallback.
     explicit_candidate=1
+  else
+    candidate="$PWD"
+  fi
+
+  if [ -z "$candidate" ]; then
+    echo "error: empty repo path" >&2
+    return 1
   fi
 
   if [ -f "$candidate/flake.nix" ]; then
@@ -126,7 +135,7 @@ run_nix_flake_check_clean() {
 
 enter_repo_root() {
   local repo_root
-  if [ "$#" -gt 0 ] && [ -n "${1:-}" ]; then
+  if [ "$#" -gt 0 ]; then
     repo_root="$(resolve_repo_path "$1")" || return 1
   else
     repo_root="$(resolve_repo_path)" || return 1

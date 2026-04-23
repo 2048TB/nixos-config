@@ -50,7 +50,7 @@ if [ -n "$tracked_hits" ]; then
   exit 1
 fi
 
-staged_hits="$(git diff --cached --name-only | rg -n "$forbidden_path_pattern" || true)"
+staged_hits="$(git diff --cached --name-only --diff-filter=ACMR | rg -n "$forbidden_path_pattern" || true)"
 if [ -n "$staged_hits" ]; then
   echo "ERROR: forbidden secret-like files are staged:" >&2
   echo "$staged_hits" >&2
@@ -67,7 +67,7 @@ list_content_scan_files() {
       [ -f "$file" ] && printf '%s\n' "$file"
     done
   else
-    git diff --cached --name-only
+    git diff --cached --name-only --diff-filter=ACMR
   fi
 }
 

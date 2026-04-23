@@ -18,8 +18,10 @@
 
 - `nixosConfigurations`
 - `darwinConfigurations`
+- `homeConfigurations`
 - `apps`
 - `checks`
+- `formatter`
 - `packages`
 - `overlays`
 - `nixosModules`

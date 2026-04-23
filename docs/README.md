@@ -93,8 +93,8 @@ nix flake show "path:$flake_repo"
 
 `print-flake-repo.sh` 的当前行为：
 
-- 输出一个复制自当前工作树的临时 flake repo
-- 显式排除 `.keys/`、`.git/`、`.cache/` 与 `result*`
+- 输出可用于 flake 操作的 repo path；只有存在不可读的 `.keys/main.agekey` 时才复制出 filtered repo
+- 复制 filtered repo 时会显式排除 `.keys/`、`.git/`、`.cache/`、`.serena/` 与 `result*`
 - 适合 `nix flake show`、`nix eval`、`nix build`、`nix flake check --no-build`
 - 对显式传错的 repo 路径直接报错
 
@@ -296,7 +296,7 @@ just password-set-hash '<sha512-hash>'
 - hybrid GPU 主机必须声明 `amdgpuBusId` 与 `nvidiaBusId`
 - `gaming` role 必须运行在 `desktopSession = true` 的 host 上
 - Linux `desktopProfile` 当前只支持 `niri`
-- `nix/home/configs/noctalia/settings.json` 会因为 GUI 改动直接漂移；这是当前保留设计，不是文档错误
+- `nix/home/configs/noctalia/` 下的 tracked config 会因为 GUI 改动直接漂移；这是当前保留设计，不是文档错误
 
 ## 9. FAQ
 

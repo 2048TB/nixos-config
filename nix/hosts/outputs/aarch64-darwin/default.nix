@@ -37,6 +37,7 @@ let
 
   darwinConfigurations = mylib.mergeAttrFromList "darwinConfigurations" dataWithoutPaths;
   mainUsers = mylib.mergeAttrFromList "mainUsers" dataWithoutPaths;
+  resolvedHostNames = builtins.attrNames darwinConfigurations;
   homeConfigurations =
     builtins.listToAttrs (
       map
@@ -55,9 +56,8 @@ let
             };
           }
         )
-        (builtins.attrNames darwinConfigurations)
+        resolvedHostNames
     );
-  resolvedHostNames = builtins.attrNames darwinConfigurations;
   hostEvalTests = common.mkStandardEvalTests {
     configurations = darwinConfigurations;
     inherit mainUsers system;

@@ -1,10 +1,12 @@
 { pkgs
 , lib
 , mainUser
+, myvars
 , ...
 }:
 {
   system.primaryUser = mainUser;
+  time.timeZone = myvars.timezone;
 
   programs.zsh.enable = true;
   users.users.${mainUser}.shell = lib.mkDefault pkgs.zsh;
