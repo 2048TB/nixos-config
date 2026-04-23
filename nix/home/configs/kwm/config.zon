@@ -23,6 +23,8 @@
         .status = .{ .fifo = "__KWM_STATUS_FIFO__" },
     },
 
+    .sloppy_focus = true,
+
     .border = .{
         .width = 4,
         .color = .{

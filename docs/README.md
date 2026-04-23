@@ -46,7 +46,7 @@
 - `/bin/bash` 兼容链接由 `systemd.tmpfiles.rules` 声明为 `/run/current-system/sw/bin/bash`，不再通过 activation script 命令式创建
 - `nix/hosts/registry/systems.toml` 是 host metadata 的事实源
 - `displays` metadata 是 monitor topology 的事实源；不要再在别处重复手写 connector facts
-- Linux 桌面当前由 `river` + `kwm` 驱动；`kwm` 配置和 `~/.config/river/*.sh` 由 Home Manager 映射，`tuigreet` 会从 `services.displayManager.sessionPackages` 暴露 `River` 会话
+- Linux 桌面当前由 `river` + `kwm` 驱动；`kwm` 配置和 `~/.config/river/*.sh` 由 Home Manager 映射，`tuigreet` 会从 `services.displayManager.sessionPackages` 暴露 `River` 会话；窗口焦点采用鼠标指向自动聚焦
 - Home Manager 当前会把 `~/.local/share/mise/shims` 放进 session `PATH`；`code` / `antigravity` 还会额外通过 `~/.local/bin/` wrapper 过滤已知 Electron Wayland 参数告警；`mise upgrade` 默认手动执行（`just mise-upgrade`），只有主机显式设置 `my.host.miseAutoUpgrade = true` 时才启用 `systemd --user` timer；涉及此行为的改动需重新执行 `just home-switch`
 - greetd 会话启动前只导入 HM/GUI 基础变量；`WAYLAND_DISPLAY` / `DISPLAY` 等显示变量由 `river` / `kwm` 启动后的 `wayland-session-env-sync` 再导入 systemd user / D-Bus activation 环境，随后 `fcitx5-daemon` / `kwm-status` / `swayidle` 由 `systemd --user` 在会话内拉起
 - `swayidle` 当前 10 分钟锁屏，15 分钟关闭显示器；resume 时通过 registry `displays` metadata 重新开启输出
