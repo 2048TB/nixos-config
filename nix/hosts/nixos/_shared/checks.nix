@@ -72,6 +72,9 @@ let
     if expectedKvmModules != null then expectedKvmModules
     else if cpuVendor != null then mylib.kvmModulesForVendor cpuVendor
     else null;
+  expectedDisplayManagerSessionNames = lib.optionals hasDesktopSession [
+    hostCfg.desktopProfile
+  ];
   hasProvider appVpn = cfg.services.provider-app-vpn.enable or false;
   hmCfg = cfg.home-manager.users.${mainUser};
   expectedHome = "/home/${mainUser}";
@@ -556,6 +559,11 @@ in
     niri_config="${if niriConfigSource == null then "" else niriConfigSource}"
     test -n "$niri_config"
     grep -F 'spawn-at-startup "wayland-session-env-sync"' "$niri_config" >/dev/null
+    touch "$out"
+  '';
+
+  "eval-${name}-display-manager-session-names" = pkgs.runCommand "eval-${name}-display-manager-session-names" { } ''
+    test "${builtins.toJSON cfg.services.displayManager.sessionData.sessionNames}" = "${builtins.toJSON expectedDisplayManagerSessionNames}"
     touch "$out"
   '';
 }

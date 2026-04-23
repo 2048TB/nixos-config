@@ -10,7 +10,8 @@ in
     # 游戏支持
     steam = {
       enable = true;
-      gamescopeSession.enable = true;
+      # 保持 Steam/gamescope 可用，但不把 Steam 注册为登录界面入口。
+      gamescopeSession.enable = false;
       protontricks.enable = true;
       extest.enable = true; # Wayland 下将 X11 输入事件转换为 uinput（Steam Input 控制器支持）
       platformOptimizations.enable = true;
