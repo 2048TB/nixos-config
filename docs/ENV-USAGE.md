@@ -58,7 +58,7 @@ key 相关差异：
 - `switch` / `home-switch` / `boot` / `test` / `upgrade` 会直接改系统状态
 - `upgrade` 会先在指定 repo 上通过 `update-nixos` 更新 Linux NixOS 相关 inputs，再执行 `switch`
 - `sops.sh` / `guard-secrets.sh` 可以从任意目录直接调用
-- 系统默认启用 `programs.nh.clean` 自动清理；若手动执行清理，`just clean` / `just clean-all` 与自动清理参数语义保持一致
+- 系统默认启用 `programs.nh.clean` 自动清理；`just clean` 对齐自动清理保留策略，`just clean-all` 是显式强清理入口
 - `mise upgrade` 默认手动执行（`just mise-upgrade`）；只有 host 显式设置 `my.host.miseAutoUpgrade = true` 才会启用 user timer；其中 `python` 当前固定在 `3.12`
 - Linux 会话不再全局导出 `LD_LIBRARY_PATH` / `OPENSSL_*`；CUDA pip wheels 的 `libcuda.so.1` 路径在 `just ml-shell` 的 `ml` devShell 内注入
 
