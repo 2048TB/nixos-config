@@ -584,6 +584,7 @@ in
     kwm_config=${lib.escapeShellArg kwmConfigText}
     test -n "$kwm_config"
     printf '%s\n' "$kwm_config" | grep -F 'wayland-session-env-sync' >/dev/null
+    printf '%s\n' "$kwm_config" | grep -F 'wayland-session-env-sync && /run/current-system/sw/bin/systemctl --user start --no-block fcitx5-daemon.service' >/dev/null
     touch "$out"
   '';
 

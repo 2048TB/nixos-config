@@ -34,8 +34,10 @@ let
     set -eu
     fifo_dir="$(${dirnameExe} ${lib.escapeShellArg kwmStatusFifo})"
     ${mkdirExe} -p "$fifo_dir"
-    ${rmExe} -f ${lib.escapeShellArg kwmStatusFifo}
-    ${mkfifoExe} ${lib.escapeShellArg kwmStatusFifo}
+    if [ ! -p ${lib.escapeShellArg kwmStatusFifo} ]; then
+      ${rmExe} -f ${lib.escapeShellArg kwmStatusFifo}
+      ${mkfifoExe} ${lib.escapeShellArg kwmStatusFifo}
+    fi
   '';
   kwmStatus = pkgs.writeShellScript "kwm-status" ''
     set -eu
@@ -79,7 +81,7 @@ let
           segments="$volume"
         fi
       fi
-      clock="$(${dateExe} '+%H:%M')"
+      clock="$(${dateExe} '+%a %m-%d %H:%M')"
       if [ -n "$segments" ]; then
         line="$segments | $clock"
       else
@@ -187,7 +189,7 @@ in
           };
           Service = {
             Type = "simple";
-            ExecStart = "/run/current-system/sw/bin/fcitx5 -dr";
+            ExecStart = "/run/current-system/sw/bin/fcitx5 -r";
             Restart = "on-failure";
             RestartSec = 1;
           };
@@ -273,7 +275,18 @@ in
       };
   };
 
-  home.sessionPath = [
-    "${config.home.homeDirectory}/.local/share/mise/shims"
-  ];
+  home = {
+    activation.ensureKwmStatusFifo = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+      fifo_dir="$(${dirnameExe} ${lib.escapeShellArg kwmStatusFifo})"
+      ${mkdirExe} -p "$fifo_dir"
+      if [ ! -p ${lib.escapeShellArg kwmStatusFifo} ]; then
+        ${rmExe} -f ${lib.escapeShellArg kwmStatusFifo}
+        ${mkfifoExe} ${lib.escapeShellArg kwmStatusFifo}
+      fi
+    '';
+
+    sessionPath = [
+      "${config.home.homeDirectory}/.local/share/mise/shims"
+    ];
+  };
 }

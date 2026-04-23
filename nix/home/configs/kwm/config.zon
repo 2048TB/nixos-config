@@ -1,15 +1,16 @@
 .{
     .startup_cmds = .{
-        .{ "wayland-session-env-sync" },
-        .{ "sh", "-lc", "$HOME/.config/river/outputs.sh" },
-        .{ "/run/current-system/sw/bin/systemctl", "--user", "start", "--no-block", "fcitx5-daemon.service", "kwm-status.service", "swayidle.service" },
+        .{ "/run/current-system/sw/bin/sh", "-lc", "/run/current-system/sw/bin/wayland-session-env-sync && /run/current-system/sw/bin/systemctl --user start --no-block fcitx5-daemon.service kwm-status.service swayidle.service" },
+        .{ "/run/current-system/sw/bin/sh", "-lc", "$HOME/.config/river/outputs.sh" },
     },
 
-    .background = 0x@THEME_BG@ff,
+    .background = .{ .color = 0x@THEME_BG@ff },
 
     .bar = .{
+        .show_default = true,
+        .position = .top,
         .font = "Fira Code:size=11",
-        .scheme = .{
+        .color = .{
             .normal = .{
                 .fg = 0x@THEME_FG1@ff,
                 .bg = 0x@THEME_BG@f0,
@@ -19,9 +20,7 @@
                 .bg = 0x@THEME_BLUE@ff,
             },
         },
-        .status = .{
-            .data = .{ .fifo = "__KWM_STATUS_FIFO__" },
-        },
+        .status = .{ .fifo = "__KWM_STATUS_FIFO__" },
     },
 
     .border = .{
