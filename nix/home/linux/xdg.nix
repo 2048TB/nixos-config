@@ -4,7 +4,6 @@
 , mytheme
 , mylib
 , myvars
-, configRepoPath
 , osConfig ? null
 , ...
 }:
@@ -13,8 +12,7 @@ let
   localShareDir = "${homeDir}/.local/share";
   configFiles = import ../base/config-files.nix;
   hostCfg = import ../base/resolve-host.nix { inherit myvars osConfig; };
-  generatedNiriOutputs = mylib.mkNiriOutputs hostCfg;
-  mkSymlink = config.lib.file.mkOutOfStoreSymlink;
+  generatedRiverOutputSetup = mylib.mkRiverOutputSetupScript hostCfg;
 
   imageMimeTypes = [
     "image/jpeg"
@@ -68,10 +66,19 @@ in
       // forcedSourceConfigFiles
       // themedConfigFiles
       // {
+        "river/lock.sh" = {
+          executable = true;
+          text = mytheme.apply (builtins.readFile ../configs/river/lock.sh);
+        };
+        "river/outputs.sh" = {
+          executable = true;
+          text = generatedRiverOutputSetup;
+        };
+        "river/screenshot.sh" = {
+          executable = true;
+          source = ../configs/river/screenshot.sh;
+        };
         "qt6ct/colors/darker.conf".source = "${pkgs.qt6Packages.qt6ct}/share/qt6ct/colors/darker.conf";
-        "niri/outputs.kdl".text = generatedNiriOutputs;
-        # 切到 repo 工作树中的可写目录，让 GUI 修改可直接持久化。
-        "noctalia".source = mkSymlink "${configRepoPath}/nix/home/configs/noctalia";
         "pnpm/rc".text = ''
           global-dir=${localShareDir}/pnpm/global
           global-bin-dir=${localShareDir}/pnpm/bin
@@ -79,13 +86,13 @@ in
       };
 
     # Home Manager 会设置 NIX_XDG_DESKTOP_PORTAL_DIR，并优先从用户 profile 读取 .portal。
-    # 需显式注入 gtk backend，否则会出现 "Requested gtk.portal is unrecognized"，
-    # 进而导致 org.freedesktop.portal.Settings/FileChooser 缺失。
+    # River 侧需同时注入 wlr/gtk backend，避免 portal 选择与实际会话漂移。
     portal = {
       enable = true;
       xdgOpenUsePortal = true;
       extraPortals = with pkgs; [
         xdg-desktop-portal-gtk
+        xdg-desktop-portal-wlr
       ];
       # portal 接口映射由 flake specialArgs 统一提供，避免 system/home 漂移。
       config = portalConfig;

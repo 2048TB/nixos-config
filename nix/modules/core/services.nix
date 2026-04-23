@@ -12,8 +12,8 @@ let
   inherit (config.my.capabilities) isLaptop hasDesktopSession hasFingerprintReader;
   inherit (hostCfg) desktopProfile;
   desktopExec =
-    if desktopProfile == "niri" then
-      "/run/current-system/sw/bin/niri-session"
+    if desktopProfile == "river" then
+      lib.getExe pkgs.river-kwm-session
     else
       throw "Unsupported Linux desktopProfile '${desktopProfile}'";
   waylandSessionEnvSync = pkgs.writeShellScriptBin "wayland-session-env-sync" ''

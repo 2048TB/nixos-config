@@ -24,9 +24,10 @@ lib.mkIf hasDesktopSession {
       settings.default-cache-ttl = toString gnupgCacheTtlSeconds;
     };
 
-    niri = {
+    river-classic = lib.mkIf (hostCfg.desktopProfile == "river") {
       enable = true;
-      useNautilus = false;
+      package = null;
+      extraPackages = [ ];
     };
 
     seahorse.enable = true;
@@ -92,7 +93,15 @@ lib.mkIf hasDesktopSession {
     };
   };
 
-  environment.systemPackages = with pkgs; [
-    xwayland-satellite
-  ];
+  environment.systemPackages =
+    with pkgs;
+    [
+      xwayland-satellite
+    ]
+    ++ lib.optionals (hostCfg.desktopProfile == "river") [
+      river-classic
+      kwm-river
+      kwim
+      river-kwm-session
+    ];
 }

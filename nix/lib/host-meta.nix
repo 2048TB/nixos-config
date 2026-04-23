@@ -38,13 +38,13 @@ let
 
     allowedDesktopProfiles = [
       "none"
-      "niri"
+      "river"
       "aqua"
     ];
 
     allowedLinuxDesktopProfiles = [
       "none"
-      "niri"
+      "river"
     ];
 
     allowedDarwinDesktopProfiles = [

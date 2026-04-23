@@ -76,7 +76,7 @@ rg -n 'zly|zly-mac' nix/hosts/<platform>/<new-host>
 - `roles` 是功能开关，不是 machine topology 容器
 - `tags` 只保留无法稳定派生的事实
 - `displays` 是 monitor topology 的唯一事实源
-- `desktopProfile` 当前 Linux 只支持 `niri`
+- `desktopProfile` 当前 Linux 只支持 `river`
 - `gpuMode` 当前值为 `none` / `modesetting` / `amdgpu` / `nvidia` / `amd-nvidia-hybrid`
 - `displays.primary` 必须是 `bool`
 - `displays.match` 必须是 `string` 或 `null`

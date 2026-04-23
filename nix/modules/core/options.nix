@@ -241,10 +241,10 @@ in
         description = "Derived flag for hosts that should load the desktop session stack.";
       };
 
-      usesNiri = lib.mkOption {
+      usesRiver = lib.mkOption {
         type = types.bool;
         readOnly = true;
-        description = "Derived flag for hosts using the Niri desktop profile.";
+        description = "Derived flag for hosts using the River desktop profile.";
       };
 
       hasMultipleDisplays = lib.mkOption {

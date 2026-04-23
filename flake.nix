@@ -40,9 +40,14 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    noctalia = {
-      url = "github:noctalia-dev/noctalia-shell";
-      inputs.nixpkgs.follows = "nixpkgs-unstable";
+    kwm-src = {
+      url = "github:kewuaa/kwm";
+      flake = false;
+    };
+
+    kwim-src = {
+      url = "github:kewuaa/kwim";
+      flake = false;
     };
 
     lanzaboote = {

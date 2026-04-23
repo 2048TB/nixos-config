@@ -16,10 +16,10 @@ nix/home/
 │   ├── packages.nix    # home.packages（含主账号开发环境）
 │   ├── package-groups.nix # Linux 包分类清单（纯数据）
 │   ├── programs.nix    # fzf/mpv/lutris 等
-│   ├── desktop.nix     # 桌面用户服务、Noctalia 包接入、mise-upgrade service / opt-in timer
+│   ├── desktop.nix     # 桌面用户服务、Nautilus override、mise-upgrade service / opt-in timer
 │   └── xdg.nix         # portal/mimeApps/configFile
 ├── darwin/default.nix  # macOS 专用
-└── configs/            # 应用配置文件（niri/tmux/zellij/shell/television/...）
+└── configs/            # 应用配置文件（kwm/tmux/zellij/shell/television/...）
 ```
 
 ## 常见修改
@@ -31,9 +31,10 @@ nix/home/
 | 跨平台 config file 映射 | `base/config-files.nix` |
 | GUI IDE wrapper | `linux/files.nix` |
 | Television | `configs/television/` + `base/config-files.nix` + `configs/shell/zshrc` |
-| 状态栏 | `configs/niri/config.kdl`（Noctalia autostart） + `linux/desktop.nix`（包接入） |
-| 窗口快捷键 | `configs/niri/interaction.kdl` + `configs/niri/appearance.kdl` |
-| 窗口外观 | `configs/niri/appearance.kdl` |
+| 状态栏 | `configs/kwm/config.zon`（kwm 内置 bar） |
+| 窗口快捷键 | `configs/kwm/config.zon` |
+| 窗口外观 | `configs/kwm/config.zon` |
+| River 会话脚本 | `configs/river/` + `linux/xdg.nix` |
 | Linux 包分类 | `linux/package-groups.nix` |
 | Tmux | `configs/tmux/tmux.conf` |
 | Zellij | `configs/zellij/config.kdl` |
@@ -46,7 +47,7 @@ nix/home/
 - `linux/session.nix` 只放通用 GUI/input session vars；CUDA/OpenSSL 工具链变量收敛到 devShell
 - `configs/mise/config.toml` 当前默认将全局 `python` 固定在 `3.12`，其余常用工具继续跟随 rolling channel
 - Linux 侧入口通过 `_mixins` allowlist 收敛导入列表
-- `nix/home/configs/noctalia/` 当前按设计直接映射到 repo 工作树；GUI 改动会直接修改 tracked files
+- `linux/xdg.nix` 当前会生成 `~/.config/river/outputs.sh`，来源是 host registry `displays` metadata
 - `linux/files.nix` 当前还负责 `~/.local/bin/code` 与 `~/.local/bin/antigravity` wrapper：前置 `mise` shims，并过滤已知 Electron Wayland 参数告警
 - `linux/desktop.nix` 当前还负责 `mise-upgrade.service`；`mise-upgrade.timer` 只有 host 显式设置 `my.host.miseAutoUpgrade = true` 时才安装
 
@@ -61,8 +62,9 @@ just validate-local
 ## 文档同步
 
 改了以下文件需同步 `docs/KEYBINDINGS.md`：
-- `configs/niri/interaction.kdl`
-- `configs/niri/appearance.kdl`
+- `configs/kwm/config.zon`
+- `configs/river/lock.sh`
+- `configs/river/screenshot.sh`
 - `configs/tmux/tmux.conf`
 - `configs/zellij/config.kdl`
 

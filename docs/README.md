@@ -46,9 +46,9 @@
 - `/bin/bash` 兼容链接由 `systemd.tmpfiles.rules` 声明为 `/run/current-system/sw/bin/bash`，不再通过 activation script 命令式创建
 - `nix/hosts/registry/systems.toml` 是 host metadata 的事实源
 - `displays` metadata 是 monitor topology 的事实源；不要再在别处重复手写 connector facts
-- `nix/home/configs/noctalia/` 当前按设计直接映射到 repo 工作树；GUI 改动会直接改动 tracked config
+- Linux 桌面当前由 `river` + `kwm` 驱动；`nix/home/configs/kwm/config.zon` 与 `~/.config/river/*.sh` 由 Home Manager 映射
 - Home Manager 当前会把 `~/.local/share/mise/shims` 放进 session `PATH`；`code` / `antigravity` 还会额外通过 `~/.local/bin/` wrapper 过滤已知 Electron Wayland 参数告警；`mise upgrade` 默认手动执行（`just mise-upgrade`），只有主机显式设置 `my.host.miseAutoUpgrade = true` 时才启用 `systemd --user` timer；涉及此行为的改动需重新执行 `just home-switch`
-- greetd 会话启动前只导入 HM/GUI 基础变量；`WAYLAND_DISPLAY` / `DISPLAY` 等显示变量由 Niri `spawn-at-startup` 的 `wayland-session-env-sync` 在 compositor 启动后再导入 systemd user / D-Bus activation 环境
+- greetd 会话启动前只导入 HM/GUI 基础变量；`WAYLAND_DISPLAY` / `DISPLAY` 等显示变量由 `river` / `kwm` 启动后的 `wayland-session-env-sync` 再导入 systemd user / D-Bus activation 环境
 - 启用 hibernate 的主机会安装 `swapfile-resume-check.service`；swapfile size 或 resume offset 异常会体现在 unit 失败状态与 journal，而不是只出现在 activation 输出中
 - 启用 `"vpn"` role 的 NixOS 主机只做 Provider app 最小集成：启用 Provider app VPN 与 `systemd-resolved`；连接、恢复和 kill switch 交给 Provider app app / daemon 自己管理
 
@@ -295,8 +295,8 @@ just password-set-hash '<sha512-hash>'
 - `gpuVendors` 必须与 `gpuMode` 语义匹配；例如 `amd-nvidia-hybrid` 必须同时声明 `amd` 与 `nvidia`
 - hybrid GPU 主机必须声明 `amdgpuBusId` 与 `nvidiaBusId`
 - `gaming` role 必须运行在 `desktopSession = true` 的 host 上
-- Linux `desktopProfile` 当前只支持 `niri`
-- `nix/home/configs/noctalia/settings.json` 会因为 GUI 改动直接漂移；这是当前保留设计，不是文档错误
+- Linux `desktopProfile` 当前只支持 `river`
+- `displays` metadata 会生成 `~/.config/river/outputs.sh`；桌面输出调整应优先改 registry，而不是手改 home 目录
 
 ## 9. FAQ
 

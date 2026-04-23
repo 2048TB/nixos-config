@@ -32,7 +32,7 @@ rec {
       isDesktop = formFactor == "desktop";
       isLaptop = formFactor == "laptop";
       hasDesktopSession = desktopSession;
-      usesNiri = desktopProfile == "niri";
+      usesRiver = desktopProfile == "river";
       hasMultipleDisplays = builtins.length displays > 1;
       hasDisplayTopology = displays != [ ];
       hasHiDpiDisplay = builtins.any (scale: scale > 1.0) displayScales;

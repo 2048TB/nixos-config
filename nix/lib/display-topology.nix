@@ -33,43 +33,58 @@ let
     else if refresh == null then "${toString width}x${toString height}"
     else "${toString width}x${toString height}@${toString refresh}";
 
-  mkNiriOutputBlock =
+  renderWlrRandrMode =
     display:
     let
-      identifier = outputIdentifier display;
-      mode = renderMode display;
-      scale = display.scale or null;
-      lines =
-        lib.filter (line: line != null) [
-          (if identifier == null then null else "output \"${identifier}\" {")
-          (if mode == null then null else "    mode \"${mode}\"")
-          (if scale == null then null else "    scale ${toString scale}")
-          (if identifier == null then null else "}")
-        ];
+      width = display.width or null;
+      height = display.height or null;
+      refresh = display.refresh or null;
     in
-    if identifier == null then "" else lib.concatStringsSep "\n" lines;
+    if width == null || height == null then null
+    else if refresh == null then "${toString width}x${toString height}"
+    else "${toString width}x${toString height}@${toString refresh}Hz";
+
 in
 {
   inherit primaryDisplay;
 
-  mkNiriOutputs =
+  mkRiverOutputSetupScript =
     host:
-    lib.concatStringsSep "\n\n" (
-      lib.filter (block: block != "") (map mkNiriOutputBlock (getDisplays host))
-    );
-
-  mkNoctaliaMonitorWidgets =
-    { host
-    , widgetsTemplate ? [ ]
-    }:
-    map
-      (display: {
-        inherit (display) name;
-        widgets = widgetsTemplate;
-      })
-      (
+    let
+      displays =
         builtins.filter
           (display: (display.name or "") != "")
-          (getDisplays host)
-      );
+          (getDisplays host);
+      mkCommand =
+        display:
+        let
+          mode = renderWlrRandrMode display;
+          scale = display.scale or null;
+          modeArg =
+            if mode == null then "" else " --mode ${lib.escapeShellArg mode}";
+          scaleArg =
+            if scale == null then "" else " --scale ${lib.escapeShellArg (toString scale)}";
+        in
+        "apply_output ${lib.escapeShellArg display.name} --on${modeArg}${scaleArg}";
+    in
+    ''
+      #!/bin/sh
+      set -eu
+
+      if ! command -v wlr-randr >/dev/null 2>&1; then
+        exit 0
+      fi
+
+      current_outputs="$(wlr-randr || true)"
+
+      apply_output() {
+        output="$1"
+        shift
+        if printf '%s\n' "$current_outputs" | grep -Fq "$output"; then
+          wlr-randr --output "$output" "$@" >/dev/null 2>&1 || true
+        fi
+      }
+
+      ${lib.concatStringsSep "\n" (map mkCommand displays)}
+    '';
 }

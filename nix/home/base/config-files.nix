@@ -22,17 +22,14 @@
     "zellij/config.kdl" = ../configs/zellij/config.kdl;
   };
 
-  linuxSourceFiles = {
-    "niri/config.kdl" = ../configs/niri/config.kdl;
-    "niri/interaction.kdl" = ../configs/niri/interaction.kdl;
-  };
+  linuxSourceFiles = { };
 
   linuxForcedSourceFiles = {
     "fcitx5/profile" = ../configs/fcitx5/profile;
   };
 
   linuxThemedFiles = {
-    "niri/appearance.kdl" = ../configs/niri/appearance.kdl;
+    "kwm/config.zon" = ../configs/kwm/config.zon;
     "fuzzel/fuzzel.ini" = ../configs/fuzzel/fuzzel.ini;
     "foot/foot.ini" = ../configs/foot/foot.ini;
     "ghostty/config" = ../configs/ghostty/config;

@@ -117,7 +117,6 @@ let
     "gnome-keyring" # 桌面与 secrets 依赖链
     "iptables" # firewall/container 栈中的兼容工具
     "less" # 显式工具与传递依赖并存
-    "niri" # compositor 依赖链与显式声明并存
     "shadow" # 用户管理工具链依赖
     "zsh" # 默认 shell 与显式工具链并存
   ];
@@ -130,6 +129,7 @@ let
     "shared-mime-info"
     "xdg-desktop-portal"
     "xdg-desktop-portal-gtk"
+    "xdg-desktop-portal-wlr"
     "zsh"
   ];
   unexpectedSystemHomeOverlapNames = excludeAllowed allowedSystemHomeOverlapNames systemHomeOverlapNames;
@@ -198,7 +198,7 @@ let
     && builtins.elem "L+ /bin/bash - - - - /run/current-system/sw/bin/bash" tmpfilesRules;
   hasLegacyBinBashActivation = cfg.system.activationScripts ? binbash;
   swapfileResumeCheckEnabled = cfg.systemd.services ? swapfile-resume-check;
-  niriConfigSource = hmCfg.xdg.configFile."niri/config.kdl".source or null;
+  kwmConfigText = hmCfg.xdg.configFile."kwm/config.zon".text or "";
 
   mkNonEmptyCheck = name': items: msg:
     pkgs.runCommand name' { } ''
@@ -567,9 +567,9 @@ in
 
   "eval-${name}-wayland-session-env-sync-autostart" = pkgs.runCommand "eval-${name}-wayland-session-env-sync-autostart" { } ''
     test "${if builtins.elem "wayland-session-env-sync" systemPackageNames then "1" else "0"}" = "1"
-    niri_config="${if niriConfigSource == null then "" else niriConfigSource}"
-    test -n "$niri_config"
-    grep -F 'spawn-at-startup "wayland-session-env-sync"' "$niri_config" >/dev/null
+    kwm_config=${lib.escapeShellArg kwmConfigText}
+    test -n "$kwm_config"
+    printf '%s\n' "$kwm_config" | grep -F 'wayland-session-env-sync' >/dev/null
     touch "$out"
   '';
 

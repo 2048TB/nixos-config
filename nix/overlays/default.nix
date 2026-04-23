@@ -26,6 +26,20 @@ let
             final.unstable.zellij
           else
             prev.zellij;
+      }
+      // prev.lib.optionalAttrs prev.stdenv.hostPlatform.isLinux {
+        kwim = final.callPackage ../pkgs/kwim {
+          kwimSrc = inputs.kwim-src;
+        };
+
+        kwm-river = final.callPackage ../pkgs/kwm-river {
+          kwmSrc = inputs.kwm-src;
+          kwim = final.kwim;
+        };
+
+        river-kwm-session = final.callPackage ../pkgs/river-kwm-session.nix {
+          kwm-river = final.kwm-river;
+        };
       };
 
     unstable-packages =
