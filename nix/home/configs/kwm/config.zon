@@ -32,6 +32,9 @@
         },
     },
 
+    // Use kwm's scrolling layout as the closest match to the previous Niri flow.
+    .default_layout = .scroller,
+
     .layout = .{
         .tile = .{
             .mfact = 0.55,
@@ -57,50 +60,86 @@
 
     .bindings = .{
         .key = .{
+            // Session and applications.
             .{ .keysym = "r", .modifiers = .{ .mod4 = true, .shift = true }, .event = .{ .click = .{ .pressed = .reload_config } } },
             .{ .keysym = "e", .modifiers = .{ .mod4 = true, .shift = true }, .event = .{ .click = .{ .pressed = .{ .quit = .{ .exit_session = true } } } } },
+            .{ .keysym = "Delete", .modifiers = .{ .ctrl = true, .mod1 = true }, .event = .{ .click = .{ .pressed = .{ .quit = .{ .exit_session = true } } } } },
             .{ .keysym = "q", .modifiers = .{ .mod4 = true }, .event = .{ .click = .{ .pressed = .close } } },
 
             .{ .keysym = "Return", .modifiers = .{ .mod4 = true }, .event = .{ .click = .{ .pressed = .{ .spawn = .{ .argv = .{ "ghostty" } } } } } },
             .{ .keysym = "Return", .modifiers = .{ .mod4 = true, .shift = true }, .event = .{ .click = .{ .pressed = .{ .spawn = .{ .argv = .{ "foot" } } } } } },
             .{ .keysym = "space", .modifiers = .{ .mod4 = true }, .event = .{ .click = .{ .pressed = .{ .spawn = .{ .argv = .{ "fuzzel" } } } } } },
-            .{ .keysym = "p", .modifiers = .{ .mod4 = true }, .event = .{ .click = .{ .pressed = .{ .spawn = .{ .argv = .{ "fuzzel" } } } } } },
             .{ .keysym = "XF86Search", .modifiers = .{}, .event = .{ .click = .{ .pressed = .{ .spawn = .{ .argv = .{ "fuzzel" } } } } } },
             .{ .keysym = "l", .modifiers = .{ .mod4 = true, .shift = true }, .event = .{ .click = .{ .pressed = .{ .spawn_shell = .{ .cmd = "$HOME/.config/river/lock.sh" } } } } },
+            .{ .keysym = "p", .modifiers = .{ .mod4 = true, .shift = true }, .event = .{ .click = .{ .pressed = .{ .spawn_shell = .{ .cmd = "$HOME/.config/river/dpms-off.sh" } } } } },
+
+            // Screenshots keep the Niri muscle-memory alias and add clipboard variants.
             .{ .keysym = "Print", .modifiers = .{}, .event = .{ .click = .{ .pressed = .{ .spawn_shell = .{ .cmd = "$HOME/.config/river/screenshot.sh save-full" } } } } },
             .{ .keysym = "Print", .modifiers = .{ .shift = true }, .event = .{ .click = .{ .pressed = .{ .spawn_shell = .{ .cmd = "$HOME/.config/river/screenshot.sh save-area" } } } } },
             .{ .keysym = "Print", .modifiers = .{ .ctrl = true }, .event = .{ .click = .{ .pressed = .{ .spawn_shell = .{ .cmd = "$HOME/.config/river/screenshot.sh copy-full" } } } } },
             .{ .keysym = "Print", .modifiers = .{ .ctrl = true, .shift = true }, .event = .{ .click = .{ .pressed = .{ .spawn_shell = .{ .cmd = "$HOME/.config/river/screenshot.sh copy-area" } } } } },
+            .{ .keysym = "a", .modifiers = .{ .mod4 = true, .shift = true }, .event = .{ .click = .{ .pressed = .{ .spawn_shell = .{ .cmd = "$HOME/.config/river/screenshot.sh save-area" } } } } },
 
             .{ .keysym = "b", .modifiers = .{ .mod4 = true }, .event = .{ .click = .{ .pressed = .toggle_bar } } },
-            .{ .keysym = "f", .modifiers = .{ .mod4 = true }, .event = .{ .click = .{ .pressed = .toggle_floating } } },
+            .{ .keysym = "w", .modifiers = .{ .mod4 = true }, .event = .{ .click = .{ .pressed = .toggle_floating } } },
+            .{ .keysym = "e", .modifiers = .{ .mod4 = true }, .event = .{ .click = .{ .pressed = .focus_master_return } } },
             .{ .keysym = "m", .modifiers = .{ .mod4 = true }, .event = .{ .click = .{ .pressed = .{ .toggle_fullscreen = .{ .in_window = false } } } } },
             .{ .keysym = "m", .modifiers = .{ .mod4 = true, .shift = true }, .event = .{ .click = .{ .pressed = .toggle_maximize } } },
+            .{ .keysym = "f", .modifiers = .{ .mod4 = true, .ctrl = true, .shift = true }, .event = .{ .click = .{ .pressed = .{ .toggle_fullscreen = .{ .in_window = true } } } } },
 
+            // Navigation keeps compact J/K and restores the old Niri arrow aliases.
             .{ .keysym = "j", .modifiers = .{ .mod4 = true }, .event = .{ .click = .{ .pressed = .{ .focus_iter = .{ .direction = .forward } } } } },
             .{ .keysym = "k", .modifiers = .{ .mod4 = true }, .event = .{ .click = .{ .pressed = .{ .focus_iter = .{ .direction = .reverse } } } } },
+            .{ .keysym = "Down", .modifiers = .{ .mod4 = true }, .event = .{ .click = .{ .pressed = .{ .focus_iter = .{ .direction = .forward } } } } },
+            .{ .keysym = "Right", .modifiers = .{ .mod4 = true }, .event = .{ .click = .{ .pressed = .{ .focus_iter = .{ .direction = .forward } } } } },
+            .{ .keysym = "Up", .modifiers = .{ .mod4 = true }, .event = .{ .click = .{ .pressed = .{ .focus_iter = .{ .direction = .reverse } } } } },
+            .{ .keysym = "Left", .modifiers = .{ .mod4 = true }, .event = .{ .click = .{ .pressed = .{ .focus_iter = .{ .direction = .reverse } } } } },
             .{ .keysym = "j", .modifiers = .{ .mod4 = true, .shift = true }, .event = .{ .click = .{ .pressed = .{ .swap = .{ .direction = .forward } } } } },
             .{ .keysym = "k", .modifiers = .{ .mod4 = true, .shift = true }, .event = .{ .click = .{ .pressed = .{ .swap = .{ .direction = .reverse } } } } },
+            .{ .keysym = "g", .modifiers = .{ .mod4 = true }, .event = .{ .click = .{ .pressed = .{ .swap = .{ .direction = .forward } } } } },
+            .{ .keysym = "s", .modifiers = .{ .mod4 = true }, .event = .{ .click = .{ .pressed = .{ .swap = .{ .direction = .reverse } } } } },
             .{ .keysym = "comma", .modifiers = .{ .mod4 = true }, .event = .{ .click = .{ .pressed = .{ .focus_output_iter = .{ .direction = .reverse } } } } },
             .{ .keysym = "period", .modifiers = .{ .mod4 = true }, .event = .{ .click = .{ .pressed = .{ .focus_output_iter = .{ .direction = .forward } } } } },
             .{ .keysym = "comma", .modifiers = .{ .mod4 = true, .shift = true }, .event = .{ .click = .{ .pressed = .{ .send_to_output = .{ .direction = .reverse } } } } },
             .{ .keysym = "period", .modifiers = .{ .mod4 = true, .shift = true }, .event = .{ .click = .{ .pressed = .{ .send_to_output = .{ .direction = .forward } } } } },
+            .{ .keysym = "h", .modifiers = .{ .mod4 = true, .shift = true, .mod1 = true }, .event = .{ .click = .{ .pressed = .{ .focus_output_iter = .{ .direction = .reverse } } } } },
+            .{ .keysym = "j", .modifiers = .{ .mod4 = true, .shift = true, .mod1 = true }, .event = .{ .click = .{ .pressed = .{ .focus_output_iter = .{ .direction = .reverse } } } } },
+            .{ .keysym = "k", .modifiers = .{ .mod4 = true, .shift = true, .mod1 = true }, .event = .{ .click = .{ .pressed = .{ .focus_output_iter = .{ .direction = .forward } } } } },
+            .{ .keysym = "l", .modifiers = .{ .mod4 = true, .shift = true, .mod1 = true }, .event = .{ .click = .{ .pressed = .{ .focus_output_iter = .{ .direction = .forward } } } } },
+            .{ .keysym = "h", .modifiers = .{ .mod4 = true, .ctrl = true }, .event = .{ .click = .{ .pressed = .{ .send_to_output = .{ .direction = .reverse } } } } },
+            .{ .keysym = "j", .modifiers = .{ .mod4 = true, .ctrl = true }, .event = .{ .click = .{ .pressed = .{ .send_to_output = .{ .direction = .reverse } } } } },
+            .{ .keysym = "k", .modifiers = .{ .mod4 = true, .ctrl = true }, .event = .{ .click = .{ .pressed = .{ .send_to_output = .{ .direction = .forward } } } } },
+            .{ .keysym = "l", .modifiers = .{ .mod4 = true, .ctrl = true }, .event = .{ .click = .{ .pressed = .{ .send_to_output = .{ .direction = .forward } } } } },
 
+            // Layout and size controls.
             .{ .keysym = "h", .modifiers = .{ .mod4 = true }, .event = .{ .click = .{ .pressed = .{ .modify_mfact = .{ .change = .{ .step = -0.01 } } } } } },
             .{ .keysym = "l", .modifiers = .{ .mod4 = true }, .event = .{ .click = .{ .pressed = .{ .modify_mfact = .{ .change = .{ .step = 0.01 } } } } } },
             .{ .keysym = "minus", .modifiers = .{ .mod4 = true }, .event = .{ .click = .{ .pressed = .{ .modify_nmaster = .{ .change = .decrease } } } } },
             .{ .keysym = "equal", .modifiers = .{ .mod4 = true }, .event = .{ .click = .{ .pressed = .{ .modify_nmaster = .{ .change = .increase } } } } },
             .{ .keysym = "minus", .modifiers = .{ .mod4 = true, .mod1 = true }, .event = .{ .click = .{ .pressed = .{ .modify_gap = .{ .step = -1 } } } } },
             .{ .keysym = "equal", .modifiers = .{ .mod4 = true, .mod1 = true }, .event = .{ .click = .{ .pressed = .{ .modify_gap = .{ .step = 1 } } } } },
+            .{ .keysym = "z", .modifiers = .{ .mod4 = true }, .event = .{ .click = .{ .pressed = .{ .zoom = .{ .swap = false } } } } },
 
             .{ .keysym = "t", .modifiers = .{ .mod4 = true }, .event = .{ .click = .{ .pressed = .{ .switch_layout = .{ .layout = .tile } } } } },
-            .{ .keysym = "g", .modifiers = .{ .mod4 = true }, .event = .{ .click = .{ .pressed = .{ .switch_layout = .{ .layout = .grid } } } } },
-            .{ .keysym = "d", .modifiers = .{ .mod4 = true }, .event = .{ .click = .{ .pressed = .{ .switch_layout = .{ .layout = .deck } } } } },
-            .{ .keysym = "s", .modifiers = .{ .mod4 = true }, .event = .{ .click = .{ .pressed = .{ .switch_layout = .{ .layout = .scroller } } } } },
+            .{ .keysym = "g", .modifiers = .{ .mod4 = true, .mod1 = true }, .event = .{ .click = .{ .pressed = .{ .switch_layout = .{ .layout = .grid } } } } },
+            .{ .keysym = "d", .modifiers = .{ .mod4 = true, .mod1 = true }, .event = .{ .click = .{ .pressed = .{ .switch_layout = .{ .layout = .deck } } } } },
+            .{ .keysym = "s", .modifiers = .{ .mod4 = true, .mod1 = true }, .event = .{ .click = .{ .pressed = .{ .switch_layout = .{ .layout = .scroller } } } } },
             .{ .keysym = "m", .modifiers = .{ .mod4 = true, .ctrl = true }, .event = .{ .click = .{ .pressed = .{ .switch_layout = .{ .layout = .monocle } } } } },
             .{ .keysym = "f", .modifiers = .{ .mod4 = true, .mod1 = true }, .event = .{ .click = .{ .pressed = .{ .switch_layout = .{ .layout = .float } } } } },
 
+            // Tags mirror the old Niri workspace muscle memory where kwm has an equivalent.
             .{ .keysym = "Tab", .modifiers = .{ .mod4 = true }, .event = .{ .click = .{ .pressed = .switch_to_previous_tag } } },
+            .{ .keysym = "p", .modifiers = .{ .mod4 = true }, .event = .{ .click = .{ .pressed = .switch_to_previous_tag } } },
+            .{ .keysym = "Page_Down", .modifiers = .{ .mod4 = true }, .event = .{ .click = .{ .pressed = .{ .set_output_tag = .{ .tag = .{ .direction = .forward } } } } } },
+            .{ .keysym = "Page_Up", .modifiers = .{ .mod4 = true }, .event = .{ .click = .{ .pressed = .{ .set_output_tag = .{ .tag = .{ .direction = .reverse } } } } } },
+            .{ .keysym = "Right", .modifiers = .{ .mod4 = true, .mod1 = true }, .event = .{ .click = .{ .pressed = .{ .set_output_tag = .{ .tag = .{ .direction = .forward } } } } } },
+            .{ .keysym = "Left", .modifiers = .{ .mod4 = true, .mod1 = true }, .event = .{ .click = .{ .pressed = .{ .set_output_tag = .{ .tag = .{ .direction = .reverse } } } } } },
+            .{ .keysym = "Down", .modifiers = .{ .mod4 = true, .mod1 = true }, .event = .{ .click = .{ .pressed = .{ .set_output_tag = .{ .tag = .{ .unoccupied = .forward } } } } } },
+            .{ .keysym = "n", .modifiers = .{ .mod4 = true }, .event = .{ .click = .{ .pressed = .{ .set_output_tag = .{ .tag = .{ .unoccupied = .forward } } } } } },
+            .{ .keysym = "Page_Down", .modifiers = .{ .mod4 = true, .ctrl = true }, .event = .{ .click = .{ .pressed = .{ .set_window_tag = .{ .tag = .{ .direction = .forward } } } } } },
+            .{ .keysym = "Page_Up", .modifiers = .{ .mod4 = true, .ctrl = true }, .event = .{ .click = .{ .pressed = .{ .set_window_tag = .{ .tag = .{ .direction = .reverse } } } } } },
+            .{ .keysym = "d", .modifiers = .{ .mod4 = true }, .event = .{ .click = .{ .pressed = .{ .set_window_tag = .{ .tag = .{ .direction = .forward } } } } } },
+            .{ .keysym = "f", .modifiers = .{ .mod4 = true }, .event = .{ .click = .{ .pressed = .{ .set_window_tag = .{ .tag = .{ .direction = .reverse } } } } } },
 
             .{ .keysym = "1", .modifiers = .{ .mod4 = true }, .event = .{ .click = .{ .pressed = .{ .set_output_tag = .{ .tag = .{ .tag = 0b1 } } } } } },
             .{ .keysym = "2", .modifiers = .{ .mod4 = true }, .event = .{ .click = .{ .pressed = .{ .set_output_tag = .{ .tag = .{ .tag = 0b10 } } } } } },
@@ -133,7 +172,17 @@
             .{ .keysym = "8", .modifiers = .{ .mod4 = true, .shift = true }, .event = .{ .click = .{ .pressed = .{ .set_window_tag = .{ .tag = .{ .tag = 0b10000000 } } } } } },
             .{ .keysym = "9", .modifiers = .{ .mod4 = true, .shift = true }, .event = .{ .click = .{ .pressed = .{ .set_window_tag = .{ .tag = .{ .tag = 0b100000000 } } } } } },
             .{ .keysym = "0", .modifiers = .{ .mod4 = true, .shift = true }, .event = .{ .click = .{ .pressed = .{ .set_window_tag = .{ .tag = .{ .tag = 0b111111111 } } } } } },
+            .{ .keysym = "1", .modifiers = .{ .mod4 = true, .mod1 = true }, .event = .{ .click = .{ .pressed = .{ .set_window_tag = .{ .tag = .{ .tag = 0b1 } } } } } },
+            .{ .keysym = "2", .modifiers = .{ .mod4 = true, .mod1 = true }, .event = .{ .click = .{ .pressed = .{ .set_window_tag = .{ .tag = .{ .tag = 0b10 } } } } } },
+            .{ .keysym = "3", .modifiers = .{ .mod4 = true, .mod1 = true }, .event = .{ .click = .{ .pressed = .{ .set_window_tag = .{ .tag = .{ .tag = 0b100 } } } } } },
+            .{ .keysym = "4", .modifiers = .{ .mod4 = true, .mod1 = true }, .event = .{ .click = .{ .pressed = .{ .set_window_tag = .{ .tag = .{ .tag = 0b1000 } } } } } },
+            .{ .keysym = "5", .modifiers = .{ .mod4 = true, .mod1 = true }, .event = .{ .click = .{ .pressed = .{ .set_window_tag = .{ .tag = .{ .tag = 0b10000 } } } } } },
+            .{ .keysym = "6", .modifiers = .{ .mod4 = true, .mod1 = true }, .event = .{ .click = .{ .pressed = .{ .set_window_tag = .{ .tag = .{ .tag = 0b100000 } } } } } },
+            .{ .keysym = "7", .modifiers = .{ .mod4 = true, .mod1 = true }, .event = .{ .click = .{ .pressed = .{ .set_window_tag = .{ .tag = .{ .tag = 0b1000000 } } } } } },
+            .{ .keysym = "8", .modifiers = .{ .mod4 = true, .mod1 = true }, .event = .{ .click = .{ .pressed = .{ .set_window_tag = .{ .tag = .{ .tag = 0b10000000 } } } } } },
+            .{ .keysym = "9", .modifiers = .{ .mod4 = true, .mod1 = true }, .event = .{ .click = .{ .pressed = .{ .set_window_tag = .{ .tag = .{ .tag = 0b100000000 } } } } } },
 
+            // Media keys are duplicated in lock mode so they keep working while locked.
             .{ .keysym = "XF86AudioRaiseVolume", .modifiers = .{}, .event = .{ .click = .{ .pressed = .{ .spawn_shell = .{ .cmd = "wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.01+ --limit 1.0" } } } } },
             .{ .keysym = "XF86AudioLowerVolume", .modifiers = .{}, .event = .{ .click = .{ .pressed = .{ .spawn_shell = .{ .cmd = "wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.01-" } } } } },
             .{ .keysym = "XF86AudioMute", .modifiers = .{}, .event = .{ .click = .{ .pressed = .{ .spawn_shell = .{ .cmd = "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle" } } } } },
@@ -144,6 +193,8 @@
             .{ .keysym = "XF86AudioNext", .modifiers = .{}, .event = .{ .click = .{ .pressed = .{ .spawn_shell = .{ .cmd = "playerctl next" } } } } },
             .{ .keysym = "XF86MonBrightnessUp", .modifiers = .{}, .event = .{ .click = .{ .pressed = .{ .spawn = .{ .argv = .{ "brightnessctl", "--class=backlight", "set", "1%+" } } } } } },
             .{ .keysym = "XF86MonBrightnessDown", .modifiers = .{}, .event = .{ .click = .{ .pressed = .{ .spawn = .{ .argv = .{ "brightnessctl", "--class=backlight", "set", "1%-" } } } } } },
+            .{ .keysym = "XF86KbdBrightnessUp", .modifiers = .{}, .event = .{ .click = .{ .pressed = .{ .spawn = .{ .argv = .{ "brightnessctl", "--device=kbd_backlight", "set", "10%+" } } } } } },
+            .{ .keysym = "XF86KbdBrightnessDown", .modifiers = .{}, .event = .{ .click = .{ .pressed = .{ .spawn = .{ .argv = .{ "brightnessctl", "--device=kbd_backlight", "set", "10%-" } } } } } },
 
             .{ .mode = "lock", .keysym = "XF86AudioRaiseVolume", .modifiers = .{}, .event = .{ .click = .{ .pressed = .{ .spawn_shell = .{ .cmd = "wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.01+ --limit 1.0" } } } } },
             .{ .mode = "lock", .keysym = "XF86AudioLowerVolume", .modifiers = .{}, .event = .{ .click = .{ .pressed = .{ .spawn_shell = .{ .cmd = "wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.01-" } } } } },
@@ -155,6 +206,8 @@
             .{ .mode = "lock", .keysym = "XF86AudioNext", .modifiers = .{}, .event = .{ .click = .{ .pressed = .{ .spawn_shell = .{ .cmd = "playerctl next" } } } } },
             .{ .mode = "lock", .keysym = "XF86MonBrightnessUp", .modifiers = .{}, .event = .{ .click = .{ .pressed = .{ .spawn = .{ .argv = .{ "brightnessctl", "--class=backlight", "set", "1%+" } } } } } },
             .{ .mode = "lock", .keysym = "XF86MonBrightnessDown", .modifiers = .{}, .event = .{ .click = .{ .pressed = .{ .spawn = .{ .argv = .{ "brightnessctl", "--class=backlight", "set", "1%-" } } } } } },
+            .{ .mode = "lock", .keysym = "XF86KbdBrightnessUp", .modifiers = .{}, .event = .{ .click = .{ .pressed = .{ .spawn = .{ .argv = .{ "brightnessctl", "--device=kbd_backlight", "set", "10%+" } } } } } },
+            .{ .mode = "lock", .keysym = "XF86KbdBrightnessDown", .modifiers = .{}, .event = .{ .click = .{ .pressed = .{ .spawn = .{ .argv = .{ "brightnessctl", "--device=kbd_backlight", "set", "10%-" } } } } } },
         },
     },
 

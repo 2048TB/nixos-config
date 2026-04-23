@@ -16,20 +16,24 @@
 | `Mod + Shift + Return` | 打开 `foot` |
 | `Mod + Space` | 启动器（Fuzzel） |
 | `Mod + Q` | 关闭窗口 |
+| `Mod + Left/Down/Up/Right` | 切到上一个 / 下一个窗口（Niri 兼容别名） |
 | `Mod + J/K` | 切到下一个 / 上一个窗口 |
-| `Mod + Shift + J/K` | 与下一个 / 上一个窗口交换位置 |
+| `Mod + S/G` | 与上一个 / 下一个窗口交换位置（Niri 兼容别名） |
 | `Mod + 1..9` | 切到 tag |
-| `Mod + Shift + 1..9` | 把当前窗口送到 tag |
+| `Mod + Shift + 1..9` / `Mod + Alt + 1..9` | 把当前窗口送到 tag |
+| `Mod + P` | 切回上一个 tag |
 | `Mod + M` | 全屏 |
-| `Mod + F` | 切换浮动 |
-| `Mod + T/G/D/S` | 切换 `tile` / `grid` / `deck` / `scroller` |
+| `Mod + W` | 切换浮动 |
+| `Mod + T` / `Mod + Alt + G/D/S/F` | 切换 `tile` / `grid` / `deck` / `scroller` / `float` |
 | `Mod + B` | 切换 kwm bar |
 | `Print` | 全屏保存截图 |
 | `Shift + Print` | 区域保存截图 |
+| `Mod + Shift + A` | 区域保存截图（Niri 兼容别名） |
 | `Ctrl + Print` | 全屏复制截图 |
 | `Ctrl + Shift + Print` | 区域复制截图 |
 | `XF86AudioRaiseVolume/LowerVolume` | 音量 |
 | `Mod + Shift + L` | 锁屏（swaylock-effects） |
+| `Mod + Shift + P` | 关闭显示器 |
 | `Mod + Shift + E` | 退出 `river` 会话 |
 
 ---
@@ -41,11 +45,12 @@
 | `Mod + Return` | `ghostty` |
 | `Mod + Shift + Return` | `foot` |
 | `Mod + Space` | `fuzzel` |
-| `Mod + P` | `fuzzel`（备选） |
 | `XF86Search` | `fuzzel` |
 | `Mod + Shift + L` | 运行 `~/.config/river/lock.sh` |
+| `Mod + Shift + P` | 运行 `~/.config/river/dpms-off.sh` |
 | `Mod + Shift + R` | 重载 `kwm` 配置 |
 | `Mod + Shift + E` | 退出 `river` 会话 |
+| `Ctrl + Alt + Delete` | 退出 `river` 会话 |
 
 ---
 
@@ -53,13 +58,19 @@
 
 | 快捷键 | 功能 |
 |--------|------|
+| `Mod + Left/Down/Up/Right` | 聚焦上一个 / 下一个窗口（Niri 兼容别名） |
 | `Mod + J/K` | 聚焦下一个 / 上一个窗口 |
 | `Mod + Shift + J/K` | 与下一个 / 上一个窗口交换位置 |
+| `Mod + S/G` | 与上一个 / 下一个窗口交换位置（Niri 兼容别名） |
 | `Mod + , / .` | 聚焦上一个 / 下一个显示器 |
 | `Mod + Shift + , / .` | 发送窗口到上一个 / 下一个显示器 |
-| `Mod + F` | 切换当前窗口浮动 |
+| `Mod + Shift + Alt + H/J/K/L` | 聚焦上一个 / 下一个显示器（Niri 兼容别名，线性输出） |
+| `Mod + Ctrl + H/J/K/L` | 发送窗口到上一个 / 下一个显示器（Niri 兼容别名，线性输出） |
+| `Mod + W` | 切换当前窗口浮动 |
+| `Mod + E` | 在当前窗口与主窗口间切换焦点 |
 | `Mod + M` | 切换全屏 |
 | `Mod + Shift + M` | 切换最大化 |
+| `Mod + Ctrl + Shift + F` | 切换窗口内全屏 |
 | `Mod + Q` | 关闭窗口 |
 
 ---
@@ -70,6 +81,8 @@
 |--------|------|
 | `Mod + , / .` | 聚焦上一个 / 下一个显示器 |
 | `Mod + Shift + , / .` | 把当前窗口发送到上一个 / 下一个显示器 |
+| `Mod + Shift + Alt + H/J/K/L` | 聚焦上一个 / 下一个显示器（Niri 兼容别名，线性输出） |
+| `Mod + Ctrl + H/J/K/L` | 发送窗口到上一个 / 下一个显示器（Niri 兼容别名，线性输出） |
 
 ---
 
@@ -79,26 +92,36 @@
 |--------|------|
 | `Mod + 1..9` | 激活单个 tag |
 | `Mod + 0` | 激活全部 tag |
+| `Mod + Page_Down/Page_Up` | 激活下一个 / 上一个 tag |
+| `Mod + Alt + Right/Left` | 激活下一个 / 上一个 tag（Niri 兼容别名） |
+| `Mod + N` / `Mod + Alt + Down` | 激活下一个空 tag |
 | `Mod + Ctrl + 1..9` | 切换某个 tag 的显示状态 |
 | `Mod + Shift + 1..9` | 把当前窗口指派到 tag |
+| `Mod + Alt + 1..9` | 把当前窗口指派到 tag（Niri 兼容别名） |
 | `Mod + Shift + 0` | 把当前窗口指派到全部 tag |
+| `Mod + Ctrl + Page_Down/Page_Up` | 把当前窗口指派到下一个 / 上一个 tag |
+| `Mod + D/F` | 把当前窗口指派到下一个 / 上一个 tag（Niri 兼容别名） |
 | `Mod + Tab` | 切回上一个 tag |
+| `Mod + P` | 切回上一个 tag（Niri 兼容别名） |
 
 ---
 
 ## 6. 布局与尺寸
 
+默认布局为 `scroller`，用于接近旧 `Niri` 的滚动窗口工作流。
+
 | 快捷键 | 功能 |
 |--------|------|
 | `Mod + T` | `tile` 布局 |
-| `Mod + G` | `grid` 布局 |
-| `Mod + D` | `deck` 布局 |
-| `Mod + S` | `scroller` 布局 |
+| `Mod + Alt + G` | `grid` 布局 |
+| `Mod + Alt + D` | `deck` 布局 |
+| `Mod + Alt + S` | `scroller` 布局 |
 | `Mod + Ctrl + M` | `monocle` 布局 |
 | `Mod + Alt + F` | `float` 布局 |
 | `Mod + H/L` | 缩小 / 扩大主区域 |
 | `Mod + - / =` | 减少 / 增加主区域窗口数 |
 | `Mod + Alt + - / =` | 减少 / 增加 gap |
+| `Mod + Z` | 把当前窗口提升到主区域 / 居中 scroller 窗口 |
 
 ---
 
@@ -108,6 +131,7 @@
 |--------|------|
 | `Print` | 全屏保存（`grim`） |
 | `Shift + Print` | 区域保存（`grim + slurp`） |
+| `Mod + Shift + A` | 区域保存（Niri 兼容别名） |
 | `Ctrl + Print` | 全屏复制到剪贴板 |
 | `Ctrl + Shift + Print` | 区域复制到剪贴板 |
 
