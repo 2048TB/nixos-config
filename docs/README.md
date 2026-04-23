@@ -48,7 +48,7 @@
 - `displays` metadata 是 monitor topology 的事实源；不要再在别处重复手写 connector facts
 - Linux 桌面当前由 `river` + `kwm` 驱动；`kwm` 配置和 `~/.config/river/*.sh` 由 Home Manager 映射，`tuigreet` 会从 `services.displayManager.sessionPackages` 暴露 `River` 会话；窗口焦点采用鼠标指向自动聚焦
 - Home Manager 当前会把 `~/.local/share/mise/shims` 放进 session `PATH`；`code` / `antigravity` 还会额外通过 `~/.local/bin/` wrapper 过滤已知 Electron Wayland 参数告警；`mise upgrade` 默认手动执行（`just mise-upgrade`），只有主机显式设置 `my.host.miseAutoUpgrade = true` 时才启用 `systemd --user` timer；涉及此行为的改动需重新执行 `just home-switch`
-- greetd 会话启动前只导入 HM/GUI 基础变量；`WAYLAND_DISPLAY` / `DISPLAY` 等显示变量由 `river` / `kwm` 启动后的 `wayland-session-env-sync` 再导入 systemd user / D-Bus activation 环境，随后 `fcitx5-daemon` / `kwm-status` / `swayidle` 由 `systemd --user` 在会话内拉起
+- greetd 会话启动前只导入 HM/GUI 基础变量；`WAYLAND_DISPLAY` / `DISPLAY` 等显示变量由 `river` / `kwm` 启动后的 `wayland-session-env-sync` 再导入 systemd user / D-Bus activation 环境，随后 `fcitx5-daemon` / `kwm-status` / `wallpaper` / `swayidle` 由 `systemd --user` 在会话内拉起；`wallpaper` 使用 `swaybg`，会话启动时随机加载 `~/Pictures/Wallpapers/` 中的一张图，之后每 30 分钟随机切换，`Mod + Shift + W` 可按文件名顺序切到下一张；`fcitx5` 默认激活到 `Default` 组的 `rime`
 - `swayidle` 当前 10 分钟锁屏，15 分钟关闭显示器；resume 时通过 registry `displays` metadata 重新开启输出
 - 启用 hibernate 的主机会安装 `swapfile-resume-check.service`；swapfile size 或 resume offset 异常会体现在 unit 失败状态与 journal，而不是只出现在 activation 输出中
 - 启用 `"vpn"` role 的 NixOS 主机只做 Provider app 最小集成：启用 Provider app VPN 与 `systemd-resolved`；连接、恢复和 kill switch 交给 Provider app app / daemon 自己管理

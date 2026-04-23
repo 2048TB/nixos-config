@@ -210,6 +210,20 @@ in
           };
         };
 
+        wallpaper = {
+          Unit = {
+            Description = "River wallpaper";
+            After = [ "graphical-session.target" ];
+            PartOf = [ "graphical-session.target" ];
+          };
+          Service = {
+            Type = "simple";
+            ExecStart = "${homeDir}/.config/river/wallpaper.sh daemon";
+            Restart = "on-failure";
+            RestartSec = 1;
+          };
+        };
+
         swayidle = {
           Unit = {
             Description = "Idle manager for River";

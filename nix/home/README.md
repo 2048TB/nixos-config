@@ -34,8 +34,10 @@ nix/home/
 | 状态栏 | `configs/kwm/config.zon` + `linux/desktop.nix`（kwm 内置 bar + status writer） |
 | 窗口快捷键 | `configs/kwm/config.zon` |
 | 窗口外观 | `configs/kwm/config.zon` |
+| 壁纸 | `linux/files.nix` + `linux/desktop.nix` + `configs/river/wallpaper.sh` |
 | River 会话脚本 | `configs/river/` + `linux/xdg.nix` |
-| 锁屏 / idle / IME 自启动 | `linux/desktop.nix` + `configs/river/` |
+| 锁屏 / idle | `linux/desktop.nix` + `configs/river/` |
+| 输入法 profile / 默认激活 | `configs/fcitx5/` + `linux/session.nix` + `linux/desktop.nix` |
 | Linux 包分类 | `linux/package-groups.nix` |
 | Tmux | `configs/tmux/tmux.conf` |
 | Zellij | `configs/zellij/config.kdl` |

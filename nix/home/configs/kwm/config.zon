@@ -1,6 +1,6 @@
 .{
     .startup_cmds = .{
-        .{ "/run/current-system/sw/bin/sh", "-lc", "/run/current-system/sw/bin/wayland-session-env-sync && /run/current-system/sw/bin/systemctl --user start --no-block fcitx5-daemon.service kwm-status.service swayidle.service" },
+        .{ "/run/current-system/sw/bin/sh", "-lc", "/run/current-system/sw/bin/wayland-session-env-sync && /run/current-system/sw/bin/systemctl --user start --no-block fcitx5-daemon.service kwm-status.service wallpaper.service swayidle.service" },
         .{ "/run/current-system/sw/bin/sh", "-lc", "$HOME/.config/river/outputs.sh" },
     },
 
@@ -74,6 +74,7 @@
             .{ .keysym = "XF86Search", .modifiers = .{}, .event = .{ .click = .{ .pressed = .{ .spawn = .{ .argv = .{ "fuzzel" } } } } } },
             .{ .keysym = "l", .modifiers = .{ .mod4 = true, .shift = true }, .event = .{ .click = .{ .pressed = .{ .spawn_shell = .{ .cmd = "$HOME/.config/river/lock.sh" } } } } },
             .{ .keysym = "p", .modifiers = .{ .mod4 = true, .shift = true }, .event = .{ .click = .{ .pressed = .{ .spawn_shell = .{ .cmd = "$HOME/.config/river/dpms-off.sh" } } } } },
+            .{ .keysym = "w", .modifiers = .{ .mod4 = true, .shift = true }, .event = .{ .click = .{ .pressed = .{ .spawn_shell = .{ .cmd = "$HOME/.config/river/wallpaper.sh next" } } } } },
 
             // Screenshots keep the Niri muscle-memory alias and add clipboard variants.
             .{ .keysym = "Print", .modifiers = .{}, .event = .{ .click = .{ .pressed = .{ .spawn_shell = .{ .cmd = "$HOME/.config/river/screenshot.sh save-full" } } } } },

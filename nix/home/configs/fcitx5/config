@@ -1,0 +1,3 @@
+[Behavior]
+# river 会话启动后直接进入 Default 组的 rime，而不是 inactive keyboard-us。
+ActiveByDefault=True

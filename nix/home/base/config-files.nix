@@ -25,6 +25,7 @@
   linuxSourceFiles = { };
 
   linuxForcedSourceFiles = {
+    "fcitx5/config" = ../configs/fcitx5/config;
     "fcitx5/profile" = ../configs/fcitx5/profile;
   };
 

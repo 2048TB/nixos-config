@@ -34,6 +34,7 @@
 | `XF86AudioRaiseVolume/LowerVolume` | 音量 |
 | `Mod + Shift + L` | 锁屏（swaylock-effects） |
 | `Mod + Shift + P` | 关闭显示器 |
+| `Mod + Shift + W` | 切到下一张壁纸 |
 | `Mod + Shift + E` | 退出 `river` 会话 |
 
 ---
@@ -48,6 +49,7 @@
 | `XF86Search` | `fuzzel` |
 | `Mod + Shift + L` | 运行 `~/.config/river/lock.sh` |
 | `Mod + Shift + P` | 运行 `~/.config/river/dpms-off.sh` |
+| `Mod + Shift + W` | 运行 `~/.config/river/wallpaper.sh next` |
 | `Mod + Shift + R` | 重载 `kwm` 配置 |
 | `Mod + Shift + E` | 退出 `river` 会话 |
 | `Ctrl + Alt + Delete` | 退出 `river` 会话 |

@@ -92,6 +92,17 @@ in
           executable = true;
           source = ../configs/river/screenshot.sh;
         };
+        "river/wallpaper.sh" = {
+          executable = true;
+          text = lib.replaceStrings
+            [ "__SWAYBG__" "__SYSTEMCTL__" "__RUNTIME_PATH__" ]
+            [
+              (lib.getExe pkgs.swaybg)
+              "/run/current-system/sw/bin/systemctl"
+              (lib.makeBinPath [ pkgs.coreutils pkgs.findutils pkgs.gnused pkgs.gawk ])
+            ]
+            (builtins.readFile ../configs/river/wallpaper.sh);
+        };
         "qt6ct/colors/darker.conf".source = "${pkgs.qt6Packages.qt6ct}/share/qt6ct/colors/darker.conf";
         "pnpm/rc".text = ''
           global-dir=${localShareDir}/pnpm/global
