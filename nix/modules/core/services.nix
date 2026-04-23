@@ -35,10 +35,14 @@ let
 
     /run/current-system/sw/bin/systemctl --user import-environment \
       WAYLAND_DISPLAY DISPLAY \
-      XDG_CURRENT_DESKTOP XDG_SESSION_TYPE XDG_SESSION_DESKTOP || true
+      XDG_CURRENT_DESKTOP XDG_SESSION_TYPE XDG_SESSION_DESKTOP \
+      QT_IM_MODULE QT_IM_MODULES SDL_IM_MODULE \
+      NIXOS_OZONE_WL QT_QPA_PLATFORMTHEME NIX_XDG_DESKTOP_PORTAL_DIR || true
     /run/current-system/sw/bin/dbus-update-activation-environment --systemd \
       WAYLAND_DISPLAY DISPLAY \
-      XDG_CURRENT_DESKTOP XDG_SESSION_TYPE XDG_SESSION_DESKTOP || true
+      XDG_CURRENT_DESKTOP XDG_SESSION_TYPE XDG_SESSION_DESKTOP \
+      QT_IM_MODULE QT_IM_MODULES SDL_IM_MODULE \
+      NIXOS_OZONE_WL QT_QPA_PLATFORMTHEME NIX_XDG_DESKTOP_PORTAL_DIR || true
   '';
   tuigreetPackage = pkgs.tuigreet or pkgs.greetd.tuigreet or (throw "tuigreet package not found in pkgs.tuigreet or pkgs.greetd.tuigreet");
   waylandSessionCommand = pkgs.writeShellScript "wayland-session" ''

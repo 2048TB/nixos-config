@@ -92,8 +92,8 @@ let
   swayidleStart = pkgs.writeShellScript "swayidle-start" ''
     set -eu
     exec ${lib.getExe pkgs.swayidle} -w \
-      timeout 300 ${lib.escapeShellArg "${homeDir}/.config/river/lock.sh"} \
-      timeout 600 ${lib.escapeShellArg "${homeDir}/.config/river/dpms-off.sh"} \
+      timeout 600 ${lib.escapeShellArg "${homeDir}/.config/river/lock.sh"} \
+      timeout 900 ${lib.escapeShellArg "${homeDir}/.config/river/dpms-off.sh"} \
       resume ${lib.escapeShellArg "${homeDir}/.config/river/outputs.sh"} \
       before-sleep ${lib.escapeShellArg "${homeDir}/.config/river/lock.sh"} \
       after-resume ${lib.escapeShellArg "${homeDir}/.config/river/outputs.sh"}

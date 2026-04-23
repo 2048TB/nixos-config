@@ -91,6 +91,20 @@ let
   systemHomeOverlapNames = getNames systemHomeOverlapPkgs;
   systemPackageNames = getNames cfg.environment.systemPackages;
   homePackageNames = getNames hmCfg.home.packages;
+  findPackageByName = packageName: packages:
+    let
+      matches = builtins.filter (pkg: lib.getName pkg == packageName) packages;
+    in
+    if matches == [ ] then null else builtins.head matches;
+  waylandSessionEnvSyncPackage = findPackageByName "wayland-session-env-sync" cfg.environment.systemPackages;
+  waylandSessionEnvSyncScript =
+    if waylandSessionEnvSyncPackage == null then "" else "${waylandSessionEnvSyncPackage}/bin/wayland-session-env-sync";
+  displayManagerSessionPackages = cfg.services.displayManager.sessionPackages or [ ];
+  riverKwmSessionPackage = findPackageByName "river-kwm-session" displayManagerSessionPackages;
+  riverKwmSessionDesktop =
+    if riverKwmSessionPackage == null then "" else "${riverKwmSessionPackage}/share/wayland-sessions/river.desktop";
+  riverKwmSessionExec =
+    if riverKwmSessionPackage == null then "" else "${riverKwmSessionPackage}/bin/river-kwm-session";
   homeZellijPackages = builtins.filter (pkg: lib.getName pkg == "zellij") hmCfg.home.packages;
   homeZellijOutPaths = map (pkg: pkg.outPath) homeZellijPackages;
   expectedZellijOutPath = pkgs.unstable.zellij.outPath;
@@ -573,8 +587,48 @@ in
     touch "$out"
   '';
 
+  "eval-${name}-wayland-session-env-sync-imports-gui-vars" = pkgs.runCommand "eval-${name}-wayland-session-env-sync-imports-gui-vars" { } ''
+    session_env_sync=${lib.escapeShellArg waylandSessionEnvSyncScript}
+    test -n "$session_env_sync"
+
+    for expected_var in \
+      WAYLAND_DISPLAY \
+      DISPLAY \
+      XDG_CURRENT_DESKTOP \
+      XDG_SESSION_DESKTOP \
+      XDG_SESSION_TYPE \
+      QT_IM_MODULE \
+      QT_IM_MODULES \
+      SDL_IM_MODULE \
+      NIXOS_OZONE_WL \
+      QT_QPA_PLATFORMTHEME \
+      NIX_XDG_DESKTOP_PORTAL_DIR
+    do
+      if ! grep -Fq "$expected_var" "$session_env_sync"; then
+        echo "wayland-session-env-sync does not import $expected_var" >&2
+        exit 1
+      fi
+    done
+
+    touch "$out"
+  '';
+
   "eval-${name}-display-manager-session-names" = pkgs.runCommand "eval-${name}-display-manager-session-names" { } ''
     test "${builtins.toJSON cfg.services.displayManager.sessionData.sessionNames}" = "${builtins.toJSON expectedDisplayManagerSessionNames}"
+    touch "$out"
+  '';
+
+  "eval-${name}-river-session-desktop-entry" = pkgs.runCommand "eval-${name}-river-session-desktop-entry" { } ''
+    desktop_file=${lib.escapeShellArg riverKwmSessionDesktop}
+    session_exec=${lib.escapeShellArg riverKwmSessionExec}
+    test -n "$desktop_file"
+    test -n "$session_exec"
+
+    if grep -Fq '$out' "$desktop_file"; then
+      echo "river desktop entry still contains an unexpanded out path" >&2
+      exit 1
+    fi
+    grep -F "Exec=$session_exec" "$desktop_file" >/dev/null
     touch "$out"
   '';
 }

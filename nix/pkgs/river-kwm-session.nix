@@ -25,7 +25,7 @@ runCommand "river-kwm-session"
     substituteInPlace "$out/bin/river-kwm-session" --replace-fail "__KWM_RIVER_EXEC__" "$exec_line"
     chmod +x "$out/bin/river-kwm-session"
 
-    cat > "$out/share/wayland-sessions/river.desktop" <<'EOF'
+    cat > "$out/share/wayland-sessions/river.desktop" <<EOF
     [Desktop Entry]
     Name=River
     Comment=River Wayland compositor with kwm
