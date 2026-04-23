@@ -24,8 +24,10 @@
 | `Mod + F` | 切换浮动 |
 | `Mod + T/G/D/S` | 切换 `tile` / `grid` / `deck` / `scroller` |
 | `Mod + B` | 切换 kwm bar |
-| `Print` | 全屏截图 |
-| `Mod + Shift + A` | 截图 |
+| `Print` | 全屏保存截图 |
+| `Shift + Print` | 区域保存截图 |
+| `Ctrl + Print` | 全屏复制截图 |
+| `Ctrl + Shift + Print` | 区域复制截图 |
 | `XF86AudioRaiseVolume/LowerVolume` | 音量 |
 | `Mod + Shift + L` | 锁屏（swaylock-effects） |
 | `Mod + Shift + E` | 退出 `river` 会话 |
@@ -104,8 +106,10 @@
 
 | 快捷键 | 功能 |
 |--------|------|
-| `Print` | 全屏截图（`grim`） |
-| `Mod + Shift + A` | 区域截图（`grim + slurp`） |
+| `Print` | 全屏保存（`grim`） |
+| `Shift + Print` | 区域保存（`grim + slurp`） |
+| `Ctrl + Print` | 全屏复制到剪贴板 |
+| `Ctrl + Shift + Print` | 区域复制到剪贴板 |
 
 ---
 

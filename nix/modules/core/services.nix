@@ -11,6 +11,7 @@ let
   hibernateEnabled = hostCfg.resumeOffset != null;
   inherit (config.my.capabilities) isLaptop hasDesktopSession hasFingerprintReader;
   inherit (hostCfg) desktopProfile;
+  waylandSessionsDir = "${config.services.displayManager.sessionData.desktops}/share/wayland-sessions";
   desktopExec =
     if desktopProfile == "river" then
       lib.getExe pkgs.river-kwm-session
@@ -62,6 +63,10 @@ let
       NIXOS_OZONE_WL QT_QPA_PLATFORMTHEME NIX_XDG_DESKTOP_PORTAL_DIR \
       XDG_CURRENT_DESKTOP XDG_SESSION_DESKTOP XDG_SESSION_TYPE || true
 
+    if [ "$#" -gt 0 ]; then
+      exec /run/current-system/sw/bin/systemd-cat -t wayland-session "$@"
+    fi
+
     exec /run/current-system/sw/bin/systemd-cat -t wayland-session ${desktopExec}
   '';
   tuigreetCommand = pkgs.writeShellScript "greetd-tuigreet-session" ''
@@ -72,9 +77,10 @@ let
       --remember-session \
       --asterisks \
       --greeting 'NixOS ${hostCfg.hostname} login' \
+      --sessions ${lib.escapeShellArg waylandSessionsDir} \
+      --session-wrapper ${lib.escapeShellArg waylandSessionCommand} \
       --power-shutdown '${pkgs.systemd}/bin/systemctl poweroff' \
-      --power-reboot '${pkgs.systemd}/bin/systemctl reboot' \
-      --cmd ${waylandSessionCommand}
+      --power-reboot '${pkgs.systemd}/bin/systemctl reboot'
   '';
 in
 {

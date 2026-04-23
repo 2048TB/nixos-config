@@ -16,7 +16,7 @@ nix/home/
 │   ├── packages.nix    # home.packages（含主账号开发环境）
 │   ├── package-groups.nix # Linux 包分类清单（纯数据）
 │   ├── programs.nix    # fzf/mpv/lutris 等
-│   ├── desktop.nix     # 桌面用户服务、Nautilus override、mise-upgrade service / opt-in timer
+│   ├── desktop.nix     # 桌面用户服务、fcitx/kwm-status/swayidle、Nautilus override、mise-upgrade
 │   └── xdg.nix         # portal/mimeApps/configFile
 ├── darwin/default.nix  # macOS 专用
 └── configs/            # 应用配置文件（kwm/tmux/zellij/shell/television/...）
@@ -31,10 +31,11 @@ nix/home/
 | 跨平台 config file 映射 | `base/config-files.nix` |
 | GUI IDE wrapper | `linux/files.nix` |
 | Television | `configs/television/` + `base/config-files.nix` + `configs/shell/zshrc` |
-| 状态栏 | `configs/kwm/config.zon`（kwm 内置 bar） |
+| 状态栏 | `configs/kwm/config.zon` + `linux/desktop.nix`（kwm 内置 bar + status writer） |
 | 窗口快捷键 | `configs/kwm/config.zon` |
 | 窗口外观 | `configs/kwm/config.zon` |
 | River 会话脚本 | `configs/river/` + `linux/xdg.nix` |
+| 锁屏 / idle / IME 自启动 | `linux/desktop.nix` + `configs/river/` |
 | Linux 包分类 | `linux/package-groups.nix` |
 | Tmux | `configs/tmux/tmux.conf` |
 | Zellij | `configs/zellij/config.kdl` |

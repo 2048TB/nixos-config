@@ -21,6 +21,10 @@ let
     name = binaryName;
     text = ''
           export CHECKPOINTING=false
+          # Electron 类应用在 River/Wayland 下仍存在 IME 边缘情况；
+          # 将 GTK IM module 限定在 wrapper 内，避免全局污染 GTK 应用。
+          export GTK_IM_MODULE=fcitx
+          export QT_IM_MODULES="wayland;fcitx;ibus"
           export PATH="${miseShimDir}:$PATH"
 
           exec 3>&2

@@ -28,14 +28,7 @@ let
             prev.zellij;
       }
       // prev.lib.optionalAttrs prev.stdenv.hostPlatform.isLinux {
-        kwim = final.callPackage ../pkgs/kwim {
-          kwimSrc = inputs.kwim-src;
-        };
-
-        kwm-river = final.callPackage ../pkgs/kwm-river {
-          kwmSrc = inputs.kwm-src;
-          kwim = final.kwim;
-        };
+        kwm-river = inputs."river-kwm".packages.${prev.stdenv.hostPlatform.system}.default;
 
         river-kwm-session = final.callPackage ../pkgs/river-kwm-session.nix {
           kwm-river = final.kwm-river;

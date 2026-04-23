@@ -1,6 +1,5 @@
 { lib
 , runCommand
-, river-classic
 , kwm-river
 ,
 }:
@@ -17,10 +16,13 @@ runCommand "river-kwm-session"
   ''
     mkdir -p "$out/bin" "$out/share/wayland-sessions"
 
+    exec_line="$(sed -n 's/^[[:space:]]*Exec=//p' ${kwm-river}/share/wayland-sessions/river-kwm.desktop | head -n1)"
+
     cat > "$out/bin/river-kwm-session" <<'EOF'
     #!/bin/sh
-    exec ${lib.getExe river-classic} -c ${lib.getExe kwm-river}
+    exec __KWM_RIVER_EXEC__
     EOF
+    substituteInPlace "$out/bin/river-kwm-session" --replace-fail "__KWM_RIVER_EXEC__" "$exec_line"
     chmod +x "$out/bin/river-kwm-session"
 
     cat > "$out/share/wayland-sessions/river.desktop" <<'EOF'

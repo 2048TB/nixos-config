@@ -19,6 +19,7 @@ in
         # 不再需要 GTK_IM_MODULE（fcitx5 官方 Wayland 文档推荐）。
         # Qt < 6.7 仍需 QT_IM_MODULE；SDL2 文字输入需 SDL_IM_MODULE。
         QT_IM_MODULE = "fcitx";
+        QT_IM_MODULES = "wayland;fcitx;ibus";
         SDL_IM_MODULE = "fcitx";
       };
 

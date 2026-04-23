@@ -99,9 +99,11 @@ lib.mkIf hasDesktopSession {
       xwayland-satellite
     ]
     ++ lib.optionals (hostCfg.desktopProfile == "river") [
-      river-classic
       kwm-river
-      kwim
       river-kwm-session
     ];
+
+  services.displayManager.sessionPackages = lib.optionals (hostCfg.desktopProfile == "river") [
+    pkgs.river-kwm-session
+  ];
 }

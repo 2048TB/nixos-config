@@ -65,6 +65,7 @@
     "wl-screenrec"
     "gnome-text-editor"
     "fuzzel"
+    "swayidle"
     "swaylock-effects"
     "wlr-randr"
     "gnome-calculator"

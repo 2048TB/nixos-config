@@ -13,6 +13,15 @@ let
   configFiles = import ../base/config-files.nix;
   hostCfg = import ../base/resolve-host.nix { inherit myvars osConfig; };
   generatedRiverOutputSetup = mylib.mkRiverOutputSetupScript hostCfg;
+  generatedRiverOutputsOff = mylib.mkRiverOutputsOffScript hostCfg;
+  kwmStatusFifo = "${homeDir}/.local/state/kwm/status.fifo";
+  kwmConfigText =
+    mytheme.apply (
+      lib.replaceStrings
+        [ "__KWM_STATUS_FIFO__" ]
+        [ kwmStatusFifo ]
+        (builtins.readFile ../configs/kwm/config.zon)
+    );
 
   imageMimeTypes = [
     "image/jpeg"
@@ -66,6 +75,11 @@ in
       // forcedSourceConfigFiles
       // themedConfigFiles
       // {
+        "kwm/config.zon".text = kwmConfigText;
+        "river/dpms-off.sh" = {
+          executable = true;
+          text = generatedRiverOutputsOff;
+        };
         "river/lock.sh" = {
           executable = true;
           text = mytheme.apply (builtins.readFile ../configs/river/lock.sh);

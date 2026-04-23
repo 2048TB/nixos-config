@@ -40,15 +40,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    kwm-src = {
-      url = "github:kewuaa/kwm";
-      flake = false;
-    };
-
-    kwim-src = {
-      url = "github:kewuaa/kwim";
-      flake = false;
-    };
+    river-kwm.url = "github:rowsred/river_kwm_modules_nixos";
 
     lanzaboote = {
       url = "github:nix-community/lanzaboote";

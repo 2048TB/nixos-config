@@ -10,16 +10,93 @@ let
   hostCfg = import ../base/resolve-host.nix { inherit myvars osConfig; };
 
   mkLogFilteredLauncher = mylib.mkLogFilteredLauncher pkgs;
+  homeDir = config.home.homeDirectory;
   mkdirExe = lib.getExe' pkgs.coreutils "mkdir";
   touchExe = lib.getExe' pkgs.coreutils "touch";
   catExe = lib.getExe' pkgs.coreutils "cat";
   dateExe = lib.getExe' pkgs.coreutils "date";
+  dirnameExe = lib.getExe' pkgs.coreutils "dirname";
+  mkfifoExe = lib.getExe' pkgs.coreutils "mkfifo";
+  rmExe = lib.getExe' pkgs.coreutils "rm";
+  sleepExe = lib.getExe' pkgs.coreutils "sleep";
+  grepExe = lib.getExe' pkgs.gnugrep "grep";
+  awkExe = lib.getExe' pkgs.gawk "awk";
+  wpctlExe = lib.getExe' pkgs.wireplumber "wpctl";
   enableMiseAutoUpgrade = hostCfg.miseAutoUpgrade or false;
+  kwmStatusFifo = "${homeDir}/.local/state/kwm/status.fifo";
   miseUpgrade = pkgs.writeShellScript "mise-upgrade" ''
     set -eu
     cd "$HOME"
     echo "[mise-upgrade] $(${dateExe} -Is) running: mise upgrade --yes"
     exec ${lib.getExe pkgs.mise} upgrade --yes
+  '';
+  kwmStatusPrepare = pkgs.writeShellScript "kwm-status-prepare" ''
+    set -eu
+    fifo_dir="$(${dirnameExe} ${lib.escapeShellArg kwmStatusFifo})"
+    ${mkdirExe} -p "$fifo_dir"
+    ${rmExe} -f ${lib.escapeShellArg kwmStatusFifo}
+    ${mkfifoExe} ${lib.escapeShellArg kwmStatusFifo}
+  '';
+  kwmStatus = pkgs.writeShellScript "kwm-status" ''
+    set -eu
+
+    battery_segment() {
+      for battery in /sys/class/power_supply/BAT*; do
+        [ -d "$battery" ] || continue
+        capacity="$(${catExe} "$battery/capacity" 2>/dev/null || true)"
+        status="$(${catExe} "$battery/status" 2>/dev/null || true)"
+        [ -n "$capacity" ] || continue
+        case "$status" in
+          Charging) printf 'bat+ %s%%' "$capacity" ;;
+          Full) printf 'bat %s%%' "$capacity" ;;
+          *) printf 'bat %s%%' "$capacity" ;;
+        esac
+        return 0
+      done
+      return 1
+    }
+
+    volume_segment() {
+      volume_line="$(${wpctlExe} get-volume @DEFAULT_AUDIO_SINK@ 2>/dev/null || true)"
+      [ -n "$volume_line" ] || return 1
+      if printf '%s\n' "$volume_line" | ${grepExe} -q 'MUTED'; then
+        printf 'vol mute'
+        return 0
+      fi
+      percent="$(printf '%s\n' "$volume_line" | ${awkExe} '{ printf "%d", $2 * 100 }')"
+      printf 'vol %s%%' "$percent"
+    }
+
+    while :; do
+      segments=""
+      if battery="$(battery_segment)"; then
+        segments="$battery"
+      fi
+      if volume="$(volume_segment)"; then
+        if [ -n "$segments" ]; then
+          segments="$segments | $volume"
+        else
+          segments="$volume"
+        fi
+      fi
+      clock="$(${dateExe} '+%H:%M')"
+      if [ -n "$segments" ]; then
+        line="$segments | $clock"
+      else
+        line="$clock"
+      fi
+      printf '%s\n' "$line" > ${lib.escapeShellArg kwmStatusFifo}
+      ${sleepExe} 5
+    done
+  '';
+  swayidleStart = pkgs.writeShellScript "swayidle-start" ''
+    set -eu
+    exec ${lib.getExe pkgs.swayidle} -w \
+      timeout 300 ${lib.escapeShellArg "${homeDir}/.config/river/lock.sh"} \
+      timeout 600 ${lib.escapeShellArg "${homeDir}/.config/river/dpms-off.sh"} \
+      resume ${lib.escapeShellArg "${homeDir}/.config/river/outputs.sh"} \
+      before-sleep ${lib.escapeShellArg "${homeDir}/.config/river/lock.sh"} \
+      after-resume ${lib.escapeShellArg "${homeDir}/.config/river/outputs.sh"}
   '';
 
   # ===== Log-filtered launcher 定义 =====
@@ -99,6 +176,49 @@ in
             Restart = "on-failure";
             RestartSec = 1;
             TimeoutStopSec = 10;
+          };
+        };
+
+        fcitx5-daemon = {
+          Unit = {
+            Description = "fcitx5 input method daemon";
+            After = [ "graphical-session.target" ];
+            PartOf = [ "graphical-session.target" ];
+          };
+          Service = {
+            Type = "simple";
+            ExecStart = "/run/current-system/sw/bin/fcitx5 -dr";
+            Restart = "on-failure";
+            RestartSec = 1;
+          };
+        };
+
+        kwm-status = {
+          Unit = {
+            Description = "kwm bar status writer";
+            After = [ "graphical-session.target" ];
+            PartOf = [ "graphical-session.target" ];
+          };
+          Service = {
+            Type = "simple";
+            ExecStartPre = "${kwmStatusPrepare}";
+            ExecStart = "${kwmStatus}";
+            Restart = "always";
+            RestartSec = 1;
+          };
+        };
+
+        swayidle = {
+          Unit = {
+            Description = "Idle manager for River";
+            After = [ "graphical-session.target" ];
+            PartOf = [ "graphical-session.target" ];
+          };
+          Service = {
+            Type = "simple";
+            ExecStart = "${swayidleStart}";
+            Restart = "on-failure";
+            RestartSec = 1;
           };
         };
 

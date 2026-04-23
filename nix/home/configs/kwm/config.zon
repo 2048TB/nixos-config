@@ -2,6 +2,7 @@
     .startup_cmds = .{
         .{ "wayland-session-env-sync" },
         .{ "sh", "-lc", "$HOME/.config/river/outputs.sh" },
+        .{ "/run/current-system/sw/bin/systemctl", "--user", "start", "--no-block", "fcitx5-daemon.service", "kwm-status.service", "swayidle.service" },
     },
 
     .background = 0x@THEME_BG@ff,
@@ -18,7 +19,9 @@
                 .bg = 0x@THEME_BLUE@ff,
             },
         },
-        .status = null,
+        .status = .{
+            .data = .{ .fifo = "__KWM_STATUS_FIFO__" },
+        },
     },
 
     .border = .{
@@ -65,8 +68,10 @@
             .{ .keysym = "p", .modifiers = .{ .mod4 = true }, .event = .{ .click = .{ .pressed = .{ .spawn = .{ .argv = .{ "fuzzel" } } } } } },
             .{ .keysym = "XF86Search", .modifiers = .{}, .event = .{ .click = .{ .pressed = .{ .spawn = .{ .argv = .{ "fuzzel" } } } } } },
             .{ .keysym = "l", .modifiers = .{ .mod4 = true, .shift = true }, .event = .{ .click = .{ .pressed = .{ .spawn_shell = .{ .cmd = "$HOME/.config/river/lock.sh" } } } } },
-            .{ .keysym = "Print", .modifiers = .{}, .event = .{ .click = .{ .pressed = .{ .spawn_shell = .{ .cmd = "$HOME/.config/river/screenshot.sh full" } } } } },
-            .{ .keysym = "a", .modifiers = .{ .mod4 = true, .shift = true }, .event = .{ .click = .{ .pressed = .{ .spawn_shell = .{ .cmd = "$HOME/.config/river/screenshot.sh area" } } } } },
+            .{ .keysym = "Print", .modifiers = .{}, .event = .{ .click = .{ .pressed = .{ .spawn_shell = .{ .cmd = "$HOME/.config/river/screenshot.sh save-full" } } } } },
+            .{ .keysym = "Print", .modifiers = .{ .shift = true }, .event = .{ .click = .{ .pressed = .{ .spawn_shell = .{ .cmd = "$HOME/.config/river/screenshot.sh save-area" } } } } },
+            .{ .keysym = "Print", .modifiers = .{ .ctrl = true }, .event = .{ .click = .{ .pressed = .{ .spawn_shell = .{ .cmd = "$HOME/.config/river/screenshot.sh copy-full" } } } } },
+            .{ .keysym = "Print", .modifiers = .{ .ctrl = true, .shift = true }, .event = .{ .click = .{ .pressed = .{ .spawn_shell = .{ .cmd = "$HOME/.config/river/screenshot.sh copy-area" } } } } },
 
             .{ .keysym = "b", .modifiers = .{ .mod4 = true }, .event = .{ .click = .{ .pressed = .toggle_bar } } },
             .{ .keysym = "f", .modifiers = .{ .mod4 = true }, .event = .{ .click = .{ .pressed = .toggle_floating } } },
@@ -161,5 +166,39 @@
         .{ .app_id = .{ .str = "ghostty-float" }, .floating = true, .is_terminal = true, .scroller_mfact = 0.8 },
         .{ .app_id = .{ .str = "ghostty", .regex = true }, .is_terminal = true, .scroller_mfact = 0.8 },
         .{ .app_id = .{ .str = "foot" }, .is_terminal = true, .scroller_mfact = 0.8 },
+    },
+
+    .input_device_rules = .{
+        .{
+            .repeat_info = .{
+                .rate = 50,
+                .delay = 300,
+            },
+        },
+    },
+
+    .libinput_device_rules = .{
+        .{
+            .name = .{ .str = ".*[tT]ouchpad", .regex = true },
+            .tap = .enabled,
+            .drag = .enabled,
+            .disable_while_typing = .enabled,
+            .natural_scroll = .enabled,
+            .click_method = .clickfinger,
+            .middle_button_emulation = .enabled,
+        },
+    },
+
+    .xkb_keyboard_rules = .{
+        .{
+            .numlock = .enabled,
+            .keymap = .{
+                .options = .{
+                    .model = "pc104",
+                    .layout = "us",
+                    .options = "terminate:ctrl_alt_bksp",
+                },
+            },
+        },
     },
 }

@@ -7,7 +7,7 @@ host := ""
 disk := "/dev/nvme0n1"
 repo := env_var_or_default("NIXOS_CONFIG_REPO", justfile_directory())
 nix_cmd := "nix --extra-experimental-features 'nix-command flakes'"
-nixos_update_inputs := "nixpkgs nixpkgs-unstable home-manager nixos-hardware kwm-src kwim-src lanzaboote nix-gaming preservation disko sops-nix"
+nixos_update_inputs := "nixpkgs nixpkgs-unstable home-manager nixos-hardware river-kwm lanzaboote nix-gaming preservation disko sops-nix"
 darwin_update_inputs := "nixpkgs-darwin nix-darwin nix-homebrew homebrew-core homebrew-cask homebrew-bundle"
 
 # ========== 内部 helpers ==========

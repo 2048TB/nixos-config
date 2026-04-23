@@ -87,4 +87,24 @@ in
 
       ${lib.concatStringsSep "\n" (map mkCommand displays)}
     '';
+
+  mkRiverOutputsOffScript =
+    host:
+    let
+      displays =
+        builtins.filter
+          (display: (display.name or "") != "")
+          (getDisplays host);
+      mkCommand = display: "wlr-randr --output ${lib.escapeShellArg display.name} --off >/dev/null 2>&1 || true";
+    in
+    ''
+      #!/bin/sh
+      set -eu
+
+      if ! command -v wlr-randr >/dev/null 2>&1; then
+        exit 0
+      fi
+
+      ${lib.concatStringsSep "\n" (map mkCommand displays)}
+    '';
 }

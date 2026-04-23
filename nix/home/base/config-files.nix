@@ -29,7 +29,6 @@
   };
 
   linuxThemedFiles = {
-    "kwm/config.zon" = ../configs/kwm/config.zon;
     "fuzzel/fuzzel.ini" = ../configs/fuzzel/fuzzel.ini;
     "foot/foot.ini" = ../configs/foot/foot.ini;
     "ghostty/config" = ../configs/ghostty/config;
