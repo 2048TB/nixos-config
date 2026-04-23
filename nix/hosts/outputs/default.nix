@@ -60,6 +60,7 @@ let
       import inputs.nixpkgs {
         system = "x86_64-linux";
         config.allowUnfreePredicate = mylib.allowUnfreePredicate;
+        overlays = [ exportedOverlays.default ];
       }
     );
     aarch64-darwin = import ../../pkgs (

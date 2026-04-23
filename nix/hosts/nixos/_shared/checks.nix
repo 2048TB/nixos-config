@@ -91,6 +91,12 @@ let
   systemHomeOverlapNames = getNames systemHomeOverlapPkgs;
   systemPackageNames = getNames cfg.environment.systemPackages;
   homePackageNames = getNames hmCfg.home.packages;
+  homeZellijPackages = builtins.filter (pkg: lib.getName pkg == "zellij") hmCfg.home.packages;
+  homeZellijOutPaths = map (pkg: pkg.outPath) homeZellijPackages;
+  expectedZellijOutPath = pkgs.unstable.zellij.outPath;
+  hasExpectedZellijPackage =
+    pkgs.zellij.outPath == expectedZellijOutPath
+    && homeZellijOutPaths == [ expectedZellijOutPath ];
   unexpectedOverlapByName = lib.intersectLists systemPackageNames homePackageNames;
   systemDuplicateOutPaths =
     lib.unique (
@@ -399,6 +405,11 @@ in
   "eval-${name}-session-env-no-global-ml-runtime-libs" = pkgs.runCommand "eval-${name}-session-env-no-global-ml-runtime-libs" { } ''
     test "${if !hasGlobalMlRuntimeLibraryPath then "1" else "0"}" = "1"
     test "${if !hasGlobalOpenSslBuildEnv then "1" else "0"}" = "1"
+    touch "$out"
+  '';
+
+  "eval-${name}-zellij-uses-unstable" = pkgs.runCommand "eval-${name}-zellij-uses-unstable" { } ''
+    test "${if hasExpectedZellijPackage then "1" else "0"}" = "1"
     touch "$out"
   '';
 

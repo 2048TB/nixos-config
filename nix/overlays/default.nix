@@ -20,6 +20,12 @@ let
             final.unstable.vscode
           else
             prev.vscode;
+
+        zellij =
+          if final.stdenv.hostPlatform.isLinux then
+            final.unstable.zellij
+          else
+            prev.zellij;
       };
 
     unstable-packages =
