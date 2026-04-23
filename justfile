@@ -119,7 +119,7 @@ gc:
     @sudo nix store gc
 
 clean:
-    @{{nix_cmd}} shell nixpkgs#nh -c nh clean all --keep-since 14d --keep 0
+    @{{nix_cmd}} shell nixpkgs#nh -c nh clean all --keep-since 14d --keep 3
 
 clean-all:
     @{{nix_cmd}} shell nixpkgs#nh -c nh clean all --keep-since 0h --keep 0

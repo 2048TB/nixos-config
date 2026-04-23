@@ -229,9 +229,9 @@ just optimize
 just use
 ```
 
-- `clean` 现在通过 `nh clean all --keep-since 14d --keep 0` 执行
+- `clean` 现在通过 `nh clean all --keep-since 14d --keep 3` 执行
 - `clean-all` 现在通过 `nh clean all --keep-since 0h --keep 0` 执行
-- 自动清理由 `programs.nh.clean` 执行：每周一 `03:15`，参数为 `--keep-since 14d --keep 0`
+- 自动清理由 `programs.nh.clean` 执行：每周一 `03:15`，参数为 `--keep-since 14d --keep 3`
 - `nix.gc.automatic` 已关闭，避免与 `programs.nh.clean` 冲突
 
 ## 7. Secrets 与 Git 安全

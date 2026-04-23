@@ -80,7 +80,7 @@ flake_repo="$(bash /persistent/nixos-config/nix/scripts/admin/print-flake-repo.s
 nix shell nixpkgs#nh -c nh os build "path:$flake_repo" -H zly
 nix shell nixpkgs#nh -c nh os switch "path:$flake_repo" -H zly
 nix shell nixpkgs#nh -c nh home switch "path:$flake_repo" -c "$(id -un)@$(hostname)"
-nix shell nixpkgs#nh -c nh clean all --keep-since 14d --keep 0
+nix shell nixpkgs#nh -c nh clean all --keep-since 14d --keep 3
 nix shell nixpkgs#nh -c nh clean all --keep-since 0h --keep 0
 ```
 

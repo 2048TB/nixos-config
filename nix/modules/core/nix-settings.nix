@@ -10,7 +10,7 @@ in
     clean = {
       enable = true;
       dates = "Mon 03:15"; # 每周一凌晨，避免与日常使用冲突
-      extraArgs = "--keep-since 14d --keep 0";
+      extraArgs = "--keep-since 14d --keep 3";
     };
   };
 
