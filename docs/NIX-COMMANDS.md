@@ -13,7 +13,9 @@ bash /persistent/nixos-config/nix/scripts/admin/install-live.sh --host zly --dis
 
 ```bash
 just update
+just update-nixos
 just update-nixpkgs
+just update-darwin
 just info
 just show
 just metadata

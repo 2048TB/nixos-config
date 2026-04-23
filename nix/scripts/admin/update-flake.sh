@@ -8,11 +8,12 @@ source "$script_dir/common.sh"
 usage() {
   cat <<'EOF'
 Usage:
-  update-flake.sh [repo] [input]
+  update-flake.sh [repo] [input...]
 
 Examples:
   update-flake.sh /persistent/nixos-config
   update-flake.sh /persistent/nixos-config nixpkgs
+  update-flake.sh /persistent/nixos-config nixpkgs nixpkgs-unstable
 EOF
 }
 
@@ -23,6 +24,7 @@ fi
 
 if [ "$#" -gt 0 ] && [[ "${1:-}" != -* ]]; then
   repo_root="$(resolve_repo_path "$1")"
+  shift
 else
   repo_root="$(
     if [ -n "${NIXOS_CONFIG_REPO:-}" ]; then
@@ -32,14 +34,14 @@ else
     fi
   )"
 fi
-input_name="${2:-}"
+input_names=("$@")
 nix_cmd=(nix --extra-experimental-features "nix-command flakes" flake update)
 
 prepare_flake_repo_path "$repo_root"
 flake_repo="$PREPARED_FLAKE_REPO"
 
-if [ -n "$input_name" ]; then
-  nix_cmd+=("$input_name")
+if [ "${#input_names[@]}" -gt 0 ]; then
+  nix_cmd+=("${input_names[@]}")
 fi
 nix_cmd+=(--flake "path:${flake_repo}")
 

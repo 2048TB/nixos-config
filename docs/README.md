@@ -57,7 +57,9 @@
 ```bash
 just host=zly disk=/dev/nvme0n1 install
 just update
+just update-nixos
 just update-nixpkgs
+just update-darwin
 just info
 just show
 just flake-check
@@ -147,8 +149,15 @@ bash nix/scripts/admin/install-live.sh --host zly --disk /dev/nvme0n1 --repo "$P
 
 ```bash
 just update
+just update-nixos
 just update-nixpkgs
+just update-darwin
 ```
+
+- `update` 会全量更新 `flake.lock` 的 root inputs
+- `update-nixos` 只更新 Linux NixOS 日常相关 inputs；`upgrade` 使用这个入口，避免刷新 Darwin/Homebrew inputs
+- `update-darwin` 只更新 macOS / Homebrew 相关 inputs
+- `update-nixpkgs` 只更新主 `nixpkgs`
 
 只读信息：
 
@@ -200,7 +209,7 @@ just host=zly upgrade
 - `switch` 现在通过 `nh os switch` 执行，并继续先取 filtered repo
 - `home-switch` 通过 `nh home switch` 执行，目标为 `homeConfigurations.<user>@<host>`
 - `boot` / `test` 会直接改系统状态
-- `upgrade` 现在会保留外层 `repo={{repo}}`，先在指定 repo 上执行 `update`，再执行 `switch`
+- `upgrade` 现在会保留外层 `repo={{repo}}`，先在指定 repo 上执行 `update-nixos`，再执行 `switch`
 - `flake-check` 做 `nix flake check --all-systems --no-build`
 - `flake-check-full` 做 `nix flake check --all-systems`（含 build）
 - `flake-check-exec` 会实际构建并执行一个 check target（`checks.x86_64-linux.pre-commit-check`）
@@ -301,7 +310,7 @@ flake_repo="$(bash /persistent/nixos-config/nix/scripts/admin/print-flake-repo.s
 
 再对 `path:$flake_repo#...` 执行 `eval` / `show` / `build`。
 
-### 9.2 `just update` 失败
+### 9.2 `just update` / `just update-nixos` 失败
 
 确认 repo 可写，且 `flake.lock` 不是只读。`update-flake.sh` 会在需要时先更新 filtered repo，再同步回真实仓库。
 

@@ -7,6 +7,8 @@ host := ""
 disk := "/dev/nvme0n1"
 repo := env_var_or_default("NIXOS_CONFIG_REPO", justfile_directory())
 nix_cmd := "nix --extra-experimental-features 'nix-command flakes'"
+nixos_update_inputs := "nixpkgs nixpkgs-unstable home-manager nixos-hardware noctalia lanzaboote nix-gaming preservation disko sops-nix"
+darwin_update_inputs := "nixpkgs-darwin nix-darwin nix-homebrew homebrew-core homebrew-cask homebrew-bundle"
 
 # ========== 内部 helpers ==========
 
@@ -29,12 +31,18 @@ install:
 update:
     @bash {{repo}}/nix/scripts/admin/update-flake.sh {{repo}}
 
+update-nixos:
+    @bash {{repo}}/nix/scripts/admin/update-flake.sh {{repo}} {{nixos_update_inputs}}
+
 update-nixpkgs:
     @bash {{repo}}/nix/scripts/admin/update-flake.sh {{repo}} nixpkgs
 
+update-darwin:
+    @bash {{repo}}/nix/scripts/admin/update-flake.sh {{repo}} {{darwin_update_inputs}}
+
 upgrade:
     @if [ -z "{{host}}" ]; then echo "error: 需要指定主机. 用法: just host=zly upgrade" >&2; exit 2; fi
-    @just repo={{repo}} update
+    @just repo={{repo}} update-nixos
     @just repo={{repo}} host={{host}} switch
 
 show:

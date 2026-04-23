@@ -48,7 +48,7 @@ key 相关差异：
 
 适用场景：
 
-- 日常 `update` / `check` / `switch`
+- 日常 `update-nixos` / `check` / `switch`
 - secrets 维护
 - read-only eval / build / `flake-check`
 
@@ -56,7 +56,7 @@ key 相关差异：
 
 - 默认 repo 应位于 `/persistent/nixos-config`
 - `switch` / `home-switch` / `boot` / `test` / `upgrade` 会直接改系统状态
-- `upgrade` 会先在指定 repo 上更新 `flake.lock`，再执行 `switch`
+- `upgrade` 会先在指定 repo 上通过 `update-nixos` 更新 Linux NixOS 相关 inputs，再执行 `switch`
 - `sops.sh` / `guard-secrets.sh` 可以从任意目录直接调用
 - 系统默认启用 `programs.nh.clean` 自动清理；若手动执行清理，`just clean` / `just clean-all` 与自动清理参数语义保持一致
 - `mise upgrade` 默认手动执行（`just mise-upgrade`）；只有 host 显式设置 `my.host.miseAutoUpgrade = true` 才会启用 user timer；其中 `python` 当前固定在 `3.12`
@@ -67,7 +67,7 @@ key 相关差异：
 ```bash
 cd /persistent/nixos-config
 just validate-local
-just update
+just update-nixos
 just host=zly check
 just host=zly switch
 just home-switch
