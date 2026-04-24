@@ -1,6 +1,5 @@
 { pkgs
 , pkgsCherryStudio
-, pkgsUnstable
 , lib
 , mylib
 , myvars
@@ -103,7 +102,7 @@ in
       ++ lib.optional enableLocalSend pkgs.localsend
       ++ lib.optional enableZathura pkgs.zathura
       ++ lib.optional enableSplayer pkgs.splayer
-      ++ lib.optional enableTelegramDesktop pkgsUnstable.telegram-desktop
+      ++ lib.optional enableTelegramDesktop pkgs.telegram-desktop
       ++ lib.optional enableWpsOffice wpsOfficePackage
       ++ lib.optional enableAntigravity pkgs.antigravity
       ++ lib.optionals enableSteam gamingPackages
