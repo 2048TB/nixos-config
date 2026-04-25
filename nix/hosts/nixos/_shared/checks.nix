@@ -521,6 +521,7 @@ in
     test "${if lib.hasInfix "sops-nix.service" (builtins.toJSON (cfg.systemd.services.wg-quick-wg-nqrvma.after or [ ])) then "1" else "0"}" = "0"
     test "${if lib.hasInfix "sops-nix.service" (builtins.toJSON (cfg.systemd.services.wg-quick-wg-nqrvma.requires or [ ])) then "1" else "0"}" = "0"
     test "${if cfg.system.activationScripts ? setupSecrets then "1" else "0"}" = "1"
+    test "${if lib.hasInfix "[ -L \"$active\" ]" (cfg.system.activationScripts.wireguardVpnActiveLinks.text or "") then "1" else "0"}" = "1"
     test "${if lib.hasInfix "basename \"$active\" .conf" (cfg.system.activationScripts.wireguardVpnActiveLinks.text or "") then "1" else "0"}" = "1"
     test "${if lib.hasInfix "rm -f \"$active\"" (cfg.system.activationScripts.wireguardVpnActiveLinks.text or "") then "1" else "0"}" = "1"
     touch "$out"

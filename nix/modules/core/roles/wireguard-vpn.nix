@@ -328,7 +328,7 @@ in
       ${initialActiveLinks}
 
       for active in ${lib.escapeShellArg activeDir}/*.conf; do
-        [ -e "$active" ] || continue
+        [ -e "$active" ] || [ -L "$active" ] || continue
         profile="$(${pkgs.coreutils}/bin/basename "$active" .conf)"
         case "$profile" in
           ${shellCaseProfiles}
