@@ -79,7 +79,7 @@ let
   hmCfg = cfg.home-manager.users.${mainUser};
   expectedHome = "/home/${mainUser}";
 
-  getNames = pkgList: lib.unique (map lib.getName pkgList);
+  getNames = pkgList: lib.unique (map (pkg: builtins.unsafeDiscardStringContext (lib.getName pkg)) pkgList);
   excludeAllowed = allowed: names: builtins.filter (n: !(builtins.elem n allowed)) names;
 
   allSystemPackageOutPaths = map (pkg: pkg.outPath) cfg.environment.systemPackages;
@@ -98,15 +98,16 @@ let
     pkgs.zellij.outPath == expectedZellijOutPath
     && homeZellijOutPaths == [ expectedZellijOutPath ];
   unexpectedOverlapByName = lib.intersectLists systemPackageNames homePackageNames;
+  outPathKey = builtins.unsafeDiscardStringContext;
   systemDuplicateOutPaths =
-    lib.unique (
-      builtins.filter
-        (outPath: (builtins.length (builtins.filter (p: p == outPath) allSystemPackageOutPaths)) > 1)
-        allSystemPackageOutPaths
+    builtins.attrNames (
+      lib.filterAttrs
+        (_outPath: instances: builtins.length instances > 1)
+        (builtins.groupBy outPathKey allSystemPackageOutPaths)
     );
   systemDuplicatePkgs =
     lib.filter
-      (pkg: builtins.elem pkg.outPath systemDuplicateOutPaths)
+      (pkg: builtins.elem (outPathKey pkg.outPath) systemDuplicateOutPaths)
       cfg.environment.systemPackages;
   systemDuplicateNames = getNames systemDuplicatePkgs;
   # 当前各主机（按 outPath 语义）真实出现的重复项白名单。

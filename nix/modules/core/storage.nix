@@ -7,7 +7,7 @@
 let
   hostCfg = config.my.host;
   roleFlags = mylib.roleFlags hostCfg;
-  inherit (roleFlags) enableVpn enableLibvirtd enableDocker useRootfulDocker;
+  inherit (roleFlags) enableLibvirtd enableDocker useRootfulDocker;
   inherit (config.my.capabilities) hasDesktopSession hasFingerprintReader;
   enableFlatpak = hasDesktopSession;
   hibernateEnabled = hostCfg.resumeOffset != null;

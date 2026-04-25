@@ -62,7 +62,7 @@ let
       in
       ''
         active=${lib.escapeShellArg (activeSourcePath profileName)}
-        if [ ! -e "$active" ]; then
+        if [ ! -e "$active" ] && [ ! -L "$active" ]; then
           ln -s ${lib.escapeShellArg candidate.runtimePath} "$active"
         fi
       ''
@@ -347,7 +347,6 @@ in
   };
 
   environment.systemPackages = lib.mkIf enableVpn [
-    pkgs.wireguard-tools
     vpnStopAll
     vpnSwitch
     vpnSelect

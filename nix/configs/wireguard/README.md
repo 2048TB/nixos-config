@@ -43,6 +43,9 @@ NixOS `vpn` role owns the kill switch centrally:
 - provider configs are decrypted to `/run/wireguard/pool/<profile>/<slot>.conf`
 - `/persistent/wireguard/active/<profile>.conf` stores only the selected source
   symlink
+- activation creates the default active symlink only when no active path exists;
+  existing symlinks are left for `vpn-select`, even if their current target is
+  missing
 - SOPS secrets are prepared by NixOS activation before normal systemd services;
   the `wg-quick-*` units wait for `network-online.target`, not for a
   `sops-nix.service`

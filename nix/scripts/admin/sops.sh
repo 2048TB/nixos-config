@@ -454,13 +454,17 @@ cmd_recipients() {
 }
 
 cmd_rekey() {
-  local recipients_csv file identity_file
-  local -a desired_recipients current_recipients add_age rm_age rotate_cmd
+  local recipients_csv file identity_file recipient
+  local -a desired_recipients_raw desired_recipients current_recipients add_age rm_age rotate_cmd
 
   require_main_key
   require_main_pub
   ensure_sops_secret_path_rule
   recipients_csv="$(collect_age_recipients_csv)"
+  IFS=, read -r -a desired_recipients_raw <<< "$recipients_csv"
+  for recipient in "${desired_recipients_raw[@]}"; do
+    [ -n "$recipient" ] && desired_recipients+=("$recipient")
+  done
   identity_file="$(build_identity_file)"
   # shellcheck disable=SC2064
   trap "rm -f '$identity_file'" RETURN
@@ -468,15 +472,10 @@ cmd_rekey() {
   export SOPS_AGE_KEY_FILE="$identity_file"
 
   while IFS= read -r file; do
-    desired_recipients=()
     current_recipients=()
     add_age=()
     rm_age=()
     rotate_cmd=(run_sops rotate -i)
-
-    while IFS= read -r recipient; do
-      [ -n "$recipient" ] && desired_recipients+=("$recipient")
-    done < <(printf '%s\n' "$recipients_csv" | tr ',' '\n')
 
     while IFS= read -r recipient; do
       [ -n "$recipient" ] && current_recipients+=("$recipient")

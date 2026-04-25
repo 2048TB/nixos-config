@@ -6,6 +6,7 @@
 , ...
 }:
 let
+  inherit (pkgs) lib;
   cfg = nixosSystem.config;
   hostCfg = cfg.my.host;
   hmCfg = cfg.home-manager.users.${mainUser};
@@ -80,7 +81,9 @@ in
   '';
 
   "eval-${name}-generated-noctalia-monitor-count" =
-    assert !noctaliaIsGenerated || builtins.length generatedMonitorWidgets == builtins.length hostCfg.displays;
+    assert lib.assertMsg
+      (!noctaliaIsGenerated || builtins.length generatedMonitorWidgets == builtins.length hostCfg.displays)
+      "eval-${name}-generated-noctalia-monitor-count: generated monitor widget count must match my.host.displays";
     pkgs.runCommand "eval-${name}-generated-noctalia-monitor-count" { } ''
       test "${
         if !noctaliaIsGenerated then "1"  # symlinked config — skip
@@ -91,10 +94,18 @@ in
     '';
 
   "eval-${name}-synthetic-noctalia-multi-display" =
-    assert builtins.length syntheticMonitorWidgets == 2;
-    assert (builtins.elemAt syntheticMonitorWidgets 0).name == "DP-1";
-    assert (builtins.elemAt syntheticMonitorWidgets 1).name == "HDMI-A-1";
-    assert builtins.length (builtins.elemAt syntheticMonitorWidgets 0).widgets == 2;
+    assert lib.assertMsg
+      (builtins.length syntheticMonitorWidgets == 2)
+      "eval-${name}-synthetic-noctalia-multi-display: expected two generated monitor widget groups";
+    assert lib.assertMsg
+      ((builtins.elemAt syntheticMonitorWidgets 0).name == "DP-1")
+      "eval-${name}-synthetic-noctalia-multi-display: first generated monitor must be DP-1";
+    assert lib.assertMsg
+      ((builtins.elemAt syntheticMonitorWidgets 1).name == "HDMI-A-1")
+      "eval-${name}-synthetic-noctalia-multi-display: second generated monitor must be HDMI-A-1";
+    assert lib.assertMsg
+      (builtins.length (builtins.elemAt syntheticMonitorWidgets 0).widgets == 2)
+      "eval-${name}-synthetic-noctalia-multi-display: generated primary monitor must keep template widgets";
     pkgs.runCommand "eval-${name}-synthetic-noctalia-multi-display" { } ''
       test "${toString (builtins.length syntheticMonitorWidgets)}" = "2"
       test "${(builtins.elemAt syntheticMonitorWidgets 0).name}" = "DP-1"

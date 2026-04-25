@@ -52,6 +52,7 @@
 - greetd 会话启动前只导入 HM/GUI 基础变量；`WAYLAND_DISPLAY` / `DISPLAY` 等显示变量由 Niri `spawn-at-startup` 的 `wayland-session-env-sync` 在 compositor 启动后再导入 systemd user / D-Bus activation 环境
 - 启用 hibernate 的主机会安装 `swapfile-resume-check.service`；swapfile size 或 resume offset 异常会体现在 unit 失败状态与 journal，而不是只出现在 activation 输出中
 - 启用 `"vpn"` role 的 NixOS 主机使用 WireGuard-only VPN pool：NixOS 声明稳定 opaque 入口（当前为 `wg-nqrvma`、`wg-vdrkye`、`wg-xafmcp`、`wg-hzplwt`、`wg-kqsjdn`），provider `.conf` 以 SOPS 加密保存，默认只自启动 `wg-xafmcp` 这一个 full-tunnel profile；切换通过 `vpn-switch`，同入口候选服务器选择通过 `vpn-select`，停止全部 VPN 通过 `vpn-stop-all`；profile、secret 文件名和 runtime path 不编码 provider、地区、城市、endpoint 编号或账号标识；kill switch 由 NixOS firewall 的 `iptables` backend 常驻管理，host outbound 仅额外放行私网/链路本地地址，公网和 forwarded traffic 仍受阻断，`vpn-stop-all` 后外网仍会被阻断；不要停止或禁用 firewall，否则 kill switch 也会被移除
+- WireGuard activation 只在缺少 active path 时写入默认 active symlink；已有 symlink（即使当前 target 缺失）由 `vpn-select` 管理，不在 activation 中覆盖
 
 ## 3. 最常用命令
 

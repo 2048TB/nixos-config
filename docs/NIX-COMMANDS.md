@@ -139,6 +139,6 @@ sudo vpn-select wg-xafmcp slot-a
 sudo vpn-stop-all
 ```
 
-`vpn-switch <profile>` 会先停止已加载的 `wg-quick-*` 服务和所有声明的 full-tunnel WireGuard profile，再启动目标 profile。`vpn-select <profile> <candidate>` 只更新该 profile 的 active symlink；如果当前 profile 正在运行，再执行一次 `vpn-switch <profile>` 应用新候选配置。
+`vpn-switch <profile>` 会先停止已加载的 `wg-quick-*` 服务和所有声明的 full-tunnel WireGuard profile，再启动目标 profile。`vpn-select <profile> <candidate>` 只更新该 profile 的 active symlink；如果当前 profile 正在运行，再执行一次 `vpn-switch <profile>` 应用新候选配置。activation 只在缺少 active path 时写入默认 active symlink；已有 symlink（即使当前 target 缺失）不会被覆盖。
 
 `vpn-stop-all` 使用同一套停止路径，但不会关闭 kill switch；外网会继续被阻断，直到再次执行 `sudo vpn-switch <profile>`。kill switch 会放行 host outbound 的私网/链路本地地址，便于访问 LAN IP；公网 IPv4/IPv6 仍必须走 WireGuard。不要停止或禁用 NixOS firewall，否则 kill switch 也会被移除。
