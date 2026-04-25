@@ -75,7 +75,7 @@ let
   expectedDisplayManagerSessionNames = lib.optionals hasDesktopSession [
     hostCfg.desktopProfile
   ];
-  hasProvider appVpn = cfg.services.provider-app-vpn.enable or false;
+  hasVpnRole = builtins.elem "vpn" hostRoles;
   hmCfg = cfg.home-manager.users.${mainUser};
   expectedHome = "/home/${mainUser}";
 
@@ -507,10 +507,36 @@ in
     touch "$out"
   '';
 }
-// lib.optionalAttrs hasProvider appVpn {
-  "eval-${name}-provider-app-minimal-integration" = pkgs.runCommand "eval-${name}-provider-app-minimal-integration" { } ''
-    test "${if cfg.services.provider-app-vpn.enable or false then "1" else "0"}" = "1"
+// lib.optionalAttrs hasVpnRole {
+  "eval-${name}-wireguard-vpn-integration" = pkgs.runCommand "eval-${name}-wireguard-vpn-integration" { } ''
+    test "${if cfg.services.provider-app-vpn.enable or false then "1" else "0"}" = "0"
     test "${if cfg.services.resolved.enable or false then "1" else "0"}" = "1"
+    test "${if (cfg.networking.wg-quick.interfaces or { }) != { } then "1" else "0"}" = "1"
+    test "${if cfg.networking.wg-quick.interfaces.wg-nqrvma.autostart or false then "1" else "0"}" = "1"
+    test "${if cfg.networking.wg-quick.interfaces.wg-vdrkye.autostart or false then "1" else "0"}" = "0"
+    test "${if cfg.networking.wg-quick.interfaces.wg-xafmcp.autostart or false then "1" else "0"}" = "0"
+    test "${if cfg.networking.wg-quick.interfaces.wg-hzplwt.autostart or false then "1" else "0"}" = "0"
+    test "${if cfg.networking.wg-quick.interfaces.wg-kqsjdn.autostart or false then "1" else "0"}" = "0"
+    test "${cfg.networking.wg-quick.interfaces.wg-nqrvma.configFile}" = "/run/wireguard/active/wg-nqrvma.conf"
+    touch "$out"
+  '';
+  "eval-${name}-wireguard-vpn-profiles" = pkgs.runCommand "eval-${name}-wireguard-vpn-profiles" { } ''
+    test "${if builtins.hasAttr "wg-nqrvma" (cfg.networking.wg-quick.interfaces or { }) then "1" else "0"}" = "1"
+    test "${if builtins.hasAttr "wg-vdrkye" (cfg.networking.wg-quick.interfaces or { }) then "1" else "0"}" = "1"
+    test "${if builtins.hasAttr "wg-xafmcp" (cfg.networking.wg-quick.interfaces or { }) then "1" else "0"}" = "1"
+    test "${if builtins.hasAttr "wg-hzplwt" (cfg.networking.wg-quick.interfaces or { }) then "1" else "0"}" = "1"
+    test "${if builtins.hasAttr "wg-kqsjdn" (cfg.networking.wg-quick.interfaces or { }) then "1" else "0"}" = "1"
+    touch "$out"
+  '';
+  "eval-${name}-wireguard-vpn-kill-switch" = pkgs.runCommand "eval-${name}-wireguard-vpn-kill-switch" { } ''
+    test "${if cfg.networking.firewall.enable or false then "1" else "0"}" = "1"
+    test "${cfg.networking.firewall.backend}" = "iptables"
+    test "${if lib.hasInfix "NIXOS_WG_KILLSWITCH" (cfg.networking.firewall.extraCommands or "") then "1" else "0"}" = "1"
+    test "${if lib.hasInfix "NIXOS_WG_KILLSWITCH_FWD" (cfg.networking.firewall.extraCommands or "") then "1" else "0"}" = "1"
+    test "${if lib.hasInfix "FORWARD -j NIXOS_WG_KILLSWITCH_FWD" (cfg.networking.firewall.extraCommands or "") then "1" else "0"}" = "1"
+    test "${if lib.hasInfix "--mark 51820" (cfg.networking.firewall.extraCommands or "") then "1" else "0"}" = "1"
+    test "${if lib.hasInfix "FwMark = 51820" (cfg.systemd.services.wg-quick-wg-nqrvma.preStart or "") then "1" else "0"}" = "1"
+    test "${if lib.hasInfix "/persistent/wireguard/active/wg-nqrvma.conf" (cfg.systemd.services.wg-quick-wg-nqrvma.preStart or "") then "1" else "0"}" = "1"
     touch "$out"
   '';
 }

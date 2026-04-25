@@ -39,6 +39,44 @@ let
     "secrets/common/services/aria2-rpc-secret.yaml"
     "secrets/services/aria2-rpc-secret.yaml";
 
+  wireguardCatalog = import ../../configs/wireguard/catalog.nix;
+  wireguardCandidateEntries =
+    lib.flatten (
+      lib.mapAttrsToList
+        (
+          profileName: profile:
+            lib.mapAttrsToList
+              (
+                candidateName: candidate:
+                  {
+                    secretName = "wireguard/${profileName}/${candidateName}";
+                    inherit candidate;
+                  }
+              )
+              profile.candidates
+        )
+        wireguardCatalog.profiles
+    );
+  wireguardSecretAttrs =
+    builtins.listToAttrs (
+      map
+        (
+          entry:
+          {
+            name = entry.secretName;
+            value = {
+              inherit (entry.candidate) sopsFile;
+              key = "value";
+              path = entry.candidate.runtimePath;
+              mode = "0400";
+              owner = "root";
+              group = "root";
+            };
+          }
+        )
+        (builtins.filter (entry: builtins.pathExists entry.candidate.sopsFile) wireguardCandidateEntries)
+    );
+
   hasGithubSshPrivateSecret = builtins.pathExists githubSshPrivateSecretFile;
   hasGithubSshPublicSecret = builtins.pathExists githubSshPublicSecretFile;
   hasAria2RpcSecret = builtins.pathExists aria2RpcSecretFile;
@@ -94,7 +132,8 @@ in
           owner = mainUser;
           group = mainUser;
         };
-      };
+      }
+      // wireguardSecretAttrs;
   };
 
   system.activationScripts = {

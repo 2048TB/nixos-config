@@ -7,7 +7,7 @@
 let
   hostCfg = config.my.host;
   roleFlags = mylib.roleFlags hostCfg;
-  inherit (roleFlags) enableProvider appVpn enableLibvirtd enableDocker useRootfulDocker;
+  inherit (roleFlags) enableLibvirtd enableDocker useRootfulDocker;
   inherit (config.my.capabilities) hasDesktopSession hasFingerprintReader;
   enableFlatpak = hasDesktopSession;
   hibernateEnabled = hostCfg.resumeOffset != null;
@@ -72,10 +72,6 @@ in
       ]
       ++ lib.optionals (enableDocker && useRootfulDocker) [
         "/var/lib/docker"
-      ]
-      ++ lib.optionals enableProvider appVpn [
-        "/etc/provider-app-vpn"
-        "/var/cache/provider-app-vpn"
       ]
       ++ lib.optionals enableFlatpak [
         "/var/lib/flatpak"

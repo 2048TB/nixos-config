@@ -17,7 +17,7 @@ let
     "media"
     "archive"
   ];
-  inherit (roleFlags) enableProvider appVpn enableSteam enableLibvirtd enableDocker;
+  inherit (roleFlags) enableSteam enableLibvirtd enableDocker;
   # App toggles stay in host vars and are consumed only by Home Manager.
   enableWpsOffice = myvars.enableWpsOffice or false;
   enableZathura = myvars.enableZathura or false;
@@ -107,7 +107,6 @@ in
       ++ lib.optional enableAntigravity pkgs.antigravity
       ++ lib.optionals enableSteam gamingPackages
       ++ lib.optionals enableLibvirtd virtualisationPackages
-      ++ lib.optionals enableDocker dockerPackages
-      ++ lib.optional enableProvider appVpn pkgs.provider-app-vpn;
+      ++ lib.optionals enableDocker dockerPackages;
   };
 }

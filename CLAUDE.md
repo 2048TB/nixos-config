@@ -11,7 +11,10 @@ AI/自动化工具专用。
 - `docs/README.md`
 - `docs/ENV-USAGE.md`
 - `docs/NIX-COMMANDS.md`
+- `docs/KEYBINDINGS.md`
+- `nix/configs/wireguard/README.md`
 - `nix/hosts/README.md`
+- `nix/hosts/nixos/README.md`
 - `nix/home/README.md`
 - `secrets/keys/README.md`
 - `AGENTS.md`
@@ -26,7 +29,7 @@ AI/自动化工具专用。
 
 ## 文档同步
 
-只要改动了用户可见行为、脚本语义、命令入口或目录职责，就同步对应文档；`docs/README.md` 是第一同步目标。
+只要改动了用户可见行为、脚本语义、命令入口或目录职责，就同步对应文档；`docs/README.md` 是第一同步目标。VPN / WireGuard catalog / kill switch 变更需同步 `docs/README.md`、`docs/NIX-COMMANDS.md` 与 `nix/configs/wireguard/README.md`。
 
 ## 安全规则
 

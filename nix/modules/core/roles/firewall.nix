@@ -2,8 +2,8 @@
 let
   hostCfg = config.my.host;
   roleFlags = mylib.roleFlags hostCfg;
-  inherit (roleFlags) enableProvider appVpn enableLibvirtd;
+  inherit (roleFlags) enableVpn enableLibvirtd;
 in
 {
-  networking.firewall.checkReversePath = if (enableProvider appVpn || enableLibvirtd) then "loose" else "strict";
+  networking.firewall.checkReversePath = if (enableVpn || enableLibvirtd) then "loose" else "strict";
 }

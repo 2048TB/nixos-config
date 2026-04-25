@@ -11,6 +11,7 @@
 | `docs/NIX-COMMANDS.md` | 纯命令速查 |
 | `docs/ENV-USAGE.md` | 环境差异 |
 | `docs/KEYBINDINGS.md` | 快捷键摘要 |
+| `nix/configs/wireguard/README.md` | WireGuard VPN catalog、SOPS 配置布局、kill switch 与切换命令 |
 | `nix/hosts/README.md` | hosts 目录、registry 与结构入口 |
 | `nix/home/README.md` | Home Manager 结构入口 |
 | `secrets/keys/README.md` | 公钥目录与 key 操作入口 |
@@ -50,7 +51,7 @@
 - Home Manager 当前会把 `~/.local/share/mise/shims` 放进 session `PATH`；`code` / `antigravity` 还会额外通过 `~/.local/bin/` wrapper 过滤已知 Electron Wayland 参数告警；`mise upgrade` 默认手动执行（`just mise-upgrade`），只有主机显式设置 `my.host.miseAutoUpgrade = true` 时才启用 `systemd --user` timer；涉及此行为的改动需重新执行 `just home-switch`
 - greetd 会话启动前只导入 HM/GUI 基础变量；`WAYLAND_DISPLAY` / `DISPLAY` 等显示变量由 Niri `spawn-at-startup` 的 `wayland-session-env-sync` 在 compositor 启动后再导入 systemd user / D-Bus activation 环境
 - 启用 hibernate 的主机会安装 `swapfile-resume-check.service`；swapfile size 或 resume offset 异常会体现在 unit 失败状态与 journal，而不是只出现在 activation 输出中
-- 启用 `"vpn"` role 的 NixOS 主机只做 Provider app 最小集成：启用 Provider app VPN 与 `systemd-resolved`；连接、恢复和 kill switch 交给 Provider app app / daemon 自己管理
+- 启用 `"vpn"` role 的 NixOS 主机使用 WireGuard-only VPN pool：NixOS 声明稳定入口（当前为 `wg-nqrvma`、`wg-vdrkye`、`wg-xafmcp`、`wg-hzplwt`、`wg-kqsjdn`），provider `.conf` 以 SOPS 加密保存，默认只自启动 `wg-nqrvma` 这一个 full-tunnel profile；切换通过 `vpn-switch`，同入口候选服务器选择通过 `vpn-select`，停止全部 VPN 通过 `vpn-stop-all`；不启用 Provider app VPN app / daemon，`provider-app-*` 仅表示 Provider app WireGuard profile；kill switch 由 NixOS firewall 的 `iptables` backend 常驻管理，覆盖 host outbound 和 forwarded traffic，`vpn-stop-all` 后外网仍会被阻断；不要停止或禁用 firewall，否则 kill switch 也会被移除
 
 ## 3. 最常用命令
 
