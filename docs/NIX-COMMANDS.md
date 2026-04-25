@@ -126,16 +126,16 @@ bash /persistent/nixos-config/nix/scripts/admin/guard-secrets.sh --all-tracked
 
 ## 8. WireGuard VPN
 
-当前 profiles：`wg-nqrvma`、`wg-vdrkye`、`wg-xafmcp`、`wg-hzplwt`、`wg-kqsjdn`。默认自启动 `wg-nqrvma`。profile、secret 文件名和 runtime path 使用 opaque 命名，不编码 provider、地区、城市、endpoint 编号或账号标识。kill switch 由 NixOS firewall 的 `iptables` backend 常驻管理，覆盖 host outbound 和 forwarded traffic，不依赖 provider `.conf` 自带 hook。
+当前 profiles：`wg-nqrvma`、`wg-vdrkye`、`wg-xafmcp`、`wg-hzplwt`、`wg-kqsjdn`。默认自启动 `wg-xafmcp`。profile、secret 文件名和 runtime path 使用 opaque 命名，不编码 provider、地区、城市、endpoint 编号或账号标识。kill switch 由 NixOS firewall 的 `iptables` backend 常驻管理，覆盖 host outbound 和 forwarded traffic，不依赖 provider `.conf` 自带 hook。
 
 ```bash
 sudo vpn-status
-sudo vpn-switch wg-nqrvma
 sudo vpn-switch wg-vdrkye
 sudo vpn-switch wg-xafmcp
+sudo vpn-switch wg-nqrvma
 sudo vpn-switch wg-hzplwt
 sudo vpn-switch wg-kqsjdn
-sudo vpn-select wg-nqrvma slot-a
+sudo vpn-select wg-xafmcp slot-a
 sudo vpn-stop-all
 ```
 

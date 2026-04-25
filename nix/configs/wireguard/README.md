@@ -33,7 +33,7 @@ Stable profiles are declared in `catalog.nix`. The current set is:
 - `wg-hzplwt`
 - `wg-kqsjdn`
 
-`wg-nqrvma` is the default autostart profile. Profile names, secret file names,
+`wg-xafmcp` is the default autostart profile. Profile names, secret file names,
 and runtime paths are intentionally opaque: do not encode provider names,
 regions, city names, endpoint numbers, or account identifiers in them.
 
@@ -69,8 +69,8 @@ Only one full-tunnel profile should run at a time. Use:
 
 ```bash
 sudo vpn-status
-sudo vpn-select wg-nqrvma slot-a
-sudo vpn-switch wg-nqrvma
+sudo vpn-select wg-xafmcp slot-a
+sudo vpn-switch wg-xafmcp
 sudo vpn-stop-all
 ```
 

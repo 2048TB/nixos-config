@@ -1,11 +1,11 @@
 {
-  defaultProfile = "wg-nqrvma";
+  defaultProfile = "wg-xafmcp";
 
   activeDir = "/persistent/wireguard/active";
 
   profiles = {
     "wg-nqrvma" = {
-      autostart = true;
+      autostart = false;
       active = "slot-a";
       candidates = {
         "slot-a" = {
@@ -35,7 +35,7 @@
     };
 
     "wg-xafmcp" = {
-      autostart = false;
+      autostart = true;
       active = "slot-a";
       candidates = {
         "slot-a" = {
