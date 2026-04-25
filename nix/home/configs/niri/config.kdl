@@ -11,7 +11,9 @@ include "./outputs.kdl"
 // Noctalia shell 仍使用仓库工作树中的本地持久化 settings.json，
 // 但启动改为官方当前推荐的 compositor autostart。
 spawn-at-startup "wayland-session-env-sync"
-spawn-at-startup "noctalia-shell"
+// quickshell 目前会在加载 fcitx5 的 Qt input context 时崩溃；
+// Noctalia 不需要输入法，单独取消此变量，避免影响其它 Qt 应用。
+spawn-at-startup "env" "-u" "QT_IM_MODULE" "noctalia-shell"
 
 debug {
     // 允许 Noctalia 的通知动作与窗口激活在 Niri 下正常工作。

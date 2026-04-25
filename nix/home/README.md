@@ -47,6 +47,7 @@ nix/home/
 - `configs/mise/config.toml` 当前默认将全局 `python` 固定在 `3.12`，其余常用工具继续跟随 rolling channel
 - Linux 侧入口通过 `_mixins` allowlist 收敛导入列表
 - `nix/home/configs/noctalia/` 当前按设计直接映射到 repo 工作树；GUI 改动会直接修改 tracked files
+- Noctalia 相关 autostart / lock / session / restart 命令会单独取消 `QT_IM_MODULE`，避免 `quickshell` 触发 `fcitx5` Qt input context 崩溃
 - `linux/files.nix` 当前还负责 `~/.local/bin/code` 与 `~/.local/bin/antigravity` wrapper：前置 `mise` shims，并过滤已知 Electron Wayland 参数告警
 - `linux/desktop.nix` 当前还负责 `mise-upgrade.service`；`mise-upgrade.timer` 只有 host 显式设置 `my.host.miseAutoUpgrade = true` 时才安装
 

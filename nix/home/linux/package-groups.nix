@@ -56,6 +56,7 @@
     "wsdd"
     "file-roller"
     "ghostty"
+    "foot"
     "papirus-icon-theme"
     "wl-clipboard"
     "cliphist"

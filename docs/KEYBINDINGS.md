@@ -46,6 +46,8 @@
 | `Mod + Shift + E` | 退出 Niri |
 | `Ctrl + Alt + Delete` | 退出 Niri |
 
+Noctalia 相关快捷键会单独取消 `QT_IM_MODULE`，避免 `quickshell` 触发 `fcitx5` Qt input context 崩溃。
+
 ---
 
 ## 3. 窗口导航与移动

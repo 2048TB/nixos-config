@@ -80,7 +80,7 @@ binds {
     Mod+E { switch-focus-between-floating-and-tiling; }
 
     // 手动锁屏（对齐 Hyprland: Mod+Shift+L）
-    Mod+Shift+L { spawn "noctalia-shell" "ipc" "call" "lockScreen" "lock"; }
+    Mod+Shift+L { spawn "env" "-u" "QT_IM_MODULE" "noctalia-shell" "ipc" "call" "lockScreen" "lock"; }
 
     // 使用 spawn-sh 运行 shell 命令，如需管道、多条命令等。
     // 注意：整条命令作为单个参数传递，原样交给 `sh -c`。
@@ -301,9 +301,9 @@ binds {
     Mod+Shift+P { power-off-monitors; }
 
     // 实用快捷键（对齐 Hyprland）
-    Mod+Ctrl+B { spawn-sh "pkill -x noctalia-shell || true; sleep 0.2; exec noctalia-shell"; }
+    Mod+Ctrl+B { spawn-sh "pkill -x noctalia-shell || true; sleep 0.2; exec env -u QT_IM_MODULE noctalia-shell"; }
     Mod+Ctrl+S { spawn "pavucontrol"; }
-    Mod+Ctrl+E { spawn "noctalia-shell" "ipc" "call" "sessionMenu" "toggle"; }
+    Mod+Ctrl+E { spawn "env" "-u" "QT_IM_MODULE" "noctalia-shell" "ipc" "call" "sessionMenu" "toggle"; }
 }
 
 // 窗口规则用于调整单个窗口的行为。
