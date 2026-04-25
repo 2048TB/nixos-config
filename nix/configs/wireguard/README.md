@@ -47,6 +47,9 @@ NixOS `vpn` role owns the kill switch centrally:
 - provider configs are decrypted to `/run/wireguard/pool/<profile>/<slot>.conf`
 - `/persistent/wireguard/active/<profile>.conf` stores only the selected source
   symlink
+- SOPS secrets are prepared by NixOS activation before normal systemd services;
+  the `wg-quick-*` units wait for `network-online.target`, not for a
+  `sops-nix.service`
 - each `wg-quick-*` unit renders a temporary wrapper config under
   `/run/wireguard/active/<profile>.conf`
 - the wrapper injects `FwMark = 51820`

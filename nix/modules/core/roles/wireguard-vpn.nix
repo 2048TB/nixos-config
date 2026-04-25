@@ -107,7 +107,7 @@ let
 
     if [ ! -r "$target" ]; then
       echo "missing decrypted config: $target" >&2
-      echo "hint: run nixos-rebuild switch and check sops-nix before selecting it" >&2
+      echo "hint: run nixos-rebuild switch and check decrypted secrets before selecting it" >&2
       exit 1
     fi
 
@@ -135,7 +135,7 @@ let
 
     if [ ! -r "$source" ]; then
       echo "missing active WireGuard config source: $source" >&2
-      echo "hint: run vpn-select ${profileName} <candidate> after sops-nix has decrypted secrets" >&2
+      echo "hint: run vpn-select ${profileName} <candidate> after secrets are decrypted" >&2
       exit 1
     fi
 
@@ -286,11 +286,7 @@ in
       (
         profileName: _:
           lib.nameValuePair "wg-quick-${profileName}" {
-            after = [
-              "sops-nix.service"
-              "network-online.target"
-            ];
-            requires = [ "sops-nix.service" ];
+            after = [ "network-online.target" ];
             wants = [ "network-online.target" ];
             preStart = renderActiveConfig profileName;
           }
