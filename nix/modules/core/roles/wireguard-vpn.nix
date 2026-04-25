@@ -11,7 +11,6 @@ let
   killSwitchChain = "NIXOS_WG_KILLSWITCH";
   killSwitchForwardChain = "NIXOS_WG_KILLSWITCH_FWD";
   killSwitchMark = "51820";
-  legacyVpnDaemon = "mull" + "vad-daemon.service";
   localNetworkCidrs4 = [
     "10.0.0.0/8"
     "172.16.0.0/12"
@@ -340,16 +339,6 @@ in
       done
     '';
     deps = [ "specialfs" ];
-  };
-
-  system.activationScripts.wireguardVpnStopLegacyProviderApp = lib.mkIf enableVpn {
-    text = ''
-      # Smooth migration from the old provider app role after switching to the
-      # WireGuard-only role.
-      if [ -d /run/systemd/system ]; then
-        ${pkgs.systemd}/bin/systemctl stop ${lib.escapeShellArg legacyVpnDaemon} 2>/dev/null || true
-      fi
-    '';
   };
 
   networking.firewall = lib.mkIf enableVpn {

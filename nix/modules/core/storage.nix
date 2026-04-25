@@ -11,7 +11,6 @@ let
   inherit (config.my.capabilities) hasDesktopSession hasFingerprintReader;
   enableFlatpak = hasDesktopSession;
   hibernateEnabled = hostCfg.resumeOffset != null;
-  legacyVpnStateDirName = "mull" + "vad-vpn";
   swapfileResumeCheck = pkgs.writeShellScript "swapfile-resume-check" ''
     set -eu
 
@@ -73,13 +72,6 @@ in
       ]
       ++ lib.optionals (enableDocker && useRootfulDocker) [
         "/var/lib/docker"
-      ]
-      ++ lib.optionals enableVpn [
-        # Keep legacy provider app state mounts during the WireGuard migration.
-        # The app/daemon is removed elsewhere; keeping these mounts avoids a
-        # busy mount stop failure while switching from an older generation.
-        "/etc/${legacyVpnStateDirName}"
-        "/var/cache/${legacyVpnStateDirName}"
       ]
       ++ lib.optionals enableFlatpak [
         "/var/lib/flatpak"

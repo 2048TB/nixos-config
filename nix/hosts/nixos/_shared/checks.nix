@@ -76,10 +76,6 @@ let
     hostCfg.desktopProfile
   ];
   hasVpnRole = builtins.elem "vpn" hostRoles;
-  legacyVpnServiceOption = "mull" + "vad-vpn";
-  legacyVpnStateDirName = "mull" + "vad-vpn";
-  legacyVpnDaemon = "mull" + "vad-daemon.service";
-  preservedDirs = map (dir: dir.directory or dir) (cfg.preservation.preserveAt."/persistent".directories or [ ]);
   hmCfg = cfg.home-manager.users.${mainUser};
   expectedHome = "/home/${mainUser}";
 
@@ -513,7 +509,6 @@ in
 }
 // lib.optionalAttrs hasVpnRole {
   "eval-${name}-wireguard-vpn-integration" = pkgs.runCommand "eval-${name}-wireguard-vpn-integration" { } ''
-    test "${if cfg.services.${legacyVpnServiceOption}.enable or false then "1" else "0"}" = "0"
     test "${if cfg.services.resolved.enable or false then "1" else "0"}" = "1"
     test "${if (cfg.networking.wg-quick.interfaces or { }) != { } then "1" else "0"}" = "1"
     test "${if cfg.networking.wg-quick.interfaces.wg-nqrvma.autostart or false then "1" else "0"}" = "1"
@@ -528,9 +523,6 @@ in
     test "${if cfg.system.activationScripts ? setupSecrets then "1" else "0"}" = "1"
     test "${if lib.hasInfix "basename \"$active\" .conf" (cfg.system.activationScripts.wireguardVpnActiveLinks.text or "") then "1" else "0"}" = "1"
     test "${if lib.hasInfix "rm -f \"$active\"" (cfg.system.activationScripts.wireguardVpnActiveLinks.text or "") then "1" else "0"}" = "1"
-    test "${if lib.hasInfix legacyVpnDaemon (cfg.system.activationScripts.wireguardVpnStopLegacyProviderApp.text or "") then "1" else "0"}" = "1"
-    test "${if builtins.elem "/etc/${legacyVpnStateDirName}" preservedDirs then "1" else "0"}" = "1"
-    test "${if builtins.elem "/var/cache/${legacyVpnStateDirName}" preservedDirs then "1" else "0"}" = "1"
     touch "$out"
   '';
   "eval-${name}-wireguard-vpn-profiles" = pkgs.runCommand "eval-${name}-wireguard-vpn-profiles" { } ''
