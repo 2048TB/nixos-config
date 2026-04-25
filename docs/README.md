@@ -229,10 +229,12 @@ just optimize
 just use
 ```
 
-- `clean` 现在通过 `nh clean all --keep-since 14d --keep 3` 执行
+- `clean` 现在通过 `nh clean all --keep-since 30d --keep 15` 执行
 - `clean-all` 现在通过 `nh clean all --keep-since 0h --keep 0` 执行
-- 自动清理由 `programs.nh.clean` 执行：每周一 `03:15`，参数为 `--keep-since 14d --keep 3`
+- 自动清理由 `programs.nh.clean` 执行：每周一 `03:15`，参数为 `--keep-since 30d --keep 15`
 - `nix.gc.automatic` 已关闭，避免与 `programs.nh.clean` 冲突
+- systemd-boot 最多展示 15 个配置项；可启动的旧 NixOS 版本来自系统 profile generation，不等同于 `/nix/store` 缓存
+- `clean-all` 会清理所有旧 profile generation，可能同时移除 boot menu 中的回滚入口；除非确认不需要回滚，否则优先使用 `clean`
 
 ## 7. Secrets 与 Git 安全
 

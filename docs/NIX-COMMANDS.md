@@ -80,9 +80,14 @@ flake_repo="$(bash /persistent/nixos-config/nix/scripts/admin/print-flake-repo.s
 nix shell nixpkgs#nh -c nh os build "path:$flake_repo" -H zly
 nix shell nixpkgs#nh -c nh os switch "path:$flake_repo" -H zly
 nix shell nixpkgs#nh -c nh home switch "path:$flake_repo" -c "$(id -un)@$(hostname)"
-nix shell nixpkgs#nh -c nh clean all --keep-since 14d --keep 3
+nix shell nixpkgs#nh -c nh clean all --keep-since 30d --keep 15
 nix shell nixpkgs#nh -c nh clean all --keep-since 0h --keep 0
 ```
+
+`clean` 保留最近 30 天且至少 15 个 generation，和
+`boot.loader.systemd-boot.configurationLimit = 15` 对齐。`clean-all` 会清理旧
+profile generation，因此可能移除 boot menu 里的回滚入口；`/nix/store` 仍有缓存
+并不代表旧 NixOS generation 仍可被 systemd-boot 选择。
 
 ## 6. `sops`
 
