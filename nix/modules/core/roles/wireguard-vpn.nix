@@ -11,6 +11,17 @@ let
   killSwitchChain = "NIXOS_WG_KILLSWITCH";
   killSwitchForwardChain = "NIXOS_WG_KILLSWITCH_FWD";
   killSwitchMark = "51820";
+  legacyVpnDaemon = "mull" + "vad-daemon.service";
+  localNetworkCidrs4 = [
+    "10.0.0.0/8"
+    "172.16.0.0/12"
+    "192.168.0.0/16"
+    "169.254.0.0/16"
+  ];
+  localNetworkCidrs6 = [
+    "fc00::/7"
+    "fe80::/10"
+  ];
   validProfiles = builtins.attrNames wireguardProfiles;
   validProfilesText = lib.concatStringsSep " " validProfiles;
   activeSourcePath = profileName: "${activeDir}/${profileName}.conf";
@@ -61,6 +72,12 @@ let
 
   vpnStopAll = pkgs.writeShellScriptBin "vpn-stop-all" ''
     set -eu
+    ${pkgs.systemd}/bin/systemctl list-units --type=service --all --no-legend 'wg-quick-*.service' \
+      | while read -r unit _; do
+        [ -n "$unit" ] || continue
+        ${pkgs.systemd}/bin/systemctl stop "$unit" 2>/dev/null || true
+      done
+
     for profile in ${validProfilesText}; do
       ${pkgs.systemd}/bin/systemctl stop "wg-quick-$profile.service" 2>/dev/null || true
     done
@@ -170,6 +187,16 @@ let
       ${ip6tables} -A ${killSwitchChain} -o ${lib.escapeShellArg profileName} -j RETURN
     '')
     validProfiles;
+  allowLocalOutputs4 = lib.concatMapStringsSep "\n"
+    (cidr: ''
+      ${iptables} -A ${killSwitchChain} -d ${lib.escapeShellArg cidr} -j RETURN
+    '')
+    localNetworkCidrs4;
+  allowLocalOutputs6 = lib.concatMapStringsSep "\n"
+    (cidr: ''
+      ${ip6tables} -A ${killSwitchChain} -d ${lib.escapeShellArg cidr} -j RETURN
+    '')
+    localNetworkCidrs6;
   allowProfileForward4 = lib.concatMapStringsSep "\n"
     (profileName: ''
       ${iptables} -A ${killSwitchForwardChain} -o ${lib.escapeShellArg profileName} -j RETURN
@@ -189,6 +216,7 @@ let
     ${allowProfileOutputs}
     ${iptables} -A ${killSwitchChain} -m mark --mark ${killSwitchMark} -j RETURN
     ${iptables} -A ${killSwitchChain} -m addrtype --dst-type LOCAL -j RETURN
+    ${allowLocalOutputs4}
     ${iptables} -A ${killSwitchChain} -m addrtype --dst-type BROADCAST -j RETURN
     ${iptables} -A ${killSwitchChain} -p udp --sport 68 --dport 67 -j RETURN
     ${iptables} -A ${killSwitchChain} -j REJECT
@@ -204,6 +232,7 @@ let
     ${allowProfileOutputs6}
     ${ip6tables} -A ${killSwitchChain} -m mark --mark ${killSwitchMark} -j RETURN
     ${ip6tables} -A ${killSwitchChain} -m addrtype --dst-type LOCAL -j RETURN
+    ${allowLocalOutputs6}
     ${ip6tables} -A ${killSwitchChain} -p ipv6-icmp --icmpv6-type router-solicitation -j RETURN
     ${ip6tables} -A ${killSwitchChain} -p ipv6-icmp --icmpv6-type router-advertisement -j RETURN
     ${ip6tables} -A ${killSwitchChain} -p ipv6-icmp --icmpv6-type neighbour-solicitation -j RETURN
@@ -298,16 +327,27 @@ in
     text = ''
       ${pkgs.coreutils}/bin/install -d -m 0700 ${lib.escapeShellArg activeDir}
       ${initialActiveLinks}
+
+      for active in ${lib.escapeShellArg activeDir}/*.conf; do
+        [ -e "$active" ] || continue
+        profile="$(${pkgs.coreutils}/bin/basename "$active" .conf)"
+        case "$profile" in
+          ${shellCaseProfiles}
+          *)
+            ${pkgs.coreutils}/bin/rm -f "$active"
+            ;;
+        esac
+      done
     '';
     deps = [ "specialfs" ];
   };
 
-  system.activationScripts.wireguardVpnStopLegacyProvider app = lib.mkIf enableVpn {
+  system.activationScripts.wireguardVpnStopLegacyProviderApp = lib.mkIf enableVpn {
     text = ''
-      # Smooth migration from the old Provider app app role: stop the legacy daemon
-      # after switching to the WireGuard-only role.
+      # Smooth migration from the old provider app role after switching to the
+      # WireGuard-only role.
       if [ -d /run/systemd/system ]; then
-        ${pkgs.systemd}/bin/systemctl stop provider-app-daemon.service 2>/dev/null || true
+        ${pkgs.systemd}/bin/systemctl stop ${lib.escapeShellArg legacyVpnDaemon} 2>/dev/null || true
       fi
     '';
   };

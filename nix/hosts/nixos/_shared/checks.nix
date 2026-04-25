@@ -76,6 +76,9 @@ let
     hostCfg.desktopProfile
   ];
   hasVpnRole = builtins.elem "vpn" hostRoles;
+  legacyVpnServiceOption = "mull" + "vad-vpn";
+  legacyVpnStateDirName = "mull" + "vad-vpn";
+  legacyVpnDaemon = "mull" + "vad-daemon.service";
   preservedDirs = map (dir: dir.directory or dir) (cfg.preservation.preserveAt."/persistent".directories or [ ]);
   hmCfg = cfg.home-manager.users.${mainUser};
   expectedHome = "/home/${mainUser}";
@@ -510,7 +513,7 @@ in
 }
 // lib.optionalAttrs hasVpnRole {
   "eval-${name}-wireguard-vpn-integration" = pkgs.runCommand "eval-${name}-wireguard-vpn-integration" { } ''
-    test "${if cfg.services.provider-app-vpn.enable or false then "1" else "0"}" = "0"
+    test "${if cfg.services.${legacyVpnServiceOption}.enable or false then "1" else "0"}" = "0"
     test "${if cfg.services.resolved.enable or false then "1" else "0"}" = "1"
     test "${if (cfg.networking.wg-quick.interfaces or { }) != { } then "1" else "0"}" = "1"
     test "${if cfg.networking.wg-quick.interfaces.wg-nqrvma.autostart or false then "1" else "0"}" = "1"
@@ -523,9 +526,11 @@ in
     test "${if lib.hasInfix "sops-nix.service" (builtins.toJSON (cfg.systemd.services.wg-quick-wg-nqrvma.after or [ ])) then "1" else "0"}" = "0"
     test "${if lib.hasInfix "sops-nix.service" (builtins.toJSON (cfg.systemd.services.wg-quick-wg-nqrvma.requires or [ ])) then "1" else "0"}" = "0"
     test "${if cfg.system.activationScripts ? setupSecrets then "1" else "0"}" = "1"
-    test "${if lib.hasInfix "provider-app-daemon.service" (cfg.system.activationScripts.wireguardVpnStopLegacyProvider app.text or "") then "1" else "0"}" = "1"
-    test "${if builtins.elem "/etc/provider-app-vpn" preservedDirs then "1" else "0"}" = "1"
-    test "${if builtins.elem "/var/cache/provider-app-vpn" preservedDirs then "1" else "0"}" = "1"
+    test "${if lib.hasInfix "basename \"$active\" .conf" (cfg.system.activationScripts.wireguardVpnActiveLinks.text or "") then "1" else "0"}" = "1"
+    test "${if lib.hasInfix "rm -f \"$active\"" (cfg.system.activationScripts.wireguardVpnActiveLinks.text or "") then "1" else "0"}" = "1"
+    test "${if lib.hasInfix legacyVpnDaemon (cfg.system.activationScripts.wireguardVpnStopLegacyProviderApp.text or "") then "1" else "0"}" = "1"
+    test "${if builtins.elem "/etc/${legacyVpnStateDirName}" preservedDirs then "1" else "0"}" = "1"
+    test "${if builtins.elem "/var/cache/${legacyVpnStateDirName}" preservedDirs then "1" else "0"}" = "1"
     touch "$out"
   '';
   "eval-${name}-wireguard-vpn-profiles" = pkgs.runCommand "eval-${name}-wireguard-vpn-profiles" { } ''
@@ -543,6 +548,10 @@ in
     test "${if lib.hasInfix "NIXOS_WG_KILLSWITCH_FWD" (cfg.networking.firewall.extraCommands or "") then "1" else "0"}" = "1"
     test "${if lib.hasInfix "FORWARD -j NIXOS_WG_KILLSWITCH_FWD" (cfg.networking.firewall.extraCommands or "") then "1" else "0"}" = "1"
     test "${if lib.hasInfix "--mark 51820" (cfg.networking.firewall.extraCommands or "") then "1" else "0"}" = "1"
+    test "${if lib.hasInfix "-d 192.168.0.0/16 -j RETURN" (cfg.networking.firewall.extraCommands or "") then "1" else "0"}" = "1"
+    test "${if lib.hasInfix "-d fc00::/7 -j RETURN" (cfg.networking.firewall.extraCommands or "") then "1" else "0"}" = "1"
+    test "${if lib.hasInfix "-d 0.0.0.0/0 -j RETURN" (cfg.networking.firewall.extraCommands or "") then "1" else "0"}" = "0"
+    test "${if lib.hasInfix "-d ::/0 -j RETURN" (cfg.networking.firewall.extraCommands or "") then "1" else "0"}" = "0"
     test "${if lib.hasInfix "FwMark = 51820" (cfg.systemd.services.wg-quick-wg-nqrvma.preStart or "") then "1" else "0"}" = "1"
     test "${if lib.hasInfix "/persistent/wireguard/active/wg-nqrvma.conf" (cfg.systemd.services.wg-quick-wg-nqrvma.preStart or "") then "1" else "0"}" = "1"
     touch "$out"

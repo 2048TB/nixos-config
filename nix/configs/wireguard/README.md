@@ -33,13 +33,9 @@ Stable profiles are declared in `catalog.nix`. The current set is:
 - `wg-hzplwt`
 - `wg-kqsjdn`
 
-`wg-nqrvma` is the default autostart profile. The Provider app VPN app / daemon is
-not enabled by this catalog; `provider-app-*` entries are plain WireGuard profiles.
-The old Provider app app persistence mounts are intentionally kept during migration
-so switching from an older generation does not fail on busy mount teardown.
-
-`wg-redacted` is intentionally omitted because no opaque profile config is currently
-imported.
+`wg-nqrvma` is the default autostart profile. Profile names, secret file names,
+and runtime paths are intentionally opaque: do not encode provider names,
+regions, city names, endpoint numbers, or account identifiers in them.
 
 Do not enable provider-generated kill switch hooks when exporting configs. The
 NixOS `vpn` role owns the kill switch centrally:
@@ -62,9 +58,10 @@ NixOS `vpn` role owns the kill switch centrally:
 This follows the same `wg-quick` fwmark principle as the upstream kill switch
 example, but keeps the blocking firewall rule active outside individual
 `wg-quick` service lifetimes. Do not disable or stop the NixOS firewall while
-expecting the kill switch to remain active. LAN is not allowed by default; only
-loopback, host-local, DHCP/NDP, WireGuard interface output/forwarding, and
-WireGuard-marked endpoint traffic are allowed outside the tunnel. Provider
+expecting the kill switch to remain active. Host outbound access to private
+LAN/link-local ranges is allowed outside the tunnel: RFC1918 IPv4,
+`169.254.0.0/16`, IPv6 ULA, and IPv6 link-local. Public IPv4/IPv6 egress still
+has to use WireGuard-marked traffic or a WireGuard interface. Provider
 `Endpoint` values should be IP addresses, not hostnames, because pre-tunnel DNS
 is blocked by this policy.
 
@@ -78,6 +75,6 @@ sudo vpn-stop-all
 ```
 
 `vpn-select` changes the active candidate symlink under
-`/persistent/wireguard/active`. `vpn-switch` stops all declared full-tunnel
-profiles before starting the selected one. `vpn-stop-all` stops all declared
-profiles but leaves the kill switch active.
+`/persistent/wireguard/active`. `vpn-switch` stops loaded `wg-quick-*` services
+and all declared full-tunnel profiles before starting the selected one.
+`vpn-stop-all` uses the same stop path but leaves the kill switch active.

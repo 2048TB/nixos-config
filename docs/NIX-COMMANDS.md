@@ -126,7 +126,7 @@ bash /persistent/nixos-config/nix/scripts/admin/guard-secrets.sh --all-tracked
 
 ## 8. WireGuard VPN
 
-当前 profiles：`wg-nqrvma`、`wg-vdrkye`、`wg-xafmcp`、`wg-hzplwt`、`wg-kqsjdn`。默认自启动 `wg-nqrvma`；Provider app VPN app / daemon 不启用，`provider-app-*` 是普通 WireGuard profile。kill switch 由 NixOS firewall 的 `iptables` backend 常驻管理，覆盖 host outbound 和 forwarded traffic，不依赖 provider `.conf` 自带 hook。
+当前 profiles：`wg-nqrvma`、`wg-vdrkye`、`wg-xafmcp`、`wg-hzplwt`、`wg-kqsjdn`。默认自启动 `wg-nqrvma`。profile、secret 文件名和 runtime path 使用 opaque 命名，不编码 provider、地区、城市、endpoint 编号或账号标识。kill switch 由 NixOS firewall 的 `iptables` backend 常驻管理，覆盖 host outbound 和 forwarded traffic，不依赖 provider `.conf` 自带 hook。
 
 ```bash
 sudo vpn-status
@@ -139,6 +139,6 @@ sudo vpn-select wg-nqrvma slot-a
 sudo vpn-stop-all
 ```
 
-`vpn-switch <profile>` 会先停止所有声明的 full-tunnel WireGuard profile，再启动目标 profile。`vpn-select <profile> <candidate>` 只更新该 profile 的 active symlink；如果当前 profile 正在运行，再执行一次 `vpn-switch <profile>` 应用新候选配置。
+`vpn-switch <profile>` 会先停止已加载的 `wg-quick-*` 服务和所有声明的 full-tunnel WireGuard profile，再启动目标 profile。`vpn-select <profile> <candidate>` 只更新该 profile 的 active symlink；如果当前 profile 正在运行，再执行一次 `vpn-switch <profile>` 应用新候选配置。
 
-`vpn-stop-all` 会停止所有声明的 WireGuard profile，但不会关闭 kill switch；外网会继续被阻断，直到再次执行 `sudo vpn-switch <profile>`。默认不放行 LAN；仅保留 loopback、host-local、DHCP/NDP 等建立底层网络所需流量。不要停止或禁用 NixOS firewall，否则 kill switch 也会被移除。
+`vpn-stop-all` 使用同一套停止路径，但不会关闭 kill switch；外网会继续被阻断，直到再次执行 `sudo vpn-switch <profile>`。kill switch 会放行 host outbound 的私网/链路本地地址，便于访问 LAN IP；公网 IPv4/IPv6 仍必须走 WireGuard。不要停止或禁用 NixOS firewall，否则 kill switch 也会被移除。

@@ -5,8 +5,6 @@
 
   profiles = {
     "wg-nqrvma" = {
-      provider = "opaque";
-      region = "opaque";
       autostart = true;
       active = "slot-a";
       candidates = {
@@ -22,8 +20,6 @@
     };
 
     "wg-vdrkye" = {
-      provider = "opaque";
-      region = "opaque";
       autostart = false;
       active = "slot-a";
       candidates = {
@@ -39,8 +35,6 @@
     };
 
     "wg-xafmcp" = {
-      provider = "opaque";
-      region = "opaque";
       autostart = false;
       active = "slot-a";
       candidates = {
@@ -68,8 +62,6 @@
     };
 
     "wg-hzplwt" = {
-      provider = "opaque";
-      region = "opaque";
       autostart = false;
       active = "slot-e";
       candidates = {
@@ -113,8 +105,6 @@
     };
 
     "wg-kqsjdn" = {
-      provider = "opaque";
-      region = "opaque";
       autostart = false;
       active = "slot-a";
       candidates = {
