@@ -35,6 +35,8 @@ Stable profiles are declared in `catalog.nix`. The current set is:
 
 `wg-nqrvma` is the default autostart profile. The Provider app VPN app / daemon is
 not enabled by this catalog; `provider-app-*` entries are plain WireGuard profiles.
+During migration from the old Provider app app role, activation stops the legacy
+`provider-app-daemon.service` before systemd removes its old persistence mounts.
 
 `wg-redacted` is intentionally omitted because no opaque profile config is currently
 imported.

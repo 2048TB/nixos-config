@@ -518,6 +518,7 @@ in
     test "${if cfg.networking.wg-quick.interfaces.wg-hzplwt.autostart or false then "1" else "0"}" = "0"
     test "${if cfg.networking.wg-quick.interfaces.wg-kqsjdn.autostart or false then "1" else "0"}" = "0"
     test "${cfg.networking.wg-quick.interfaces.wg-nqrvma.configFile}" = "/run/wireguard/active/wg-nqrvma.conf"
+    test "${if lib.hasInfix "provider-app-daemon.service" (cfg.system.activationScripts.wireguardVpnStopLegacyProvider app.text or "") then "1" else "0"}" = "1"
     touch "$out"
   '';
   "eval-${name}-wireguard-vpn-profiles" = pkgs.runCommand "eval-${name}-wireguard-vpn-profiles" { } ''
