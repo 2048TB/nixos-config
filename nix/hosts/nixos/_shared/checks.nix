@@ -76,6 +76,7 @@ let
     hostCfg.desktopProfile
   ];
   hasVpnRole = builtins.elem "vpn" hostRoles;
+  preservedDirs = map (dir: dir.directory or dir) (cfg.preservation.preserveAt."/persistent".directories or [ ]);
   hmCfg = cfg.home-manager.users.${mainUser};
   expectedHome = "/home/${mainUser}";
 
@@ -519,6 +520,8 @@ in
     test "${if cfg.networking.wg-quick.interfaces.wg-kqsjdn.autostart or false then "1" else "0"}" = "0"
     test "${cfg.networking.wg-quick.interfaces.wg-nqrvma.configFile}" = "/run/wireguard/active/wg-nqrvma.conf"
     test "${if lib.hasInfix "provider-app-daemon.service" (cfg.system.activationScripts.wireguardVpnStopLegacyProvider app.text or "") then "1" else "0"}" = "1"
+    test "${if builtins.elem "/etc/provider-app-vpn" preservedDirs then "1" else "0"}" = "1"
+    test "${if builtins.elem "/var/cache/provider-app-vpn" preservedDirs then "1" else "0"}" = "1"
     touch "$out"
   '';
   "eval-${name}-wireguard-vpn-profiles" = pkgs.runCommand "eval-${name}-wireguard-vpn-profiles" { } ''

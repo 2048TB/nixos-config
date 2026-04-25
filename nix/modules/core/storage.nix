@@ -7,7 +7,7 @@
 let
   hostCfg = config.my.host;
   roleFlags = mylib.roleFlags hostCfg;
-  inherit (roleFlags) enableLibvirtd enableDocker useRootfulDocker;
+  inherit (roleFlags) enableVpn enableLibvirtd enableDocker useRootfulDocker;
   inherit (config.my.capabilities) hasDesktopSession hasFingerprintReader;
   enableFlatpak = hasDesktopSession;
   hibernateEnabled = hostCfg.resumeOffset != null;
@@ -72,6 +72,13 @@ in
       ]
       ++ lib.optionals (enableDocker && useRootfulDocker) [
         "/var/lib/docker"
+      ]
+      ++ lib.optionals enableVpn [
+        # Keep legacy Provider app app state mounts during the WireGuard migration.
+        # The app/daemon is removed elsewhere; keeping these mounts avoids a
+        # busy mount stop failure while switching from an older generation.
+        "/etc/provider-app-vpn"
+        "/var/cache/provider-app-vpn"
       ]
       ++ lib.optionals enableFlatpak [
         "/var/lib/flatpak"

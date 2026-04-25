@@ -309,7 +309,7 @@ in
   system.activationScripts.wireguardVpnStopLegacyProvider app = lib.mkIf enableVpn {
     text = ''
       # Smooth migration from the old Provider app app role: stop the legacy daemon
-      # before systemd removes its bind mounts during switch/test activation.
+      # after switching to the WireGuard-only role.
       if [ -d /run/systemd/system ]; then
         ${pkgs.systemd}/bin/systemctl stop provider-app-daemon.service 2>/dev/null || true
       fi
