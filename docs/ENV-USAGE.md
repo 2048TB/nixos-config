@@ -61,7 +61,7 @@ key 相关差异：
 - 系统默认启用 `programs.nh.clean` 自动清理；`just clean` 对齐自动清理保留策略并保留 30 天/15 个 generation，`just clean-all` 是会移除回滚入口的显式强清理入口
 - `mise upgrade` 默认手动执行（`just mise-upgrade`）；只有 host 显式设置 `my.host.miseAutoUpgrade = true` 才会启用 user timer；其中 `python` 当前固定在 `3.12`
 - Linux 会话不再全局导出 `LD_LIBRARY_PATH` / `OPENSSL_*`；CUDA pip wheels 的 `libcuda.so.1` 路径在 `just ml-shell` 的 `ml` devShell 内注入
-- 启用 `"vpn"` role 的主机使用 NixOS 管理的 WireGuard-only VPN pool；先用 `vpn-list` / `vpn-status` 查看可用 slot、selected slot 与加密 metadata，日常命令见 `docs/NIX-COMMANDS.md`，profile catalog 与 kill switch 细节见 `nix/configs/wireguard/README.md`
+- 启用 `"vpn"` role 的主机使用 NixOS 管理的 WireGuard-only VPN pool；先用 `sudo vpn-list` / `sudo vpn-status` 查看可用 slot、selected slot 与加密 metadata，日常命令见 `docs/NIX-COMMANDS.md`，profile catalog 与 kill switch 细节见 `nix/configs/wireguard/README.md`
 
 常用命令：
 

@@ -142,4 +142,6 @@ sudo vpn-stop-all
 
 `vpn-list` 会列出所有 opaque profile、slot、catalog 初始 slot、当前 selected slot、decrypted config 是否 `available`、已解密配置内加密保存的 `NixOS-VPN-Region` / `NixOS-VPN-Label` metadata，以及 profile 的 systemd 状态；`vpn-status` 会先输出同一份列表，再显示 `wg show` 和 default route。`vpn-switch <profile>` 会先停止已加载的 `wg-quick-*` 服务和所有声明的 full-tunnel WireGuard profile，再启动目标 profile。`vpn-select <profile> <candidate>` 只更新该 profile 的 active symlink；如果当前 profile 正在运行，再执行一次 `vpn-switch <profile>` 应用新候选配置。activation 只在缺少 active path 时写入默认 active symlink；已有 symlink（即使当前 target 缺失）不会被覆盖。
 
+`/run/wireguard` 与 `/persistent/wireguard` 是 root-only；查看真实 selected slot、`available`、region/label metadata 时使用 `sudo vpn-list` / `sudo vpn-status`。非 root 执行可能只能看到 `available=no` / `unavailable`，这不代表配置没有解密。
+
 `vpn-stop-all` 使用同一套停止路径，但不会关闭 kill switch；外网会继续被阻断，直到再次执行 `sudo vpn-switch <profile>`。kill switch 会放行 host outbound 的私网/链路本地地址，便于访问 LAN IP；公网 IPv4/IPv6 仍必须走 WireGuard。不要停止或禁用 NixOS firewall，否则 kill switch 也会被移除。

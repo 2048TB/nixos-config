@@ -91,6 +91,10 @@ selected slot, whether the decrypted runtime config is available, encrypted
 systemd state.
 `vpn-status` prints the same inventory before `wg show` and default route
 details.
+Run these inventory commands with `sudo`: `/run/wireguard` and
+`/persistent/wireguard` are root-only, so non-root execution may report
+`available=no` / `unavailable` even when the system service can read the
+decrypted configs.
 
 `vpn-select` changes the active candidate symlink under
 `/persistent/wireguard/active`. `vpn-switch` stops loaded `wg-quick-*` services
