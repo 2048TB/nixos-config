@@ -53,6 +53,93 @@ let
       "${entry.profileName}/${entry.candidateName}) target=${lib.escapeShellArg entry.runtimePath} ;;"
     )
     candidateEntries;
+  selectedCandidateCases = lib.concatMapStringsSep "\n          "
+    (
+      entry:
+      "${entry.profileName}/${entry.runtimePath}) selected=${lib.escapeShellArg entry.candidateName} ;;"
+    )
+    candidateEntries;
+  slotNames = profile:
+    lib.sort
+      (
+        a: b:
+          let
+            aLength = builtins.stringLength a;
+            bLength = builtins.stringLength b;
+          in
+          aLength < bLength || (aLength == bLength && a < b)
+      )
+      (builtins.attrNames profile.candidates);
+  metadataHelpers = ''
+    metadata_value() {
+      key="$1"
+      file="$2"
+      ${pkgs.gawk}/bin/awk -v key="$key" '
+        $0 ~ "^[[:space:]]*#[[:space:]]*" key "[[:space:]]*=" {
+          sub("^[[:space:]]*#[[:space:]]*" key "[[:space:]]*=[[:space:]]*", "")
+          sub("[[:space:]]*$", "")
+          print
+          exit
+        }
+      ' "$file"
+    }
+  '';
+  candidateStatusLines = profile:
+    lib.concatMapStringsSep "\n"
+      (
+        candidateName:
+        let
+          candidate = profile.candidates.${candidateName};
+        in
+        ''
+          candidate=${lib.escapeShellArg candidateName}
+          candidate_path=${lib.escapeShellArg candidate.runtimePath}
+          available=no
+          region=unavailable
+          label=unavailable
+          if [ -r "$candidate_path" ]; then
+            available=yes
+            region="$(metadata_value NixOS-VPN-Region "$candidate_path")"
+            label="$(metadata_value NixOS-VPN-Label "$candidate_path")"
+            [ -n "$region" ] || region=unknown
+            [ -n "$label" ] || label=unknown
+          fi
+          marker="-"
+          if [ "$selected" = "$candidate" ]; then
+            marker="*"
+          fi
+          printf '  %s %s available=%s region="%s" label="%s" path=%s\n' "$marker" "$candidate" "$available" "$region" "$label" "$candidate_path"
+        ''
+      )
+      (slotNames profile);
+  profileStatusBlocks = lib.concatMapStringsSep "\n"
+    (
+      profileName:
+      let
+        profile = wireguardProfiles.${profileName};
+        isDefault = profileName == defaultProfile;
+        autostart = profile.autostart or isDefault;
+        initialSlot = profile.active;
+      in
+      ''
+        profile=${lib.escapeShellArg profileName}
+        active=${lib.escapeShellArg (activeSourcePath profileName)}
+        state="$(${pkgs.systemd}/bin/systemctl is-active "wg-quick-$profile.service" 2>/dev/null || true)"
+        selected=none
+        if [ -L "$active" ]; then
+          link_target="$(${pkgs.coreutils}/bin/readlink "$active")"
+          case "$profile/$link_target" in
+            ${selectedCandidateCases}
+            *) selected=unknown ;;
+          esac
+        elif [ -e "$active" ]; then
+          selected=custom
+        fi
+        printf 'profile %s state=%s default=%s autostart=%s initial-slot=%s selected=%s active=%s\n' "$profile" "$state" "${if isDefault then "yes" else "no"}" "${if autostart then "yes" else "no"}" "${initialSlot}" "$selected" "$active"
+        ${candidateStatusLines profile}
+      ''
+    )
+    validProfiles;
   initialActiveLinks = lib.concatMapStringsSep "\n"
     (
       profileName:
@@ -82,6 +169,16 @@ let
     done
   '';
 
+  vpnList = pkgs.writeShellScriptBin "vpn-list" ''
+    set -eu
+    ${metadataHelpers}
+
+    echo "available WireGuard profiles:"
+    ${profileStatusBlocks}
+    echo
+    echo "use: vpn-select <profile> <slot>; then vpn-switch <profile>"
+  '';
+
   vpnSwitch = pkgs.writeShellScriptBin "vpn-switch" ''
     set -eu
     target="''${1:-}"
@@ -90,6 +187,7 @@ let
       *)
         echo "usage: vpn-switch <profile>" >&2
         echo "profiles: ${validProfilesText}" >&2
+        echo "run vpn-list to see available profiles and selected slots" >&2
         exit 2
         ;;
     esac
@@ -108,6 +206,7 @@ let
     if [ -z "$profile" ] || [ -z "$candidate" ]; then
       echo "usage: vpn-select <profile> <candidate>" >&2
       echo "example: vpn-select wg-nqrvma slot-a" >&2
+      echo "run vpn-list to see available profile/candidate pairs" >&2
       exit 2
     fi
 
@@ -117,6 +216,7 @@ let
       *)
         echo "invalid profile/candidate: $profile/$candidate" >&2
         echo "profiles: ${validProfilesText}" >&2
+        echo "run vpn-list to see available profile/candidate pairs" >&2
         exit 2
         ;;
     esac
@@ -124,6 +224,7 @@ let
     if [ ! -r "$target" ]; then
       echo "missing decrypted config: $target" >&2
       echo "hint: run nixos-rebuild switch and check decrypted secrets before selecting it" >&2
+      echo "run vpn-list to see current candidate availability" >&2
       exit 1
     fi
 
@@ -135,10 +236,8 @@ let
 
   vpnStatus = pkgs.writeShellScriptBin "vpn-status" ''
     set -eu
-    for profile in ${validProfilesText}; do
-      state="$(${pkgs.systemd}/bin/systemctl is-active "wg-quick-$profile.service" 2>/dev/null || true)"
-      printf '%s %s\n' "$profile" "$state"
-    done
+    ${vpnList}/bin/vpn-list
+    echo
     ${pkgs.wireguard-tools}/bin/wg show || true
     ${pkgs.iproute2}/bin/ip route show default || true
   '';
@@ -348,6 +447,7 @@ in
 
   environment.systemPackages = lib.mkIf enableVpn [
     vpnStopAll
+    vpnList
     vpnSwitch
     vpnSelect
     vpnStatus

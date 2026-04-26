@@ -90,6 +90,19 @@ let
     lib.filter (pkg: builtins.elem pkg.outPath systemHomeOverlapOutPaths) cfg.environment.systemPackages;
   systemHomeOverlapNames = getNames systemHomeOverlapPkgs;
   systemPackageNames = getNames cfg.environment.systemPackages;
+  systemPackageByName = packageName:
+    let
+      matches = builtins.filter
+        (pkg: builtins.unsafeDiscardStringContext (lib.getName pkg) == packageName)
+        cfg.environment.systemPackages;
+    in
+    if matches == [ ] then
+      pkgs.runCommand "missing-${packageName}" { } ''
+        mkdir -p "$out/bin"
+        : > "$out/bin/${packageName}"
+      ''
+    else
+      builtins.head matches;
   homePackageNames = getNames hmCfg.home.packages;
   homeZellijPackages = builtins.filter (pkg: lib.getName pkg == "zellij") hmCfg.home.packages;
   homeZellijOutPaths = map (pkg: pkg.outPath) homeZellijPackages;
@@ -525,6 +538,17 @@ in
     test "${if lib.hasInfix "[ -L \"$active\" ]" (cfg.system.activationScripts.wireguardVpnActiveLinks.text or "") then "1" else "0"}" = "1"
     test "${if lib.hasInfix "basename \"$active\" .conf" (cfg.system.activationScripts.wireguardVpnActiveLinks.text or "") then "1" else "0"}" = "1"
     test "${if lib.hasInfix "rm -f \"$active\"" (cfg.system.activationScripts.wireguardVpnActiveLinks.text or "") then "1" else "0"}" = "1"
+    test "${if builtins.elem "vpn-list" systemPackageNames then "1" else "0"}" = "1"
+    grep -q "available WireGuard profiles" ${systemPackageByName "vpn-list"}/bin/vpn-list
+    grep -q "selected=" ${systemPackageByName "vpn-list"}/bin/vpn-list
+    grep -q "available=" ${systemPackageByName "vpn-list"}/bin/vpn-list
+    grep -q "NixOS-VPN-Region" ${systemPackageByName "vpn-list"}/bin/vpn-list
+    grep -q "NixOS-VPN-Label" ${systemPackageByName "vpn-list"}/bin/vpn-list
+    grep -q "region=" ${systemPackageByName "vpn-list"}/bin/vpn-list
+    grep -q "label=" ${systemPackageByName "vpn-list"}/bin/vpn-list
+    grep -q "run vpn-list" ${systemPackageByName "vpn-switch"}/bin/vpn-switch
+    grep -q "run vpn-list" ${systemPackageByName "vpn-select"}/bin/vpn-select
+    grep -q "${systemPackageByName "vpn-list"}/bin/vpn-list" ${systemPackageByName "vpn-status"}/bin/vpn-status
     touch "$out"
   '';
   "eval-${name}-wireguard-vpn-profiles" = pkgs.runCommand "eval-${name}-wireguard-vpn-profiles" { } ''

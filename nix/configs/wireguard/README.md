@@ -14,6 +14,8 @@ Each encrypted YAML file contains one key:
 
 ```yaml
 value: |
+  # NixOS-VPN-Region = <region>
+  # NixOS-VPN-Label = <short-label>
   [Interface]
   PrivateKey = ...
   Address = ...
@@ -24,6 +26,11 @@ value: |
   AllowedIPs = 0.0.0.0/0, ::/0
   Endpoint = ...
 ```
+
+`NixOS-VPN-Region` and `NixOS-VPN-Label` are optional encrypted comments.
+They are safe for `wg-quick`, but must stay inside the encrypted `value` field.
+Do not put real provider names, regions, cities, endpoint numbers, or account
+identifiers in `catalog.nix`, runtime paths, or plaintext docs.
 
 Stable profiles are declared in `catalog.nix`. The current set is:
 
@@ -71,11 +78,19 @@ is blocked by this policy.
 Only one full-tunnel profile should run at a time. Use:
 
 ```bash
+sudo vpn-list
 sudo vpn-status
 sudo vpn-select wg-xafmcp slot-a
 sudo vpn-switch wg-xafmcp
 sudo vpn-stop-all
 ```
+
+`vpn-list` shows every opaque profile and slot, the catalog initial slot, the
+selected slot, whether the decrypted runtime config is available, encrypted
+`NixOS-VPN-Region` / `NixOS-VPN-Label` metadata when present, and the profile's
+systemd state.
+`vpn-status` prints the same inventory before `wg show` and default route
+details.
 
 `vpn-select` changes the active candidate symlink under
 `/persistent/wireguard/active`. `vpn-switch` stops loaded `wg-quick-*` services
