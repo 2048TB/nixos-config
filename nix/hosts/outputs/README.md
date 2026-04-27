@@ -42,7 +42,7 @@
 当前平台级 `checks`：
 
 - `pre-commit-check`：构建并执行 pre-commit hooks
-- `format-sanity`：执行 `nix/scripts/admin/check-format-sanity.sh`，覆盖 shell shebang、`.sops.yaml`、`justfile` 与 Nix 注释吞代码启发式检查；命中时作为失败处理
+- `format-sanity`：执行 `nix/scripts/admin/check-format-sanity.sh`，覆盖 shell shebang、YAML/JSON 解析、Markdown trailing whitespace、`justfile` 与 Nix 注释吞代码启发式检查；命中时作为失败处理
 
 ## 什么时候改这里
 

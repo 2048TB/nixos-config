@@ -11,7 +11,9 @@ usage: check-format-sanity.sh [--repo <path>]
 
 Checks parse-level formatting risks that can break this repository:
 - shell scripts must keep the shebang isolated on the first line
-- .sops.yaml must parse as YAML
+- YAML files must parse
+- JSON files must parse
+- Markdown files must not contain trailing whitespace
 - justfile must parse via just --summary
 - suspicious Nix comment/code collisions fail the check
 EOF
@@ -101,6 +103,31 @@ list_nix_files() {
   fi
 }
 
+list_yaml_files() {
+  if repo_has_git; then
+    git -C "$repo_root" ls-files -z -- '*.yaml' '*.yml'
+  else
+    find_repo_files '*.yaml'
+    find_repo_files '*.yml'
+  fi
+}
+
+list_json_files() {
+  if repo_has_git; then
+    git -C "$repo_root" ls-files -z -- '*.json'
+  else
+    find_repo_files '*.json'
+  fi
+}
+
+list_markdown_files() {
+  if repo_has_git; then
+    git -C "$repo_root" ls-files -z -- '*.md'
+  else
+    find_repo_files '*.md'
+  fi
+}
+
 check_shell_shebangs() {
   local file path first_line shown
 
@@ -127,23 +154,15 @@ check_shell_shebangs() {
   done < <(list_shell_files)
 }
 
-check_sops_yaml() {
-  local sops_file="$repo_root/.sops.yaml"
-
-  if [ ! -f "$sops_file" ]; then
-    fail ".sops.yaml is missing"
-    return
-  fi
-
+parse_yaml_file() {
+  local file="${1:?file path required}"
   if command -v yq >/dev/null 2>&1; then
-    if ! yq '.' "$sops_file" >/dev/null; then
-      fail ".sops.yaml does not parse with yq"
-    fi
+    yq '.' "$file" >/dev/null
     return
   fi
 
   if command -v python3 >/dev/null 2>&1; then
-    if ! python3 - "$sops_file" <<'PY'; then
+    python3 - "$file" <<'PY'
 import sys
 
 try:
@@ -155,19 +174,78 @@ except Exception as exc:
 with open(sys.argv[1], "r", encoding="utf-8") as handle:
     yaml.safe_load(handle)
 PY
-      fail ".sops.yaml does not parse with python3/PyYAML"
-    fi
     return
   fi
 
   if command -v ruby >/dev/null 2>&1; then
-    if ! ruby -e 'require "yaml"; YAML.load_file(ARGV.fetch(0))' "$sops_file"; then
-      fail ".sops.yaml does not parse with ruby YAML"
-    fi
+    ruby -e 'require "yaml"; YAML.load_file(ARGV.fetch(0))' "$file"
     return
   fi
 
-  fail "no YAML parser found for .sops.yaml"
+  return 127
+}
+
+check_yaml_files() {
+  local file path shown sops_file
+
+  sops_file="$repo_root/.sops.yaml"
+  if [ ! -f "$sops_file" ]; then
+    fail ".sops.yaml is missing"
+  fi
+
+  while IFS= read -r -d '' file; do
+    path="$(repo_file_path "$file")"
+    shown="$(display_path "$path")"
+    if [ ! -f "$path" ]; then
+      continue
+    fi
+
+    if ! parse_yaml_file "$path"; then
+      fail "$shown does not parse as YAML"
+    fi
+  done < <(list_yaml_files)
+}
+
+check_json_files() {
+  local file path shown
+
+  if ! command -v jq >/dev/null 2>&1 && ! command -v python3 >/dev/null 2>&1; then
+    fail "jq or python3 is required to parse JSON files"
+    return
+  fi
+
+  while IFS= read -r -d '' file; do
+    path="$(repo_file_path "$file")"
+    shown="$(display_path "$path")"
+    if [ ! -f "$path" ]; then
+      continue
+    fi
+
+    if command -v jq >/dev/null 2>&1; then
+      if ! jq empty "$path" >/dev/null; then
+        fail "$shown does not parse as JSON"
+      fi
+    elif ! python3 -m json.tool "$path" >/dev/null; then
+      fail "$shown does not parse as JSON"
+    fi
+  done < <(list_json_files)
+}
+
+check_markdown_trailing_whitespace() {
+  local file path shown hits
+
+  while IFS= read -r -d '' file; do
+    path="$(repo_file_path "$file")"
+    shown="$(display_path "$path")"
+    if [ ! -f "$path" ]; then
+      continue
+    fi
+
+    hits="$(awk '/[ \t]$/ { print FNR }' "$path")"
+    if [ -n "$hits" ]; then
+      fail "$shown contains trailing whitespace on line(s): $(printf '%s' "$hits" | paste -sd, -)"
+    fi
+  done < <(list_markdown_files)
 }
 
 check_justfile() {
@@ -205,7 +283,9 @@ check_nix_comment_collisions() {
 }
 
 check_shell_shebangs
-check_sops_yaml
+check_yaml_files
+check_json_files
+check_markdown_trailing_whitespace
 check_justfile
 check_nix_comment_collisions
 

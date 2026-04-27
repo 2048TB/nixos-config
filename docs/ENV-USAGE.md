@@ -64,7 +64,7 @@ key 相关差异：
 - Linux 会话不再全局导出 `LD_LIBRARY_PATH` / `OPENSSL_*`；CUDA pip wheels 的 `libcuda.so.1` 路径在 `just ml-shell` 的 `ml` devShell 内注入
 - Noctalia notifications 是当前桌面 notification provider；`udiskie.notify` 依赖它，`Mod+Ctrl+B` 会同时清理 `noctalia-shell` 与实际运行的 `quickshell` 进程后再重启
 - 默认 desktop package group 不安装 `wsdd`；Mullvad lockdown 下 GVfs 自动 WS-Discovery 可能产生日志噪音，SMB 直连仍通过 GVfs smb backend 使用
-- 启用 `"vpn"` role 的主机使用 Mullvad app / daemon；`services.mullvad-vpn.package` 使用 `pkgs.mullvad-vpn` 同时提供 CLI 和 GUI，系统仍保留 `wireguard-tools`，但仓库不再维护 WireGuard catalog 或 WireGuard encrypted config files；日常连接、地区选择、恢复和 kill switch 由 Mullvad 自己管理，命令见 `docs/NIX-COMMANDS.md`
+- 启用 `"vpn"` role 的主机使用 Mullvad app / daemon；`services.mullvad-vpn.package` 使用 `pkgs.mullvad-vpn` 同时提供 CLI 和 GUI，系统仍保留 `wireguard-tools` 便于底层排查；日常连接、地区选择、恢复和 kill switch 由 Mullvad 自己管理，命令见 `docs/NIX-COMMANDS.md`
 
 常用命令：
 
@@ -79,6 +79,7 @@ just host=zly switch
 just home-switch
 just sops-recipients
 just sops-rekey
+just vpn-status
 mullvad status
 ```
 

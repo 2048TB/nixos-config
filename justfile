@@ -126,6 +126,38 @@ clean-all:
 mise-upgrade:
     @{{nix_cmd}} shell nixpkgs#mise -c mise upgrade --yes
 
+vpn-status:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if ! command -v mullvad >/dev/null 2>&1; then
+      echo "error: mullvad CLI not found" >&2
+      exit 127
+    fi
+
+    echo ">>> mullvad status"
+    mullvad status
+    echo
+    echo ">>> mullvad lockdown-mode"
+    mullvad lockdown-mode get
+    echo
+    echo ">>> mullvad dns"
+    mullvad dns get
+    echo
+    echo ">>> mullvad lan"
+    mullvad lan get
+
+    if command -v wg >/dev/null 2>&1; then
+      echo
+      echo ">>> wg show"
+      if [ "$(id -u)" -eq 0 ]; then
+        wg show
+      elif sudo -n true 2>/dev/null; then
+        sudo -n wg show
+      else
+        echo "warning: skipping wg show; root privileges are required" >&2
+      fi
+    fi
+
 # ========== Git / 安全 ==========
 
 hooks-enable:

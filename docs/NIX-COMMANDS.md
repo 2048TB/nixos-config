@@ -27,6 +27,7 @@ just self-check
 just validate-local
 just validate-local-full
 just ml-shell
+just vpn-status
 ```
 
 ```bash
@@ -143,5 +144,3 @@ mullvad disconnect
 mullvad reconnect
 wg --version
 ```
-
-当前仓库保留 `wireguard-tools` 安装，但不再提供 WireGuard catalog、WireGuard encrypted config files、`vpn-list`、`vpn-status`、`vpn-switch`、`vpn-select` 或 `vpn-stop-all`。

@@ -35,6 +35,7 @@ just self-check
 just validate-local
 just ml-shell
 just mise-upgrade
+just vpn-status
 just host=zly check
 just host=zly switch
 just host=zly upgrade

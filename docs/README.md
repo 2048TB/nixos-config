@@ -58,7 +58,6 @@ GitHub workflow 执行轻量 `self-check` 与 secrets guard，仍不能替代本
 - `wsdd` 不放入默认 desktop package group；Mullvad lockdown 下 GVfs 自动 WS-Discovery 会被防火墙拦截并产生日志噪音，SMB 直连仍通过 GVfs smb backend 处理
 - 启用 hibernate 的主机会安装 `swapfile-resume-check.service`；swapfile size 或 resume offset 异常会体现在 unit 失败状态与 journal，而不是只出现在 activation 输出中
 - 启用 `"vpn"` role 的 NixOS 主机使用 Mullvad app / daemon 最小集成：NixOS 启用 `services.mullvad-vpn`，将 service package 设为 `pkgs.mullvad-vpn` 以同时提供 CLI 和 GUI，启用 `systemd-resolved`，系统包保留 `pkgs.wireguard-tools`，impermanence 持久化 `/etc/mullvad-vpn` 与 `/var/cache/mullvad-vpn`；连接、地区选择、恢复和 kill switch 交给 Mullvad app / daemon 自己管理
-- 仓库不再声明 `wg-quick` profiles、`vpn-list` / `vpn-switch` / `vpn-select` / `vpn-status`、WireGuard active symlink、NixOS firewall WireGuard kill switch、WireGuard catalog 或 WireGuard encrypted config files
 
 ## 3. 最常用命令
 
@@ -76,6 +75,7 @@ just self-check
 just validate-local
 just ml-shell
 just mise-upgrade
+just vpn-status
 just host=zly check
 just host=zly switch
 just home-switch
@@ -219,8 +219,8 @@ just host=zly upgrade
 - `flake-check` 做 `nix flake check --all-systems --no-build`
 - `flake-check-full` 做 `nix flake check --all-systems`（含 build）
 - `pre-commit-check` 会实际构建并执行 `checks.x86_64-linux.pre-commit-check`
-- `format-sanity` 是 flake check 中的轻量格式/解析防回归检查，对应 `nix/scripts/admin/check-format-sanity.sh`；shell shebang、`.sops.yaml`、`justfile` 解析和疑似 Nix 注释吞代码都会失败
-- `self-check` 会检查 `justfile`、admin/hook shell 语法、可用时的 `shellcheck` / `shfmt -d`、`.sops.yaml` 解析、格式 sanity 和 registry schema
+- `format-sanity` 是 flake check 中的轻量格式/解析防回归检查，对应 `nix/scripts/admin/check-format-sanity.sh`；shell shebang、YAML/JSON 解析、Markdown trailing whitespace、`justfile` 解析和疑似 Nix 注释吞代码都会失败
+- `self-check` 会检查 `justfile`、admin/hook shell 语法、可用时的 `shellcheck` / `shfmt -d`、YAML/JSON 解析、Markdown trailing whitespace、格式 sanity 和 registry schema
 - `registry-schema-check` 会校验 `nix/hosts/registry/systems.toml` 是否符合 `nix/hosts/registry/systems.schema.json`
 - `registry-meta-sync-check` 会校验 `nix/lib/host-meta.nix` 与 `systems.schema.json` 枚举/字段是否漂移
 - `validate-local` 会先执行 `self-check`，再串行执行 `guard-secrets --all-tracked`、registry schema/sync 检查和 `flake-check`
@@ -232,6 +232,7 @@ just host=zly upgrade
 just clean
 just clean-all
 just use
+just vpn-status
 ```
 
 ```bash

@@ -28,7 +28,7 @@ AI/自动化工具专用。
 
 ## 文档同步
 
-只要改动了用户可见行为、脚本语义、命令入口或目录职责，就同步对应文档；`docs/README.md` 是第一同步目标。VPN / Mullvad app / WireGuard tools 变更需同步 `docs/README.md` 与 `docs/NIX-COMMANDS.md`。
+只要改动了用户可见行为、脚本语义、命令入口或目录职责，就同步对应文档；`docs/README.md` 是第一同步目标。VPN / Mullvad app 变更需同步 `docs/README.md` 与 `docs/NIX-COMMANDS.md`。
 
 ## 安全规则
 
