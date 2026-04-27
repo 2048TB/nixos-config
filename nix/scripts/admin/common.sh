@@ -128,11 +128,6 @@ prepare_flake_repo_path() {
   PREPARED_FLAKE_REPO="$cache_root/repo"
 }
 
-run_nix_flake_check_clean() {
-  local flake_ref="${1:?flake ref required}"
-  nix --extra-experimental-features 'nix-command flakes' flake check --all-systems "$flake_ref"
-}
-
 enter_repo_root() {
   local repo_root
   if [ "$#" -gt 0 ]; then

@@ -35,8 +35,14 @@
 当前 `devShells` 行为：
 
 - Linux：导出 `default` 与 `ml`
+- `default` 提供 `just`、`check-jsonschema`、`shellcheck`、`shfmt`、`nixpkgs-fmt`、`statix`、`deadnix` 等本地维护工具
 - `ml` 只覆盖主训练栈；`bitsandbytes`、`vLLM`、`llama.cpp` 不在默认 shell 中
 - Darwin：不导出 dev shell
+
+当前平台级 `checks`：
+
+- `pre-commit-check`：构建并执行 pre-commit hooks
+- `format-sanity`：执行 `nix/scripts/admin/check-format-sanity.sh`，覆盖 shell shebang、`.sops.yaml`、`justfile` 与 Nix 注释吞代码启发式检查
 
 ## 什么时候改这里
 

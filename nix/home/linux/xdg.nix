@@ -4,7 +4,6 @@
 , mytheme
 , mylib
 , myvars
-, configRepoPath
 , osConfig ? null
 , ...
 }:
@@ -13,6 +12,9 @@ let
   localShareDir = "${homeDir}/.local/share";
   configFiles = import ../base/config-files.nix;
   hostCfg = import ../base/resolve-host.nix { inherit myvars osConfig; };
+  configRepoPath = hostCfg.configRepoPath or mylib.hostMetaSchema.defaultConfigRepoPath;
+  hasDesktopSession = hostCfg.desktopSession or false;
+  usesNiri = (hostCfg.desktopProfile or "none") == "niri";
   generatedNiriOutputs = mylib.mkNiriOutputs hostCfg;
   mkSymlink = config.lib.file.mkOutOfStoreSymlink;
 
@@ -48,40 +50,61 @@ let
   portalConfig = import ../../lib/portal-config.nix;
   sourceConfigFiles =
     lib.mapAttrs (_: source: { inherit source; })
-      (configFiles.sharedSourceFiles // configFiles.linuxSourceFiles);
+      configFiles.sharedSourceFiles;
+  niriSourceConfigFiles =
+    lib.mapAttrs (_: source: { inherit source; })
+      configFiles.linuxSourceFiles;
   forcedSourceConfigFiles = lib.mapAttrs
     (_: source: {
       inherit source;
       force = true;
     })
     configFiles.linuxForcedSourceFiles;
+  sharedThemedFiles = lib.genAttrs
+    [
+      "tmux/tmux.conf"
+      "zellij/config.kdl"
+    ]
+    (name: configFiles.linuxThemedFiles.${name});
+  desktopThemedFiles = builtins.removeAttrs configFiles.linuxThemedFiles (builtins.attrNames sharedThemedFiles);
   themedConfigFiles =
     lib.mapAttrs (_: sourcePath: { text = mytheme.apply (builtins.readFile sourcePath); })
-      configFiles.linuxThemedFiles;
+      sharedThemedFiles;
+  desktopThemedConfigFiles =
+    lib.mapAttrs (_: sourcePath: { text = mytheme.apply (builtins.readFile sourcePath); })
+      desktopThemedFiles;
 in
 {
   xdg = {
-    dataFile."fcitx5/rime/default.custom.yaml".source = ../configs/rime/default.custom.yaml;
+    dataFile = lib.mkIf usesNiri {
+      "fcitx5/rime/default.custom.yaml".source = ../configs/rime/default.custom.yaml;
+    };
 
     configFile =
       sourceConfigFiles
-      // forcedSourceConfigFiles
       // themedConfigFiles
       // {
-        "qt6ct/colors/darker.conf".source = "${pkgs.qt6Packages.qt6ct}/share/qt6ct/colors/darker.conf";
-        "niri/outputs.kdl".text = generatedNiriOutputs;
-        # 切到 repo 工作树中的可写目录，让 GUI 修改可直接持久化。
-        "noctalia".source = mkSymlink "${configRepoPath}/nix/home/configs/noctalia";
         "pnpm/rc".text = ''
           global-dir=${localShareDir}/pnpm/global
           global-bin-dir=${localShareDir}/pnpm/bin
         '';
-      };
+      }
+      // lib.optionalAttrs usesNiri (
+        niriSourceConfigFiles
+        // forcedSourceConfigFiles
+        // desktopThemedConfigFiles
+        // {
+          "qt6ct/colors/darker.conf".source = "${pkgs.qt6Packages.qt6ct}/share/qt6ct/colors/darker.conf";
+          "niri/outputs.kdl".text = generatedNiriOutputs;
+          # 切到 repo 工作树中的可写目录，让 GUI 修改可直接持久化。
+          "noctalia".source = mkSymlink "${configRepoPath}/nix/home/configs/noctalia";
+        }
+      );
 
     # Home Manager 会设置 NIX_XDG_DESKTOP_PORTAL_DIR，并优先从用户 profile 读取 .portal。
     # 需显式注入 gtk backend，否则会出现 "Requested gtk.portal is unrecognized"，
     # 进而导致 org.freedesktop.portal.Settings/FileChooser 缺失。
-    portal = {
+    portal = lib.mkIf hasDesktopSession {
       enable = true;
       xdgOpenUsePortal = true;
       extraPortals = with pkgs; [
@@ -91,7 +114,7 @@ in
       config = portalConfig;
     };
 
-    userDirs = {
+    userDirs = lib.mkIf hasDesktopSession {
       enable = true;
       createDirectories = true;
       extraConfig = {
@@ -99,7 +122,7 @@ in
       };
     };
 
-    mimeApps = {
+    mimeApps = lib.mkIf hasDesktopSession {
       enable = true;
       # 统一图片默认打开方式
       # 使用 genAttrs 保持行为一致，减少重复

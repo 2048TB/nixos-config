@@ -9,6 +9,8 @@
 }:
 let
   hostCfg = import ../base/resolve-host.nix { inherit myvars osConfig; };
+  hasDesktopSession = hostCfg.desktopSession or false;
+  usesNiri = (hostCfg.desktopProfile or "none") == "niri";
 
   mkLogFilteredLauncher = mylib.mkLogFilteredLauncher pkgs;
   noctaliaShellPkg = noctalia.packages.${pkgs.stdenv.hostPlatform.system}.default;
@@ -17,6 +19,9 @@ let
   catExe = lib.getExe' pkgs.coreutils "cat";
   dateExe = lib.getExe' pkgs.coreutils "date";
   enableMiseAutoUpgrade = hostCfg.miseAutoUpgrade or false;
+  aria2Cfg = hostCfg.aria2 or { };
+  aria2EnableRpc = aria2Cfg.enableRpc or true;
+  aria2RpcSecretPath = aria2Cfg.rpcSecretPath or mylib.hostMetaSchema.defaultAria2RpcSecretPath;
   miseUpgrade = pkgs.writeShellScript "mise-upgrade" ''
     set -eu
     cd "$HOME"
@@ -33,13 +38,21 @@ let
     ${mkdirExe} -p "$HOME/.local/share/aria2"
     ${touchExe} "$HOME/.local/share/aria2/session"
   '';
-  aria2RpcSecretPath = "/run/secrets/services/aria2-rpc";
   aria2Start = pkgs.writeShellScript "aria2-start" ''
     set -eu
     rpc_secret_arg=""
-    if [ -r "${aria2RpcSecretPath}" ]; then
-      rpc_secret_arg="--rpc-secret=$(${catExe} "${aria2RpcSecretPath}")"
-    fi
+    ${lib.optionalString aria2EnableRpc ''
+      if [ ! -r "${aria2RpcSecretPath}" ]; then
+        echo "aria2 RPC is enabled but secret is not readable: ${aria2RpcSecretPath}" >&2
+        exit 1
+      fi
+      rpc_secret="$(${catExe} "${aria2RpcSecretPath}")"
+      if [ -z "$rpc_secret" ]; then
+        echo "aria2 RPC secret is empty: ${aria2RpcSecretPath}" >&2
+        exit 1
+      fi
+      rpc_secret_arg="--rpc-secret=$rpc_secret"
+    ''}
     exec ${pkgs.aria2}/bin/aria2c --conf-path="$HOME/.config/aria2/aria2.conf" $rpc_secret_arg
   '';
   nautilusX11 = pkgs.writeShellScript "nautilus-x11" ''
@@ -55,40 +68,43 @@ let
   '';
 in
 {
-  xdg.dataFile = {
-    "applications/dev.noctalia.noctalia-qs.desktop".text =
-      # portal host app registry 要求 app_id 能匹配一个可解析的 .desktop basename；
-      # 上游当前未安装该文件，这里直接生成最小合法 desktop entry。
-      ''
-        [Desktop Entry]
-        Version=1.5
-        Type=Application
-        Name=Noctalia Shell
-        NoDisplay=true
-        TryExec=${lib.getExe noctaliaShellPkg}
-        Exec=${lib.getExe noctaliaShellPkg}
-        Terminal=false
-      '';
+  xdg.dataFile =
+    lib.optionalAttrs usesNiri
+      {
+        "applications/dev.noctalia.noctalia-qs.desktop".text =
+          # portal host app registry 要求 app_id 能匹配一个可解析的 .desktop basename；
+          # 上游当前未安装该文件，这里直接生成最小合法 desktop entry。
+          ''
+            [Desktop Entry]
+            Version=1.5
+            Type=Application
+            Name=Noctalia Shell
+            NoDisplay=true
+            TryExec=${lib.getExe noctaliaShellPkg}
+            Exec=${lib.getExe noctaliaShellPkg}
+            Terminal=false
+          '';
+      }
+    // lib.optionalAttrs hasDesktopSession {
+      "applications/org.gnome.Nautilus.desktop".text =
+        # 覆盖上游 desktop entry：仅对 Nautilus 定向切换到 fcitx GTK IM module，
+        # 保留 Wayland fractional scaling，同时规避 niri + fcitx5 的 rename/pop-up 问题。
+        ''
+          [Desktop Entry]
+          Name=Files
+          Comment=Access and organize files
+          Exec=${nautilusX11} %U
+          Icon=org.gnome.Nautilus
+          Terminal=false
+          Type=Application
+          StartupNotify=true
+          Categories=GNOME;GTK;Utility;Core;FileManager;
+          MimeType=inode/directory;
+          X-GNOME-UsesNotifications=true
+        '';
+    };
 
-    "applications/org.gnome.Nautilus.desktop".text =
-      # 覆盖上游 desktop entry：仅对 Nautilus 定向切换到 fcitx GTK IM module，
-      # 保留 Wayland fractional scaling，同时规避 niri + fcitx5 的 rename/pop-up 问题。
-      ''
-        [Desktop Entry]
-        Name=Files
-        Comment=Access and organize files
-        Exec=${nautilusX11} %U
-        Icon=org.gnome.Nautilus
-        Terminal=false
-        Type=Application
-        StartupNotify=true
-        Categories=GNOME;GTK;Utility;Core;FileManager;
-        MimeType=inode/directory;
-        X-GNOME-UsesNotifications=true
-      '';
-  };
-
-  services = {
+  services = lib.mkIf hasDesktopSession {
     playerctld.enable = true;
 
     # USB 设备自动挂载服务
@@ -100,7 +116,7 @@ in
     };
   };
 
-  programs.noctalia-shell = {
+  programs.noctalia-shell = lib.mkIf usesNiri {
     enable = true;
     package = noctaliaShellPkg;
     # Noctalia 官方文档已不再推荐 systemd startup；
@@ -109,49 +125,52 @@ in
   };
 
   systemd = {
-    user.services =
+    user.services = lib.mkMerge [
+      (lib.mkIf hasDesktopSession
+        {
+          # Polkit 认证代理（图形会话自启）
+          # 无此服务时，需要权限提升的操作（virt-manager、Nautilus 挂载等）会静默失败
+          polkit-gnome-authentication-agent-1 = {
+            Unit = {
+              Description = "polkit-gnome-authentication-agent-1";
+              After = [ "graphical-session.target" ];
+              PartOf = [ "graphical-session.target" ];
+            };
+            Install.WantedBy = [ "graphical-session.target" ];
+            Service = {
+              Type = "simple";
+              ExecStart = "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1";
+              Restart = "on-failure";
+              RestartSec = 1;
+              TimeoutStopSec = 10;
+            };
+          };
+
+          # udiskie 在中文 locale 下会触发 Python logging format KeyError（'信息'）
+          # 将其 locale 固定为 C.UTF-8，避免格式化字段被翻译。
+          udiskie.Service.Environment = [
+            "LANG=C.UTF-8"
+            "LC_ALL=C.UTF-8"
+          ];
+          udiskie.Service.ExecStart = lib.mkForce "${lib.getExe udiskieLogFiltered}";
+
+          aria2 = {
+            Unit = {
+              Description = "aria2 RPC daemon";
+              After = [ "network-online.target" ];
+            };
+            Install.WantedBy = [ "default.target" ];
+            Service = {
+              Type = "simple";
+              ExecStartPre = "${aria2PrepareSession}";
+              ExecStart = "${aria2Start}";
+              Restart = "on-failure";
+              RestartSec = 2;
+            };
+          };
+        })
+
       {
-        # Polkit 认证代理（图形会话自启）
-        # 无此服务时，需要权限提升的操作（virt-manager、Nautilus 挂载等）会静默失败
-        polkit-gnome-authentication-agent-1 = {
-          Unit = {
-            Description = "polkit-gnome-authentication-agent-1";
-            After = [ "graphical-session.target" ];
-            PartOf = [ "graphical-session.target" ];
-          };
-          Install.WantedBy = [ "graphical-session.target" ];
-          Service = {
-            Type = "simple";
-            ExecStart = "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1";
-            Restart = "on-failure";
-            RestartSec = 1;
-            TimeoutStopSec = 10;
-          };
-        };
-
-        # udiskie 在中文 locale 下会触发 Python logging format KeyError（'信息'）
-        # 将其 locale 固定为 C.UTF-8，避免格式化字段被翻译。
-        udiskie.Service.Environment = [
-          "LANG=C.UTF-8"
-          "LC_ALL=C.UTF-8"
-        ];
-        udiskie.Service.ExecStart = lib.mkForce "${lib.getExe udiskieLogFiltered}";
-
-        aria2 = {
-          Unit = {
-            Description = "aria2 RPC daemon";
-            After = [ "network-online.target" ];
-          };
-          Install.WantedBy = [ "default.target" ];
-          Service = {
-            Type = "simple";
-            ExecStartPre = "${aria2PrepareSession}";
-            ExecStart = "${aria2Start}";
-            Restart = "on-failure";
-            RestartSec = 2;
-          };
-        };
-
         mise-upgrade = {
           Unit = {
             Description = "Upgrade global mise tools";
@@ -161,7 +180,8 @@ in
             ExecStart = "${miseUpgrade}";
           };
         };
-      };
+      }
+    ];
 
     user.timers =
       lib.optionalAttrs enableMiseAutoUpgrade {

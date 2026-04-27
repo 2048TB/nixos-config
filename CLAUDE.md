@@ -42,7 +42,7 @@ AI/自动化工具专用。
 
 - 文档改动至少做一致性检查与过时表述搜索
 - 脚本或配置改动必须做对应执行验证
-- 推送前至少执行 `just validate-local`
+- 推送前至少执行 `just self-check` 与 `just validate-local`
 - 需要包含 check build 时执行 `just validate-local-full`
 - 文档批量改动后，至少执行一次过时关键词检索（如 `CI` / `deploy`）
 - read-only `eval` / `show` / `build` 优先走 `print-flake-repo.sh`

@@ -62,6 +62,10 @@ let
     hostname = name;
     gpuMode = resolvedGpuMode;
   };
+  roleFlags = mylib.roleFlags resolvedMyvars;
+  hasDesktopSession = registryState.desktopSession;
+  secureBootCfg = resolvedMyvars.secureBoot or { };
+  enableSecureBoot = secureBootCfg.enable or false;
   mainUser = resolvedMyvars.username;
 
   specialArgs = baseSpecialArgs // {
@@ -82,12 +86,23 @@ let
     nixpkgsModule
     (mylib.relativeToRoot "nix/modules/core")
     ({ modulesPath, ... }: { imports = [ (modulesPath + "/installer/scan/not-detected.nix") ]; })
+    # 这些模块主要声明 options；实际启用由 core/host 配置控制。
+    # preservation 与 disko 是当前 NixOS host 布局契约，sops-nix 被 core/secrets.nix 消费。
     preservation.nixosModules.default
     sops-nix.nixosModules.sops
-    lanzaboote.nixosModules.lanzaboote
-    nix-gaming.nixosModules.pipewireLowLatency
-    nix-gaming.nixosModules.platformOptimizations
     disko.nixosModules.disko
+  ]
+  ++ lib.optionals hasDesktopSession [
+    # pipewireLowLatency only defines the lowLatency option used by desktop audio;
+    # services.pipewire.lowLatency still controls whether it is enabled.
+    nix-gaming.nixosModules.pipewireLowLatency
+  ]
+  ++ lib.optionals roleFlags.enableSteam [
+    nix-gaming.nixosModules.platformOptimizations
+  ]
+  ++ lib.optionals enableSecureBoot [
+    # Import lanzaboote only for hosts that explicitly opt in via vars.nix.
+    lanzaboote.nixosModules.lanzaboote
   ]
   ++ lib.optionals (hostEntryPath != null) [ hostEntryPath ]
   ++ lib.optionals (hostEntryPath == null) [

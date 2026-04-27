@@ -1,10 +1,12 @@
-{ config, pkgs, lib, ... }:
+{ config, pkgs, lib, myvars, osConfig ? null, ... }:
 let
+  hostCfg = import ../base/resolve-host.nix { inherit myvars osConfig; };
+  hasDesktopSession = hostCfg.desktopSession or false;
   homeDir = config.home.homeDirectory;
   rmExe = lib.getExe' pkgs.coreutils "rm";
 in
 {
-  home = {
+  home = lib.mkIf hasDesktopSession {
     # 会话变量（仅 Linux 特有：Wayland/输入法）
     sessionVariables =
       {

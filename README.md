@@ -30,7 +30,8 @@
 ```bash
 just host=zly disk=/dev/nvme0n1 install
 just update
-just info
+just show
+just self-check
 just validate-local
 just ml-shell
 just mise-upgrade
@@ -48,6 +49,8 @@ just guard-secrets
 仓库当前以本地验证为准（不依赖 CI gate），推送前至少执行：
 
 ```bash
+nix develop
+just self-check
 just validate-local
 ```
 

@@ -38,26 +38,10 @@ let
   darwinConfigurations = mylib.mergeAttrFromList "darwinConfigurations" dataWithoutPaths;
   mainUsers = mylib.mergeAttrFromList "mainUsers" dataWithoutPaths;
   resolvedHostNames = builtins.attrNames darwinConfigurations;
-  homeConfigurations =
-    builtins.listToAttrs (
-      map
-        (
-          hostName:
-          let
-            user = mainUsers.${hostName};
-            hmUsers = darwinConfigurations.${hostName}.config.home-manager.users or { };
-            hmConfig = hmUsers.${user};
-          in
-          {
-            name = "${user}@${hostName}";
-            value = {
-              config = hmConfig;
-              inherit (hmConfig.home) activationPackage;
-            };
-          }
-        )
-        resolvedHostNames
-    );
+  homeConfigurations = common.mkHomeConfigurations {
+    configurations = darwinConfigurations;
+    inherit mainUsers system;
+  };
   hostEvalTests = common.mkStandardEvalTests {
     configurations = darwinConfigurations;
     inherit mainUsers system;

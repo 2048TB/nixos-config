@@ -5,14 +5,13 @@ let
   inherit (nixpkgs) lib;
   mylib = import ../../lib { inherit lib; };
   mytheme = import ../../lib/theme.nix { inherit lib; };
-  configRepoPath = "/persistent/nixos-config";
   exportedOverlays = import ../../overlays { inherit inputs; };
 
   genSpecialArgs =
     system:
     inputs
     // {
-      inherit mylib mytheme configRepoPath;
+      inherit mylib mytheme;
       pkgsCherryStudio = import inputs.nixpkgs-cherry-studio {
         inherit system;
         config.allowUnfreePredicate = mylib.allowUnfreePredicate;
@@ -67,6 +66,7 @@ let
       import inputs.nixpkgs-darwin {
         system = "aarch64-darwin";
         config.allowUnfreePredicate = mylib.allowUnfreePredicate;
+        overlays = [ exportedOverlays.default ];
       }
     );
   };

@@ -2,14 +2,16 @@
 , lib
 , mainUser
 , config
-, configRepoPath
+, myvars
 , ...
 }:
 let
   hostCfg = config.my.host;
+  inherit (hostCfg) configRepoPath;
   homeDir = "/home/${mainUser}";
   hibernateEnabled = hostCfg.resumeOffset != null;
   inherit (config.my.capabilities) isLaptop hasDesktopSession hasFingerprintReader;
+  rawHasDesktopSession = myvars.desktopSession or false;
   inherit (hostCfg) desktopProfile;
   desktopExec =
     if desktopProfile == "niri" then
@@ -109,19 +111,22 @@ in
         };
       };
 
-      pipewire = {
-        enable = true;
-        alsa.enable = true;
-        alsa.support32Bit = true;
-        pulse.enable = true;
-        # nix-gaming pipewireLowLatency 模块已导入；
-        # quantum=64 过于激进易爆音，256（~5.3ms）在游戏与日常音频间取得平衡。
-        lowLatency = {
+      pipewire =
+        {
           enable = true;
-          quantum = 256;
-          rate = 48000;
+          alsa.enable = true;
+          alsa.support32Bit = true;
+          pulse.enable = true;
+        }
+        // lib.optionalAttrs rawHasDesktopSession {
+          # nix-gaming pipewireLowLatency 模块仅随 desktopSession 导入；
+          # quantum=64 过于激进易爆音，256（~5.3ms）在游戏与日常音频间取得平衡。
+          lowLatency = {
+            enable = true;
+            quantum = 256;
+            rate = 48000;
+          };
         };
-      };
       pulseaudio.enable = false;
       blueman.enable = true;
 

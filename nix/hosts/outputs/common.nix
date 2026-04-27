@@ -88,6 +88,40 @@ rec {
       )
       configurations;
 
+  mkHomeConfigurations =
+    { configurations
+    , mainUsers
+    , system
+    }:
+    let
+      resolvedHostNames = builtins.attrNames configurations;
+    in
+    builtins.listToAttrs (
+      map
+        (
+          hostName:
+          let
+            user = mainUsers.${hostName} or "";
+            hmUsers = configurations.${hostName}.config.home-manager.users or { };
+          in
+          assert lib.assertMsg (user != "")
+            "No main user recorded for host ${hostName} (${system})";
+          assert lib.assertMsg (builtins.hasAttr user hmUsers)
+            "Home Manager user '${user}' not found for host ${hostName} (${system})";
+          let
+            hmConfig = hmUsers.${user};
+          in
+          {
+            name = "${user}@${hostName}";
+            value = {
+              config = hmConfig;
+              inherit (hmConfig.home) activationPackage;
+            };
+          }
+        )
+        resolvedHostNames
+    );
+
   mkExpectedAttrSet =
     hostNames: value:
     builtins.listToAttrs (

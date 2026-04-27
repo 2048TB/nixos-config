@@ -3,6 +3,8 @@ let
   hostMetaSchema = {
     defaultRoles = [ ];
     defaultDockerMode = "rootless";
+    defaultConfigRepoPath = "/persistent/nixos-config";
+    defaultAria2RpcSecretPath = "/run/secrets/services/aria2-rpc";
 
     allowedGpuModes = [
       "none"

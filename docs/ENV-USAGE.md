@@ -5,6 +5,7 @@
 ## 通用约定
 
 - 已安装系统上的推荐 repo 路径：`/persistent/nixos-config`
+- NixOS host 可在 `nix/hosts/nixos/<host>/vars.nix` 用 `configRepoPath = "...";` 覆盖运行时 repo 路径
 - Live ISO / 临时环境可在任意可写 checkout 中工作
 - 只读 flake 操作优先走 filtered repo
 
@@ -54,7 +55,7 @@ key 相关差异：
 
 差异点：
 
-- 默认 repo 应位于 `/persistent/nixos-config`
+- 默认 repo 应位于 `/persistent/nixos-config`；如 host 设置了 `configRepoPath`，`programs.nh.flake`、`/etc/nixos` 与 `~/nixos` 会使用该路径
 - `switch` / `home-switch` / `boot` / `test` / `upgrade` 会直接改系统状态
 - `upgrade` 会先在指定 repo 上通过 `update-nixos` 更新 Linux NixOS 相关 inputs，再执行 `switch`
 - `sops.sh` / `guard-secrets.sh` 可以从任意目录直接调用
@@ -67,6 +68,8 @@ key 相关差异：
 
 ```bash
 cd /persistent/nixos-config
+nix develop
+just self-check
 just validate-local
 just update-nixos
 just host=zly check

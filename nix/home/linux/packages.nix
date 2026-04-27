@@ -9,14 +9,18 @@
 let
   hostCfg = import ../base/resolve-host.nix { inherit myvars osConfig; };
   roleFlags = mylib.roleFlags hostCfg;
+  hasDesktopSession = hostCfg.desktopSession or false;
   packageGroups = import ./package-groups.nix;
-  packageGroupOrder = [
-    "cli"
-    "dev"
-    "desktop"
-    "media"
-    "archive"
-  ];
+  packageGroupOrder =
+    [
+      "cli"
+      "dev"
+      "archive"
+    ]
+    ++ lib.optionals hasDesktopSession [
+      "desktop"
+      "media"
+    ];
   inherit (roleFlags) enableSteam enableLibvirtd enableDocker;
   # App toggles stay in host vars and are consumed only by Home Manager.
   enableWpsOffice = myvars.enableWpsOffice or false;
@@ -99,12 +103,12 @@ in
     packages = basePackages
       ++ devToolchainPackages
       ++ hybridPackages
-      ++ lib.optional enableLocalSend pkgs.localsend
-      ++ lib.optional enableZathura pkgs.zathura
-      ++ lib.optional enableSplayer pkgs.splayer
-      ++ lib.optional enableTelegramDesktop pkgs.telegram-desktop
-      ++ lib.optional enableWpsOffice wpsOfficePackage
-      ++ lib.optional enableAntigravity pkgs.antigravity
+      ++ lib.optional (hasDesktopSession && enableLocalSend) pkgs.localsend
+      ++ lib.optional (hasDesktopSession && enableZathura) pkgs.zathura
+      ++ lib.optional (hasDesktopSession && enableSplayer) pkgs.splayer
+      ++ lib.optional (hasDesktopSession && enableTelegramDesktop) pkgs.telegram-desktop
+      ++ lib.optional (hasDesktopSession && enableWpsOffice) wpsOfficePackage
+      ++ lib.optional (hasDesktopSession && enableAntigravity) pkgs.antigravity
       ++ lib.optionals enableSteam gamingPackages
       ++ lib.optionals enableLibvirtd virtualisationPackages
       ++ lib.optionals enableDocker dockerPackages;

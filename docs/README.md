@@ -26,15 +26,19 @@
 - `nix/scripts/admin/update-flake.sh`
 - `nix/scripts/admin/sops.sh`
 - `nix/scripts/admin/guard-secrets.sh`
+- `nix/scripts/admin/check-format-sanity.sh`
 - `nix/scripts/admin/host-meta-schema-sync.sh`
 - `nix/scripts/admin/common.sh`
 
 常用 build / check / switch / upgrade / clean 入口通过 `just` 暴露，检查以本地命令为准。
+GitHub workflow 只做 secrets guard，不能替代本地 `validate-local`。
 其中 `build` / `switch` / `clean` 现通过 `nh` 执行，但仍保留仓库自己的 filtered flake repo 与显式 `host` / `repo` 约束。
 系统同时启用 `programs.nh` 与 `programs.nh.clean`，作为默认 `nh` 入口和自动清理来源。
 
 推荐验证基线：
 
+- 进入开发环境：`nix develop`
+- 轻量自检：`just self-check`
 - 快速基线：`just validate-local`
 - 包含 check build：`just validate-local-full`
 
@@ -44,6 +48,7 @@
 - 显式传入的 `--repo` / `NIXOS_CONFIG_REPO` 若无效，脚本会直接失败，不会静默回退
 - read-only `eval` / `show` / `build` 优先通过 filtered flake repo，避免直接触碰不可读的 `.keys/main.agekey`
 - `sops.sh` 与 `guard-secrets.sh` 可以从仓库外直接调用
+- 已安装 NixOS host 的默认 repo 路径仍是 `/persistent/nixos-config`；需要不同磁盘布局时，在对应 `nix/hosts/nixos/<host>/vars.nix` 设置 `configRepoPath`
 - `/bin/bash` 兼容链接由 `systemd.tmpfiles.rules` 声明为 `/run/current-system/sw/bin/bash`，不再通过 activation script 命令式创建
 - `nix/hosts/registry/systems.toml` 是 host metadata 的事实源
 - `displays` metadata 是 monitor topology 的事实源；不要再在别处重复手写 connector facts
@@ -62,10 +67,11 @@ just update
 just update-nixos
 just update-nixpkgs
 just update-darwin
-just info
 just show
 just flake-check
+just pre-commit-check
 just registry-meta-sync-check
+just self-check
 just validate-local
 just ml-shell
 just mise-upgrade
@@ -164,15 +170,14 @@ just update-darwin
 只读信息：
 
 ```bash
-just info
 just show
-just metadata
 just hosts
 just flake-check
 just flake-check-full
-just flake-check-exec
+just pre-commit-check
 just registry-schema-check
 just registry-meta-sync-check
+just self-check
 just validate-local
 just validate-local-full
 ```
@@ -194,7 +199,6 @@ just ml-shell
 
 ```bash
 just host=zly build
-just host=zly dry-build
 just host=zly check
 just host=zly switch
 just home-switch
@@ -206,28 +210,32 @@ just host=zly upgrade
 当前行为说明：
 
 - `build` 现在通过 `nh os build` 执行，并继续先取 filtered repo
-- `dry-build` 会先取 filtered repo，再做只读构建
-- `check` 走 `sudo nixos-rebuild dry-build --flake ...`
+- `check` 会先取 filtered repo，再对 system toplevel 执行 `nix build --dry-run`
 - `switch` 现在通过 `nh os switch` 执行，并继续先取 filtered repo
 - `home-switch` 通过 `nh home switch` 执行，目标为 `homeConfigurations.<user>@<host>`
 - `boot` / `test` 会直接改系统状态
 - `upgrade` 现在会保留外层 `repo={{repo}}`，先在指定 repo 上执行 `update-nixos`，再执行 `switch`
 - `flake-check` 做 `nix flake check --all-systems --no-build`
 - `flake-check-full` 做 `nix flake check --all-systems`（含 build）
-- `flake-check-exec` 会实际构建并执行一个 check target（`checks.x86_64-linux.pre-commit-check`）
+- `pre-commit-check` 会实际构建并执行 `checks.x86_64-linux.pre-commit-check`
+- `format-sanity` 是 flake check 中的轻量格式/解析防回归检查，对应 `nix/scripts/admin/check-format-sanity.sh`
+- `self-check` 会检查 `justfile`、admin shell 语法、可用时的 `shellcheck`、`.sops.yaml` 解析、格式 sanity 和 registry schema
 - `registry-schema-check` 会校验 `nix/hosts/registry/systems.toml` 是否符合 `nix/hosts/registry/systems.schema.json`
 - `registry-meta-sync-check` 会校验 `nix/lib/host-meta.nix` 与 `systems.schema.json` 枚举/字段是否漂移
-- `validate-local` 会串行执行 `guard-secrets --all-tracked`、registry schema/sync 检查和 `flake-check`
+- `validate-local` 会先执行 `self-check`，再串行执行 `guard-secrets --all-tracked`、registry schema/sync 检查和 `flake-check`
 - `validate-local-full` 在 `validate-local` 之后再执行 `flake-check-full`
 
 清理相关：
 
 ```bash
-just gc
 just clean
 just clean-all
-just optimize
 just use
+```
+
+```bash
+sudo nix store gc
+sudo nix store optimise
 ```
 
 - `clean` 现在通过 `nh clean all --keep-since 30d --keep 15` 执行
@@ -283,6 +291,7 @@ just password-set-hash '<sha512-hash>'
 
 - `secrets/keys/` 只放可提交的 public keys
 - `.keys/*.agekey` 不可提交
+- `.keys/*.agekey` 与明文 password/token/private key 不得进入 Git；加密后的 `secrets/**/*.yaml` 需符合 `.sops.yaml` 规则
 - 运行时主密钥目标路径：`/persistent/keys/main.agekey`
 - `guard-secrets.sh` 应作为提交前 guard，而不是事后补救；默认检查 staged 内容，可用 `--all-tracked` 做全量巡检
 - 当前会拦截私钥内容、常见 token 前缀和明显的明文 `token/password/apiKey/secret` 赋值
@@ -301,6 +310,9 @@ just password-set-hash '<sha512-hash>'
 - `gaming` role 必须运行在 `desktopSession = true` 的 host 上
 - Linux `desktopProfile` 当前只支持 `niri`
 - `nix/home/configs/noctalia/` 下的 tracked config 会因为 GUI 改动直接漂移；这是当前保留设计，不是文档错误
+- 修改 host metadata 后运行 `just registry-schema-check` 和 `just registry-meta-sync-check`
+- 修改脚本入口后运行 `just self-check` 或至少 `bash -n nix/scripts/admin/*.sh`；可用时再运行 `shellcheck nix/scripts/admin/*.sh`
+- 修改 Nix 模块或 flake 聚合后运行 `just flake-check`，需要执行 check build 时运行 `just validate-local-full`
 
 ## 9. FAQ
 
@@ -348,6 +360,8 @@ just guard-secrets-all
 ### 9.7 推送前最低验证是什么
 
 ```bash
+nix develop
+just self-check
 just validate-local
 ```
 

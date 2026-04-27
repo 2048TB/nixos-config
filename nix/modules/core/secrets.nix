@@ -1,10 +1,11 @@
 { pkgs
 , lib
 , mainUser
-, configRepoPath
+, config
 , ...
 }:
 let
+  inherit (config.my.host) configRepoPath;
   homeDir = "/home/${mainUser}";
   mainKeyPath = "/persistent/keys/main.agekey";
   expectedMainPub = builtins.replaceStrings [ "\n" "\r" ] [ "" "" ] (builtins.readFile ../../../secrets/keys/main.age.pub);

@@ -8,6 +8,7 @@ let
     allowedLinuxDesktopProfiles
     allowedDarwinDesktopProfiles
     registryOwnedKeys
+    requiredRegistryKeys
     ;
   allowedRegistryKeys = registryOwnedKeys;
 in
@@ -22,6 +23,9 @@ rec {
       unknownRegistryKeys = builtins.filter
         (key: !(builtins.elem key allowedRegistryKeys))
         (builtins.attrNames hostRegistry);
+      missingRequiredRegistryKeys = builtins.filter
+        (key: !(builtins.hasAttr key hostRegistry))
+        requiredRegistryKeys;
       conflictingRegistryKeys = builtins.filter
         (
           key:
@@ -32,7 +36,7 @@ rec {
         allowedRegistryKeys;
     in
     {
-      inherit unknownRegistryKeys conflictingRegistryKeys;
+      inherit unknownRegistryKeys missingRequiredRegistryKeys conflictingRegistryKeys;
       desktopSession = hostRegistry.desktopSession or false;
       desktopProfile = hostRegistry.desktopProfile or "none";
       kind = hostRegistry.kind or "workstation";
@@ -68,6 +72,9 @@ rec {
     lib.assertMsg
       (state.unknownRegistryKeys == [ ])
       "Host ${hostDir} registry entry has unsupported keys: ${lib.concatStringsSep ", " state.unknownRegistryKeys}"
+    && lib.assertMsg
+      (state.missingRequiredRegistryKeys == [ ])
+      "${registryPath}[${hostName}] is missing required keys: ${lib.concatStringsSep ", " state.missingRequiredRegistryKeys}"
     && lib.assertMsg
       (state.conflictingRegistryKeys == [ ])
       "Host ${hostDir}/vars.nix overrides registry-owned keys: ${lib.concatStringsSep ", " state.conflictingRegistryKeys}"

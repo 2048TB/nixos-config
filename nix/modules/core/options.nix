@@ -31,6 +31,12 @@ in
         description = "System locale.";
       };
 
+      configRepoPath = lib.mkOption {
+        type = types.str;
+        default = myvars.configRepoPath or schema.defaultConfigRepoPath;
+        description = "Path to this host's nixos-config checkout used by system and Home Manager links.";
+      };
+
       systemStateVersion = lib.mkOption {
         type = types.str;
         default = myvars.systemStateVersion or "25.11";
@@ -193,6 +199,34 @@ in
         type = types.bool;
         default = myvars.miseAutoUpgrade or false;
         description = "Opt in to the Home Manager user timer that runs mise upgrade.";
+      };
+
+      aria2 = {
+        enableRpc = lib.mkOption {
+          type = types.bool;
+          default = myvars.aria2.enableRpc or true;
+          description = "Whether the Home Manager aria2 service should enable RPC.";
+        };
+
+        rpcSecretPath = lib.mkOption {
+          type = types.str;
+          default = myvars.aria2.rpcSecretPath or schema.defaultAria2RpcSecretPath;
+          description = "Runtime path to the aria2 RPC secret file.";
+        };
+      };
+
+      secureBoot = {
+        enable = lib.mkOption {
+          type = types.bool;
+          default = myvars.secureBoot.enable or false;
+          description = "Whether this host should enable lanzaboote secure boot support.";
+        };
+
+        pkiBundle = lib.mkOption {
+          type = types.str;
+          default = myvars.secureBoot.pkiBundle or "/etc/secureboot";
+          description = "Path to the lanzaboote secure boot PKI bundle.";
+        };
       };
 
       luksMapperDevice = lib.mkOption {

@@ -16,15 +16,14 @@ just update
 just update-nixos
 just update-nixpkgs
 just update-darwin
-just info
 just show
-just metadata
 just hosts
 just flake-check
 just flake-check-full
-just flake-check-exec
+just pre-commit-check
 just registry-schema-check
 just registry-meta-sync-check
+just self-check
 just validate-local
 just validate-local-full
 just ml-shell
@@ -37,8 +36,10 @@ nix flake show "path:$flake_repo"
 nix flake check --all-systems --no-build "path:$flake_repo"
 nix flake check --all-systems "path:$flake_repo"
 nix build "path:$flake_repo#checks.x86_64-linux.pre-commit-check"
+nix build "path:$flake_repo#checks.x86_64-linux.format-sanity"
 nix shell nixpkgs#check-jsonschema -c check-jsonschema --schemafile "$REPO/nix/hosts/registry/systems.schema.json" "$REPO/nix/hosts/registry/systems.toml"
 bash "$REPO/nix/scripts/admin/host-meta-schema-sync.sh"
+bash "$REPO/nix/scripts/admin/check-format-sanity.sh" --repo "$REPO"
 nix eval "path:$flake_repo#nixosConfigurations" --apply builtins.attrNames
 nix eval "path:$flake_repo#packages.x86_64-linux" --apply builtins.attrNames
 nix eval "path:$flake_repo#overlays" --apply builtins.attrNames
@@ -49,7 +50,6 @@ nix eval "path:$flake_repo#nixosModules" --apply builtins.attrNames
 
 ```bash
 just host=zly build
-just host=zly dry-build
 just host=zly check
 just host=zly switch
 just home-switch
@@ -61,18 +61,20 @@ just host=zly upgrade
 ## 4. 清理
 
 ```bash
-just gc
 just clean
 just clean-all
-just optimize
 just use
+```
+
+```bash
+sudo nix store gc
+sudo nix store optimise
 ```
 
 ## 5. 工具升级
 
 ```bash
 just mise-upgrade
-just tool-upgrade
 ```
 
 ```bash
@@ -116,7 +118,7 @@ bash /persistent/nixos-config/nix/scripts/admin/sops.sh rekey
 just hooks-enable
 just guard-secrets
 just guard-secrets-all
-just status
+git check-ignore .keys/main.agekey
 ```
 
 ```bash

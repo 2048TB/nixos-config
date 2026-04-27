@@ -17,19 +17,19 @@ EOF
 scan_mode="staged"
 while [ "$#" -gt 0 ]; do
   case "$1" in
-    --all-tracked)
-      scan_mode="all-tracked"
-      shift
-      ;;
-    -h|--help)
-      usage
-      exit 0
-      ;;
-    *)
-      echo "error: unknown argument: $1" >&2
-      usage >&2
-      exit 2
-      ;;
+  --all-tracked)
+    scan_mode="all-tracked"
+    shift
+    ;;
+  -h | --help)
+    usage
+    exit 0
+    ;;
+  *)
+    echo "error: unknown argument: $1" >&2
+    usage >&2
+    exit 2
+    ;;
   esac
 done
 
@@ -37,8 +37,8 @@ repo_root="$(enter_repo_root)"
 cd "$repo_root"
 
 # 路径级阻断：任何被 Git 跟踪/暂存的密钥路径都直接失败
-forbidden_path_pattern='(^|/)\.keys/|(^|/)main\.agekey$|(^|/)id_ed25519(\.pub)?$|\.pem$|\.p12$|\.pfx$'
-private_key_content_pattern='BEGIN (OPENSSH|RSA|EC|DSA|PGP) PRIVATE KEY|AGE-SECRET-KEY-1'
+forbidden_path_pattern='(^|/)\.keys/|(^|/)[^/]*\.agekey$|(^|/)id_(ed25519|rsa|ecdsa|dsa)(\.pub)?$|(^|/)ssh_host_[^/]*_key$|\.pem$|\.p12$|\.pfx$'
+private_key_content_pattern='-----BEGIN ((OPENSSH|RSA|EC|DSA|PGP|ENCRYPTED) )?PRIVATE KEY-----|AGE-SECRET-KEY-1[0-9A-Za-z]{20,}'
 private_key_content_pattern_ci="(?i:${private_key_content_pattern})"
 credential_content_pattern='ghp_[A-Za-z0-9]{36}|github_pat_[A-Za-z0-9_]{82}|glpat-[A-Za-z0-9_-]{20,}|xox[baprs]-[A-Za-z0-9-]{10,}|AKIA[0-9A-Z]{16}|ASIA[0-9A-Z]{16}|AIza[0-9A-Za-z_-]{35}|sk-[A-Za-z0-9]{20,}|(?i)(api[_-]?key|token|secret|password|passwd)[[:space:]]*[:=][[:space:]]*[A-Za-z0-9_.+=-]{24,}'
 
@@ -71,6 +71,46 @@ list_content_scan_files() {
   fi
 }
 
+is_allowed_plain_secret_path() {
+  local file="${1:-}"
+  case "$file" in
+  secrets/**/.gitkeep | \
+    secrets/keys/README.md | \
+    secrets/keys/hosts/*.age.pub | \
+    secrets/keys/*.age.pub)
+    return 0
+    ;;
+  *)
+    return 1
+    ;;
+  esac
+}
+
+check_secret_tree_policy() {
+  local file="${1:-}"
+  local content_file="${2:-}"
+
+  case "$file" in
+  secrets/*) ;;
+  *) return 0 ;;
+  esac
+
+  if is_allowed_plain_secret_path "$file"; then
+    return 0
+  fi
+
+  if [[ "$file" != *.yaml ]]; then
+    echo "ERROR: secrets/ only allows SOPS-encrypted *.yaml files or allowlisted metadata: $file" >&2
+    exit 1
+  fi
+
+  if ! rg -q '^sops:' "$content_file" || ! rg -q '^[[:space:]]+mac:' "$content_file"; then
+    echo "ERROR: secrets/ YAML is not recognized as SOPS-encrypted: $file" >&2
+    echo "Fix: encrypt it with sops or move non-secret metadata out of secrets/." >&2
+    exit 1
+  fi
+}
+
 mapfile -t content_scan_files < <(list_content_scan_files)
 if [ "${#content_scan_files[@]}" -gt 0 ]; then
   content_scan_tmp="$(mktemp)"
@@ -94,6 +134,7 @@ if [ "${#content_scan_files[@]}" -gt 0 ]; then
       echo "error: failed to read file content for secret scan: $file (mode=$scan_mode)" >&2
       exit 1
     fi
+    check_secret_tree_policy "$file" "$content_scan_tmp"
     if rg -n -e "$private_key_content_pattern_ci" -e "$credential_content_pattern" "$content_scan_tmp" >/dev/null; then
       secret_kind="token/password-like secret material"
       if rg -n "$private_key_content_pattern_ci" "$content_scan_tmp" >/dev/null; then

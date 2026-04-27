@@ -46,6 +46,8 @@ nix/hosts/
 - `home.nix`
 - `checks.nix`
 
+`vars.nix` 可按 host 覆盖 `configRepoPath`；未设置时默认使用 `/persistent/nixos-config`。
+
 Darwin 主机最小文件集：
 
 - `default.nix`
@@ -97,6 +99,7 @@ nix eval "path:$flake_repo#nixosConfigurations" --apply builtins.attrNames
 改动 `nix/hosts/registry/*` 或 host metadata 后，至少补跑：
 
 ```bash
+just self-check
 just registry-schema-check
 just registry-meta-sync-check
 just flake-check

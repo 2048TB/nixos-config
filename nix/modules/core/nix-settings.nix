@@ -1,7 +1,8 @@
-{ lib, nixpkgs, configRepoPath, ... }:
+{ lib, nixpkgs, config, ... }:
 let
   nixCache = import ../../lib/nix-cache.nix;
   inherit (nixCache) cacheSubstituters cacheTrustedPublicKeys trustedUsers;
+  inherit (config.my.host) configRepoPath;
 in
 {
   programs.nh = {

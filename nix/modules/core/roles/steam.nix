@@ -1,30 +1,36 @@
-{ lib, pkgs, config, mainUser, mylib, ... }:
+{ lib, pkgs, config, mainUser, mylib, myvars, ... }:
 let
   hostCfg = config.my.host;
   roleFlags = mylib.roleFlags hostCfg;
+  rawRoleFlags = mylib.roleFlags myvars;
   inherit (roleFlags) enableSteam;
   inherit (config.my.capabilities) hasNvidiaGpu;
 in
 {
   programs = lib.mkIf enableSteam {
     # 游戏支持
-    steam = {
-      enable = true;
-      # 保持 Steam/gamescope 可用，但不把 Steam 注册为登录界面入口。
-      gamescopeSession.enable = false;
-      protontricks.enable = true;
-      extest.enable = true; # Wayland 下将 X11 输入事件转换为 uinput（Steam Input 控制器支持）
-      platformOptimizations.enable = true;
-      # 局域网传输与 Remote Play 使用时自动放行防火墙端口
-      remotePlay.openFirewall = true;
-      localNetworkGameTransfers.openFirewall = true;
+    steam =
+      {
+        enable = true;
+        # 保持 Steam/gamescope 可用，但不把 Steam 注册为登录界面入口。
+        gamescopeSession.enable = false;
+        protontricks.enable = true;
+        extest.enable = true; # Wayland 下将 X11 输入事件转换为 uinput（Steam Input 控制器支持）
+        # 局域网传输与 Remote Play 使用时自动放行防火墙端口
+        remotePlay.openFirewall = true;
+        localNetworkGameTransfers.openFirewall = true;
 
-      # Proton-GE 配置：通过 Steam 的 extraCompatPackages 安装
-      # 注意：不能放在 environment.systemPackages（会导致 buildEnv 错误）
-      extraCompatPackages = with pkgs; [
-        proton-ge-bin
-      ];
-    };
+        # Proton-GE 配置：通过 Steam 的 extraCompatPackages 安装
+        # 注意：不能放在 environment.systemPackages（会导致 buildEnv 错误）
+        extraCompatPackages = with pkgs; [
+          proton-ge-bin
+        ];
+      }
+      // lib.optionalAttrs rawRoleFlags.enableSteam {
+        # platformOptimizations 的 option 来自按 gaming role 导入的 nix-gaming module。
+        # 这里用 vars.nix 的原始 role 做静态 gating，避免非 gaming host 产生不存在的 option。
+        platformOptimizations.enable = true;
+      };
 
     # Gamescope 提升调度优先级，改善帧时间稳定性
     gamescope = {

@@ -21,6 +21,8 @@ let
   cfg = nixosSystem.config;
   hostCfg = cfg.my.host;
   hostRoles = hostCfg.roles or [ ];
+  hasGamingRole = builtins.elem "gaming" hostRoles;
+  secureBootEnabled = hostCfg.secureBoot.enable or false;
   hasDesktopSession = cfg.my.capabilities.hasDesktopSession or false;
   hasGpuVendor = vendor: builtins.elem vendor hostCfg.gpuVendors;
   hasExpectedGpuVendorsForMode =
@@ -40,7 +42,7 @@ let
     hostCfg.gpuMode != "amd-nvidia-hybrid"
     || (hostCfg.amdgpuBusId != null && hostCfg.nvidiaBusId != null);
   hasExpectedGamingRoleMetadata =
-    !(builtins.elem "gaming" hostRoles) || hostCfg.desktopSession;
+    !hasGamingRole || hostCfg.desktopSession;
   resolvedExpectedLuksName =
     if expectedLuksName != null then expectedLuksName else hostCfg.luksName;
   resolvedExpectedResumeOffset =
@@ -205,6 +207,8 @@ let
         "OPENSSL_DIR"
       ];
   miseAutoUpgradeEnabled = cfg.my.host.miseAutoUpgrade or false;
+  aria2EnableRpc = cfg.my.host.aria2.enableRpc or true;
+  aria2RpcSecretPath = cfg.my.host.aria2.rpcSecretPath or mylib.hostMetaSchema.defaultAria2RpcSecretPath;
   hasMiseUpgradeTimer = hmCfg.systemd.user.timers ? mise-upgrade;
   tmpfilesRules = cfg.systemd.tmpfiles.rules or [ ];
   hasBinBashTmpfilesLink =
@@ -213,6 +217,8 @@ let
   hasLegacyBinBashActivation = cfg.system.activationScripts ? binbash;
   swapfileResumeCheckEnabled = cfg.systemd.services ? swapfile-resume-check;
   niriConfigSource = hmCfg.xdg.configFile."niri/config.kdl".source or null;
+  codeWrapperSource = hmCfg.home.file.".local/bin/code".source or null;
+  antigravityWrapperSource = hmCfg.home.file.".local/bin/antigravity".source or null;
 
   mkNonEmptyCheck = name': items: msg:
     pkgs.runCommand name' { } ''
@@ -236,6 +242,14 @@ in
 
   "eval-${name}-hostname" = pkgs.runCommand "eval-${name}-hostname" { } ''
     test "${cfg.networking.hostName}" = "${name}"
+    touch "$out"
+  '';
+
+  "eval-${name}-config-repo-path" = pkgs.runCommand "eval-${name}-config-repo-path" { } ''
+    test -n "${hostCfg.configRepoPath}"
+    test "${cfg.programs.nh.flake}" = "${hostCfg.configRepoPath}"
+    test "${if builtins.elem "d ${hostCfg.configRepoPath} 0755 ${mainUser} ${mainUser} -" tmpfilesRules then "1" else "0"}" = "1"
+    test "${if builtins.elem "L+ /etc/nixos - - - - ${hostCfg.configRepoPath}" tmpfilesRules then "1" else "0"}" = "1"
     touch "$out"
   '';
 
@@ -354,10 +368,16 @@ in
 
   "eval-${name}-aria2-rpc-config" = pkgs.runCommand "eval-${name}-aria2-rpc-config" { } ''
     test "${if (hmCfg.programs.aria2.enable or false) then "1" else "0"}" = "1"
-    test "${if (hmCfg.programs.aria2.settings."enable-rpc" or false) then "1" else "0"}" = "1"
-    test "${toString (hmCfg.programs.aria2.settings."rpc-listen-port" or 0)}" = "6800"
-    test "${if (hmCfg.programs.aria2.settings."rpc-listen-all" or false) then "1" else "0"}" = "0"
-    test "${if (hmCfg.programs.aria2.settings."rpc-allow-origin-all" or false) then "1" else "0"}" = "1"
+    test "${if (hmCfg.programs.aria2.settings."enable-rpc" or false) == aria2EnableRpc then "1" else "0"}" = "1"
+    if [ "${if aria2EnableRpc then "1" else "0"}" = "1" ]; then
+      test "${toString (hmCfg.programs.aria2.settings."rpc-listen-port" or 0)}" = "6800"
+      test "${if (hmCfg.programs.aria2.settings."rpc-listen-all" or false) then "1" else "0"}" = "0"
+      test "${if (hmCfg.programs.aria2.settings."rpc-allow-origin-all" or false) then "1" else "0"}" = "1"
+    else
+      test "${if builtins.hasAttr "rpc-listen-port" hmCfg.programs.aria2.settings then "1" else "0"}" = "0"
+      test "${if builtins.hasAttr "rpc-listen-all" hmCfg.programs.aria2.settings then "1" else "0"}" = "0"
+      test "${if builtins.hasAttr "rpc-allow-origin-all" hmCfg.programs.aria2.settings then "1" else "0"}" = "0"
+    fi
     touch "$out"
   '';
 
@@ -377,7 +397,17 @@ in
 
     grep -F '${pkgs.coreutils}/bin/mkdir' "$prepare_script" >/dev/null
     grep -F '${pkgs.coreutils}/bin/touch' "$prepare_script" >/dev/null
-    grep -F '${pkgs.coreutils}/bin/cat' "$start_script" >/dev/null
+    if [ "${if aria2EnableRpc then "1" else "0"}" = "1" ]; then
+      grep -F '${pkgs.coreutils}/bin/cat' "$start_script" >/dev/null
+      grep -F 'aria2 RPC is enabled but secret is not readable: ${aria2RpcSecretPath}' "$start_script" >/dev/null
+      grep -F 'exit 1' "$start_script" >/dev/null
+      grep -F -- '--rpc-secret=$rpc_secret' "$start_script" >/dev/null
+    else
+      if grep -Fq -- '--rpc-secret' "$start_script"; then
+        echo "aria2 RPC is disabled but start script still passes --rpc-secret" >&2
+        exit 1
+      fi
+    fi
     touch "$out"
   '';
 
@@ -440,6 +470,20 @@ in
   "eval-${name}-binbash-tmpfiles" = pkgs.runCommand "eval-${name}-binbash-tmpfiles" { } ''
     test "${if hasBinBashTmpfilesLink then "1" else "0"}" = "1"
     test "${if !hasLegacyBinBashActivation then "1" else "0"}" = "1"
+    touch "$out"
+  '';
+
+  "eval-${name}-secure-boot-gating" = pkgs.runCommand "eval-${name}-secure-boot-gating" { } ''
+    test "${if (cfg.boot.lanzaboote.enable or false) == secureBootEnabled then "1" else "0"}" = "1"
+    if [ "${if secureBootEnabled then "1" else "0"}" = "0" ]; then
+      test "${if cfg.boot.loader.systemd-boot.enable or false then "1" else "0"}" = "1"
+    fi
+    touch "$out"
+  '';
+
+  "eval-${name}-steam-role-gating" = pkgs.runCommand "eval-${name}-steam-role-gating" { } ''
+    test "${if (cfg.programs.steam.enable or false) == hasGamingRole then "1" else "0"}" = "1"
+    test "${if (cfg.programs.steam.platformOptimizations.enable or false) == hasGamingRole then "1" else "0"}" = "1"
     touch "$out"
   '';
 
@@ -636,6 +680,26 @@ in
 
   "eval-${name}-display-manager-session-names" = pkgs.runCommand "eval-${name}-display-manager-session-names" { } ''
     test "${builtins.toJSON cfg.services.displayManager.sessionData.sessionNames}" = "${builtins.toJSON expectedDisplayManagerSessionNames}"
+    touch "$out"
+  '';
+
+  "eval-${name}-gui-cli-wrappers" = pkgs.runCommand "eval-${name}-gui-cli-wrappers" { } ''
+    code_wrapper="${if codeWrapperSource == null then "" else codeWrapperSource}"
+    antigravity_wrapper="${if antigravityWrapperSource == null then "" else antigravityWrapperSource}"
+
+    test -n "$code_wrapper"
+    test -f "$code_wrapper"
+    test -n "$antigravity_wrapper"
+    test -f "$antigravity_wrapper"
+
+    grep -F '${lib.getExe pkgs.vscode}' "$code_wrapper" >/dev/null
+    for wrapper in "$code_wrapper" "$antigravity_wrapper"; do
+      grep -F 'target executable not found or not executable' "$wrapper" >/dev/null
+      grep -F 'refusing to execute wrapper recursively' "$wrapper" >/dev/null
+      grep -F '${pkgs.coreutils}/bin/readlink' "$wrapper" >/dev/null
+      grep -F 'ozone-platform-hint' "$wrapper" >/dev/null
+    done
+
     touch "$out"
   '';
 }

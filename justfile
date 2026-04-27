@@ -49,20 +49,8 @@ upgrade:
 show:
     @flake_repo="$(bash "{{script_repo}}/nix/scripts/admin/print-flake-repo.sh" "{{repo}}")" && {{nix_cmd}} flake show --all-systems "path:$flake_repo"
 
-metadata:
-    @flake_repo="$(bash "{{script_repo}}/nix/scripts/admin/print-flake-repo.sh" "{{repo}}")" && {{nix_cmd}} flake metadata "path:$flake_repo"
-
 hosts:
     @flake_repo="$(bash "{{script_repo}}/nix/scripts/admin/print-flake-repo.sh" "{{repo}}")" && {{nix_cmd}} eval "path:$flake_repo#nixosConfigurations" --apply builtins.attrNames
-
-info:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    flake_repo="$(bash "{{script_repo}}/nix/scripts/admin/print-flake-repo.sh" "{{repo}}")"
-    {{nix_cmd}} flake show --all-systems "path:$flake_repo"
-    echo ""
-    echo "=== Flake 元数据 ==="
-    {{nix_cmd}} flake metadata "path:$flake_repo"
 
 flake-check:
     @flake_repo="$(bash "{{script_repo}}/nix/scripts/admin/print-flake-repo.sh" "{{repo}}")" && {{nix_cmd}} flake check --all-systems --no-build "path:$flake_repo"
@@ -70,7 +58,7 @@ flake-check:
 flake-check-full:
     @flake_repo="$(bash "{{script_repo}}/nix/scripts/admin/print-flake-repo.sh" "{{repo}}")" && {{nix_cmd}} flake check --all-systems "path:$flake_repo"
 
-flake-check-exec:
+pre-commit-check:
     @flake_repo="$(bash "{{script_repo}}/nix/scripts/admin/print-flake-repo.sh" "{{repo}}")" && {{nix_cmd}} build "path:$flake_repo#checks.x86_64-linux.pre-commit-check"
 
 registry-schema-check:
@@ -84,6 +72,13 @@ registry-schema-check:
 registry-meta-sync-check:
     @NIXOS_CONFIG_REPO="{{repo}}" bash "{{script_repo}}/nix/scripts/admin/host-meta-schema-sync.sh"
 
+self-check:
+    @just --list >/dev/null
+    @bash -n "{{script_repo}}"/nix/scripts/admin/*.sh
+    @if command -v shellcheck >/dev/null 2>&1; then shellcheck "{{script_repo}}"/nix/scripts/admin/*.sh; else echo "warning: shellcheck not found; skipping shellcheck" >&2; fi
+    @NIXOS_CONFIG_REPO="{{repo}}" bash "{{script_repo}}/nix/scripts/admin/check-format-sanity.sh" --repo "{{repo}}"
+    @if command -v check-jsonschema >/dev/null 2>&1 || command -v nix >/dev/null 2>&1; then just repo="{{repo}}" registry-schema-check; else echo "warning: registry schema check dependencies not found; skipping" >&2; fi
+
 use:
     @flake_repo="$(bash "{{script_repo}}/nix/scripts/admin/print-flake-repo.sh" "{{repo}}")" && echo ">>> entering filtered flake repo: $flake_repo" && cd "$flake_repo" && exec "${SHELL:-bash}" -l
 
@@ -94,10 +89,8 @@ ml-shell:
 
 build: (nh-os "build")
 
-check: (nixos-rebuild "dry-build")
-
-dry-build:
-    @if [ -z "{{host}}" ]; then echo "error: 需要指定主机. 用法: just host=<hostname> dry-build" >&2; exit 2; fi
+check:
+    @if [ -z "{{host}}" ]; then echo "error: 需要指定主机. 用法: just host=<hostname> check" >&2; exit 2; fi
     @flake_repo="$(bash "{{script_repo}}/nix/scripts/admin/print-flake-repo.sh" "{{repo}}")" && {{nix_cmd}} build --dry-run "path:$flake_repo#nixosConfigurations.{{host}}.config.system.build.toplevel"
 
 home-switch:
@@ -117,28 +110,16 @@ test: (nixos-rebuild "test")
 
 # ========== 清理 / 维护 ==========
 
-gc:
-    @sudo nix store gc
-
 clean:
     @{{nix_cmd}} shell nixpkgs#nh -c nh clean all --keep-since 30d --keep 15
 
 clean-all:
     @{{nix_cmd}} shell nixpkgs#nh -c nh clean all --keep-since 0h --keep 0
 
-optimize:
-    @sudo nix store optimise
-
 mise-upgrade:
     @{{nix_cmd}} shell nixpkgs#mise -c mise upgrade --yes
 
-tool-upgrade:
-    @just repo="{{repo}}" mise-upgrade
-
 # ========== Git / 安全 ==========
-
-status:
-    @git status
 
 hooks-enable:
     git config core.hooksPath .githooks
@@ -151,6 +132,7 @@ guard-secrets-all:
     @NIXOS_CONFIG_REPO="{{repo}}" bash "{{script_repo}}/nix/scripts/admin/guard-secrets.sh" --all-tracked
 
 validate-local:
+    @just repo="{{repo}}" self-check
     @just repo="{{repo}}" guard-secrets-all
     @just repo="{{repo}}" registry-schema-check
     @just repo="{{repo}}" registry-meta-sync-check
