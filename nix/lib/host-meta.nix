@@ -110,7 +110,7 @@ rec {
     in
     {
       inherit hostRoles hasRole dockerMode;
-      enableVpn = hasRole "vpn";
+      enableMullvadVpn = hasRole "vpn";
       enableLibvirtd = hasRole "virt";
       enableDocker = hasRole "container";
       enableSteam = hasRole "gaming";

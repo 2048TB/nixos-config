@@ -107,6 +107,10 @@ check_shell_shebangs() {
   while IFS= read -r -d '' file; do
     path="$(repo_file_path "$file")"
     shown="$(display_path "$path")"
+    if [ ! -f "$path" ]; then
+      continue
+    fi
+
     first_line=""
     if ! IFS= read -r first_line <"$path"; then
       fail "$shown is empty or unreadable"
@@ -183,6 +187,10 @@ check_nix_comment_collisions() {
   : >"$comment_hits"
   while IFS= read -r -d '' file; do
     path="$(repo_file_path "$file")"
+    if [ ! -f "$path" ]; then
+      continue
+    fi
+
     awk '
       (($0 ~ /\{[[:space:]]*#/) || ($0 ~ /;[[:space:]]*#/)) &&
       ($0 ~ /#[^#]*[A-Za-z_][A-Za-z0-9_.-]*[[:space:]]*=/) {

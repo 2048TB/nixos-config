@@ -53,7 +53,6 @@
     "remmina"
     "nomacs"
     "nautilus"
-    "wsdd"
     "file-roller"
     "ghostty"
     "foot"

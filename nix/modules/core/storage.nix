@@ -7,7 +7,7 @@
 let
   hostCfg = config.my.host;
   roleFlags = mylib.roleFlags hostCfg;
-  inherit (roleFlags) enableLibvirtd enableDocker useRootfulDocker;
+  inherit (roleFlags) enableMullvadVpn enableLibvirtd enableDocker useRootfulDocker;
   inherit (config.my.capabilities) hasDesktopSession hasFingerprintReader;
   enableFlatpak = hasDesktopSession;
   hibernateEnabled = hostCfg.resumeOffset != null;
@@ -72,6 +72,10 @@ in
       ]
       ++ lib.optionals (enableDocker && useRootfulDocker) [
         "/var/lib/docker"
+      ]
+      ++ lib.optionals enableMullvadVpn [
+        "/etc/mullvad-vpn"
+        "/var/cache/mullvad-vpn"
       ]
       ++ lib.optionals enableFlatpak [
         "/var/lib/flatpak"

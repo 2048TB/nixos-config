@@ -76,6 +76,7 @@ rg -n 'zly|zly-mac' nix/hosts/<platform>/<new-host>
 ## Host Metadata 约束
 
 - `roles` 是功能开关，不是 machine topology 容器
+- `vpn` role 当前表示 Mullvad app / daemon 集成，不再表示仓库内 WireGuard profile catalog
 - `tags` 只保留无法稳定派生的事实
 - `displays` 是 monitor topology 的唯一事实源
 - `desktopProfile` 当前 Linux 只支持 `niri`

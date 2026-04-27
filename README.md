@@ -12,7 +12,6 @@
 - 快捷键摘要：`docs/KEYBINDINGS.md`
 - 主机目录与 metadata：`nix/hosts/README.md`
 - Home Manager 结构：`nix/home/README.md`
-- WireGuard VPN catalog：`nix/configs/wireguard/README.md`
 - 公钥与 secrets 流程：`secrets/keys/README.md`
 - 代理规则：`AGENTS.md`、`CLAUDE.md`
 

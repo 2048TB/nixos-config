@@ -301,7 +301,7 @@ binds {
     Mod+Shift+P { power-off-monitors; }
 
     // 实用快捷键（对齐 Hyprland）
-    Mod+Ctrl+B { spawn-sh "pkill -x noctalia-shell || true; sleep 0.2; exec env -u QT_IM_MODULE noctalia-shell"; }
+    Mod+Ctrl+B { spawn-sh "pkill -x noctalia-shell || true; pkill -f '/bin/[q]uickshell' || true; sleep 0.2; exec env -u QT_IM_MODULE noctalia-shell"; }
     Mod+Ctrl+S { spawn "pavucontrol"; }
     Mod+Ctrl+E { spawn "env" "-u" "QT_IM_MODULE" "noctalia-shell" "ipc" "call" "sessionMenu" "toggle"; }
 }

@@ -41,12 +41,12 @@
 | `Mod + Shift + L` | 锁屏（Noctalia） |
 | `Mod + Shift + P` | 关闭显示器 |
 | `Mod + Ctrl + E` | 会话菜单（Noctalia） |
-| `Mod + Ctrl + B` | 重启 `noctalia-shell` 进程 |
+| `Mod + Ctrl + B` | 重启 Noctalia shell（清理 `noctalia-shell` / `quickshell`） |
 | `Mod + Ctrl + S` | 打开 `pavucontrol` |
 | `Mod + Shift + E` | 退出 Niri |
 | `Ctrl + Alt + Delete` | 退出 Niri |
 
-Noctalia 相关快捷键会单独取消 `QT_IM_MODULE`，避免 `quickshell` 触发 `fcitx5` Qt input context 崩溃。
+Noctalia 相关快捷键会单独取消 `QT_IM_MODULE`，避免 `quickshell` 触发 `fcitx5` Qt input context 崩溃。重启快捷键会同时处理 wrapper 名称和实际 `quickshell` 进程名。
 
 ---
 

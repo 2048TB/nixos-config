@@ -34,6 +34,8 @@ in
     services.docker.unitConfig.ConditionUser = lib.mkForce mainUser;
   };
 
+  users.groups.docker = lib.mkIf (enableDocker && useRootlessDocker) { };
+
   users.users.${mainUser} = {
     linger = lib.mkIf (enableDocker && useRootlessDocker) (lib.mkDefault true);
     extraGroups = lib.mkAfter (lib.optionals (enableDocker && useRootfulDocker) [ "docker" ]);

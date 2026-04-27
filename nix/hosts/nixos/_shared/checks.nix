@@ -80,6 +80,8 @@ let
   hasVpnRole = builtins.elem "vpn" hostRoles;
   hmCfg = cfg.home-manager.users.${mainUser};
   expectedHome = "/home/${mainUser}";
+  preservedDirectories = cfg.preservation.preserveAt."/persistent".directories or [ ];
+  preservedDirectoryPaths = map (entry: entry.directory or entry) preservedDirectories;
 
   getNames = pkgList: lib.unique (map (pkg: builtins.unsafeDiscardStringContext (lib.getName pkg)) pkgList);
   excludeAllowed = allowed: names: builtins.filter (n: !(builtins.elem n allowed)) names;
@@ -566,56 +568,23 @@ in
   '';
 }
 // lib.optionalAttrs hasVpnRole {
-  "eval-${name}-wireguard-vpn-integration" = pkgs.runCommand "eval-${name}-wireguard-vpn-integration" { } ''
+  "eval-${name}-mullvad-vpn-integration" = pkgs.runCommand "eval-${name}-mullvad-vpn-integration" { } ''
     test "${if cfg.services.resolved.enable or false then "1" else "0"}" = "1"
-    test "${if (cfg.networking.wg-quick.interfaces or { }) != { } then "1" else "0"}" = "1"
-    test "${if cfg.networking.wg-quick.interfaces.wg-nqrvma.autostart or false then "1" else "0"}" = "0"
-    test "${if cfg.networking.wg-quick.interfaces.wg-vdrkye.autostart or false then "1" else "0"}" = "0"
-    test "${if cfg.networking.wg-quick.interfaces.wg-xafmcp.autostart or false then "1" else "0"}" = "1"
-    test "${if cfg.networking.wg-quick.interfaces.wg-hzplwt.autostart or false then "1" else "0"}" = "0"
-    test "${if cfg.networking.wg-quick.interfaces.wg-kqsjdn.autostart or false then "1" else "0"}" = "0"
-    test "${cfg.networking.wg-quick.interfaces.wg-xafmcp.configFile}" = "/run/wireguard/active/wg-xafmcp.conf"
-    test "${if builtins.elem "network-online.target" (cfg.systemd.services.wg-quick-wg-xafmcp.after or [ ]) then "1" else "0"}" = "1"
-    test "${if lib.hasInfix "sops-nix.service" (builtins.toJSON (cfg.systemd.services.wg-quick-wg-xafmcp.after or [ ])) then "1" else "0"}" = "0"
-    test "${if lib.hasInfix "sops-nix.service" (builtins.toJSON (cfg.systemd.services.wg-quick-wg-xafmcp.requires or [ ])) then "1" else "0"}" = "0"
-    test "${if cfg.system.activationScripts ? setupSecrets then "1" else "0"}" = "1"
-    test "${if lib.hasInfix "[ -L \"$active\" ]" (cfg.system.activationScripts.wireguardVpnActiveLinks.text or "") then "1" else "0"}" = "1"
-    test "${if lib.hasInfix "basename \"$active\" .conf" (cfg.system.activationScripts.wireguardVpnActiveLinks.text or "") then "1" else "0"}" = "1"
-    test "${if lib.hasInfix "rm -f \"$active\"" (cfg.system.activationScripts.wireguardVpnActiveLinks.text or "") then "1" else "0"}" = "1"
-    test "${if builtins.elem "vpn-list" systemPackageNames then "1" else "0"}" = "1"
-    grep -q "available WireGuard profiles" ${systemPackageByName "vpn-list"}/bin/vpn-list
-    grep -q "selected=" ${systemPackageByName "vpn-list"}/bin/vpn-list
-    grep -q "available=" ${systemPackageByName "vpn-list"}/bin/vpn-list
-    grep -q "NixOS-VPN-Region" ${systemPackageByName "vpn-list"}/bin/vpn-list
-    grep -q "NixOS-VPN-Label" ${systemPackageByName "vpn-list"}/bin/vpn-list
-    grep -q "region=" ${systemPackageByName "vpn-list"}/bin/vpn-list
-    grep -q "label=" ${systemPackageByName "vpn-list"}/bin/vpn-list
-    grep -q "run vpn-list" ${systemPackageByName "vpn-switch"}/bin/vpn-switch
-    grep -q "run vpn-list" ${systemPackageByName "vpn-select"}/bin/vpn-select
-    grep -q "${systemPackageByName "vpn-list"}/bin/vpn-list" ${systemPackageByName "vpn-status"}/bin/vpn-status
-    touch "$out"
-  '';
-  "eval-${name}-wireguard-vpn-profiles" = pkgs.runCommand "eval-${name}-wireguard-vpn-profiles" { } ''
-    test "${if builtins.hasAttr "wg-nqrvma" (cfg.networking.wg-quick.interfaces or { }) then "1" else "0"}" = "1"
-    test "${if builtins.hasAttr "wg-vdrkye" (cfg.networking.wg-quick.interfaces or { }) then "1" else "0"}" = "1"
-    test "${if builtins.hasAttr "wg-xafmcp" (cfg.networking.wg-quick.interfaces or { }) then "1" else "0"}" = "1"
-    test "${if builtins.hasAttr "wg-hzplwt" (cfg.networking.wg-quick.interfaces or { }) then "1" else "0"}" = "1"
-    test "${if builtins.hasAttr "wg-kqsjdn" (cfg.networking.wg-quick.interfaces or { }) then "1" else "0"}" = "1"
-    touch "$out"
-  '';
-  "eval-${name}-wireguard-vpn-kill-switch" = pkgs.runCommand "eval-${name}-wireguard-vpn-kill-switch" { } ''
-    test "${if cfg.networking.firewall.enable or false then "1" else "0"}" = "1"
-    test "${cfg.networking.firewall.backend}" = "iptables"
-    test "${if lib.hasInfix "NIXOS_WG_KILLSWITCH" (cfg.networking.firewall.extraCommands or "") then "1" else "0"}" = "1"
-    test "${if lib.hasInfix "NIXOS_WG_KILLSWITCH_FWD" (cfg.networking.firewall.extraCommands or "") then "1" else "0"}" = "1"
-    test "${if lib.hasInfix "FORWARD -j NIXOS_WG_KILLSWITCH_FWD" (cfg.networking.firewall.extraCommands or "") then "1" else "0"}" = "1"
-    test "${if lib.hasInfix "--mark 51820" (cfg.networking.firewall.extraCommands or "") then "1" else "0"}" = "1"
-    test "${if lib.hasInfix "-d 192.168.0.0/16 -j RETURN" (cfg.networking.firewall.extraCommands or "") then "1" else "0"}" = "1"
-    test "${if lib.hasInfix "-d fc00::/7 -j RETURN" (cfg.networking.firewall.extraCommands or "") then "1" else "0"}" = "1"
-    test "${if lib.hasInfix "-d 0.0.0.0/0 -j RETURN" (cfg.networking.firewall.extraCommands or "") then "1" else "0"}" = "0"
-    test "${if lib.hasInfix "-d ::/0 -j RETURN" (cfg.networking.firewall.extraCommands or "") then "1" else "0"}" = "0"
-    test "${if lib.hasInfix "FwMark = 51820" (cfg.systemd.services.wg-quick-wg-nqrvma.preStart or "") then "1" else "0"}" = "1"
-    test "${if lib.hasInfix "/persistent/wireguard/active/wg-nqrvma.conf" (cfg.systemd.services.wg-quick-wg-nqrvma.preStart or "") then "1" else "0"}" = "1"
+    test "${if cfg.services.mullvad-vpn.enable or false then "1" else "0"}" = "1"
+    test "${if (cfg.networking.wg-quick.interfaces or { }) == { } then "1" else "0"}" = "1"
+    test "${if cfg.system.activationScripts ? wireguardVpnActiveLinks then "1" else "0"}" = "0"
+    test "${if lib.hasInfix "NIXOS_WG_KILLSWITCH" (cfg.networking.firewall.extraCommands or "") then "1" else "0"}" = "0"
+    test "${if builtins.elem "vpn-list" systemPackageNames then "1" else "0"}" = "0"
+    test "${if builtins.elem "vpn-switch" systemPackageNames then "1" else "0"}" = "0"
+    test "${if builtins.elem "vpn-select" systemPackageNames then "1" else "0"}" = "0"
+    test "${if builtins.elem "vpn-status" systemPackageNames then "1" else "0"}" = "0"
+    test "${if builtins.elem "vpn-stop-all" systemPackageNames then "1" else "0"}" = "0"
+    test "${if builtins.elem "wireguard-tools" systemPackageNames then "1" else "0"}" = "1"
+    test "${builtins.unsafeDiscardStringContext (lib.getName cfg.services.mullvad-vpn.package)}" = "mullvad-vpn"
+    test "${if builtins.elem "mullvad-vpn" systemPackageNames then "1" else "0"}" = "1"
+    test "${if builtins.elem "mullvad-vpn" homePackageNames then "1" else "0"}" = "0"
+    test "${if builtins.elem "/etc/mullvad-vpn" preservedDirectoryPaths then "1" else "0"}" = "1"
+    test "${if builtins.elem "/var/cache/mullvad-vpn" preservedDirectoryPaths then "1" else "0"}" = "1"
     touch "$out"
   '';
 }

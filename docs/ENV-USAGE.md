@@ -62,7 +62,9 @@ key 相关差异：
 - 系统默认启用 `programs.nh.clean` 自动清理；`just clean` 对齐自动清理保留策略并保留 30 天/15 个 generation，`just clean-all` 是会移除回滚入口的显式强清理入口
 - `mise upgrade` 默认手动执行（`just mise-upgrade`）；只有 host 显式设置 `my.host.miseAutoUpgrade = true` 才会启用 user timer；其中 `python` 当前固定在 `3.12`
 - Linux 会话不再全局导出 `LD_LIBRARY_PATH` / `OPENSSL_*`；CUDA pip wheels 的 `libcuda.so.1` 路径在 `just ml-shell` 的 `ml` devShell 内注入
-- 启用 `"vpn"` role 的主机使用 NixOS 管理的 WireGuard-only VPN pool；先用 `sudo vpn-list` / `sudo vpn-status` 查看可用 slot、selected slot 与加密 metadata，日常命令见 `docs/NIX-COMMANDS.md`，profile catalog 与 kill switch 细节见 `nix/configs/wireguard/README.md`
+- Noctalia notifications 是当前桌面 notification provider；`udiskie.notify` 依赖它，`Mod+Ctrl+B` 会同时清理 `noctalia-shell` 与实际运行的 `quickshell` 进程后再重启
+- 默认 desktop package group 不安装 `wsdd`；Mullvad lockdown 下 GVfs 自动 WS-Discovery 可能产生日志噪音，SMB 直连仍通过 GVfs smb backend 使用
+- 启用 `"vpn"` role 的主机使用 Mullvad app / daemon；`services.mullvad-vpn.package` 使用 `pkgs.mullvad-vpn` 同时提供 CLI 和 GUI，系统仍保留 `wireguard-tools`，但仓库不再维护 WireGuard catalog 或 WireGuard encrypted config files；日常连接、地区选择、恢复和 kill switch 由 Mullvad 自己管理，命令见 `docs/NIX-COMMANDS.md`
 
 常用命令：
 
@@ -77,8 +79,7 @@ just host=zly switch
 just home-switch
 just sops-recipients
 just sops-rekey
-sudo vpn-list
-sudo vpn-status
+mullvad status
 ```
 
 需要包含 check build 时：

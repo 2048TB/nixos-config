@@ -12,7 +12,6 @@
 - `docs/ENV-USAGE.md`
 - `docs/NIX-COMMANDS.md`
 - `docs/KEYBINDINGS.md`
-- `nix/configs/wireguard/README.md`
 - `nix/hosts/README.md`
 - `nix/hosts/nixos/README.md`
 - `nix/home/README.md`
@@ -36,7 +35,7 @@
 - 环境差异：`docs/ENV-USAGE.md`
 - `just` 命令与速查：`docs/NIX-COMMANDS.md`
 - 快捷键：`docs/KEYBINDINGS.md`
-- VPN / WireGuard catalog / kill switch：`docs/README.md`、`docs/NIX-COMMANDS.md`、`nix/configs/wireguard/README.md`
+- VPN / Mullvad app / WireGuard tools：`docs/README.md`、`docs/NIX-COMMANDS.md`
 - hosts 结构或 metadata：`nix/hosts/README.md`、必要时 `nix/hosts/nixos/README.md`
 - Home Manager 结构：`nix/home/README.md`
 - key 流程：`secrets/keys/README.md`

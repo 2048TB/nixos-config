@@ -11,7 +11,6 @@
 | `docs/NIX-COMMANDS.md` | 纯命令速查 |
 | `docs/ENV-USAGE.md` | 环境差异 |
 | `docs/KEYBINDINGS.md` | 快捷键摘要 |
-| `nix/configs/wireguard/README.md` | WireGuard VPN catalog、SOPS 配置布局、kill switch 与切换命令 |
 | `nix/hosts/README.md` | hosts 目录、registry 与结构入口 |
 | `nix/home/README.md` | Home Manager 结构入口 |
 | `secrets/keys/README.md` | 公钥目录与 key 操作入口 |
@@ -55,9 +54,11 @@ GitHub workflow 执行轻量 `self-check` 与 secrets guard，仍不能替代本
 - `nix/home/configs/noctalia/` 当前按设计直接映射到 repo 工作树；GUI 改动会直接改动 tracked config
 - Home Manager 当前会把 `~/.local/share/mise/shims` 放进 session `PATH`；`code` / `antigravity` 还会额外通过 `~/.local/bin/` wrapper 过滤已知 Electron Wayland 参数告警；`mise upgrade` 默认手动执行（`just mise-upgrade`），只有主机显式设置 `my.host.miseAutoUpgrade = true` 时才启用 `systemd --user` timer；涉及此行为的改动需重新执行 `just home-switch`
 - greetd 会话启动前只导入 HM/GUI 基础变量；`WAYLAND_DISPLAY` / `DISPLAY` 等显示变量由 Niri `spawn-at-startup` 的 `wayland-session-env-sync` 在 compositor 启动后再导入 systemd user / D-Bus activation 环境
+- Noctalia 由 Niri `spawn-at-startup` 拉起，notifications 是当前桌面 notification provider；`udiskie.notify` 依赖该 provider，`Mod+Ctrl+B` 会同时清理 `noctalia-shell` 与实际运行的 `quickshell` 进程后再重启
+- `wsdd` 不放入默认 desktop package group；Mullvad lockdown 下 GVfs 自动 WS-Discovery 会被防火墙拦截并产生日志噪音，SMB 直连仍通过 GVfs smb backend 处理
 - 启用 hibernate 的主机会安装 `swapfile-resume-check.service`；swapfile size 或 resume offset 异常会体现在 unit 失败状态与 journal，而不是只出现在 activation 输出中
-- 启用 `"vpn"` role 的 NixOS 主机使用 WireGuard-only VPN pool：NixOS 声明稳定 opaque 入口（当前为 `wg-nqrvma`、`wg-vdrkye`、`wg-xafmcp`、`wg-hzplwt`、`wg-kqsjdn`），provider `.conf` 以 SOPS 加密保存，默认只自启动 `wg-xafmcp` 这一个 full-tunnel profile；可用 profile / slot / initial slot / selected slot / decrypted config 状态、以及加密保存在 decrypted config 注释里的 `NixOS-VPN-Region` / `NixOS-VPN-Label` metadata 通过 `sudo vpn-list` 和 `sudo vpn-status` 查看；runtime path 是 root-only，非 root 执行可能只能看到 `available=no` / `unavailable`；切换通过 `vpn-switch`，同入口候选服务器选择通过 `vpn-select`，停止全部 VPN 通过 `vpn-stop-all`；profile、secret 文件名和 runtime path 不编码 provider、地区、城市、endpoint 编号或账号标识；kill switch 由 NixOS firewall 的 `iptables` backend 常驻管理，host outbound 仅额外放行私网/链路本地地址，公网和 forwarded traffic 仍受阻断，`vpn-stop-all` 后外网仍会被阻断；不要停止或禁用 firewall，否则 kill switch 也会被移除
-- WireGuard activation 只在缺少 active path 时写入默认 active symlink；已有 symlink（即使当前 target 缺失）由 `vpn-select` 管理，不在 activation 中覆盖
+- 启用 `"vpn"` role 的 NixOS 主机使用 Mullvad app / daemon 最小集成：NixOS 启用 `services.mullvad-vpn`，将 service package 设为 `pkgs.mullvad-vpn` 以同时提供 CLI 和 GUI，启用 `systemd-resolved`，系统包保留 `pkgs.wireguard-tools`，impermanence 持久化 `/etc/mullvad-vpn` 与 `/var/cache/mullvad-vpn`；连接、地区选择、恢复和 kill switch 交给 Mullvad app / daemon 自己管理
+- 仓库不再声明 `wg-quick` profiles、`vpn-list` / `vpn-switch` / `vpn-select` / `vpn-status`、WireGuard active symlink、NixOS firewall WireGuard kill switch、WireGuard catalog 或 WireGuard encrypted config files
 
 ## 3. 最常用命令
 
