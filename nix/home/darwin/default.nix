@@ -9,11 +9,8 @@ let
     "neovim"
 
     # CLI tools
-    "gitui"
     "delta"
     "tealdeer"
-    "duf"
-    "dust"
     "procs"
   ];
 
