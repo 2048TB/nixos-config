@@ -39,7 +39,7 @@ require_main_pub() {
     echo "error: missing $main_pub; run: nix/scripts/admin/sops.sh init" >&2
     exit 1
   fi
-  if [ -z "$(tr -d '\n' < "$main_pub")" ]; then
+  if [ -z "$(tr -d '\n' <"$main_pub")" ]; then
     echo "error: empty public key file: $main_pub" >&2
     exit 1
   fi
@@ -54,17 +54,17 @@ build_identity_file() {
 
   identity_file="$(mktemp)"
   chmod 0600 "$identity_file"
-  cat "$main_key" > "$identity_file"
+  cat "$main_key" >"$identity_file"
 
   if [ -f "$recovery_key" ]; then
-    printf '\n' >> "$identity_file"
-    cat "$recovery_key" >> "$identity_file"
+    printf '\n' >>"$identity_file"
+    cat "$recovery_key" >>"$identity_file"
   fi
 
   while IFS= read -r backup_key; do
     [ -n "$backup_key" ] || continue
-    printf '\n' >> "$identity_file"
-    cat "$backup_key" >> "$identity_file"
+    printf '\n' >>"$identity_file"
+    cat "$backup_key" >>"$identity_file"
   done < <(list_rotation_backup_keys)
 
   printf '%s\n' "$identity_file"
@@ -128,8 +128,8 @@ collect_age_recipients() {
   if [ -d "$host_key_dir" ]; then
     while IFS= read -r host_file; do
       ssh_to_age_stderr_file="$(mktemp)"
-      if ! host_rec="$(run_ssh_to_age < "$host_file" 2>"$ssh_to_age_stderr_file" | trim_line)"; then
-        ssh_to_age_stderr="$(tr '\n' ' ' < "$ssh_to_age_stderr_file" | sed 's/[[:space:]]\+/ /g; s/^ //; s/ $//')"
+      if ! host_rec="$(run_ssh_to_age <"$host_file" 2>"$ssh_to_age_stderr_file" | trim_line)"; then
+        ssh_to_age_stderr="$(tr '\n' ' ' <"$ssh_to_age_stderr_file" | sed 's/[[:space:]]\+/ /g; s/^ //; s/ $//')"
         rm -f "$ssh_to_age_stderr_file"
         echo "error: invalid host recipient file: $host_file" >&2
         if [ -n "$ssh_to_age_stderr" ]; then
@@ -226,12 +226,12 @@ encrypt_yaml_to_target() {
   local status=0
 
   tmp="$(mktemp)"
-  if ! cat > "$tmp"; then
+  if ! cat >"$tmp"; then
     rm -f "$tmp"
     return 1
   fi
 
-  if run_sops_encrypt_yaml "$recipients_csv" "$target" < "$tmp"; then
+  if run_sops_encrypt_yaml "$recipients_csv" "$target" <"$tmp"; then
     :
   else
     status=$?
@@ -251,56 +251,68 @@ cmd_init() {
   local temp_main_key=""
   while [ "$#" -gt 0 ]; do
     case "$1" in
-      --create) mode="create"; shift ;;
-      --rotate) mode="rotate"; shift ;;
-      --yes) assume_yes=1; shift ;;
-      *) echo "error: unknown argument: $1" >&2; exit 2 ;;
+    --create)
+      mode="create"
+      shift
+      ;;
+    --rotate)
+      mode="rotate"
+      shift
+      ;;
+    --yes)
+      assume_yes=1
+      shift
+      ;;
+    *)
+      echo "error: unknown argument: $1" >&2
+      exit 2
+      ;;
     esac
   done
 
   mkdir -p "$key_dir" "$secrets_key_dir"
 
   case "$mode" in
-    default)
-      if [ ! -f "$main_key" ]; then
-        echo "error: missing $main_key" >&2
-        echo "hint: import your existing main key first, then rerun." >&2
-        echo "      use --create only for the very first bootstrap." >&2
-        exit 1
-      fi
-      ;;
-    create)
-      if [ ! -f "$main_key" ]; then
-        run_age_keygen -o "$main_key" >/dev/null
-        echo "created new main key: $main_key"
-      fi
-      ;;
-    rotate)
-      require_main_key
-      require_main_pub
-      confirm_destructive_action \
-        "ROTATE SOPS MAIN KEY" \
-        "warning: this will generate a new main age identity, keep a backup of the old key for rekey, and update $main_pub" \
-        "$assume_yes"
-      backup_key="$key_dir/main.agekey.pre-rotate.$(date +%Y%m%d%H%M%S)"
-      temp_main_dir="$(mktemp -d "$key_dir/.main.agekey.new.XXXXXX")"
-      temp_main_key="$temp_main_dir/main.agekey"
-      # shellcheck disable=SC2064
-      trap "rm -rf '$temp_main_dir'" RETURN
-      run_age_keygen -o "$temp_main_key" >/dev/null
-      cp "$main_key" "$backup_key"
-      chmod 0400 "$backup_key"
-      mv "$temp_main_key" "$main_key"
-      trap - RETURN
-      rmdir "$temp_main_dir"
-      echo "rotated main key: $main_key"
-      echo "backup kept for decrypt/rekey: $backup_key"
-      echo "warning: run 'nix/scripts/admin/sops.sh rekey' before next deployment, then remove obsolete backups from $rotation_backup_glob."
-      ;;
+  default)
+    if [ ! -f "$main_key" ]; then
+      echo "error: missing $main_key" >&2
+      echo "hint: import your existing main key first, then rerun." >&2
+      echo "      use --create only for the very first bootstrap." >&2
+      exit 1
+    fi
+    ;;
+  create)
+    if [ ! -f "$main_key" ]; then
+      run_age_keygen -o "$main_key" >/dev/null
+      echo "created new main key: $main_key"
+    fi
+    ;;
+  rotate)
+    require_main_key
+    require_main_pub
+    confirm_destructive_action \
+      "ROTATE SOPS MAIN KEY" \
+      "warning: this will generate a new main age identity, keep a backup of the old key for rekey, and update $main_pub" \
+      "$assume_yes"
+    backup_key="$key_dir/main.agekey.pre-rotate.$(date +%Y%m%d%H%M%S)"
+    temp_main_dir="$(mktemp -d "$key_dir/.main.agekey.new.XXXXXX")"
+    temp_main_key="$temp_main_dir/main.agekey"
+    # shellcheck disable=SC2064
+    trap "rm -rf '$temp_main_dir'" RETURN
+    run_age_keygen -o "$temp_main_key" >/dev/null
+    cp "$main_key" "$backup_key"
+    chmod 0400 "$backup_key"
+    mv "$temp_main_key" "$main_key"
+    trap - RETURN
+    rmdir "$temp_main_dir"
+    echo "rotated main key: $main_key"
+    echo "backup kept for decrypt/rekey: $backup_key"
+    echo "warning: run 'nix/scripts/admin/sops.sh rekey' before next deployment, then remove obsolete backups from $rotation_backup_glob."
+    ;;
   esac
 
   chmod 0400 "$main_key"
-  run_age_keygen -y "$main_key" > "$main_pub"
+  run_age_keygen -y "$main_key" >"$main_pub"
 
   echo "sops key ready:"
   echo "- private: $main_key"
@@ -357,7 +369,7 @@ cmd_ssh_key_set() {
   fi
 
   if [ ! -f "$public_src" ]; then
-    run_ssh_keygen -y -f "$private_src" > "$public_src"
+    run_ssh_keygen -y -f "$private_src" >"$public_src"
   fi
 
   chmod 0600 "$private_src"
@@ -399,7 +411,7 @@ cmd_recovery_init() {
     echo "recovery identity ready: $recovery_key"
   fi
   chmod 0400 "$recovery_key"
-  run_age_keygen -y "$recovery_key" > "$recovery_pub"
+  run_age_keygen -y "$recovery_key" >"$recovery_pub"
   echo "recovery recipient updated: $recovery_pub"
 }
 
@@ -444,9 +456,9 @@ cmd_recipients() {
   if [ -f "$recovery_pub" ]; then
     echo "- secrets/keys/recovery.age.pub"
   fi
-  find "$host_key_dir" -maxdepth 1 -type f -name '*.pub' -print \
-    | sed "s|^$repo_root/|- |" \
-    | sort
+  find "$host_key_dir" -maxdepth 1 -type f -name '*.pub' -print |
+    sed "s|^$repo_root/|- |" |
+    sort
 
   echo ""
   echo "resolved age recipients:"
@@ -461,7 +473,7 @@ cmd_rekey() {
   require_main_pub
   ensure_sops_secret_path_rule
   recipients_csv="$(collect_age_recipients_csv)"
-  IFS=, read -r -a desired_recipients_raw <<< "$recipients_csv"
+  IFS=, read -r -a desired_recipients_raw <<<"$recipients_csv"
   for recipient in "${desired_recipients_raw[@]}"; do
     [ -n "$recipient" ] && desired_recipients+=("$recipient")
   done
@@ -535,17 +547,20 @@ fi
 shift
 
 case "$cmd" in
-  init)           cmd_init "$@" ;;
-  password-set)   cmd_password_set "$@" ;;
-  ssh-key-set)    cmd_ssh_key_set "$@" ;;
-  recovery-init)  cmd_recovery_init "$@" ;;
-  host-add)       cmd_host_add "$@" ;;
-  recipients)     cmd_recipients "$@" ;;
-  rekey)          cmd_rekey "$@" ;;
-  -h|--help)      usage; exit 0 ;;
-  *)
-    echo "error: unknown command '$cmd'" >&2
-    usage >&2
-    exit 2
-    ;;
+init) cmd_init "$@" ;;
+password-set) cmd_password_set "$@" ;;
+ssh-key-set) cmd_ssh_key_set "$@" ;;
+recovery-init) cmd_recovery_init "$@" ;;
+host-add) cmd_host_add "$@" ;;
+recipients) cmd_recipients "$@" ;;
+rekey) cmd_rekey "$@" ;;
+-h | --help)
+  usage
+  exit 0
+  ;;
+*)
+  echo "error: unknown command '$cmd'" >&2
+  usage >&2
+  exit 2
+  ;;
 esac

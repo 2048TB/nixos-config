@@ -31,7 +31,7 @@
 - `nix/scripts/admin/common.sh`
 
 常用 build / check / switch / upgrade / clean 入口通过 `just` 暴露，检查以本地命令为准。
-GitHub workflow 只做 secrets guard，不能替代本地 `validate-local`。
+GitHub workflow 执行轻量 `self-check` 与 secrets guard，仍不能替代本地 `validate-local`。
 其中 `build` / `switch` / `clean` 现通过 `nh` 执行，但仍保留仓库自己的 filtered flake repo 与显式 `host` / `repo` 约束。
 系统同时启用 `programs.nh` 与 `programs.nh.clean`，作为默认 `nh` 入口和自动清理来源。
 
@@ -218,8 +218,8 @@ just host=zly upgrade
 - `flake-check` 做 `nix flake check --all-systems --no-build`
 - `flake-check-full` 做 `nix flake check --all-systems`（含 build）
 - `pre-commit-check` 会实际构建并执行 `checks.x86_64-linux.pre-commit-check`
-- `format-sanity` 是 flake check 中的轻量格式/解析防回归检查，对应 `nix/scripts/admin/check-format-sanity.sh`
-- `self-check` 会检查 `justfile`、admin shell 语法、可用时的 `shellcheck`、`.sops.yaml` 解析、格式 sanity 和 registry schema
+- `format-sanity` 是 flake check 中的轻量格式/解析防回归检查，对应 `nix/scripts/admin/check-format-sanity.sh`；shell shebang、`.sops.yaml`、`justfile` 解析和疑似 Nix 注释吞代码都会失败
+- `self-check` 会检查 `justfile`、admin/hook shell 语法、可用时的 `shellcheck` / `shfmt -d`、`.sops.yaml` 解析、格式 sanity 和 registry schema
 - `registry-schema-check` 会校验 `nix/hosts/registry/systems.toml` 是否符合 `nix/hosts/registry/systems.schema.json`
 - `registry-meta-sync-check` 会校验 `nix/lib/host-meta.nix` 与 `systems.schema.json` 枚举/字段是否漂移
 - `validate-local` 会先执行 `self-check`，再串行执行 `guard-secrets --all-tracked`、registry schema/sync 检查和 `flake-check`
@@ -311,7 +311,7 @@ just password-set-hash '<sha512-hash>'
 - Linux `desktopProfile` 当前只支持 `niri`
 - `nix/home/configs/noctalia/` 下的 tracked config 会因为 GUI 改动直接漂移；这是当前保留设计，不是文档错误
 - 修改 host metadata 后运行 `just registry-schema-check` 和 `just registry-meta-sync-check`
-- 修改脚本入口后运行 `just self-check` 或至少 `bash -n nix/scripts/admin/*.sh`；可用时再运行 `shellcheck nix/scripts/admin/*.sh`
+- 修改脚本入口后运行 `just self-check` 或至少 `bash -n nix/scripts/admin/*.sh`；可用时再运行 `shellcheck nix/scripts/admin/*.sh` 与 `shfmt -i 2 -d nix/scripts/admin/*.sh`
 - 修改 Nix 模块或 flake 聚合后运行 `just flake-check`，需要执行 check build 时运行 `just validate-local-full`
 
 ## 9. FAQ

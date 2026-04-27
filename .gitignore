@@ -1,0 +1,37 @@
+result
+result-*
+.direnv
+.envrc
+nix-config-main/
+niri-dotfiles.backup/
+*.tmp
+*.swp
+*~
+.DS_Store
+hosts/*/gpu-choice.txt
+.serena/
+.claude/
+.cache/
+
+# 敏感文件防泄露（配合 justfile 的 git add .）
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.pfx
+id_rsa*
+id_ed25519*
+*.agekey
+.keys/
+credentials.json
+token.json
+
+# superpowers 插件生成的 specs/plans，仅本地保留
+docs/superpowers/
+
+# Go toolchain telemetry/local state should not dirty the declarative config tree.
+nix/home/configs/go/telemetry/
+
+# 仅本地保留，不同步到 remote
+.omx/

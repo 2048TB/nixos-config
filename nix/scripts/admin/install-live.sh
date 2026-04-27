@@ -84,7 +84,7 @@ age_key_matches_repo_pub() {
   repo_pub="$(read_repo_main_pub)" || return 1
   age_stderr_file="$(mktemp)"
   if ! candidate_pub="$(run_age_keygen -y "$key_path" 2>"$age_stderr_file" | awk 'NF { print; exit }')"; then
-    age_stderr="$(tr '\n' ' ' < "$age_stderr_file" | sed 's/[[:space:]]\+/ /g; s/^ //; s/ $//')"
+    age_stderr="$(tr '\n' ' ' <"$age_stderr_file" | sed 's/[[:space:]]\+/ /g; s/^ //; s/ $//')"
     rm -f "$age_stderr_file"
     echo "error: failed to derive public key from candidate age key: $key_path" >&2
     if [ -n "$age_stderr" ]; then
@@ -167,18 +167,44 @@ sync_tracked_repo_payload() {
 
 while [ "$#" -gt 0 ]; do
   case "$1" in
-    --host)
-      if [ "$#" -lt 2 ]; then echo "error: --host requires a value" >&2; exit 2; fi
-      host="$2"; shift 2 ;;
-    --disk)
-      if [ "$#" -lt 2 ]; then echo "error: --disk requires a value" >&2; exit 2; fi
-      disk="$2"; shift 2 ;;
-    --repo)
-      if [ "$#" -lt 2 ]; then echo "error: --repo requires a value" >&2; exit 2; fi
-      repo="$2"; repo_explicit=1; shift 2 ;;
-    --yes) assume_yes=1; shift ;;
-    -h|--help) usage; exit 0 ;;
-    *) echo "error: unknown argument: $1" >&2; usage >&2; exit 2 ;;
+  --host)
+    if [ "$#" -lt 2 ]; then
+      echo "error: --host requires a value" >&2
+      exit 2
+    fi
+    host="$2"
+    shift 2
+    ;;
+  --disk)
+    if [ "$#" -lt 2 ]; then
+      echo "error: --disk requires a value" >&2
+      exit 2
+    fi
+    disk="$2"
+    shift 2
+    ;;
+  --repo)
+    if [ "$#" -lt 2 ]; then
+      echo "error: --repo requires a value" >&2
+      exit 2
+    fi
+    repo="$2"
+    repo_explicit=1
+    shift 2
+    ;;
+  --yes)
+    assume_yes=1
+    shift
+    ;;
+  -h | --help)
+    usage
+    exit 0
+    ;;
+  *)
+    echo "error: unknown argument: $1" >&2
+    usage >&2
+    exit 2
+    ;;
   esac
 done
 

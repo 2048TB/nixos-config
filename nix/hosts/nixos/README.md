@@ -130,6 +130,8 @@ displays = []
 
 read-only 验证时，若 checkout 中存在不可读的 `.keys/main.agekey`，先通过 `nix/scripts/admin/print-flake-repo.sh` 获取 filtered repo。
 
+共享校验入口 `nix/hosts/nixos/_shared/checks.nix` 当前仍集中维护，因为 registry metadata、host vars 与模块断言共享同一组派生值。后续若拆分，应优先抽出依赖边界清晰的检查组，并保持对外导入入口不变。
+
 ## 磁盘布局共性
 
 当前各台 NixOS 主机的 `disko.nix` 默认都直接 import `../_shared/disko-luks-btrfs.nix`，其共享布局为：

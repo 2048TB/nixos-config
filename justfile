@@ -73,10 +73,17 @@ registry-meta-sync-check:
     @NIXOS_CONFIG_REPO="{{repo}}" bash "{{script_repo}}/nix/scripts/admin/host-meta-schema-sync.sh"
 
 self-check:
+    @echo ">>> justfile"
     @just --list >/dev/null
-    @bash -n "{{script_repo}}"/nix/scripts/admin/*.sh
-    @if command -v shellcheck >/dev/null 2>&1; then shellcheck "{{script_repo}}"/nix/scripts/admin/*.sh; else echo "warning: shellcheck not found; skipping shellcheck" >&2; fi
+    @echo ">>> bash syntax"
+    @bash -n "{{script_repo}}"/nix/scripts/admin/*.sh "{{script_repo}}"/.githooks/pre-commit
+    @echo ">>> shellcheck"
+    @if command -v shellcheck >/dev/null 2>&1; then shellcheck "{{script_repo}}"/nix/scripts/admin/*.sh "{{script_repo}}"/.githooks/pre-commit; else echo "warning: shellcheck not found; skipping shellcheck" >&2; fi
+    @echo ">>> shfmt"
+    @if command -v shfmt >/dev/null 2>&1; then shfmt -i 2 -d "{{script_repo}}"/nix/scripts/admin/*.sh "{{script_repo}}"/.githooks/pre-commit; else echo "warning: shfmt not found; skipping shfmt" >&2; fi
+    @echo ">>> format sanity"
     @NIXOS_CONFIG_REPO="{{repo}}" bash "{{script_repo}}/nix/scripts/admin/check-format-sanity.sh" --repo "{{repo}}"
+    @echo ">>> registry schema"
     @if command -v check-jsonschema >/dev/null 2>&1 || command -v nix >/dev/null 2>&1; then just repo="{{repo}}" registry-schema-check; else echo "warning: registry schema check dependencies not found; skipping" >&2; fi
 
 use:

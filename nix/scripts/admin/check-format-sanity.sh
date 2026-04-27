@@ -13,7 +13,7 @@ Checks parse-level formatting risks that can break this repository:
 - shell scripts must keep the shebang isolated on the first line
 - .sops.yaml must parse as YAML
 - justfile must parse via just --summary
-- suspicious Nix comment/code collisions are reported as warnings
+- suspicious Nix comment/code collisions fail the check
 EOF
 }
 
@@ -48,18 +48,12 @@ fi
 cd "$repo_root"
 
 failures=0
-warnings=0
 comment_hits="$(mktemp)"
 trap 'rm -f "$comment_hits"' EXIT
 
 fail() {
   echo "ERROR: $*" >&2
   failures=1
-}
-
-warn() {
-  echo "WARNING: $*" >&2
-  warnings=$((warnings + 1))
 }
 
 repo_has_git() {
@@ -183,7 +177,7 @@ check_justfile() {
   fi
 }
 
-check_nix_comment_warnings() {
+check_nix_comment_collisions() {
   local file path
 
   : >"$comment_hits"
@@ -198,21 +192,17 @@ check_nix_comment_warnings() {
   done < <(list_nix_files)
 
   while IFS= read -r hit; do
-    warn "possible Nix comment/code collision: $(display_path "$hit")"
+    fail "possible Nix comment/code collision: $(display_path "$hit")"
   done <"$comment_hits"
 }
 
 check_shell_shebangs
 check_sops_yaml
 check_justfile
-check_nix_comment_warnings
+check_nix_comment_collisions
 
 if [ "$failures" -ne 0 ]; then
   exit 1
 fi
 
-if [ "$warnings" -gt 0 ]; then
-  echo "format-sanity: completed with ${warnings} warning(s)" >&2
-else
-  echo "format-sanity: OK"
-fi
+echo "format-sanity: OK"
