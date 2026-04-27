@@ -25,6 +25,7 @@
     "ccache"
     "meson"
     "delta"
+    "tokei"
     "nix-output-monitor"
     "nix-tree"
     "nix-melt"

@@ -399,7 +399,7 @@ just home-switch
 当前仓库的处理方式是：
 
 - 全局 `mise` 配置默认使用 rolling channel（如 `latest` / `stable`），但 `python` 固定在 `3.12`
-- 个人 CLI 中的 `btop` / `duf` / `dust` / `fastfetch` / `gitui` / `sd` / `taplo` / `tokei` / `yamllint` 也由全局 `mise` 管理，不再放入默认 Home Manager package group
+- 个人 CLI 中的 `btop` / `duf` / `dust` / `fastfetch` / `gitui` / `sd` / `taplo` / `yamllint` 也由全局 `mise` 管理，不再放入默认 Home Manager package group
 - 默认不自动升级，避免 flake 外状态静默漂移
 - 手动入口是 `just mise-upgrade`
 - 若某台主机确实需要自动升级，显式设置 `my.host.miseAutoUpgrade = true` 后才会启用 `systemd --user` timer
