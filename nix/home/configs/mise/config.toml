@@ -1,5 +1,5 @@
 # Global runtime defaults track rolling channels.
-# Actual upgrades are applied only when `mise upgrade` runs (`just mise-upgrade` by default).
+# Actual upgrades are applied only when `mise upgrade --yes` runs.
 # Individual repos can still override these with their own mise.toml.
 
 [settings]

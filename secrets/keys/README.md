@@ -19,15 +19,15 @@
 ## 常用命令
 
 ```bash
-just sops-init
-just sops-init-create
-just sops-init-rotate
-just sops-recovery-init
-just sops-host-key-add zly /etc/ssh/ssh_host_ed25519_key.pub
-just sops-recipients
-just sops-rekey
-just guard-secrets
-just guard-secrets-all
+bash nix/scripts/admin/sops.sh init
+bash nix/scripts/admin/sops.sh init --create
+bash nix/scripts/admin/sops.sh init --rotate
+bash nix/scripts/admin/sops.sh recovery-init
+bash nix/scripts/admin/sops.sh host-add zly /etc/ssh/ssh_host_ed25519_key.pub
+bash nix/scripts/admin/sops.sh recipients
+bash nix/scripts/admin/sops.sh rekey
+bash nix/scripts/admin/guard-secrets.sh
+bash nix/scripts/admin/guard-secrets.sh --all-tracked
 ```
 
 非交互 rotate：
@@ -50,7 +50,6 @@ secret 路径分层：
 - `secrets/hosts/<hostname>/...`：主机级 secret 预留路径
 - `secrets/users/<username>/...`：用户级 secret
 - `secrets/install/...`：安装 / 恢复流程 secret
-- 旧 `secrets/passwords/`、`secrets/ssh/`、`secrets/services/` 路径仅作为兼容层保留
 
 key 搜索顺序：
 

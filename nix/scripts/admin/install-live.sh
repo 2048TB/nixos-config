@@ -46,7 +46,7 @@ cleanup_target_flake_tmp() {
   local status=$?
 
   if [ -n "${TARGET_FLAKE_TMP:-}" ] && sudo test -e "$TARGET_FLAKE_TMP"; then
-    if ! sudo rm -rf "$TARGET_FLAKE_TMP"; then
+    if ! sudo_safe_rm_rf_under /mnt/persistent "$TARGET_FLAKE_TMP"; then
       echo "warning: failed to remove temporary flake directory: $TARGET_FLAKE_TMP" >&2
     fi
   fi
@@ -101,9 +101,13 @@ resolve_age_key_src() {
   local candidates=(
     "$PWD/$age_key_rel"
     "$repo/$age_key_rel"
-    "${HOME:-}/$age_key_rel"
   )
   local candidate
+
+  if [ -n "${HOME:-}" ]; then
+    candidates+=("$HOME/$age_key_rel")
+  fi
+
   for candidate in "${candidates[@]}"; do
     [ -n "$candidate" ] || continue
     if [ -n "${seen[$candidate]:-}" ]; then
@@ -252,7 +256,9 @@ else
   echo "error: sops key not found (or invalid / mismatched) in search paths below:" >&2
   echo "  - $PWD/$age_key_rel" >&2
   echo "  - $repo/$age_key_rel" >&2
-  echo "  - ${HOME:-}/$age_key_rel" >&2
+  if [ -n "${HOME:-}" ]; then
+    echo "  - $HOME/$age_key_rel" >&2
+  fi
   echo "hint: place the AGE private key matching $repo/$main_pub_rel into one of these paths, then retry." >&2
   exit 1
 fi
@@ -269,7 +275,7 @@ if ! sudo findmnt /mnt/persistent >/dev/null 2>&1; then
 fi
 
 trap cleanup_target_flake_tmp EXIT
-sudo rm -rf "$TARGET_FLAKE_TMP"
+sudo_safe_rm_rf_under /mnt/persistent "$TARGET_FLAKE_TMP"
 sudo mkdir -p "$TARGET_FLAKE_TMP"
 # Sync only Git tracked files to avoid copying local/private/untracked data.
 sync_tracked_repo_payload "$repo" "$TARGET_FLAKE_TMP"
@@ -283,16 +289,16 @@ fi
 target_user="$(run_nix_flake eval --raw "path:${flake_repo}#nixosConfigurations.${host}.config.my.host.username")"
 target_owner="$(resolve_target_owner_from_rootfs /mnt "$target_user")"
 sudo chown -R "$target_owner" "$TARGET_FLAKE_TMP"
-sudo rm -rf "$TARGET_FLAKE_DIR"
+sudo_safe_rm_rf_under /mnt/persistent "$TARGET_FLAKE_DIR"
 sudo mv "$TARGET_FLAKE_TMP" "$TARGET_FLAKE_DIR"
 trap - EXIT
 
 # 6. Ensure target /etc/nixos points to persistent repo
-sudo rm -rf /mnt/etc/nixos
+sudo_safe_rm_rf_under /mnt/etc /mnt/etc/nixos
 sudo ln -sfn /persistent/nixos-config /mnt/etc/nixos
 
 # 7. Verify target flake (dry-build)
-sudo nixos-rebuild dry-build --flake /mnt/persistent/nixos-config#"$host"
+sudo env NIX_CONFIG='experimental-features = nix-command flakes' nixos-rebuild dry-build --flake /mnt/persistent/nixos-config#"$host"
 
 echo ">>> github ssh key will be provisioned by sops secrets on first boot (if configured)"
 echo "done: reboot into the installed system"

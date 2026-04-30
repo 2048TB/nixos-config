@@ -19,7 +19,7 @@
 差异点：
 
 - 往往需要先执行 `export NIX_CONFIG="experimental-features = nix-command flakes"`
-- 一般通过 `nix shell nixpkgs#just -c just ...` 获取 `just`
+- 安装和 secrets bootstrap 优先直接调用 `nix/scripts/admin/*.sh`
 - 当前 checkout 不一定在 `/persistent/nixos-config`
 - 安装前必须确认 `disk=`，因为命令会清盘
 
@@ -28,7 +28,7 @@
 ```bash
 cd ~/nixos
 export NIX_CONFIG="experimental-features = nix-command flakes"
-nix shell nixpkgs#just -c just host=zly disk=/dev/nvme0n1 install
+bash nix/scripts/admin/install-live.sh --host zly --disk /dev/nvme0n1 --repo "$PWD"
 ```
 
 手动脚本调用：
@@ -49,19 +49,19 @@ key 相关差异：
 
 适用场景：
 
-- 日常 `update-nixos` / `check` / `switch`
+- 日常 `update` / `switch` / `upgrade`
 - secrets 维护
 - read-only eval / build / `flake-check`
 
 差异点：
 
 - 默认 repo 应位于 `/persistent/nixos-config`；如 host 设置了 `configRepoPath`，`programs.nh.flake`、`/etc/nixos` 与 `~/nixos` 会使用该路径
-- `switch` / `home-switch` / `boot` / `test` / `upgrade` 会直接改系统状态
-- `upgrade` 会先在指定 repo 上通过 `update-nixos` 更新 Linux NixOS 相关 inputs，再执行 `switch`
+- `switch` / `upgrade` 会直接改系统状态
+- `upgrade` 会先在指定 repo 上更新 Linux NixOS 相关 inputs，再执行 `switch`
 - `sops.sh` / `guard-secrets.sh` 可以从任意目录直接调用
-- 系统默认启用 `programs.nh.clean` 自动清理；`just clean` 对齐自动清理保留策略并保留 30 天/15 个 generation，`just clean-all` 是会移除回滚入口的显式强清理入口
-- `mise upgrade` 默认手动执行（`just mise-upgrade`）；只有 host 显式设置 `my.host.miseAutoUpgrade = true` 才会启用 user timer；其中 `python` 当前固定在 `3.12`，部分个人 CLI（如 `btop` / `duf` / `dust` / `fastfetch` / `gitui` / `sd` / `taplo` / `yamllint`）也由全局 `mise` 管理
-- Linux 会话不再全局导出 `LD_LIBRARY_PATH` / `OPENSSL_*`；CUDA pip wheels 的 `libcuda.so.1` 路径在 `just ml-shell` 的 `ml` devShell 内注入
+- 系统默认启用 `programs.nh.clean` 自动清理；`just clean` 对齐自动清理保留策略并保留 30 天/15 个 generation
+- `mise upgrade` 默认手动执行；只有 host 显式设置 `my.host.miseAutoUpgrade = true` 才会启用 user timer；其中 `python` 当前固定在 `3.12`，部分个人 CLI（如 `btop` / `duf` / `dust` / `fastfetch` / `gitui` / `sd` / `taplo` / `yamllint`）也由全局 `mise` 管理
+- Linux 会话不再全局导出 `LD_LIBRARY_PATH` / `OPENSSL_*`；CUDA pip wheels 的 `libcuda.so.1` 路径在 `ml` devShell 内注入
 - Noctalia notifications 是当前桌面 notification provider；`udiskie.notify` 依赖它，`Mod+Ctrl+B` 会同时清理 `noctalia-shell` 与实际运行的 `quickshell` 进程后再重启
 - Noctalia GUI 配置持久化在 `~/.local/state/noctalia/config`；`nix/home/configs/noctalia/` 只是新环境缺失文件时的 seed，GUI 改动需要手动复制回仓库后才会成为共享默认值
 - 默认 desktop package group 不安装 `wsdd`；Mullvad lockdown 下 GVfs 自动 WS-Discovery 可能产生日志噪音，SMB 直连仍通过 GVfs smb backend 使用
@@ -74,13 +74,11 @@ cd /persistent/nixos-config
 nix develop
 just self-check
 just validate-local
-just update-nixos
-just host=zly check
+just update
 just host=zly switch
-just home-switch
-just sops-recipients
-just sops-rekey
-just vpn-status
+just host=zly upgrade
+bash nix/scripts/admin/sops.sh recipients
+bash nix/scripts/admin/sops.sh rekey
 mullvad status
 ```
 
@@ -88,13 +86,13 @@ mullvad status
 
 ```bash
 cd /persistent/nixos-config
-just validate-local-full
+nix flake check --all-systems
 ```
 
 手动触发 `mise` 升级：
 
 ```bash
-just mise-upgrade
+mise upgrade --yes
 ```
 
 ## 3. GUI 应用与交互式 shell 的差异
@@ -111,13 +109,13 @@ just mise-upgrade
 - 当前仓库通过 Home Manager 把 `~/.local/share/mise/shims` 放进 session `PATH`
 - 当前仓库通过 Home Manager 在 `~/.local/bin/code` 与 `~/.local/bin/antigravity` 安装 wrapper
 - wrapper 还会导出 `CHECKPOINTING=false`，绕过当前 `Gemini Code Assist` 扩展的 checkpointing 启动问题
-- 全局 `mise` 工具的远端更新默认由 `just mise-upgrade` 手动执行；自动 timer 是 host opt-in
+- 全局 `mise` 工具的远端更新默认由 `mise upgrade --yes` 手动执行；自动 timer 是 host opt-in
 
 应用方式：
 
 ```bash
 cd /persistent/nixos-config
-just home-switch
+just host=zly switch
 ```
 
 然后完全退出相关 GUI 应用再重开。

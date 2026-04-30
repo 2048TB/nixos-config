@@ -22,7 +22,6 @@ required_sops_path_rules=(
   '^secrets/hosts/[^/]+/.*\.yaml$'
   '^secrets/users/[^/]+/.*\.yaml$'
   '^secrets/install/.*\.yaml$'
-  '^secrets/(passwords|ssh|services)/.*\.yaml$'
 )
 
 # ── helpers ───────────────────────────────────────────────────
@@ -155,16 +154,18 @@ collect_age_recipients() {
 }
 
 collect_age_recipients_csv() {
-  local recipients_file=""
+  local recipient=""
+  local recipients_text=""
   local -a recipients=()
 
-  recipients_file="$(mktemp)"
-  if ! collect_age_recipients >"$recipients_file"; then
-    rm -f "$recipients_file"
+  if ! recipients_text="$(collect_age_recipients)"; then
     return 1
   fi
-  mapfile -t recipients <"$recipients_file"
-  rm -f "$recipients_file"
+
+  while IFS= read -r recipient; do
+    [ -n "$recipient" ] && recipients+=("$recipient")
+  done <<<"$recipients_text"
+
   if [ "${#recipients[@]}" -eq 0 ]; then
     echo "error: no age recipients resolved" >&2
     return 1
@@ -220,25 +221,10 @@ ensure_sops_secret_path_rule() {
 }
 
 encrypt_yaml_to_target() {
-  local target="$1"
-  local recipients_csv="$2"
-  local tmp
-  local status=0
+  local target="${1:?target file required}"
+  local recipients_csv="${2:?recipient csv required}"
 
-  tmp="$(mktemp)"
-  if ! cat >"$tmp"; then
-    rm -f "$tmp"
-    return 1
-  fi
-
-  if run_sops_encrypt_yaml "$recipients_csv" "$target" <"$tmp"; then
-    :
-  else
-    status=$?
-  fi
-
-  rm -f "$tmp"
-  return "$status"
+  run_sops_encrypt_yaml "$recipients_csv" "$target"
 }
 
 # ── subcommands ───────────────────────────────────────────────
@@ -298,7 +284,7 @@ cmd_init() {
     temp_main_dir="$(mktemp -d "$key_dir/.main.agekey.new.XXXXXX")"
     temp_main_key="$temp_main_dir/main.agekey"
     # shellcheck disable=SC2064
-    trap "rm -rf '$temp_main_dir'" RETURN
+    trap "safe_rm_rf_under '$key_dir' '$temp_main_dir'" RETURN
     run_age_keygen -o "$temp_main_key" >/dev/null
     cp "$main_key" "$backup_key"
     chmod 0400 "$backup_key"
@@ -479,7 +465,7 @@ cmd_rekey() {
   done
   identity_file="$(build_identity_file)"
   # shellcheck disable=SC2064
-  trap "rm -f '$identity_file'" RETURN
+  trap "command rm -f -- '$identity_file'" RETURN
 
   export SOPS_AGE_KEY_FILE="$identity_file"
 

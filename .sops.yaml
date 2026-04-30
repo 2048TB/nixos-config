@@ -1,6 +1,6 @@
 # sops configuration — generated from secrets/keys/*.pub
-# Update recipients with: just sops-recipients
-# Re-encrypt after changes: just sops-rekey
+# View recipients with: bash nix/scripts/admin/sops.sh recipients
+# Re-encrypt after changes: bash nix/scripts/admin/sops.sh rekey
 keys:
   - &main age1kyy6rdrj2fnh5zva5n8uah7v8lhx2axtyywhnj7grhfh5230534qccqcwh
   - &recovery age1ulflqcz2quc2y9w9lefsmvhft0nxl8p667nm3nkmugmp3wghuqhs9at0ra
@@ -29,14 +29,6 @@ creation_rules:
 
   # Installation/recovery secrets for live or bootstrap workflows.
   - path_regex: ^secrets/install/.*\.yaml$
-    key_groups:
-      - age:
-          - *main
-          - *recovery
-
-  # Legacy compatibility for existing checked-in paths; new secrets should use
-  # common/, hosts/, users/, or install/.
-  - path_regex: ^secrets/(passwords|ssh|services)/.*\.yaml$
     key_groups:
       - age:
           - *main

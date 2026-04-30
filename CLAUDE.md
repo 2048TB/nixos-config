@@ -42,13 +42,13 @@ AI/自动化工具专用。
 - 文档改动至少做一致性检查与过时表述搜索
 - 脚本或配置改动必须做对应执行验证
 - 推送前至少执行 `just self-check` 与 `just validate-local`
-- 需要包含 check build 时执行 `just validate-local-full`
-- 文档批量改动后，至少执行一次过时关键词检索（如 `CI` / `deploy`）
+- 需要包含 check build 时执行 `nix flake check --all-systems`
+- 文档批量改动后，至少执行一次过时关键词检索（如旧 `just` 命令、`validate-local-full`、旧 secrets 路径）
 - read-only `eval` / `show` / `build` 优先走 `print-flake-repo.sh`
 - 没有足够证据时，不要声称完成
 
 ## 执行提醒
 
 - 显式传入的 `--repo` / `NIXOS_CONFIG_REPO` 必须有效
-- 当前仓库只保留少量 `nix/scripts/admin/*.sh` 入口；其余常用操作通过 `just` 暴露
-- 未被要求时不主动推送；用户要求同步时才执行 commit 和 `git push origin HEAD`
+- 当前仓库只保留少量 `nix/scripts/admin/*.sh` 入口；日常 update / switch / upgrade / clean 通过 `just` 暴露
+- 未被要求时不主动推送；用户要求同步时，验证通过后再执行 commit 和 `git push origin HEAD`

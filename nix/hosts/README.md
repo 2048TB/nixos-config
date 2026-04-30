@@ -101,9 +101,7 @@ nix eval "path:$flake_repo#nixosConfigurations" --apply builtins.attrNames
 
 ```bash
 just self-check
-just registry-schema-check
-just registry-meta-sync-check
-just flake-check
+just validate-local
 ```
 
 命令细节与系统级流程见 `docs/README.md`。

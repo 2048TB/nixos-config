@@ -29,9 +29,9 @@
 - `nix/scripts/admin/host-meta-schema-sync.sh`
 - `nix/scripts/admin/common.sh`
 
-常用 build / check / switch / upgrade / clean 入口通过 `just` 暴露，检查以本地命令为准。
+常用 update / switch / upgrade / clean 入口通过 `just` 暴露，检查以本地命令为准。
 GitHub workflow 执行轻量 `self-check` 与 secrets guard，仍不能替代本地 `validate-local`。
-其中 `build` / `switch` / `clean` 现通过 `nh` 执行，但仍保留仓库自己的 filtered flake repo 与显式 `host` / `repo` 约束。
+其中 `switch` / `upgrade` / `clean` 现通过 `nh` 执行，但仍保留仓库自己的 filtered flake repo 与显式 `host` / `repo` 约束。
 系统同时启用 `programs.nh` 与 `programs.nh.clean`，作为默认 `nh` 入口和自动清理来源。
 
 推荐验证基线：
@@ -39,7 +39,7 @@ GitHub workflow 执行轻量 `self-check` 与 secrets guard，仍不能替代本
 - 进入开发环境：`nix develop`
 - 轻量自检：`just self-check`
 - 快速基线：`just validate-local`
-- 包含 check build：`just validate-local-full`
+- 包含 check build：直接执行 `nix flake check --all-systems`
 
 ## 2. 全局约定
 
@@ -52,7 +52,7 @@ GitHub workflow 执行轻量 `self-check` 与 secrets guard，仍不能替代本
 - `nix/hosts/registry/systems.toml` 是 host metadata 的事实源
 - `displays` metadata 是 monitor topology 的事实源；不要再在别处重复手写 connector facts
 - Noctalia GUI 配置写入 `~/.local/state/noctalia/config`；Home Manager 会从 `nix/home/configs/noctalia/` 首次 seed 缺失文件，后续 GUI 改动不会写回 tracked config；需要把 GUI 结果变成共享默认值时，显式复制 runtime config 回 `nix/home/configs/noctalia/` 后再提交
-- Home Manager 当前会把 `~/.local/share/mise/shims` 放进 session `PATH`；`code` / `antigravity` 还会额外通过 `~/.local/bin/` wrapper 过滤已知 Electron Wayland 参数告警；`mise upgrade` 默认手动执行（`just mise-upgrade`），只有主机显式设置 `my.host.miseAutoUpgrade = true` 时才启用 `systemd --user` timer；涉及此行为的改动需重新执行 `just home-switch`
+- Home Manager 当前会把 `~/.local/share/mise/shims` 放进 session `PATH`；`code` / `antigravity` 还会额外通过 `~/.local/bin/` wrapper 过滤已知 Electron Wayland 参数告警；`mise upgrade` 默认手动执行，只有主机显式设置 `my.host.miseAutoUpgrade = true` 时才启用 `systemd --user` timer
 - greetd 会话启动前只导入 HM/GUI 基础变量；`WAYLAND_DISPLAY` / `DISPLAY` 等显示变量由 Niri `spawn-at-startup` 的 `wayland-session-env-sync` 在 compositor 启动后再导入 systemd user / D-Bus activation 环境
 - Noctalia 由 Niri `spawn-at-startup` 拉起，notifications 是当前桌面 notification provider；`udiskie.notify` 依赖该 provider，`Mod+Ctrl+B` 会同时清理 `noctalia-shell` 与实际运行的 `quickshell` 进程后再重启
 - `wsdd` 不放入默认 desktop package group；Mullvad lockdown 下 GVfs 自动 WS-Discovery 会被防火墙拦截并产生日志噪音，SMB 直连仍通过 GVfs smb backend 处理
@@ -62,30 +62,12 @@ GitHub workflow 执行轻量 `self-check` 与 secrets guard，仍不能替代本
 ## 3. 最常用命令
 
 ```bash
-just host=zly disk=/dev/nvme0n1 install
 just update
-just update-nixos
-just update-nixpkgs
-just update-darwin
-just show
-just flake-check
-just pre-commit-check
-just registry-meta-sync-check
 just self-check
 just validate-local
-just ml-shell
-just mise-upgrade
-just vpn-status
-just host=zly check
 just host=zly switch
-just home-switch
 just host=zly upgrade
 just clean
-just sops-init-create
-just sops-init-rotate
-just sops-recipients
-just sops-rekey
-just guard-secrets
 ```
 
 命令细表见 `docs/NIX-COMMANDS.md`。
@@ -115,13 +97,13 @@ nix flake show "path:$flake_repo"
 git clone https://github.com/2048TB/nixos-config.git ~/nixos
 cd ~/nixos
 export NIX_CONFIG="experimental-features = nix-command flakes"
-nix shell nixpkgs#just -c just sops-init-create
-nix shell nixpkgs#just -c just sops-recovery-init
-nix shell nixpkgs#just -c just password-hashes
-nix shell nixpkgs#just -c just host=zly disk=/dev/nvme0n1 install
+bash nix/scripts/admin/sops.sh init --create
+bash nix/scripts/admin/sops.sh recovery-init
+nix --extra-experimental-features 'nix-command flakes' shell nixpkgs#mkpasswd -c mkpasswd -m sha-512
+bash nix/scripts/admin/install-live.sh --host zly --disk /dev/nvme0n1 --repo "$PWD"
 ```
 
-若已有旧 `main.agekey`，先放到以下任一位置，再执行 `just sops-init`：
+若已有旧 `main.agekey`，先放到以下任一位置，再执行 `bash nix/scripts/admin/sops.sh init`：
 
 - `./.keys/main.agekey`
 - `<repo>/.keys/main.agekey`
@@ -158,81 +140,52 @@ bash nix/scripts/admin/install-live.sh --host zly --disk /dev/nvme0n1 --repo "$P
 
 ```bash
 just update
-just update-nixos
-just update-nixpkgs
-just update-darwin
 ```
 
 - `update` 会全量更新 `flake.lock` 的 root inputs
-- `update-nixos` 只更新 Linux NixOS 日常相关 inputs；`upgrade` 使用这个入口，避免刷新 Darwin/Homebrew inputs
-- `update-darwin` 只更新 macOS / Homebrew 相关 inputs
-- `update-nixpkgs` 只更新主 `nixpkgs`
+- `upgrade` 会先更新 Linux NixOS 日常相关 inputs，再执行 `switch`，避免刷新 Darwin/Homebrew inputs
+- 需要更新指定 input 时，直接调用 `nix/scripts/admin/update-flake.sh <repo> <input...>`
 
 只读信息：
 
 ```bash
-just show
-just hosts
-just flake-check
-just flake-check-full
-just pre-commit-check
-just registry-schema-check
-just registry-meta-sync-check
 just self-check
 just validate-local
-just validate-local-full
 ```
 
 开发环境：
 
 ```bash
-just ml-shell
+nix develop
+nix develop .#ml
 ```
 
 - `ml` 当前覆盖主训练栈：`PyTorch`、`Transformers`、`Datasets`、`Accelerate`、`PEFT`、`TRL`
 - shell 会显式注入 `CUDA/cuDNN/NCCL`、OpenSSL build env、`/run/opengl-driver/lib` 与常用 cache 目录
 - `ml` 当前优先使用 `torch-bin` / `triton-bin`，并在进入 shell 时依赖较长的网络超时完成官方 wheel 下载；这样比本地编译 `magma` 更稳妥
-- `just ml-shell` 当前会显式传 `--option connect-timeout 60`
 - Linux 用户会话不再全局导出 `LD_LIBRARY_PATH` / `OPENSSL_*`；pip CUDA wheels 需要的 `libcuda.so.1` 解析路径收敛到 `ml` devShell
 - `bitsandbytes`、`vLLM`、`llama.cpp` 暂不放进默认入口；它们会显著放大闭包或引入额外源码构建，按需单独处理更稳
 
 系统级入口：
 
 ```bash
-just host=zly build
-just host=zly check
 just host=zly switch
-just home-switch
-just host=zly boot
-just host=zly test
 just host=zly upgrade
 ```
 
 当前行为说明：
 
-- `build` 现在通过 `nh os build` 执行，并继续先取 filtered repo
-- `check` 会先取 filtered repo，再对 system toplevel 执行 `nix build --dry-run`
 - `switch` 现在通过 `nh os switch` 执行，并继续先取 filtered repo
-- `home-switch` 通过 `nh home switch` 执行，目标为 `homeConfigurations.<user>@<host>`
-- `boot` / `test` 会直接改系统状态
-- `upgrade` 现在会保留外层 `repo={{repo}}`，先在指定 repo 上执行 `update-nixos`，再执行 `switch`
-- `flake-check` 做 `nix flake check --all-systems --no-build`
-- `flake-check-full` 做 `nix flake check --all-systems`（含 build）
-- `pre-commit-check` 会实际构建并执行 `checks.x86_64-linux.pre-commit-check`
+- `upgrade` 现在会保留外层 `repo={{repo}}`，先在指定 repo 上更新 Linux NixOS 相关 inputs，再执行 `switch`
+- 需要 `build` / `boot` / `test` / Home Manager switch 时，直接用 `nh` 或 `nix` 命令；这些不再作为公开 `just` 入口
 - `format-sanity` 是 flake check 中的轻量格式/解析防回归检查，对应 `nix/scripts/admin/check-format-sanity.sh`；shell shebang、YAML/JSON 解析、Markdown trailing whitespace、`justfile` 解析和疑似 Nix 注释吞代码都会失败
 - `self-check` 会检查 `justfile`、admin/hook shell 语法、可用时的 `shellcheck` / `shfmt -d`、YAML/JSON 解析、Markdown trailing whitespace、格式 sanity 和 registry schema
-- `registry-schema-check` 会校验 `nix/hosts/registry/systems.toml` 是否符合 `nix/hosts/registry/systems.schema.json`
-- `registry-meta-sync-check` 会校验 `nix/lib/host-meta.nix` 与 `systems.schema.json` 枚举/字段是否漂移
-- `validate-local` 会先执行 `self-check`，再串行执行 `guard-secrets --all-tracked`、registry schema/sync 检查和 `flake-check`
-- `validate-local-full` 在 `validate-local` 之后再执行 `flake-check-full`
+- `validate-local` 会先执行 `self-check`，再串行执行 secrets 全量巡检、registry metadata 同步检查和 `nix flake check --all-systems --no-build`
 
 清理相关：
 
 ```bash
 just clean
-just clean-all
-just use
-just vpn-status
 ```
 
 ```bash
@@ -241,28 +194,27 @@ sudo nix store optimise
 ```
 
 - `clean` 现在通过 `nh clean all --keep-since 30d --keep 15` 执行
-- `clean-all` 现在通过 `nh clean all --keep-since 0h --keep 0` 执行
 - 自动清理由 `programs.nh.clean` 执行：每周一 `03:15`，参数为 `--keep-since 30d --keep 15`
 - `nix.gc.automatic` 已关闭，避免与 `programs.nh.clean` 冲突
 - systemd-boot 最多展示 15 个配置项；可启动的旧 NixOS 版本来自系统 profile generation，不等同于 `/nix/store` 缓存
-- `clean-all` 会清理所有旧 profile generation，可能同时移除 boot menu 中的回滚入口；除非确认不需要回滚，否则优先使用 `clean`
+- 如果明确要删除所有旧 profile generation，直接手动运行 `nh clean all --keep-since 0h --keep 0`，注意这可能同时移除 boot menu 中的回滚入口
 
 ## 7. Secrets 与 Git 安全
 
 ### 7.1 常用入口
 
 ```bash
-just hooks-enable
-just guard-secrets
-just guard-secrets-all
-just sops-init
-just sops-init-create
-just sops-init-rotate
-just sops-recovery-init
-just sops-recipients
-just sops-rekey
-just ssh-key-set
-just password-set-hash '<sha512-hash>'
+git config core.hooksPath .githooks
+bash nix/scripts/admin/guard-secrets.sh
+bash nix/scripts/admin/guard-secrets.sh --all-tracked
+bash nix/scripts/admin/sops.sh init
+bash nix/scripts/admin/sops.sh init --create
+bash nix/scripts/admin/sops.sh init --rotate
+bash nix/scripts/admin/sops.sh recovery-init
+bash nix/scripts/admin/sops.sh recipients
+bash nix/scripts/admin/sops.sh rekey
+bash nix/scripts/admin/sops.sh ssh-key-set
+bash nix/scripts/admin/sops.sh password-set '<sha512-hash>'
 ```
 
 ### 7.2 `sops.sh` 的当前行为
@@ -270,14 +222,14 @@ just password-set-hash '<sha512-hash>'
 - `init`：同步已有 `main.agekey`
 - `init --create`：创建新的 `main.agekey`
 - `init --rotate [--yes]`：生成新的 `main.agekey`，更新 `secrets/keys/main.age.pub`，并保留旧 key 为 `.keys/main.agekey.pre-rotate.<timestamp>`
-- `rekey`：先校验 `.sops.yaml` 必须包含 `secrets/common/`、`secrets/hosts/<host>/`、`secrets/users/<user>/`、`secrets/install/` 与旧路径兼容规则，且不得退回 `^secrets/.*\.yaml$` catch-all；再基于当前 `main.agekey`、`recovery.agekey` 和现存 rotation backup keys 构造 identity file，然后对每个 secret 执行 `sops rotate -i --add-age/--rm-age`
+- `rekey`：先校验 `.sops.yaml` 必须包含 `secrets/common/`、`secrets/hosts/<host>/`、`secrets/users/<user>/`、`secrets/install/`，且不得退回 `^secrets/.*\.yaml$` catch-all；再基于当前 `main.agekey`、`recovery.agekey` 和现存 rotation backup keys 构造 identity file，然后对每个 secret 执行 `sops rotate -i --add-age/--rm-age`
 - `recipients`：列出当前收件人
-- `host-key-add`：把 host SSH public key 同步到 `secrets/keys/hosts/`
+- `host-add`：把 host SSH public key 同步到 `secrets/keys/hosts/`
 - `ssh-key-set`：默认把 `.keys/github_id_ed25519` 写入当前主用户的 `secrets/users/<user>/ssh/`；需要覆盖目标用户时设置 `SOPS_USER=<user>`
 
 注意：
 
-- `just sops-init-rotate` 只是交互式入口；需要非交互确认时，直接调用 `nix/scripts/admin/sops.sh init --rotate --yes`
+- 需要非交互确认时，直接调用 `nix/scripts/admin/sops.sh init --rotate --yes`
 - rotation 完成后，旧 backup key 仍需保留到 `rekey` 和系统切换完成
 - `run_sops_encrypt_yaml` 现在先写临时文件，再原子替换，避免加密失败时截断原 secret
 
@@ -287,7 +239,6 @@ just password-set-hash '<sha512-hash>'
 - `secrets/hosts/<hostname>/...`：预留 host-specific secret；后续可按 host SSH recipient 细化
 - `secrets/users/<username>/...`：用户级 secret，例如 SSH key
 - `secrets/install/...`：安装、恢复或 Live ISO bootstrap 场景
-- `secrets/passwords/`、`secrets/ssh/`、`secrets/services/` 仍由 `.sops.yaml` 兼容，但新写入入口会使用分层路径
 
 ### 7.3 私钥与公钥边界
 
@@ -312,9 +263,9 @@ just password-set-hash '<sha512-hash>'
 - `gaming` role 必须运行在 `desktopSession = true` 的 host 上
 - Linux `desktopProfile` 当前只支持 `niri`
 - `nix/home/configs/noctalia/` 是 Noctalia runtime config 的 seed；GUI 修改持久化到 `~/.local/state/noctalia/config`，不要再依赖 GUI 直接改 tracked config；seed 提交流程见 `docs/NIX-COMMANDS.md`
-- 修改 host metadata 后运行 `just registry-schema-check` 和 `just registry-meta-sync-check`
+- 修改 host metadata 后运行 `just self-check` 和 `just validate-local`
 - 修改脚本入口后运行 `just self-check` 或至少 `bash -n nix/scripts/admin/*.sh`；可用时再运行 `shellcheck nix/scripts/admin/*.sh` 与 `shfmt -i 2 -d nix/scripts/admin/*.sh`
-- 修改 Nix 模块或 flake 聚合后运行 `just flake-check`，需要执行 check build 时运行 `just validate-local-full`
+- 修改 Nix 模块或 flake 聚合后运行 `just validate-local`，需要执行 check build 时直接运行 `nix flake check --all-systems`
 
 ## 9. FAQ
 
@@ -328,7 +279,7 @@ flake_repo="$(bash /persistent/nixos-config/nix/scripts/admin/print-flake-repo.s
 
 再对 `path:$flake_repo#...` 执行 `eval` / `show` / `build`。
 
-### 9.2 `just update` / `just update-nixos` 失败
+### 9.2 `just update` / `just host=<host> upgrade` 失败
 
 确认 repo 可写，且 `flake.lock` 不是只读。`update-flake.sh` 会在需要时先更新 filtered repo，再同步回真实仓库。
 
@@ -354,9 +305,9 @@ bash nix/scripts/admin/sops.sh rekey
 ### 9.6 如何防止密钥泄露
 
 ```bash
-just hooks-enable
-just guard-secrets
-just guard-secrets-all
+git config core.hooksPath .githooks
+bash nix/scripts/admin/guard-secrets.sh
+bash nix/scripts/admin/guard-secrets.sh --all-tracked
 ```
 
 ### 9.7 推送前最低验证是什么
@@ -370,7 +321,7 @@ just validate-local
 如果本次改动涉及 `checks` 产物或你想额外确认执行链路，再跑：
 
 ```bash
-just validate-local-full
+nix flake check --all-systems
 ```
 
 ### 9.8 从桌面启动的 `VSCode` / `Antigravity` 找不到 `go` / `gopls`
@@ -387,7 +338,7 @@ GUI 进程不会读取交互式 `zshrc`，因此不能依赖 `mise activate zsh`
 
 ```bash
 cd /persistent/nixos-config
-just home-switch
+just host=zly switch
 ```
 
 然后完全退出 `VSCode` / `Antigravity` 再重开。
@@ -401,12 +352,12 @@ just home-switch
 - 全局 `mise` 配置默认使用 rolling channel（如 `latest` / `stable`），但 `python` 固定在 `3.12`
 - 个人 CLI 中的 `btop` / `duf` / `dust` / `fastfetch` / `gitui` / `sd` / `taplo` / `yamllint` 也由全局 `mise` 管理，不再放入默认 Home Manager package group
 - 默认不自动升级，避免 flake 外状态静默漂移
-- 手动入口是 `just mise-upgrade`
+- 手动入口是 `mise upgrade --yes`
 - 若某台主机确实需要自动升级，显式设置 `my.host.miseAutoUpgrade = true` 后才会启用 `systemd --user` timer
 - opt-in timer 调度为每周一 `04:30:00`，附加 `RandomizedDelaySec=1h`，且 `Persistent=true`
 
 手动触发：
 
 ```bash
-just mise-upgrade
+mise upgrade --yes
 ```

@@ -19,28 +19,18 @@ let
 
   repoRoot = ../../..;
   secretPath = rel: repoRoot + "/${rel}";
-  firstExistingSecretFile = preferred: legacy:
-    let
-      preferredPath = secretPath preferred;
-      legacyPath = secretPath legacy;
-    in
-    if builtins.pathExists preferredPath then preferredPath else legacyPath;
-  userPasswordSecretFile = firstExistingSecretFile
-    "secrets/common/passwords/user-password.yaml"
-    "secrets/passwords/user-password.yaml";
-  rootPasswordSecretFile = firstExistingSecretFile
-    "secrets/common/passwords/root-password.yaml"
-    "secrets/passwords/root-password.yaml";
+  userPasswordSecretFile = secretPath "secrets/common/passwords/user-password.yaml";
+  rootPasswordSecretFile = secretPath "secrets/common/passwords/root-password.yaml";
 in
 {
   assertions = [
     {
       assertion = builtins.pathExists userPasswordSecretFile;
-      message = "Missing secrets/common/passwords/user-password.yaml (legacy fallback: secrets/passwords/user-password.yaml). Use sops workflow to create/update it.";
+      message = "Missing secrets/common/passwords/user-password.yaml. Use sops workflow to create/update it.";
     }
     {
       assertion = builtins.pathExists rootPasswordSecretFile;
-      message = "Missing secrets/common/passwords/root-password.yaml (legacy fallback: secrets/passwords/root-password.yaml). Use sops workflow to create/update it.";
+      message = "Missing secrets/common/passwords/root-password.yaml. Use sops workflow to create/update it.";
     }
     {
       assertion = gpuVendorsMatchMode;

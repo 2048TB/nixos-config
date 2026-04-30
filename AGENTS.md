@@ -46,7 +46,7 @@
 - Conventional Commit：`feat:`、`fix:`、`docs:`、`refactor:`
 - 每次提交只做一个主题
 - 仓库当前以本地验证为准；推送前至少执行 `just self-check` 与 `just validate-local`
-- 需要包含 check build 时执行 `just validate-local-full`
-- 文档批量改动后，至少执行一次过时关键词检索（如 `CI` / `deploy`）确认无漂移残留
-- 用户要求同步时执行 `git push origin HEAD`
+- 需要包含 check build 时执行 `nix flake check --all-systems`
+- 文档批量改动后，至少执行一次过时关键词检索（如旧 `just` 命令、`validate-local-full`、旧 secrets 路径）确认无漂移残留
+- 用户要求同步时，验证通过后提交并执行 `git push origin HEAD`
 - 不要在没有验证证据时声称完成

@@ -79,6 +79,71 @@ needs_filtered_flake_repo() {
   [ -e "$key_path" ] && [ ! -r "$key_path" ]
 }
 
+assert_safe_child_path() {
+  local base="${1:?base path required}"
+  local target="${2:?target path required}"
+  local base_real=""
+  local target_parent=""
+  local target_parent_real=""
+  local target_name=""
+
+  if [[ "$base" != /* ]]; then
+    echo "error: safe delete base must be absolute: $base" >&2
+    return 1
+  fi
+
+  if [[ "$target" != /* ]]; then
+    echo "error: safe delete target must be absolute: $target" >&2
+    return 1
+  fi
+
+  if [ ! -d "$base" ]; then
+    echo "error: safe delete base is not a directory: $base" >&2
+    return 1
+  fi
+
+  target_parent="$(dirname -- "$target")"
+  target_name="$(basename -- "$target")"
+  if [ -z "$target_name" ] || [ "$target_name" = "." ] || [ "$target_name" = "/" ]; then
+    echo "error: unsafe delete target: $target" >&2
+    return 1
+  fi
+
+  if ! base_real="$(cd "$base" && pwd -P)"; then
+    echo "error: failed to resolve safe delete base: $base" >&2
+    return 1
+  fi
+  if [ ! -d "$target_parent" ]; then
+    echo "error: safe delete target parent is not a directory: $target_parent" >&2
+    return 1
+  fi
+  if ! target_parent_real="$(cd "$target_parent" && pwd -P)"; then
+    echo "error: failed to resolve safe delete target parent: $target_parent" >&2
+    return 1
+  fi
+
+  if [ "$target_parent_real" != "$base_real" ] && [[ "$target_parent_real" != "$base_real"/* ]]; then
+    echo "error: refusing to delete outside $base_real: $target" >&2
+    return 1
+  fi
+}
+
+safe_rm_rf_under() {
+  local base="${1:?base path required}"
+  local target="${2:?target path required}"
+
+  assert_safe_child_path "$base" "$target" || return 1
+  command rm -rf -- "$target"
+}
+
+sudo_safe_rm_rf_under() {
+  local base="${1:?base path required}"
+  local target="${2:?target path required}"
+
+  assert_safe_child_path "$base" "$target" || return 1
+  sudo -- rm -rf -- "$target"
+}
+
 prepare_flake_repo_path() {
   local repo_root="${1:?repo root required}"
   local cache_key=""
@@ -109,7 +174,8 @@ prepare_flake_repo_path() {
   # other's prepared flake repo while a command is still evaluating it.
   cache_root="${cache_base}/flake-$(id -u)-${cache_key}-$$"
 
-  rm -rf "$cache_root/repo"
+  mkdir -p "$cache_root"
+  safe_rm_rf_under "$cache_base" "$cache_root/repo"
   mkdir -p "$cache_root/repo"
 
   if ! rsync -a --delete \
@@ -163,7 +229,7 @@ run_command_with_nix_fallback() {
   if command -v "$command_name" >/dev/null 2>&1; then
     "$command_name" "$@"
   else
-    nix shell "$fallback_package" -c "$command_name" "$@"
+    nix --extra-experimental-features "nix-command flakes" shell "$fallback_package" -c "$command_name" "$@"
   fi
 }
 
@@ -188,8 +254,6 @@ run_sops_encrypt_yaml() {
   target_dir="$(dirname "$target_file")"
   mkdir -p "$target_dir"
   temp_file="$(mktemp "$target_dir/.tmp.$(basename "$target_file").XXXXXX")"
-  # shellcheck disable=SC2064
-  trap "rm -f '$temp_file'" RETURN
 
   # shellcheck disable=SC2094  # stdin and stdout target are distinct fds
   if ! run_sops \
@@ -199,11 +263,14 @@ run_sops_encrypt_yaml() {
     --input-type yaml \
     --output-type yaml \
     /dev/stdin >"$temp_file"; then
+    rm -f "$temp_file"
     return 1
   fi
 
-  mv "$temp_file" "$target_file"
-  trap - RETURN
+  if ! mv "$temp_file" "$target_file"; then
+    rm -f "$temp_file"
+    return 1
+  fi
 }
 
 confirm_destructive_action() {

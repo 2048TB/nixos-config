@@ -23,26 +23,17 @@
 - secrets / sops：`nix/scripts/admin/sops.sh`
 - Git secrets guard：`nix/scripts/admin/guard-secrets.sh`
 - 格式/解析 sanity：`nix/scripts/admin/check-format-sanity.sh`
-- `just`：build / check / switch / upgrade / clean / install 的主要入口
+- `just`：update / switch / upgrade / clean / 本地验证的主要入口
 
 ## 常用命令
 
 ```bash
-just host=zly disk=/dev/nvme0n1 install
 just update
-just show
 just self-check
 just validate-local
-just ml-shell
-just mise-upgrade
-just vpn-status
-just host=zly check
 just host=zly switch
 just host=zly upgrade
-just sops-init-create
-just sops-rekey
-just sops-recipients
-just guard-secrets
+just clean
 ```
 
 ## 本地验证基线
@@ -58,16 +49,16 @@ just validate-local
 需要额外执行 check build 时再跑：
 
 ```bash
-just validate-local-full
+nix flake check --all-systems
 ```
 
 ## 风险提示
 
-- `install` / `install-live.sh` 会清盘
-- `switch` / `boot` / `test` / `upgrade` 会直接改系统状态
+- `install-live.sh` 会清盘
+- `switch` / `upgrade` 会直接改系统状态
 - `sops.sh init --rotate` 会生成新 `main.agekey`
-- `mise-upgrade` 会更新用户目录中的 flake 外工具版本
+- `mise upgrade --yes` 会更新用户目录中的 flake 外工具版本
 - Noctalia GUI 配置写入 `~/.local/state/noctalia/config`；该目录由 Home Manager 从 `nix/home/configs/noctalia/` 首次 seed，后续 GUI 改动不会写回 tracked config；需要更新默认 seed 时，显式复制 runtime config 回 `nix/home/configs/noctalia/` 后再提交
-- `.keys/*.agekey` 不可提交；启用本地 hook 可执行 `just hooks-enable`
+- `.keys/*.agekey` 不可提交；启用本地 hook 可执行 `git config core.hooksPath .githooks`
 
 其余细节不在本页展开，统一以 `docs/README.md` 为准。
