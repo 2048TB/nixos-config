@@ -1,4 +1,6 @@
-{ lib }:
+{ lib
+, hostRegistryLib ? import ./host-registry.nix { inherit lib; }
+}:
 { inputs
 , mylib
 , genSpecialArgs
@@ -12,7 +14,6 @@
 , ...
 }:
 let
-  hostRegistryLib = import ./host-registry.nix { inherit lib; };
   hostDir = "nix/hosts/darwin/${name}";
   registryPath = "nix/hosts/registry/systems.toml";
   registryState = hostRegistryLib.mkRegistryState {

@@ -87,10 +87,14 @@ let
         ];
     };
 
-  mkNixosHost = import ./mkNixosHost.nix { inherit lib; };
-  mkDarwinHost = import ./mkDarwinHost.nix { inherit lib; };
   attrsLib = import ./attrs.nix { inherit lib; };
   hostMetaLib = import ./host-meta.nix { };
+  hostRegistryLib = import ./host-registry.nix {
+    inherit lib;
+    inherit (hostMetaLib) hostMetaSchema;
+  };
+  mkNixosHost = import ./mkNixosHost.nix { inherit lib hostRegistryLib; };
+  mkDarwinHost = import ./mkDarwinHost.nix { inherit lib hostRegistryLib; };
   hostCapabilitiesLib = import ./host-capabilities.nix { };
   displayTopologyLib = import ./display-topology.nix { inherit lib; };
   launchersLib = import ./launchers.nix { inherit lib; };

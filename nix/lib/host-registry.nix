@@ -1,6 +1,7 @@
-{ lib }:
+{ lib
+, hostMetaSchema ? (import ./host-meta.nix { }).hostMetaSchema
+}:
 let
-  inherit ((import ./host-meta.nix { })) hostMetaSchema;
   inherit (hostMetaSchema)
     allowedKinds
     allowedFormFactors

@@ -36,13 +36,49 @@ done
 repo_root="$(enter_repo_root)"
 cd "$repo_root"
 
+if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  echo "error: secret guard requires a Git checkout: $repo_root" >&2
+  exit 1
+fi
+
+if ! command -v rg >/dev/null 2>&1; then
+  echo "error: secret guard requires rg (ripgrep)" >&2
+  exit 127
+fi
+
 # 路径级阻断：任何被 Git 跟踪/暂存的密钥路径都直接失败
 forbidden_path_pattern='(^|/)\.keys/|(^|/)[^/]*\.agekey$|(^|/)id_(ed25519|rsa|ecdsa|dsa)(\.pub)?$|(^|/)ssh_host_[^/]*_key$|\.pem$|\.p12$|\.pfx$'
 private_key_content_pattern='-----BEGIN ((OPENSSH|RSA|EC|DSA|PGP|ENCRYPTED) )?PRIVATE KEY-----|AGE-SECRET-KEY-1[0-9A-Za-z]{20,}'
 private_key_content_pattern_ci="(?i:${private_key_content_pattern})"
 credential_content_pattern='ghp_[A-Za-z0-9]{36}|github_pat_[A-Za-z0-9_]{82}|glpat-[A-Za-z0-9_-]{20,}|xox[baprs]-[A-Za-z0-9-]{10,}|AKIA[0-9A-Z]{16}|ASIA[0-9A-Z]{16}|AIza[0-9A-Za-z_-]{35}|sk-[A-Za-z0-9]{20,}|(?i)(api[_-]?key|token|secret|password|passwd)[[:space:]]*[:=][[:space:]]*[A-Za-z0-9_.+=-]{24,}'
 
-tracked_hits="$(git ls-files | rg -n "$forbidden_path_pattern" || true)"
+scan_path_hits() {
+  local paths_file=""
+  local hits=""
+  local rg_status=0
+
+  paths_file="$(mktemp)"
+  if ! "$@" >"$paths_file"; then
+    echo "error: failed to enumerate paths for secret scan: $*" >&2
+    rm -f "$paths_file"
+    return 1
+  fi
+
+  set +e
+  hits="$(rg -n --no-filename "$forbidden_path_pattern" "$paths_file")"
+  rg_status=$?
+  set -e
+  rm -f "$paths_file"
+
+  if [ "$rg_status" -gt 1 ]; then
+    echo "error: failed to scan paths for forbidden secret-like names" >&2
+    return "$rg_status"
+  fi
+
+  printf '%s\n' "$hits"
+}
+
+tracked_hits="$(scan_path_hits git ls-files)"
 if [ -n "$tracked_hits" ]; then
   echo "ERROR: forbidden secret-like files are tracked by Git:" >&2
   echo "$tracked_hits" >&2
@@ -50,7 +86,7 @@ if [ -n "$tracked_hits" ]; then
   exit 1
 fi
 
-staged_hits="$(git diff --cached --name-only --diff-filter=ACMR | rg -n "$forbidden_path_pattern" || true)"
+staged_hits="$(scan_path_hits git diff --cached --name-only --diff-filter=ACMR)"
 if [ -n "$staged_hits" ]; then
   echo "ERROR: forbidden secret-like files are staged:" >&2
   echo "$staged_hits" >&2

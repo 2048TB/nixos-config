@@ -94,19 +94,6 @@ let
     lib.filter (pkg: builtins.elem pkg.outPath systemHomeOverlapOutPaths) cfg.environment.systemPackages;
   systemHomeOverlapNames = getNames systemHomeOverlapPkgs;
   systemPackageNames = getNames cfg.environment.systemPackages;
-  systemPackageByName = packageName:
-    let
-      matches = builtins.filter
-        (pkg: builtins.unsafeDiscardStringContext (lib.getName pkg) == packageName)
-        cfg.environment.systemPackages;
-    in
-    if matches == [ ] then
-      pkgs.runCommand "missing-${packageName}" { } ''
-        mkdir -p "$out/bin"
-        : > "$out/bin/${packageName}"
-      ''
-    else
-      builtins.head matches;
   homePackageNames = getNames hmCfg.home.packages;
   homeZellijPackages = builtins.filter (pkg: lib.getName pkg == "zellij") hmCfg.home.packages;
   homeZellijOutPaths = map (pkg: pkg.outPath) homeZellijPackages;

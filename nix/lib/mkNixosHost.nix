@@ -1,4 +1,6 @@
-{ lib }:
+{ lib
+, hostRegistryLib ? import ./host-registry.nix { inherit lib; }
+}:
 { inputs
 , mylib
 , genSpecialArgs
@@ -14,7 +16,6 @@
 , ...
 }:
 let
-  hostRegistryLib = import ./host-registry.nix { inherit lib; };
   inherit (inputs)
     nixpkgs
     nixos-hardware
