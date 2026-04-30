@@ -63,6 +63,7 @@ key 相关差异：
 - `mise upgrade` 默认手动执行（`just mise-upgrade`）；只有 host 显式设置 `my.host.miseAutoUpgrade = true` 才会启用 user timer；其中 `python` 当前固定在 `3.12`，部分个人 CLI（如 `btop` / `duf` / `dust` / `fastfetch` / `gitui` / `sd` / `taplo` / `yamllint`）也由全局 `mise` 管理
 - Linux 会话不再全局导出 `LD_LIBRARY_PATH` / `OPENSSL_*`；CUDA pip wheels 的 `libcuda.so.1` 路径在 `just ml-shell` 的 `ml` devShell 内注入
 - Noctalia notifications 是当前桌面 notification provider；`udiskie.notify` 依赖它，`Mod+Ctrl+B` 会同时清理 `noctalia-shell` 与实际运行的 `quickshell` 进程后再重启
+- Noctalia GUI 配置持久化在 `~/.local/state/noctalia/config`；`nix/home/configs/noctalia/` 只是新环境缺失文件时的 seed，GUI 改动需要手动复制回仓库后才会成为共享默认值
 - 默认 desktop package group 不安装 `wsdd`；Mullvad lockdown 下 GVfs 自动 WS-Discovery 可能产生日志噪音，SMB 直连仍通过 GVfs smb backend 使用
 - 启用 `"vpn"` role 的主机使用 Mullvad app / daemon；`services.mullvad-vpn.package` 使用 `pkgs.mullvad-vpn` 同时提供 CLI 和 GUI，系统仍保留 `wireguard-tools` 便于底层排查；日常连接、地区选择、恢复和 kill switch 由 Mullvad 自己管理，命令见 `docs/NIX-COMMANDS.md`
 

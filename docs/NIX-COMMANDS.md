@@ -127,7 +127,20 @@ bash /persistent/nixos-config/nix/scripts/admin/guard-secrets.sh
 bash /persistent/nixos-config/nix/scripts/admin/guard-secrets.sh --all-tracked
 ```
 
-## 8. Mullvad VPN
+## 8. Noctalia
+
+```bash
+noctalia-shell ipc call state all | jq .settings
+jq empty "$HOME/.local/state/noctalia/config"/*.json
+cp -a "$HOME/.local/state/noctalia/config/." /persistent/nixos-config/nix/home/configs/noctalia/
+jq empty /persistent/nixos-config/nix/home/configs/noctalia/*.json
+git -C /persistent/nixos-config diff --check -- nix/home/configs/noctalia
+just home-switch
+```
+
+`~/.local/state/noctalia/config` 是 GUI runtime config；`nix/home/configs/noctalia/` 只作为新环境 seed。提交前先 review `git diff -- nix/home/configs/noctalia`。
+
+## 9. Mullvad VPN
 
 启用 `"vpn"` role 的主机通过 `services.mullvad-vpn.package = pkgs.mullvad-vpn` 安装 Mullvad CLI/GUI 并启用 `mullvad-daemon`。连接、地区选择、恢复和 kill switch 交给 Mullvad app / daemon 管理。
 

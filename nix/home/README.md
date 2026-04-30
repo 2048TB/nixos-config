@@ -46,7 +46,7 @@ nix/home/
 - `linux/session.nix` 只放通用 GUI/input session vars；CUDA/OpenSSL 工具链变量收敛到 devShell
 - `configs/mise/config.toml` 当前默认将全局 `python` 固定在 `3.12`；部分个人 CLI（如 `btop` / `duf` / `dust` / `fastfetch` / `gitui` / `sd` / `taplo` / `yamllint`）随全局 `mise` rolling channel 更新
 - Linux 侧入口通过 `_mixins` allowlist 收敛导入列表
-- `nix/home/configs/noctalia/` 当前只作为 Noctalia runtime config seed；GUI 改动持久化到 `~/.local/state/noctalia/config`，不会直接修改 tracked files
+- `nix/home/configs/noctalia/` 当前只作为 Noctalia runtime config seed；GUI 改动持久化到 `~/.local/state/noctalia/config`，不会直接修改 tracked files；需要更新默认 seed 时，显式复制 runtime config 回该目录并验证 JSON
 - Noctalia notifications 是当前桌面 notification provider；`udiskie.notify` 依赖该 provider，避免启动后缺少 `org.freedesktop.Notifications`
 - Noctalia 相关 autostart / lock / session / restart 命令会单独取消 `QT_IM_MODULE`，避免 `quickshell` 触发 `fcitx5` Qt input context 崩溃；restart 快捷键会同时处理 `noctalia-shell` wrapper 名称和实际 `quickshell` 进程名
 - `wsdd` 不放入默认 desktop package group；Mullvad lockdown 下 GVfs 自动 WS-Discovery 会被防火墙拦截并产生日志噪音，SMB 直连仍通过 GVfs smb backend 处理
