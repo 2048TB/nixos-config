@@ -43,6 +43,7 @@ let
     || (hostCfg.amdgpuBusId != null && hostCfg.nvidiaBusId != null);
   hasExpectedGamingRoleMetadata =
     !hasGamingRole || hostCfg.desktopSession;
+  usesNiri = hostCfg.desktopProfile == "niri";
   resolvedExpectedLuksName =
     if expectedLuksName != null then expectedLuksName else hostCfg.luksName;
   resolvedExpectedResumeOffset =
@@ -208,6 +209,30 @@ let
   niriConfigSource = hmCfg.xdg.configFile."niri/config.kdl".source or null;
   codeWrapperSource = hmCfg.home.file.".local/bin/code".source or null;
   antigravityWrapperSource = hmCfg.home.file.".local/bin/antigravity".source or null;
+  hasNoctaliaConfigEntry = hmCfg.xdg.configFile ? "noctalia";
+  noctaliaConfigSource =
+    if hasNoctaliaConfigEntry then hmCfg.xdg.configFile."noctalia".source else null;
+  noctaliaConfigSourcePath =
+    if noctaliaConfigSource == null then "" else toString noctaliaConfigSource;
+  noctaliaRuntimeConfigDir = "${hmCfg.home.homeDirectory}/.local/state/noctalia/config";
+  hasNoctaliaSeedActivation = hmCfg.home.activation ? seedNoctaliaConfig;
+  noctaliaSeedActivation =
+    if hasNoctaliaSeedActivation then hmCfg.home.activation.seedNoctaliaConfig else null;
+  noctaliaSeedActivationData =
+    if noctaliaSeedActivation == null then "" else noctaliaSeedActivation.data;
+  hasNoctaliaSeedActivationOrder =
+    hasNoctaliaSeedActivation
+    && builtins.elem "writeBoundary" noctaliaSeedActivation.after
+    && builtins.elem "linkGeneration" noctaliaSeedActivation.before;
+  hasNoctaliaRuntimeConfigPersistence =
+    !usesNiri
+    || (
+      hasNoctaliaConfigEntry
+      && hasNoctaliaSeedActivation
+      && hasNoctaliaSeedActivationOrder
+      && lib.hasInfix noctaliaRuntimeConfigDir noctaliaSeedActivationData
+      && lib.hasInfix "${hostCfg.configRepoPath}/nix/home/configs/noctalia" noctaliaSeedActivationData
+    );
 
   mkNonEmptyCheck = name': items: msg:
     pkgs.runCommand name' { } ''
@@ -239,6 +264,37 @@ in
     test "${cfg.programs.nh.flake}" = "${hostCfg.configRepoPath}"
     test "${if builtins.elem "d ${hostCfg.configRepoPath} 0755 ${mainUser} ${mainUser} -" tmpfilesRules then "1" else "0"}" = "1"
     test "${if builtins.elem "L+ /etc/nixos - - - - ${hostCfg.configRepoPath}" tmpfilesRules then "1" else "0"}" = "1"
+    touch "$out"
+  '';
+
+  "eval-${name}-noctalia-runtime-config-persistence" = pkgs.runCommand "eval-${name}-noctalia-runtime-config-persistence" { } ''
+    if [ "${if usesNiri then "1" else "0"}" != "1" ]; then
+      touch "$out"
+      exit 0
+    fi
+
+    if [ "${if hasNoctaliaConfigEntry then "1" else "0"}" != "1" ]; then
+      echo "missing Home Manager xdg.configFile.noctalia entry" >&2
+      exit 1
+    fi
+
+    if [ ! -L "${noctaliaConfigSourcePath}" ]; then
+      echo "Noctalia config source is not an out-of-store symlink: ${noctaliaConfigSourcePath}" >&2
+      exit 1
+    fi
+
+    actual_source="$(${pkgs.coreutils}/bin/readlink "${noctaliaConfigSourcePath}")"
+    expected_source="${noctaliaRuntimeConfigDir}"
+    if [ "$actual_source" != "$expected_source" ]; then
+      echo "Noctalia config source points to $actual_source, expected $expected_source" >&2
+      exit 1
+    fi
+
+    if [ "${if hasNoctaliaRuntimeConfigPersistence then "1" else "0"}" != "1" ]; then
+      echo "Noctalia runtime config persistence activation is missing, misordered, or points at the wrong seed/runtime path" >&2
+      exit 1
+    fi
+
     touch "$out"
   '';
 

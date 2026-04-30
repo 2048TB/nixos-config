@@ -51,7 +51,7 @@ GitHub workflow 执行轻量 `self-check` 与 secrets guard，仍不能替代本
 - `/bin/bash` 兼容链接由 `systemd.tmpfiles.rules` 声明为 `/run/current-system/sw/bin/bash`，不再通过 activation script 命令式创建
 - `nix/hosts/registry/systems.toml` 是 host metadata 的事实源
 - `displays` metadata 是 monitor topology 的事实源；不要再在别处重复手写 connector facts
-- `nix/home/configs/noctalia/` 当前按设计直接映射到 repo 工作树；GUI 改动会直接改动 tracked config
+- Noctalia GUI 配置写入 `~/.local/state/noctalia/config`；Home Manager 会从 `nix/home/configs/noctalia/` 首次 seed 缺失文件，后续 GUI 改动不会写回 tracked config
 - Home Manager 当前会把 `~/.local/share/mise/shims` 放进 session `PATH`；`code` / `antigravity` 还会额外通过 `~/.local/bin/` wrapper 过滤已知 Electron Wayland 参数告警；`mise upgrade` 默认手动执行（`just mise-upgrade`），只有主机显式设置 `my.host.miseAutoUpgrade = true` 时才启用 `systemd --user` timer；涉及此行为的改动需重新执行 `just home-switch`
 - greetd 会话启动前只导入 HM/GUI 基础变量；`WAYLAND_DISPLAY` / `DISPLAY` 等显示变量由 Niri `spawn-at-startup` 的 `wayland-session-env-sync` 在 compositor 启动后再导入 systemd user / D-Bus activation 环境
 - Noctalia 由 Niri `spawn-at-startup` 拉起，notifications 是当前桌面 notification provider；`udiskie.notify` 依赖该 provider，`Mod+Ctrl+B` 会同时清理 `noctalia-shell` 与实际运行的 `quickshell` 进程后再重启
@@ -311,7 +311,7 @@ just password-set-hash '<sha512-hash>'
 - hybrid GPU 主机必须声明 `amdgpuBusId` 与 `nvidiaBusId`
 - `gaming` role 必须运行在 `desktopSession = true` 的 host 上
 - Linux `desktopProfile` 当前只支持 `niri`
-- `nix/home/configs/noctalia/` 下的 tracked config 会因为 GUI 改动直接漂移；这是当前保留设计，不是文档错误
+- `nix/home/configs/noctalia/` 是 Noctalia runtime config 的 seed；GUI 修改持久化到 `~/.local/state/noctalia/config`，不要再依赖 GUI 直接改 tracked config
 - 修改 host metadata 后运行 `just registry-schema-check` 和 `just registry-meta-sync-check`
 - 修改脚本入口后运行 `just self-check` 或至少 `bash -n nix/scripts/admin/*.sh`；可用时再运行 `shellcheck nix/scripts/admin/*.sh` 与 `shfmt -i 2 -d nix/scripts/admin/*.sh`
 - 修改 Nix 模块或 flake 聚合后运行 `just flake-check`，需要执行 check build 时运行 `just validate-local-full`

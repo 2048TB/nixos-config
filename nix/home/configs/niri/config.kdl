@@ -8,8 +8,8 @@ include "./interaction.kdl"
 include "./appearance.kdl"
 include "./outputs.kdl"
 
-// Noctalia shell 仍使用仓库工作树中的本地持久化 settings.json，
-// 但启动改为官方当前推荐的 compositor autostart。
+// Noctalia shell 使用 ~/.local/state/noctalia/config 中的可写持久配置；
+// 启动改为官方当前推荐的 compositor autostart。
 spawn-at-startup "wayland-session-env-sync"
 // quickshell 目前会在加载 fcitx5 的 Qt input context 时崩溃；
 // Noctalia 不需要输入法，单独取消此变量，避免影响其它 Qt 应用。

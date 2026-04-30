@@ -67,7 +67,7 @@ just validate-local-full
 - `switch` / `boot` / `test` / `upgrade` 会直接改系统状态
 - `sops.sh init --rotate` 会生成新 `main.agekey`
 - `mise-upgrade` 会更新用户目录中的 flake 外工具版本
-- `nix/home/configs/noctalia/` 当前按设计直接映射到 repo 工作树；GUI 改动会把其中 tracked config 弄脏
+- Noctalia GUI 配置写入 `~/.local/state/noctalia/config`；该目录由 Home Manager 从 `nix/home/configs/noctalia/` 首次 seed，后续 GUI 改动不会写回 tracked config
 - `.keys/*.agekey` 不可提交；启用本地 hook 可执行 `just hooks-enable`
 
 其余细节不在本页展开，统一以 `docs/README.md` 为准。

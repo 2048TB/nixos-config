@@ -17,6 +17,11 @@ let
   usesNiri = (hostCfg.desktopProfile or "none") == "niri";
   generatedNiriOutputs = mylib.mkNiriOutputs hostCfg;
   mkSymlink = config.lib.file.mkOutOfStoreSymlink;
+  noctaliaConfigSeedDir = "${configRepoPath}/nix/home/configs/noctalia";
+  noctaliaRuntimeConfigDir = "${homeDir}/.local/state/noctalia/config";
+  mkdirExe = lib.getExe' pkgs.coreutils "mkdir";
+  cpExe = lib.getExe' pkgs.coreutils "cp";
+  chmodExe = lib.getExe' pkgs.coreutils "chmod";
 
   imageMimeTypes = [
     "image/jpeg"
@@ -96,8 +101,8 @@ in
         // {
           "qt6ct/colors/darker.conf".source = "${pkgs.qt6Packages.qt6ct}/share/qt6ct/colors/darker.conf";
           "niri/outputs.kdl".text = generatedNiriOutputs;
-          # 切到 repo 工作树中的可写目录，让 GUI 修改可直接持久化。
-          "noctalia".source = mkSymlink "${configRepoPath}/nix/home/configs/noctalia";
+          # 使用用户可写的持久运行态目录；GUI 修改不再写回 tracked repo config。
+          "noctalia".source = mkSymlink noctaliaRuntimeConfigDir;
         }
       );
 
@@ -139,5 +144,31 @@ in
           "x-scheme-handler/https" = browserApps;
         };
     };
+  };
+
+  home.activation = lib.mkIf usesNiri {
+    seedNoctaliaConfig = lib.hm.dag.entryBetween [ "linkGeneration" ] [ "writeBoundary" ] ''
+      seed_dir=${lib.escapeShellArg noctaliaConfigSeedDir}
+      runtime_dir=${lib.escapeShellArg noctaliaRuntimeConfigDir}
+
+      if [ ! -d "$seed_dir" ]; then
+        echo "error: Noctalia config seed directory is missing: $seed_dir" >&2
+        exit 1
+      fi
+
+      if [ -L "$runtime_dir" ]; then
+        echo "error: Noctalia runtime config directory must not be a symlink: $runtime_dir" >&2
+        exit 1
+      fi
+
+      if [ -e "$runtime_dir" ] && [ ! -d "$runtime_dir" ]; then
+        echo "error: Noctalia runtime config path exists but is not a directory: $runtime_dir" >&2
+        exit 1
+      fi
+
+      run ${mkdirExe} -p "$runtime_dir"
+      run ${chmodExe} u+rwx "$runtime_dir"
+      run ${cpExe} -R -n "$seed_dir"/. "$runtime_dir"/
+    '';
   };
 }
