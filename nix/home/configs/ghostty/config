@@ -1,6 +1,9 @@
 # Ghostty 终端配置
 # 配置文档：https://ghostty.org/docs/config
 
+# VPS/minimal images often miss xterm-ghostty terminfo; use the common fallback.
+term = xterm-256color
+
 # ===== 字体设置 =====
 font-family = Fira Code
 font-size = 13
