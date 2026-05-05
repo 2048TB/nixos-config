@@ -21,6 +21,18 @@ let
           else
             prev.vscode;
 
+        zed-editor =
+          if final.stdenv.hostPlatform.isLinux then
+            final.unstable.zed-editor
+          else
+            prev.zed-editor;
+
+        zed-editor-fhs =
+          if final.stdenv.hostPlatform.isLinux then
+            final.unstable.zed-editor-fhs
+          else
+            prev.zed-editor-fhs;
+
         zellij =
           if final.stdenv.hostPlatform.isLinux then
             final.unstable.zellij

@@ -50,7 +50,7 @@ nix/home/
 - Noctalia notifications 是当前桌面 notification provider；`udiskie.notify` 依赖该 provider，避免启动后缺少 `org.freedesktop.Notifications`
 - Noctalia 相关 autostart / lock / session / restart 命令会单独取消 `QT_IM_MODULE`，避免 `quickshell` 触发 `fcitx5` Qt input context 崩溃；restart 快捷键会同时处理 `noctalia-shell` wrapper 名称和实际 `quickshell` 进程名
 - `wsdd` 不放入默认 desktop package group；Mullvad lockdown 下 GVfs 自动 WS-Discovery 会被防火墙拦截并产生日志噪音，SMB 直连仍通过 GVfs smb backend 处理
-- `linux/files.nix` 当前还负责 `~/.local/bin/code` 与 `~/.local/bin/antigravity` wrapper：前置 `mise` shims，并过滤已知 Electron Wayland 参数告警
+- `linux/files.nix` 当前还负责 `~/.local/bin/code`、`~/.local/bin/cursor` 与 `~/.local/bin/antigravity` wrapper：前置 `mise` shims，并过滤已知 Electron/Chromium 参数告警
 - `linux/desktop.nix` 当前还负责 `mise-upgrade.service`；`mise-upgrade.timer` 只有 host 显式设置 `my.host.miseAutoUpgrade = true` 时才安装
 
 read-only 验证时，若 checkout 中存在不可读的 `.keys/main.agekey`，先通过 `nix/scripts/admin/print-flake-repo.sh` 获取 filtered repo。

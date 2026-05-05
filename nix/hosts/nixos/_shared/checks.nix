@@ -208,6 +208,7 @@ let
   swapfileResumeCheckEnabled = cfg.systemd.services ? swapfile-resume-check;
   niriConfigSource = hmCfg.xdg.configFile."niri/config.kdl".source or null;
   codeWrapperSource = hmCfg.home.file.".local/bin/code".source or null;
+  cursorWrapperSource = hmCfg.home.file.".local/bin/cursor".source or null;
   antigravityWrapperSource = hmCfg.home.file.".local/bin/antigravity".source or null;
   hasNoctaliaConfigEntry = hmCfg.xdg.configFile ? "noctalia";
   noctaliaConfigSource =
@@ -697,15 +698,19 @@ in
 
   "eval-${name}-gui-cli-wrappers" = pkgs.runCommand "eval-${name}-gui-cli-wrappers" { } ''
     code_wrapper="${if codeWrapperSource == null then "" else codeWrapperSource}"
+    cursor_wrapper="${if cursorWrapperSource == null then "" else cursorWrapperSource}"
     antigravity_wrapper="${if antigravityWrapperSource == null then "" else antigravityWrapperSource}"
 
     test -n "$code_wrapper"
     test -f "$code_wrapper"
+    test -n "$cursor_wrapper"
+    test -f "$cursor_wrapper"
     test -n "$antigravity_wrapper"
     test -f "$antigravity_wrapper"
 
     grep -F '${lib.getExe pkgs.vscode}' "$code_wrapper" >/dev/null
-    for wrapper in "$code_wrapper" "$antigravity_wrapper"; do
+    grep -F '${lib.getExe pkgs.code-cursor}' "$cursor_wrapper" >/dev/null
+    for wrapper in "$code_wrapper" "$cursor_wrapper" "$antigravity_wrapper"; do
       grep -F 'target executable not found or not executable' "$wrapper" >/dev/null
       grep -F 'refusing to execute wrapper recursively' "$wrapper" >/dev/null
       grep -F '${pkgs.coreutils}/bin/readlink' "$wrapper" >/dev/null

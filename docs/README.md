@@ -52,7 +52,7 @@ GitHub workflow 执行轻量 `self-check` 与 secrets guard，仍不能替代本
 - `nix/hosts/registry/systems.toml` 是 host metadata 的事实源
 - `displays` metadata 是 monitor topology 的事实源；不要再在别处重复手写 connector facts
 - Noctalia GUI 配置写入 `~/.local/state/noctalia/config`；Home Manager 会从 `nix/home/configs/noctalia/` 首次 seed 缺失文件，后续 GUI 改动不会写回 tracked config；需要把 GUI 结果变成共享默认值时，显式复制 runtime config 回 `nix/home/configs/noctalia/` 后再提交
-- Home Manager 当前会把 `~/.local/share/mise/shims` 放进 session `PATH`；`code` / `antigravity` 还会额外通过 `~/.local/bin/` wrapper 过滤已知 Electron Wayland 参数告警；`mise upgrade` 默认手动执行，只有主机显式设置 `my.host.miseAutoUpgrade = true` 时才启用 `systemd --user` timer
+- Home Manager 当前会把 `~/.local/share/mise/shims` 放进 session `PATH`；`code` / `cursor` / `antigravity` 还会额外通过 `~/.local/bin/` wrapper 过滤已知 Electron/Chromium 参数告警；`mise upgrade` 默认手动执行，只有主机显式设置 `my.host.miseAutoUpgrade = true` 时才启用 `systemd --user` timer
 - greetd 会话启动前只导入 HM/GUI 基础变量；`WAYLAND_DISPLAY` / `DISPLAY` 等显示变量由 Niri `spawn-at-startup` 的 `wayland-session-env-sync` 在 compositor 启动后再导入 systemd user / D-Bus activation 环境
 - Noctalia 由 Niri `spawn-at-startup` 拉起，notifications 是当前桌面 notification provider；`udiskie.notify` 依赖该 provider，`Mod+Ctrl+B` 会同时清理 `noctalia-shell` 与实际运行的 `quickshell` 进程后再重启
 - `wsdd` 不放入默认 desktop package group；Mullvad lockdown 下 GVfs 自动 WS-Discovery 会被防火墙拦截并产生日志噪音，SMB 直连仍通过 GVfs smb backend 处理
@@ -324,14 +324,14 @@ just validate-local
 nix flake check --all-systems
 ```
 
-### 9.8 从桌面启动的 `VSCode` / `Antigravity` 找不到 `go` / `gopls`
+### 9.8 从桌面启动的 `VSCode` / `Cursor` / `Antigravity` 找不到 `go` / `gopls`
 
 GUI 进程不会读取交互式 `zshrc`，因此不能依赖 `mise activate zsh` 给 `PATH` 注入语言工具链。
 
 当前仓库的处理方式是：
 
 - 通过 Home Manager 把 `~/.local/share/mise/shims` 放进 session `PATH`
-- 通过 Home Manager 在 `~/.local/bin/code` 与 `~/.local/bin/antigravity` 安装 wrapper
+- 通过 Home Manager 在 `~/.local/bin/code`、`~/.local/bin/cursor` 与 `~/.local/bin/antigravity` 安装 wrapper
 - wrapper 同时导出 `CHECKPOINTING=false`，绕过当前 `Gemini Code Assist` 扩展在 checkpointing 启动链路中的 `git` 探测问题
 
 应用方式：
@@ -341,7 +341,7 @@ cd /persistent/nixos-config
 just host=zly switch
 ```
 
-然后完全退出 `VSCode` / `Antigravity` 再重开。
+然后完全退出 `VSCode` / `Cursor` / `Antigravity` 再重开。
 
 ### 9.9 `mise` 写成 `latest` 后为什么还需要显式升级
 

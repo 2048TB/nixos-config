@@ -186,6 +186,7 @@ rec {
 
   allowedUnfreePackageNames = [
     "antigravity"
+    "cursor"
     "google-chrome"
     "libcusparse_lt"
     "nvidia-settings"

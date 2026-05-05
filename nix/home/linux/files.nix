@@ -11,6 +11,7 @@ let
     "Warning: 'enable-features' is not in the list of known options, but still passed to Electron/Chromium."
     "Warning: 'enable-wayland-ime' is not in the list of known options, but still passed to Electron/Chromium."
     "Warning: 'wayland-text-input-version' is not in the list of known options, but still passed to Electron/Chromium."
+    "Warning: 'update' is not in the list of known options, but still passed to Electron/Chromium."
   ];
   mkSedDeleteExpr = pattern:
     let
@@ -52,6 +53,7 @@ let
     '';
   };
   codeTarget = lib.getExe pkgs.vscode;
+  cursorTarget = lib.getExe pkgs.code-cursor;
   antigravityTarget =
     if hasDesktopSession && enableAntigravity && pkgs ? antigravity then
       lib.getExe pkgs.antigravity
@@ -116,6 +118,11 @@ in
     ".local/bin/code" = {
       executable = true;
       source = lib.getExe (mkGuiCliWrapper "code" resolvedCodeTarget);
+    };
+
+    ".local/bin/cursor" = lib.mkIf hasDesktopSession {
+      executable = true;
+      source = lib.getExe (mkGuiCliWrapper "cursor" cursorTarget);
     };
 
     ".local/bin/antigravity" = {

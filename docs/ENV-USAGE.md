@@ -99,7 +99,7 @@ mise upgrade --yes
 
 适用场景：
 
-- 从桌面直接启动 `VSCode` / `Antigravity`
+- 从桌面直接启动 `VSCode` / `Cursor` / `Antigravity`
 - 依赖 `mise` 管理的 `go` / `gopls` / `node` 等工具链和部分个人 CLI
 
 差异点：
@@ -107,7 +107,7 @@ mise upgrade --yes
 - GUI 进程不会读取交互式 `zshrc`
 - 因此不能只依赖 `mise activate zsh` 把工具链注入 `PATH`
 - 当前仓库通过 Home Manager 把 `~/.local/share/mise/shims` 放进 session `PATH`
-- 当前仓库通过 Home Manager 在 `~/.local/bin/code` 与 `~/.local/bin/antigravity` 安装 wrapper
+- 当前仓库通过 Home Manager 在 `~/.local/bin/code`、`~/.local/bin/cursor` 与 `~/.local/bin/antigravity` 安装 wrapper
 - wrapper 还会导出 `CHECKPOINTING=false`，绕过当前 `Gemini Code Assist` 扩展的 checkpointing 启动问题
 - 全局 `mise` 工具的远端更新默认由 `mise upgrade --yes` 手动执行；自动 timer 是 host opt-in
 
