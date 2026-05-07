@@ -3,6 +3,7 @@ let
   cudaToolkit = pkgs.cudaPackages.cudatoolkit;
   cudaNvcc = pkgs.cudaPackages.cuda_nvcc;
   inherit (pkgs.cudaPackages) cudnn nccl;
+  unstableOllamaCuda = pkgs.unstable.ollama-cuda;
 in
 {
   environment.systemPackages = [
@@ -10,7 +11,13 @@ in
     cudaNvcc
     cudnn
     nccl
+    unstableOllamaCuda
   ];
+
+  services.ollama = {
+    enable = true;
+    package = unstableOllamaCuda;
+  };
 
   environment.variables = {
     CUDA_PATH = cudaToolkit;
