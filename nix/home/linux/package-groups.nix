@@ -42,7 +42,6 @@
   desktop = [
     "google-chrome"
     "vscode"
-    "code-cursor"
     "zed-editor-fhs"
     "remmina"
     "nomacs"

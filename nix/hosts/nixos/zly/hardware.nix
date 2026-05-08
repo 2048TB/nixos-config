@@ -4,5 +4,6 @@ args@{ mylib, ... }:
     ../_shared/hardware-workarounds-common.nix
     ./hardware-gpu-hybrid.nix
     ./ml-stack.nix
+    ./ssh-access.nix
   ];
 }) args
